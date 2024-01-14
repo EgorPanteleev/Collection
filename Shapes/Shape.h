@@ -6,6 +6,7 @@
 class Shape {
 public:
     virtual double intersectsWithRay( const Ray& ray ) = 0;
+    virtual Point getNormal( Point p ) = 0;
     RGB getColor() const;
     void setColor( RGB c );
 private:

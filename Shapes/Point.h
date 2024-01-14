@@ -25,6 +25,10 @@ public:
 
     Point operator-( const Point& p ) const;
 
+    Point operator*( double a ) const;
+
+    Point operator/( double a ) const;
+
     bool operator==( const Point& p );
 
     bool operator!=( const Point& p );

@@ -5,6 +5,8 @@
 class RGB {
 public:
     void set( double _r, double _g, double _b );
+    RGB operator*( double a);
+    RGB operator/( double a);
     RGB();
     RGB( double _r, double _g, double _b);
     ~RGB();

@@ -8,8 +8,8 @@ public:
     Point getDirection() const;
     void setOrigin( Point orig );
     void setDirection( Point dir );
-    Ray():origin(), direction(){};
-    Ray(Point from, Point to): origin(from), direction(to - from){}
+    Ray();
+    Ray(Point from, Point to);
     ~Ray();
 private:
     Point origin;

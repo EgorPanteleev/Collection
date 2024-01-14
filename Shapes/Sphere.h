@@ -7,6 +7,7 @@ class Sphere: public Shape {
 public:
     Sphere();
     Sphere( double r, Point pos, RGB _color );
+    virtual Point getNormal( Point p );
     virtual double intersectsWithRay( const Ray& ray );
 public:
     double radius;

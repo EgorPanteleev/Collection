@@ -10,10 +10,7 @@ Canvas::Canvas( const int _w, const int _h ) {
 }
 
 Canvas::~Canvas() {
-    for ( int i = 0; i < numX; i++ ) {
-        delete data[i];
-    }
-    delete data;
+    delete[] data;
 }
 void Canvas::setPixel( int x, int y, RGB color ) {
     data[x][y] = color;

@@ -49,6 +49,22 @@ Point Point::operator-( const Point& p ) const {
     return ret;
 }
 
+Point Point::operator*( double a ) const {
+    Point ret;
+    ret.setX( x * a );
+    ret.setY( y * a );
+    ret.setZ( z * a );
+    return ret;
+}
+
+Point Point::operator/( double a ) const {
+    Point ret;
+    ret.setX( x / a );
+    ret.setY( y / a );
+    ret.setZ( z / a );
+    return ret;
+}
+
 bool Point::operator==( const Point& p ) {
     return ( x == p.getX() && y == p.getY() && z == p.getZ() );
 }

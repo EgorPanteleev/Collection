@@ -3,7 +3,6 @@
 double dot( Point& p1, Point& p2 ) {
     return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ());
 }
-
 Sphere::Sphere(): radius(0), origin() {
 }
 Sphere::Sphere( double r, Point pos, RGB _color ): radius(r), origin(pos) {
@@ -25,4 +24,8 @@ double Sphere::intersectsWithRay( const Ray& ray ) {
     double t2 = (-k2 - sqrt(disc)) / (2 * k1);
     if ( t1 < t2 ) t2 = t1;
     return t2;
+}
+
+Point Sphere::getNormal( Point p ) {
+    return ( p - origin );
 }

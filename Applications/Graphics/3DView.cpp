@@ -6,8 +6,6 @@
 #include "Camera.h"
 #include "Sphere.h"
 #include "Image.h"
-#include "fstream"
-#include <iomanip>
 int angX = 0;
 int angY = 0;
 int angZ = 0;

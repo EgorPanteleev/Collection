@@ -3,6 +3,13 @@
 //
 
 #include "Ray.h"
+#include "cmath"
+Ray::Ray():origin(), direction(){}
+Ray::Ray(Point from, Point to):origin(from) {
+    direction = to - from;
+    double lenght = sqrt( pow( direction.getX(), 2 ) +  pow( direction.getY(), 2 ) + pow( direction.getZ(), 2 ));
+    direction = direction / lenght;
+}
 
 Point Ray::getOrigin() const {
     return origin;
