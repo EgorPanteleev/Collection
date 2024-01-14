@@ -3,6 +3,8 @@ set(CMAKE_CXX_STANDARD 23)
 
 project(Collection)
 
+add_subdirectory(Math)
+
 add_subdirectory(BitMapImage)
 
 add_subdirectory(Shapes)

@@ -10,7 +10,7 @@ class RayTracer {
 public:
     RayTracer( Scene* s );
     ~RayTracer();
-    double computeLight( Point P, Point N );
+    double computeLight( Vector3f P, Vector3f N );
     RGB traceRay( Ray& ray );
     void traceAllRays( Camera& cam );
     Canvas* getCanvas() const;

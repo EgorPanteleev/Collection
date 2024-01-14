@@ -31,5 +31,9 @@
 *.out
 *.app
 
+#build directory
+*build*
+*release*
+
 # Clion
 *.idea

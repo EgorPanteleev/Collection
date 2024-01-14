@@ -1,17 +1,17 @@
 #ifndef COLLECTION_SPHERE_H
 #define COLLECTION_SPHERE_H
 
-#include "Point.h"
+#include "Vector.h"
 #include "Shape.h"
 class Sphere: public Shape {
 public:
     Sphere();
-    Sphere( double r, Point pos, RGB _color );
-    virtual Point getNormal( Point p );
+    Sphere( double r, Vector3f pos, RGB _color );
+    virtual Vector3f getNormal( Vector3f p );
     virtual double intersectsWithRay( const Ray& ray );
 public:
     double radius;
-    Point origin;
+    Vector3f origin;
 };
 
 

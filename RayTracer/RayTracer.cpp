@@ -2,13 +2,13 @@
 #include <cmath>
 #define BACKGROUND_COLOR RGB(0,0,0)
 
-double dot( Point p1, Point p2 ) {
+double dot( Vector3f p1, Vector3f p2 ) {
     return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ());
 }
 
-Point normalize( Point p ) {
+Vector3f normalize( Vector3f p ) {
     double lenght = sqrt( pow( p.getX(), 2 ) +  pow( p.getY(), 2 ) + pow( p.getZ(), 2 ));
-    Point p1;
+    Vector3f p1;
     p1 = p / lenght;
     return p1;
 }
@@ -22,10 +22,10 @@ RayTracer::~RayTracer() {
     delete canvas;
 }
 
-double RayTracer::computeLight( Point P, Point N ) {
+double RayTracer::computeLight( Vector3f P, Vector3f N ) {
     double i = 0;
     for ( auto light: scene->lights ) {
-        Point L = light->origin - P;
+        Vector3f L = light->origin - P;
         double d = dot(normalize( N ), normalize( L ) );
         if ( d > 0 ) i += light->intensity * d;
     }
@@ -37,8 +37,8 @@ RGB RayTracer::traceRay( Ray& ray ) {
     for ( auto shape: scene->shapes ) {
         double t = shape->intersectsWithRay( ray );
         if ( t != std::numeric_limits<double>::min() ) {
-            Point P = ray.getOrigin() + ray.getDirection() * t;
-            Point N = shape->getNormal( P );
+            Vector3f P = ray.getOrigin() + ray.getDirection() * t;
+            Vector3f N = shape->getNormal( P );
             double i = computeLight( P, N );
             return shape->getColor() * i;
         }
@@ -51,8 +51,8 @@ void RayTracer::traceAllRays( Camera& cam ) {
     double uY = cam.Vy / canvas->getH();
     for ( int x = 0; x < canvas->getW(); ++x ) {
         for ( int y = 0; y < canvas->getH(); ++y ) {
-            Point from = cam.origin;
-            Point to = Point( from.getX() - cam.Vx / 2 + x * uX,
+            Vector3f from = cam.origin;
+            Vector3f to = Vector3f( from.getX() - cam.Vx / 2 + x * uX,
                               from.getY() - cam.Vy / 2 + y * uY ,
                               from.getZ() + cam.dV );
             Ray ray( from, to);

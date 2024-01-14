@@ -1,13 +1,13 @@
 #ifndef COLLECTION_CAMERA_H
 #define COLLECTION_CAMERA_H
-#include "Point.h"
+#include "Vector.h"
 
 class Camera {
 public:
     Camera();
-    Camera( Point pos, double dv, double vx, double vy );
+    Camera( Vector3f pos, double dv, double vx, double vy );
 public:
-    Point origin;
+    Vector3f origin;
     double dV;
     double Vx;
     double Vy;

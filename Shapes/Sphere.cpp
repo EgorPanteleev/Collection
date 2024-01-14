@@ -1,17 +1,17 @@
 #include <cmath>
 #include "Sphere.h"
-double dot( Point& p1, Point& p2 ) {
+double dot( Vector3f& p1, Vector3f& p2 ) {
     return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ());
 }
 Sphere::Sphere(): radius(0), origin() {
 }
-Sphere::Sphere( double r, Point pos, RGB _color ): radius(r), origin(pos) {
+Sphere::Sphere( double r, Vector3f pos, RGB _color ): radius(r), origin(pos) {
     setColor( _color );
 }
 
 double Sphere::intersectsWithRay( const Ray& ray ) {
-    Point D = ray.getDirection();
-    Point OC = ray.getOrigin() - origin;
+    Vector3f D = ray.getDirection();
+    Vector3f OC = ray.getOrigin() - origin;
     double k1 = dot( D, D );
     double k2 = 2 * dot( OC, D );
     double k3 = dot( OC, OC ) - radius * radius;
@@ -26,6 +26,6 @@ double Sphere::intersectsWithRay( const Ray& ray ) {
     return t2;
 }
 
-Point Sphere::getNormal( Point p ) {
+Vector3f Sphere::getNormal( Vector3f p ) {
     return ( p - origin );
 }

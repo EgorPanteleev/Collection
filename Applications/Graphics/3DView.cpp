@@ -10,7 +10,7 @@ int angX = 0;
 int angY = 0;
 int angZ = 0;
 int zoom = -20;
-Camera cam( Point(0,0,0), 200,200,200 );
+Camera cam( Vector3f(0,0,0), 200,200,200 );
 Scene* scene = new Scene();
 RayTracer rayt( scene );
 
@@ -45,7 +45,7 @@ void read_kb(unsigned char k, int, int)
 
     glutPostRedisplay();
 }
-void drawSphere(Point p, float r, int num_segments, RGB color) {
+void drawSphere(Vector3f p, float r, int num_segments, RGB color) {
     glPushMatrix();
     glColor3f(color.r, color.g, color.b);
     glTranslatef(p.getX(),p.getY(), p.getZ());
@@ -54,8 +54,8 @@ void drawSphere(Point p, float r, int num_segments, RGB color) {
 }
 
 int first = true;
-std::vector<Point> fromVec;
-std::vector<Point> toVec;
+std::vector<Vector3f> fromVec;
+std::vector<Vector3f> toVec;
 std::vector<Sphere*> spheres;
 void RenderScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -70,21 +70,21 @@ void RenderScene() {
     double uY = cam.Vy / rayt.getCanvas()->getH();
     if ( first ) {
         first = false;
-        spheres.push_back(new Sphere(50, Point(120, 120, 300), RGB(255,0 ,0 )));
-        spheres.push_back(new Sphere(20, Point(40, 40, 400), RGB(0, 255, 0)));
-        spheres.push_back(new Sphere(30, Point(-20, -20, 500), RGB(0, 0, 255)));
+        spheres.push_back(new Sphere(50, Vector3f(120, 120, 300), RGB(255,0 ,0 )));
+        spheres.push_back(new Sphere(20, Vector3f(40, 40, 400), RGB(0, 255, 0)));
+        spheres.push_back(new Sphere(30, Vector3f(-20, -20, 500), RGB(0, 0, 255)));
         for ( auto s: spheres ) {
             scene->shapes.push_back( s );
         }
         Light* l = new Light();
-        l->origin = Point(-150,0,100);
+        l->origin = Vector3f(-150,0,100);
         l->intensity = 0.8;
         scene->lights.push_back(l);
         //rayt.traceAllRays( cam );
         for (int x = 0; x < rayt.getCanvas()->getW(); ++x) {
             for (int y = 0; y < rayt.getCanvas()->getH(); ++y) {
-                Point from = cam.origin;
-                Point to = Point(from.getX() - cam.Vx / 2 + x * uX,
+                Vector3f from = cam.origin;
+                Vector3f to = Vector3f(from.getX() - cam.Vx / 2 + x * uX,
                                  from.getY() - cam.Vy / 2 + y * uY,
                                  from.getZ() + cam.dV);
                 glColor3f(0, 1, 0);

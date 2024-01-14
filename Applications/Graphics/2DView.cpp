@@ -6,23 +6,23 @@
 #include "Image.h"
 
 int main() {
-    Camera cam( Point(0,0,0), 200,200,200 );
+    Camera cam( Vector3f(0,0,0), 200,200,200 );
     Scene* scene = new Scene();
     RayTracer rayt( scene );
     std::vector<Sphere*> spheres;
     std::vector<Light*> ligths;
-    spheres.push_back(new Sphere(50, Point(120, 120, 300), RGB(255,0 ,0 )));
-    spheres.push_back(new Sphere(20, Point(40, 40, 400), RGB(0, 255, 0)));
-    spheres.push_back(new Sphere(30, Point(-20, -20, 500), RGB(0, 0, 255)));
+    spheres.push_back(new Sphere(50, Vector3f(120, 120, 300), RGB(255,0 ,0 )));
+    spheres.push_back(new Sphere(20, Vector3f(40, 40, 400), RGB(0, 255, 0)));
+    spheres.push_back(new Sphere(30, Vector3f(-20, -20, 500), RGB(0, 0, 255)));
     for ( auto s: spheres ) {
         scene->shapes.push_back( s );
     }
     Light* l1 = new Light();
-    l1->origin = Point(-150,300,100);
+    l1->origin = Vector3f(-150,300,100);
     l1->intensity = 0.8;
     ligths.push_back(l1);
     Light* l2 = new Light();
-    l2->origin = Point(300,0,100);
+    l2->origin = Vector3f(300,0,100);
     l2->intensity = 0.6;
     //ligths.push_back(l2);
     for ( auto l: ligths ) {

@@ -5,27 +5,27 @@
 #include "Ray.h"
 #include "cmath"
 Ray::Ray():origin(), direction(){}
-Ray::Ray(Point from, Point to):origin(from) {
+Ray::Ray(Vector3f from, Vector3f to):origin(from) {
     direction = to - from;
     double lenght = sqrt( pow( direction.getX(), 2 ) +  pow( direction.getY(), 2 ) + pow( direction.getZ(), 2 ));
     direction = direction / lenght;
 }
 
-Point Ray::getOrigin() const {
+Vector3f Ray::getOrigin() const {
     return origin;
 }
-Point Ray::getDirection() const {
+Vector3f Ray::getDirection() const {
     return direction;
 }
 
-void Ray::setOrigin( Point orig ) {
+void Ray::setOrigin( Vector3f orig ) {
     origin = orig;
 }
-void Ray::setDirection( Point dir ) {
+void Ray::setDirection( Vector3f dir ) {
     direction = dir;
 }
 
 Ray::~Ray() {
-    origin = Point();
-    direction = Point();
+    origin = Vector3f();
+    direction = Vector3f();
 }

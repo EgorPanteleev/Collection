@@ -1,19 +1,19 @@
 #ifndef COLLECTION_RAY_H
 #define COLLECTION_RAY_H
-#include "Point.h"
+#include "Vector.h"
 
 class Ray {
 public:
-    Point getOrigin() const;
-    Point getDirection() const;
-    void setOrigin( Point orig );
-    void setDirection( Point dir );
+    Vector3f getOrigin() const;
+    Vector3f getDirection() const;
+    void setOrigin( Vector3f orig );
+    void setDirection( Vector3f dir );
     Ray();
-    Ray(Point from, Point to);
+    Ray(Vector3f from, Vector3f to);
     ~Ray();
 private:
-    Point origin;
-    Point direction;
+    Vector3f origin;
+    Vector3f direction;
 };
 
 

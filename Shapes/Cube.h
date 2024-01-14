@@ -2,17 +2,17 @@
 #ifndef COLLECTION_CUBE_H
 #define COLLECTION_CUBE_H
 #include "Shape.h"
-#include "Point.h"
+#include "Vector.h"
 class Cube: public Shape {
 public:
     Cube();
-    Cube( Point _p1, Point _p2);
+    Cube( Vector3f _p1, Vector3f _p2);
     Cube( double x1, double y1, double z1, double x2, double y2, double z2);
     virtual double intersectsWithRay( const Ray& ray );
-    virtual Point getNormal( Point p ){}
+    virtual Vector3f getNormal( Vector3f p ){}
 private:
-    Point p1;
-    Point p2;
+    Vector3f p1;
+    Vector3f p2;
 };
 
 
