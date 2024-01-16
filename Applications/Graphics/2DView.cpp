@@ -6,9 +6,9 @@
 #include "Image.h"
 
 int main() {
-    Camera cam( Vector3f(0,0,0), 200,200,200 );
+    Camera* cam = new Camera( Vector3f(0,0,-1), Vector3f(0,0,1), 1000,1000,1000 );
     Scene* scene = new Scene();
-    RayTracer rayt( scene );
+    RayTracer rayt( cam, scene );
     std::vector<Sphere*> spheres;
     std::vector<Light*> ligths;
     spheres.push_back(new Sphere(50, Vector3f(120, 120, 300), RGB(255,0 ,0 )));
@@ -28,7 +28,7 @@ int main() {
     for ( auto l: ligths ) {
         scene->lights.push_back( l );
     }
-    rayt.traceAllRays( cam );
+    rayt.traceAllRays();
     Bitmap bmp(rayt.getCanvas()->getW(), rayt.getCanvas()->getH());
     for (int x = 0; x < rayt.getCanvas()->getW(); ++x) {
         for (int y = 0; y < rayt.getCanvas()->getH(); ++y) {
@@ -37,5 +37,6 @@ int main() {
         }
     }
     bmp.save( "out.bmp" );
+    delete cam, scene;
     return 0;
 }

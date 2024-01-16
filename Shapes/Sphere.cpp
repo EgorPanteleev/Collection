@@ -1,8 +1,6 @@
 #include <cmath>
 #include "Sphere.h"
-double dot( Vector3f& p1, Vector3f& p2 ) {
-    return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ());
-}
+#include "Utils.h"
 Sphere::Sphere(): radius(0), origin() {
 }
 Sphere::Sphere( double r, Vector3f pos, RGB _color ): radius(r), origin(pos) {

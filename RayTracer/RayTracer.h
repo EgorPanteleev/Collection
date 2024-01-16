@@ -8,13 +8,14 @@
 #include "Camera.h"
 class RayTracer {
 public:
-    RayTracer( Scene* s );
+    RayTracer( Camera* c, Scene* s );
     ~RayTracer();
     double computeLight( Vector3f P, Vector3f N );
     RGB traceRay( Ray& ray );
-    void traceAllRays( Camera& cam );
+    void traceAllRays();
     Canvas* getCanvas() const;
 private:
+    Camera* cam;
     Scene* scene;
     Canvas* canvas;
 };
