@@ -1,11 +1,18 @@
-
-#ifndef COLLECTION_UTILS_H
-#define COLLECTION_UTILS_H
-
+#pragma once
 #include "Vector.h"
+#include "Vector4f.h"
+#include "Mat4f.h"
 
 double dot( Vector3f p1, Vector3f p2 );
 
-Vector3f normalize( Vector3f p );
+double dot( Vector4f p1, Vector4f p2 );
 
-#endif //COLLECTION_UTILS_H
+Vector4f operator*( const Mat4f& m, const Vector4f& v );
+
+Mat4f operator*( float a, const Mat4f& m );
+
+Mat4f operator*( const Mat4f& m, float a );
+
+Vector4f operator*( const Vector4f& v, const Mat4f& m );
+
+Mat4f operator*( const Mat4f& m1, const Mat4f& m2 );
