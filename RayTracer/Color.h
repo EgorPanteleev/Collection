@@ -4,9 +4,9 @@
 #undef RGB
 class RGB {
 public:
-    void set( double _r, double _g, double _b );
-    RGB operator*( double a);
-    RGB operator/( double a);
+    void set( float _r, float _g, float _b );
+    RGB operator*( double a) const;
+    RGB operator/( double a) const;
     RGB();
     RGB( double _r, double _g, double _b);
     ~RGB();
