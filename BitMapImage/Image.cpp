@@ -16,7 +16,7 @@ void Bitmap::save(const std::string& filename) {
 
     BitmapFileHeader fileHeader{
             .type = 0x4D42, // BM
-            .size = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + width * height * 3,
+            .size = static_cast<uint32_t>(sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + width * height * 3 ),
             .reserved1 = 0,
             .reserved2 = 0,
             .offset = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader)
