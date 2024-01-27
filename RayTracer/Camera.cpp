@@ -4,14 +4,14 @@
 #include "Utils.h"
 Camera::Camera(): viewMatrix(), origin(), forward(), up(), right(), dV(0), Vx(0), Vy(0) {
 }
-Camera::Camera( const Vector3f& pos, const Vector3f& dir, float dv, float vx, float vy ): origin( pos ), forward(dir), dV(dv), Vx(vx), Vy(vy) {
+Camera::Camera( Vector3f pos, Vector3f dir, double dv, double vx, double vy ): origin( pos ), forward(dir), dV(dv), Vx(vx), Vy(vy) {
     forward = Vector3f(0,0,1);
     right = Vector3f(1,0,0);
     up = Vector3f(0,1,0);
     LookAt( dir, up);
 }
 
-Mat4f Camera::LookAt( const Vector3f& target, const Vector3f& _up ) {
+Mat4f Camera::LookAt( Vector3f target, Vector3f _up ) {
     forward = (target - origin).normalize();
     right = _up.cross(forward).normalize();
     up = forward.cross(right);

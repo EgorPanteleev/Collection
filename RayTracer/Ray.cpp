@@ -5,10 +5,10 @@
 #include "Ray.h"
 #include <cmath>
 Ray::Ray():origin(), direction(){}
-Ray::Ray(const Vector3f& from, const Vector3f& to):origin(from) {
+Ray::Ray(Vector3f from, Vector3f to):origin(from) {
     direction = to - from;
-    float len = sqrt( pow( direction.getX(), 2 ) +  pow( direction.getY(), 2 ) + pow( direction.getZ(), 2 ));
-    direction = direction / len;
+    double lenght = sqrt( pow( direction.getX(), 2 ) +  pow( direction.getY(), 2 ) + pow( direction.getZ(), 2 ));
+    direction = direction / lenght;
 }
 
 Vector3f Ray::getOrigin() const {
@@ -18,10 +18,10 @@ Vector3f Ray::getDirection() const {
     return direction;
 }
 
-void Ray::setOrigin( const Vector3f& orig ) {
+void Ray::setOrigin( Vector3f orig ) {
     origin = orig;
 }
-void Ray::setDirection( const Vector3f& dir ) {
+void Ray::setDirection( Vector3f dir ) {
     direction = dir;
 }
 

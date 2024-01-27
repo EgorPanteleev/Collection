@@ -6,7 +6,7 @@ class Light {
 public:
     Light();
     Vector3f origin;
-    float intensity;
+    double intensity;
 private:
 };
 

@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Utils.h"
 #define BACKGROUND_COLOR RGB(0,0,0)
+#include "Mat.h"
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
@@ -13,9 +14,9 @@ RayTracer::~RayTracer() {
 }
 
 IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
-    IntersectionData data( std::numeric_limits<float>::max(), nullptr);
+    IntersectionData data( std::numeric_limits<double>::max(), nullptr);
     for ( auto shape: scene->shapes ) {
-        float t = shape->intersectsWithRay(ray);
+        double t = shape->intersectsWithRay(ray);
         if (t == std::numeric_limits<double>::min()) continue;
         if ( data.t < t ) continue;
         data.t = t;
@@ -24,8 +25,8 @@ IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
     return data;
 }
 
-float RayTracer::computeLight( const Vector3f& P, Vector3f& N, Shape* shape ) const {
-    float i = 0;
+double RayTracer::computeLight( Vector3f P, Vector3f N, Shape* shape ) {
+    double i = 0;
     for ( auto light: scene->lights ) {
         Ray ray = Ray( light->origin, P );
         IntersectionData iData = closestIntersection( ray );
@@ -38,12 +39,12 @@ float RayTracer::computeLight( const Vector3f& P, Vector3f& N, Shape* shape ) co
     return i;
 }
 
-RGB RayTracer::traceRay( Ray& ray ) const {
+RGB RayTracer::traceRay( Ray& ray ) {
     IntersectionData iData = closestIntersection( ray );
     if ( iData.t == std::numeric_limits<double>::max() ) return BACKGROUND_COLOR;
     Vector3f P = ray.getOrigin() + ray.getDirection() * iData.t;
     Vector3f N = iData.shape->getNormal( P );
-    float i = computeLight( P, N, iData.shape );
+    double i = computeLight( P, N, iData.shape );
     return iData.shape->getColor() * i;
 }
 

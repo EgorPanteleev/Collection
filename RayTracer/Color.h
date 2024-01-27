@@ -4,16 +4,16 @@
 #undef RGB
 class RGB {
 public:
-    void set( float _r, float _g, float _b );
-    RGB operator*( float a) const;
-    RGB operator/( float a) const;
+    void set( double _r, double _g, double _b );
+    RGB operator*( double a);
+    RGB operator/( double a);
     RGB();
-    RGB( float _r, float _g, float _b);
+    RGB( double _r, double _g, double _b);
     ~RGB();
 public:
-    float r;
-    float g;
-    float b;
+    double r;
+    double g;
+    double b;
 };
 
 

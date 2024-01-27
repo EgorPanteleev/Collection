@@ -12,7 +12,7 @@ Canvas::Canvas( const int _w, const int _h ) {
 Canvas::~Canvas() {
     delete[] data;
 }
-void Canvas::setPixel( int x, int y, const RGB& color ) {
+void Canvas::setPixel( int x, int y, RGB color ) {
     data[x][y] = color;
 }
 
