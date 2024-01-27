@@ -1,6 +1,5 @@
 #include "Vector3f.h"
 #include <cmath>
-#include "Utils.h"
 void Vector3f::setX( float _x ) {
     x = _x;
 }
@@ -34,8 +33,8 @@ void Vector3f::set( const Vector3f& p ) {
 Vector3f Vector3f::normalize() const {
     Vector3f res;
     res = *this;
-    float lenght = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ));
-    return res/lenght;
+    float len = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ));
+    return res/len;
 }
 
 Vector3f Vector3f::cross( Vector3f vec ) const {

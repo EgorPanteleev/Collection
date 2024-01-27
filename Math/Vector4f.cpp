@@ -42,8 +42,8 @@ void Vector4f::set( const Vector4f& p ) {
 
 Vector4f Vector4f::normalize() const {
     Vector4f res = *this;
-    float lenght = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ) + pow( w, 2));
-    return res/lenght;
+    float len = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ) + pow( w, 2));
+    return res/len;
 }
 
 Vector4f Vector4f::cross( Vector4f vec ) const {

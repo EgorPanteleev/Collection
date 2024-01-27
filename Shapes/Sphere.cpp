@@ -19,7 +19,7 @@ float Sphere::intersectsWithRay( const Ray& ray ) const {
     float k2 = 2 * dot( OC, D );
     float k3 = dot( OC, OC ) - radius * radius;
 
-    int disc = k2 * k2 - 4 * k1 * k3;
+    float disc = k2 * k2 - 4 * k1 * k3;
     if ( disc < 0 ) {
         return std::numeric_limits<float>::min();
     }
