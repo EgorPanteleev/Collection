@@ -5,7 +5,7 @@
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
-    canvas = new Canvas(500,500);
+    canvas = new Canvas(2000,2000);
 }
 
 RayTracer::~RayTracer() {

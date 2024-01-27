@@ -50,6 +50,13 @@ Mat3f operator/( const Mat3f& m, float a ) {
     };
 }
 
+Mat2f operator/( const Mat2f& m, float a ) {
+    return Mat2f{
+            m[0] / a,
+            m[1] / a
+    };
+}
+
 Vector4f operator*( const Mat4f& m, const Vector4f& v ) {
     return Vector4f{
             m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3],
