@@ -2,11 +2,10 @@
 #include <cmath>
 #include "Utils.h"
 #define BACKGROUND_COLOR RGB(0,0,0)
-#include "Mat.h"
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
-    canvas = new Canvas(700,700);
+    canvas = new Canvas(500,500);
 }
 
 RayTracer::~RayTracer() {
@@ -14,9 +13,9 @@ RayTracer::~RayTracer() {
 }
 
 IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
-    IntersectionData data( std::numeric_limits<double>::max(), nullptr);
+    IntersectionData data( std::numeric_limits<float>::max(), nullptr);
     for ( auto shape: scene->shapes ) {
-        double t = shape->intersectsWithRay(ray);
+        float t = shape->intersectsWithRay(ray);
         if (t == std::numeric_limits<float>::min()) continue;
         if ( data.t < t ) continue;
         data.t = t;
@@ -25,14 +24,14 @@ IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
     return data;
 }
 
-double RayTracer::computeLight( Vector3f P, Vector3f N, Shape* shape ) {
-    double i = 0;
+float RayTracer::computeLight( const Vector3f& P, const Vector3f& N, Shape* shape ) {
+    float i = 0;
     for ( auto light: scene->lights ) {
         Ray ray = Ray( light->origin, P );
         IntersectionData iData = closestIntersection( ray );
         if ( iData.shape != shape ) continue;
         Vector3f L = light->origin - P;
-        double d = dot(N.normalize(), L.normalize() );
+        float d = dot(N.normalize(), L.normalize() );
         if ( d > 0 ) i += light->intensity * d;
     }
     if ( i > 1 ) i = 1;
@@ -41,10 +40,10 @@ double RayTracer::computeLight( Vector3f P, Vector3f N, Shape* shape ) {
 
 RGB RayTracer::traceRay( Ray& ray ) {
     IntersectionData iData = closestIntersection( ray );
-    if ( iData.t == std::numeric_limits<double>::max() ) return BACKGROUND_COLOR;
+    if ( iData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR;
     Vector3f P = ray.getOrigin() + ray.getDirection() * iData.t;
     Vector3f N = iData.shape->getNormal( P );
-    double i = computeLight( P, N, iData.shape );
+    float i = computeLight( P, N, iData.shape );
     return iData.shape->getColor() * i;
 }
 

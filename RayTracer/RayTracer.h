@@ -10,8 +10,8 @@
 
 struct IntersectionData {
     IntersectionData(): t(0), shape(nullptr) {};
-    IntersectionData( double _t, Shape* _shape): t(_t), shape(_shape) {};
-    double t;
+    IntersectionData( float _t, Shape* _shape): t(_t), shape(_shape) {};
+    float t;
     Shape* shape;
 };
 class RayTracer {
@@ -19,7 +19,7 @@ public:
     RayTracer( Camera* c, Scene* s );
     ~RayTracer();
     IntersectionData closestIntersection( Ray& ray ) const;
-    double computeLight( Vector3f P, Vector3f N, Shape* shape );
+    float computeLight( const Vector3f& P, const Vector3f& N, Shape* shape );
     RGB traceRay( Ray& ray );
     void traceAllRays();
     Canvas* getCanvas() const;
