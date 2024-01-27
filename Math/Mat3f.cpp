@@ -14,7 +14,7 @@ const Vector3f& Mat3f::operator[]( int index ) const {
 
 Mat3f::Mat3f(): columns() { }
 
-Mat3f::Mat3f( Vector3f vec1, Vector3f vec2, Vector3f vec3 ) {
+Mat3f::Mat3f( const Vector3f& vec1, const Vector3f& vec2, const Vector3f& vec3 ) {
     columns[0] = vec1;
     columns[1] = vec2;
     columns[2] = vec3;

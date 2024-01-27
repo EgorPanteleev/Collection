@@ -40,16 +40,17 @@ void Vector4f::set( const Vector4f& p ) {
     w = p.getW();
 }
 
-Vector4f Vector4f::normalize() {
+Vector4f Vector4f::normalize() const {
+    Vector4f res = *this;
     float lenght = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ) + pow( w, 2));
-    return *this/lenght;
+    return res/lenght;
 }
 
-Vector4f Vector4f::cross( Vector4f vec ) {
+Vector4f Vector4f::cross( Vector4f vec ) const {
     Vector3f vec1 = Vector3f(x, y, z);
     Vector3f vec2 = Vector3f(vec[0], vec[1], vec[2]);
     Vector3f res = vec1.cross(vec2);
-    return Vector4f(res[0], res[1], res[2], 1);
+    return {res[0], res[1], res[2], 1};
 }
 
 float& Vector4f::operator[]( int index ) {
@@ -66,8 +67,9 @@ const float& Vector4f::operator[]( int index ) const {
     if ( index == 3) return w;
 }
 
-void Vector4f::operator=( const Vector4f& p ) {
+Vector4f& Vector4f::operator=( const Vector4f& p ) {
     set(p);
+    return *this;
 }
 
 Vector4f Vector4f::operator+( const Vector4f& p ) const {
@@ -106,11 +108,11 @@ Vector4f Vector4f::operator/( float a ) const {
     return ret;
 }
 
-bool Vector4f::operator==( const Vector4f& p ) {
+bool Vector4f::operator==( const Vector4f& p ) const {
     return ( x == p.getX() && y == p.getY() && z == p.getZ() && w == p.getW() );
 }
 
-bool Vector4f::operator!=( const Vector4f& p ) {
+bool Vector4f::operator!=( const Vector4f& p ) const {
     return (!(*this == p));
 }
 

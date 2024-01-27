@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Sphere.h"
 #include "Image.h"
+#include <time.h>
 
 int main() {
     Camera* cam = new Camera( Vector3f(0,0,0), Vector3f(0,0,1), 1000,1000,1000 );
@@ -34,7 +35,11 @@ int main() {
     for ( auto l: ligths ) {
         scene->lights.push_back( l );
     }
+    clock_t start = clock();
     rayt.traceAllRays();
+    clock_t end = clock();
+    double seconds = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("The time: %f seconds\n", seconds); // best - 2.029000
     Bitmap bmp(rayt.getCanvas()->getW(), rayt.getCanvas()->getH());
     for (int x = 0; x < rayt.getCanvas()->getW(); ++x) {
         for (int y = 0; y < rayt.getCanvas()->getH(); ++y) {

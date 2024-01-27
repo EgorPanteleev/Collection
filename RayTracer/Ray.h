@@ -4,12 +4,12 @@
 
 class Ray {
 public:
-    Vector3f getOrigin() const;
-    Vector3f getDirection() const;
-    void setOrigin( Vector3f orig );
-    void setDirection( Vector3f dir );
+    [[nodiscard]] Vector3f getOrigin() const;
+    [[nodiscard]] Vector3f getDirection() const;
+    void setOrigin( const Vector3f& orig );
+    void setDirection( const Vector3f& dir );
     Ray();
-    Ray(Vector3f from, Vector3f to);
+    Ray(const Vector3f& from, const Vector3f& to);
     ~Ray();
 private:
     Vector3f origin;

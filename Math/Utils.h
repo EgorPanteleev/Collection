@@ -3,11 +3,11 @@
 #include "Vector4f.h"
 #include "Mat4f.h"
 #include "Mat3f.h"
-double dot( Vector3f p1, Vector3f p2 );
+float dot( const Vector3f& p1, const Vector3f& p2 );
 
-double dot( Vector4f p1, Vector4f p2 );
+float dot( const Vector4f& p1, const Vector4f& p2 );
 
-double getDistance( Vector3f p1, Vector3f p2 );
+float getDistance( const Vector3f& p1, const Vector3f& p2 );
 
 Vector4f operator*( const Mat4f& m, const Vector4f& v );
 

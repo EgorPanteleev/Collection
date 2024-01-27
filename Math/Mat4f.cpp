@@ -15,7 +15,7 @@ const Vector4f& Mat4f::operator[]( int index ) const {
 
 Mat4f::Mat4f(): columns() { }
 
-Mat4f::Mat4f( Vector4f vec1, Vector4f vec2, Vector4f vec3, Vector4f vec4 ) {
+Mat4f::Mat4f( const Vector4f& vec1, const Vector4f& vec2, const Vector4f& vec3, const Vector4f& vec4 ) {
     columns[0] = vec1;
     columns[1] = vec2;
     columns[2] = vec3;

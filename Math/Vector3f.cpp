@@ -31,12 +31,14 @@ void Vector3f::set( const Vector3f& p ) {
     z = p.getZ();
 }
 
-Vector3f Vector3f::normalize() {
+Vector3f Vector3f::normalize() const {
+    Vector3f res;
+    res = *this;
     float lenght = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ));
-    return *this/lenght;
+    return res/lenght;
 }
 
-Vector3f Vector3f::cross( Vector3f vec ) {
+Vector3f Vector3f::cross( Vector3f vec ) const {
     Vector3f res;
     res.set(Vector3f (
             y * vec[2] - z * vec[1],
@@ -57,8 +59,9 @@ const float& Vector3f::operator[]( int index ) const {
     if ( index == 2) return z;
 }
 
-void Vector3f::operator=( const Vector3f& p ) {
+Vector3f& Vector3f::operator=( const Vector3f& p ) {
     set(p);
+    return *this;
 }
 
 Vector3f Vector3f::operator+( const Vector3f& p ) const {
@@ -93,11 +96,11 @@ Vector3f Vector3f::operator/( float a ) const {
     return ret;
 }
 
-bool Vector3f::operator==( const Vector3f& p ) {
+bool Vector3f::operator==( const Vector3f& p ) const {
     return ( x == p.getX() && y == p.getY() && z == p.getZ() );
 }
 
-bool Vector3f::operator!=( const Vector3f& p ) {
+bool Vector3f::operator!=( const Vector3f& p ) const {
     return (!(*this == p));
 }
 

@@ -8,20 +8,20 @@ public:
 
     void setZ( float _z );
 
-    float getX() const;
+    [[nodiscard]] float getX() const;
 
-    float getY() const;
+    [[nodiscard]] float getY() const;
 
-    float getZ() const;
+    [[nodiscard]] float getZ() const;
 
     void set( const Vector3f& p );
     //operators
 
-    void operator=( const Vector3f& p );
+    Vector3f& operator=( const Vector3f& p );
 
-    Vector3f normalize();
+    [[nodiscard]] Vector3f normalize() const;
 
-    Vector3f cross( Vector3f vec );
+    [[nodiscard]] Vector3f cross( Vector3f vec ) const;
 
     float& operator[]( int index );
 
@@ -35,15 +35,15 @@ public:
 
     Vector3f operator/( float a ) const;
 
-    bool operator==( const Vector3f& p );
+    bool operator==( const Vector3f& p ) const;
 
-    bool operator!=( const Vector3f& p );
+    bool operator!=( const Vector3f& p ) const;
     Vector3f();
     Vector3f(float _x, float _y, float _z);
     ~Vector3f();
     Vector3f( const Vector3f& p );
 private:
-    float x;
-    float y;
-    float z;
+    float x{};
+    float y{};
+    float z{};
 };
