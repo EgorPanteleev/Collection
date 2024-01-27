@@ -7,6 +7,11 @@ Sphere::Sphere( double r, Vector3f pos, RGB _color ): radius(r), origin(pos) {
     setColor( _color );
 }
 
+bool Sphere::isContainPoint( Vector3f p ) const {
+    if ( getDistance( p, origin ) == radius ) return true;
+    return false;
+}
+
 double Sphere::intersectsWithRay( const Ray& ray ) {
     Vector3f D = ray.getDirection();
     Vector3f OC = ray.getOrigin() - origin;

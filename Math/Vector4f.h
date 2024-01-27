@@ -27,9 +27,9 @@ public:
 
     Vector4f cross( Vector4f vec );
 
-    float operator[]( int index );
+    float& operator[]( int index );
 
-    const float operator[]( int index ) const;
+    const float& operator[]( int index ) const;
 
     Vector4f operator+( const Vector4f& p ) const;
 

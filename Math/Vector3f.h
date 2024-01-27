@@ -23,9 +23,9 @@ public:
 
     Vector3f cross( Vector3f vec );
 
-    float operator[]( int index );
+    float& operator[]( int index );
 
-    const float operator[]( int index ) const;
+    const float& operator[]( int index ) const;
 
     Vector3f operator+( const Vector3f& p ) const;
 

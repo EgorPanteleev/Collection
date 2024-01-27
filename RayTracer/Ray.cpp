@@ -3,7 +3,7 @@
 //
 
 #include "Ray.h"
-#include "cmath"
+#include <cmath>
 Ray::Ray():origin(), direction(){}
 Ray::Ray(Vector3f from, Vector3f to):origin(from) {
     direction = to - from;

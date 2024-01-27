@@ -45,13 +45,13 @@ Vector3f Vector3f::cross( Vector3f vec ) {
     return res;
 }
 
-float Vector3f::operator[]( int index ) {
+float& Vector3f::operator[]( int index ) {
     if ( index == 0) return x;
     if ( index == 1) return y;
     if ( index == 2) return z;
 }
 
-const float Vector3f::operator[]( int index ) const {
+const float& Vector3f::operator[]( int index ) const {
     if ( index == 0) return x;
     if ( index == 1) return y;
     if ( index == 2) return z;

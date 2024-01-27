@@ -6,11 +6,20 @@
 #include "Scene.h"
 #include "Canvas.h"
 #include "Camera.h"
+
+
+struct IntersectionData {
+    IntersectionData(): t(0), shape(nullptr) {};
+    IntersectionData( double _t, Shape* _shape): t(_t), shape(_shape) {};
+    double t;
+    Shape* shape;
+};
 class RayTracer {
 public:
     RayTracer( Camera* c, Scene* s );
     ~RayTracer();
-    double computeLight( Vector3f P, Vector3f N );
+    IntersectionData closestIntersection( Ray& ray ) const;
+    double computeLight( Vector3f P, Vector3f N, Shape* shape );
     RGB traceRay( Ray& ray );
     void traceAllRays();
     Canvas* getCanvas() const;

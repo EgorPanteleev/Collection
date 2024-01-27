@@ -52,14 +52,14 @@ Vector4f Vector4f::cross( Vector4f vec ) {
     return Vector4f(res[0], res[1], res[2], 1);
 }
 
-float Vector4f::operator[]( int index ) {
+float& Vector4f::operator[]( int index ) {
     if ( index == 0) return x;
     if ( index == 1) return y;
     if ( index == 2) return z;
     if ( index == 3) return w;
 }
 
-const float Vector4f::operator[]( int index ) const {
+const float& Vector4f::operator[]( int index ) const {
     if ( index == 0) return x;
     if ( index == 1) return y;
     if ( index == 2) return z;
@@ -102,7 +102,7 @@ Vector4f Vector4f::operator/( float a ) const {
     ret.setX( x / a );
     ret.setY( y / a );
     ret.setZ( z / a );
-    ret.setZ( w / a );
+    ret.setW( w / a );
     return ret;
 }
 

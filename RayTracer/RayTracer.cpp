@@ -6,16 +6,31 @@
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
-    canvas = new Canvas(2000,2000);
+    canvas = new Canvas(700,700);
 }
 
 RayTracer::~RayTracer() {
     delete canvas;
 }
 
-double RayTracer::computeLight( Vector3f P, Vector3f N ) {
+IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
+    IntersectionData data( std::numeric_limits<double>::max(), nullptr);
+    for ( auto shape: scene->shapes ) {
+        double t = shape->intersectsWithRay(ray);
+        if (t == std::numeric_limits<double>::min()) continue;
+        if ( data.t < t ) continue;
+        data.t = t;
+        data.shape = shape;
+    }
+    return data;
+}
+
+double RayTracer::computeLight( Vector3f P, Vector3f N, Shape* shape ) {
     double i = 0;
     for ( auto light: scene->lights ) {
+        Ray ray = Ray( light->origin, P );
+        IntersectionData iData = closestIntersection( ray );
+        if ( iData.shape != shape ) continue;
         Vector3f L = light->origin - P;
         double d = dot(N.normalize(), L.normalize() );
         if ( d > 0 ) i += light->intensity * d;
@@ -25,29 +40,24 @@ double RayTracer::computeLight( Vector3f P, Vector3f N ) {
 }
 
 RGB RayTracer::traceRay( Ray& ray ) {
-    for ( auto shape: scene->shapes ) {
-        double t = shape->intersectsWithRay( ray );
-        if ( t != std::numeric_limits<double>::min() ) {
-            Vector3f P = ray.getOrigin() + ray.getDirection() * t;
-            Vector3f N = shape->getNormal( P );
-            double i = computeLight( P, N );
-            return shape->getColor() * i;
-        }
-    }
-    return BACKGROUND_COLOR;
+    IntersectionData iData = closestIntersection( ray );
+    if ( iData.t == std::numeric_limits<double>::max() ) return BACKGROUND_COLOR;
+    Vector3f P = ray.getOrigin() + ray.getDirection() * iData.t;
+    Vector3f N = iData.shape->getNormal( P );
+    double i = computeLight( P, N, iData.shape );
+    return iData.shape->getColor() * i;
 }
 
 void RayTracer::traceAllRays() {
     float uX = cam->Vx / canvas->getW();
     float uY = cam->Vy / canvas->getH();
+    Vector3f from = cam->origin;
     for ( int x = 0; x < canvas->getW(); ++x ) {
         for ( int y = 0; y < canvas->getH(); ++y ) {
-            Vector3f from = cam->origin;
             Vector3f translate = { -cam->Vx / 2 + x * uX, -cam->Vy / 2 + y * uY, cam->dV  };
             translate = cam->worldToCameraCoordinates( translate );
             Vector3f to = from + translate;
-
-            Ray ray( from, to);
+            Ray ray( cam->cameraToWorldCoordinates(from), cam->cameraToWorldCoordinates(to));
             RGB color = traceRay( ray );
             canvas->setPixel( x, y, color );
         }

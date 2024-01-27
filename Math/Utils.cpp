@@ -1,11 +1,15 @@
 #include "Utils.h"
-
+#include <cmath>
 double dot( Vector3f p1, Vector3f p2 ) {
     return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ());
 }
 
 double dot( Vector4f p1, Vector4f p2 ) {
     return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ() + p1.getW() * p2.getW());
+}
+
+double getDistance( Vector3f p1, Vector3f p2 ) {
+    return sqrt( pow((p2.getX() - p1.getX()), 2) + pow((p2.getY() - p1.getY()), 2) + pow((p2.getZ() - p1.getZ()), 2) );
 }
 
 Mat4f operator*( float a, const Mat4f& m ) {
@@ -23,6 +27,24 @@ Mat4f operator*( const Mat4f& m, float a ) {
             m[1] * a,
             m[2] * a,
             m[3] * a
+    );
+}
+
+Mat4f operator/( const Mat4f& m, float a ) {
+    Vector4f asd2 = m[2] / a;
+    return Mat4f(
+            m[0] / a,
+            m[1] / a,
+            m[2] / a,
+            m[3] / a
+    );
+}
+
+Mat3f operator/( const Mat3f& m, float a ) {
+    return Mat3f(
+            m[0] / a,
+            m[1] / a,
+            m[2] / a
     );
 }
 
