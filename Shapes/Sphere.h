@@ -6,10 +6,10 @@
 class Sphere: public Shape {
 public:
     Sphere();
-    Sphere( double r, Vector3f pos, RGB _color );
-    virtual bool isContainPoint( Vector3f p ) const;
-    virtual Vector3f getNormal( Vector3f p );
-    virtual double intersectsWithRay( const Ray& ray );
+    Sphere( double r, const Vector3f& pos, const RGB& _color );
+    [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
+    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
+    [[nodiscard]] float intersectsWithRay( const Ray& ray ) const override;
 public:
     double radius;
     Vector3f origin;

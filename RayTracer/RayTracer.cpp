@@ -17,7 +17,7 @@ IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
     IntersectionData data( std::numeric_limits<double>::max(), nullptr);
     for ( auto shape: scene->shapes ) {
         double t = shape->intersectsWithRay(ray);
-        if (t == std::numeric_limits<double>::min()) continue;
+        if (t == std::numeric_limits<float>::min()) continue;
         if ( data.t < t ) continue;
         data.t = t;
         data.shape = shape;

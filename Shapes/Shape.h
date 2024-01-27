@@ -5,11 +5,11 @@
 #include "Color.h"
 class Shape {
 public:
-    virtual bool isContainPoint( Vector3f p ) const = 0;
-    virtual double intersectsWithRay( const Ray& ray ) = 0;
-    virtual Vector3f getNormal( Vector3f p ) = 0;
-    RGB getColor() const;
-    void setColor( RGB c );
+    [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;
+    [[nodiscard]] virtual float intersectsWithRay( const Ray& ray ) const = 0;
+    [[nodiscard]] virtual Vector3f getNormal( const Vector3f& p ) const = 0;
+    [[nodiscard]] RGB getColor() const;
+    void setColor( const RGB& c );
 private:
     RGB color;
 };

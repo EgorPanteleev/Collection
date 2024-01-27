@@ -6,6 +6,6 @@
 RGB Shape::getColor() const {
     return color;
 }
-void Shape::setColor( RGB c ) {
+void Shape::setColor( const RGB& c ) {
     color = c;
 }
