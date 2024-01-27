@@ -24,7 +24,7 @@ IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
     return data;
 }
 
-float RayTracer::computeLight( const Vector3f& P, const Vector3f& N, Shape* shape ) {
+float RayTracer::computeLight( const Vector3f& P, const Vector3f& N, Shape* shape ) const {
     float i = 0;
     for ( auto light: scene->lights ) {
         Ray ray = Ray( light->origin, P );
@@ -38,7 +38,7 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& N, Shape* shap
     return i;
 }
 
-RGB RayTracer::traceRay( Ray& ray ) {
+RGB RayTracer::traceRay( Ray& ray ) const {
     IntersectionData iData = closestIntersection( ray );
     if ( iData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR;
     Vector3f P = ray.getOrigin() + ray.getDirection() * iData.t;

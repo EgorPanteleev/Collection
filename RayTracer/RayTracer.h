@@ -18,11 +18,11 @@ class RayTracer {
 public:
     RayTracer( Camera* c, Scene* s );
     ~RayTracer();
-    IntersectionData closestIntersection( Ray& ray ) const;
-    float computeLight( const Vector3f& P, const Vector3f& N, Shape* shape );
-    RGB traceRay( Ray& ray );
+    [[nodiscard]] IntersectionData closestIntersection( Ray& ray ) const;
+    [[nodiscard]] float computeLight( const Vector3f& P, const Vector3f& N, Shape* shape ) const;
+    [[nodiscard]] RGB traceRay( Ray& ray ) const;
     void traceAllRays();
-    Canvas* getCanvas() const;
+    [[nodiscard]] Canvas* getCanvas() const;
 private:
     Camera* cam;
     Scene* scene;
