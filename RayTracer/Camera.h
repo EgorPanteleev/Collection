@@ -7,8 +7,8 @@ public:
     Camera();
     Camera( const Vector3f& pos, const Vector3f& dir, float dv, float vx, float vy );
     Mat4f LookAt( const Vector3f& target, const Vector3f& up );
-    Vector3f worldToCameraCoordinates( Vector3f& coords ) const;
-    Vector3f cameraToWorldCoordinates( Vector3f& coords ) const;
+    [[nodiscard]] Vector3f worldToCameraCoordinates( Vector3f& coords ) const;
+    [[nodiscard]] Vector3f cameraToWorldCoordinates( Vector3f& coords ) const;
 public:
     Mat4f viewMatrix;
     Vector3f origin;

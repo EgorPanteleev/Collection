@@ -5,12 +5,12 @@
 
 class Canvas {
 public:
-    Canvas( const int _w, const int _h );
+    Canvas( int _w, int _h );
     ~Canvas();
-    void setPixel( int x, int y, RGB color );
-    RGB getPixel( int x, int y ) const;
-    int getW() const;
-    int getH() const;
+    void setPixel( int x, int y, const RGB& color );
+    [[nodiscard]] RGB getPixel( int x, int y ) const;
+    [[nodiscard]] int getW() const;
+    [[nodiscard]] int getH() const;
 private:
     RGB** data;
     int numX;

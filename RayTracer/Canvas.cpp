@@ -1,6 +1,6 @@
 #include "Canvas.h"
 
-Canvas::Canvas( const int _w, const int _h ) {
+Canvas::Canvas( int _w, int _h ) {
     numX = _w;
     numY = _h;
     data = new RGB*[numX];
@@ -12,7 +12,7 @@ Canvas::Canvas( const int _w, const int _h ) {
 Canvas::~Canvas() {
     delete[] data;
 }
-void Canvas::setPixel( int x, int y, RGB color ) {
+void Canvas::setPixel( int x, int y, const RGB& color ) {
     data[x][y] = color;
 }
 
