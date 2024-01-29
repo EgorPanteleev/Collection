@@ -5,6 +5,7 @@
 class Light {
 public:
     Light();
+    Light( const Vector3f& origin, float intensity );
     Vector3f origin;
     float intensity;
 private:

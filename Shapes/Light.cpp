@@ -5,3 +5,5 @@
 #include "Light.h"
 
 Light::Light():origin(), intensity(){}
+
+Light::Light( const Vector3f& origin, float intensity ): origin( origin ), intensity( intensity ) {}

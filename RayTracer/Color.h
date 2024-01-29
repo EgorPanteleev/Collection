@@ -5,15 +5,16 @@
 class RGB {
 public:
     void set( float _r, float _g, float _b );
-    RGB operator*( double a) const;
-    RGB operator/( double a) const;
+    RGB operator+( const RGB& color ) const;
+    RGB operator*( float a) const;
+    RGB operator/( float a) const;
     RGB();
-    RGB( double _r, double _g, double _b);
+    RGB( float _r, float _g, float _b);
     ~RGB();
 public:
-    double r;
-    double g;
-    double b;
+    float r;
+    float g;
+    float b;
 };
 
 

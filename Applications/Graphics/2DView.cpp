@@ -10,28 +10,33 @@ int main() {
     Camera* cam = new Camera( Vector3f(0,0,0), Vector3f(0,0,1), 1000,1000,1000 );
     Scene* scene = new Scene();
     RayTracer rayt( cam, scene );
-    std::vector<Sphere*> spheres;
+    std::vector<Shape*> shapes;
+    std::vector<Material> materials;
+    std::vector<Object*> objects;
     std::vector<Light*> ligths;
-//    spheres.push_back(new Sphere(50, Vector3f(120, 120, 300), RGB(255,0 ,0 )));
-//    spheres.push_back(new Sphere(20, Vector3f(40, 40, 400), RGB(0, 255, 0)));
+    shapes.push_back(new Sphere(50, Vector3f(120, 120, 300)));
+    materials.emplace_back( RGB( 255, 0, 0), 10 , 0 );
+
+    shapes.push_back(new Sphere(20, Vector3f(40, 40, 400)));
+    materials.emplace_back( RGB( 0, 255, 0), 10 , 0 );
+
+    shapes.push_back(new Sphere(30, Vector3f(-20, -20, 1000)));
+    materials.emplace_back( RGB( 0, 0, 255), 10 , 0 );
+
+    shapes.push_back(new Sphere(1500, Vector3f(0, 0, 3000)));
+    materials.emplace_back( RGB( 255, 255, 0), 10 , 1 );
+
+//    spheres.push_back(new Sphere(20, Vector3f(0, 20, 100), RGB(255,0 ,0 )));
+//    spheres.push_back(new Sphere(10, Vector3f(40, 20, 100), RGB(0, 255, 0)));
 //    spheres.push_back(new Sphere(30, Vector3f(-20, -20, 1000), RGB(0, 0, 255)));
 //    spheres.push_back(new Sphere(1500, Vector3f(0, 0, 3000), RGB(255, 255, 0)));
-
-    spheres.push_back(new Sphere(50, Vector3f(120, 120, 300), RGB(255,0 ,0 )));
-    spheres.push_back(new Sphere(20, Vector3f(40, 40, 400), RGB(0, 255, 0)));
-    spheres.push_back(new Sphere(30, Vector3f(-20, -20, 1000), RGB(0, 0, 255)));
-    spheres.push_back(new Sphere(1500, Vector3f(0, 0, 3000), RGB(255, 255, 0)));
-    for ( auto s: spheres ) {
-        scene->shapes.push_back( s );
+    for ( int i = 0; i < shapes.size(); ++i ) {
+        scene->objects.push_back( new Object( shapes[i], materials[i] ) );
     }
-    Light* l1 = new Light();
-    l1->origin = Vector3f(100,120,190);
-    l1->intensity = 0.8;
-    ligths.push_back(l1);
-    Light* l2 = new Light();
-    l2->origin = Vector3f(-300,0,-200);
-    l2->intensity = 0.4;
-    ligths.push_back(l2);
+
+    ligths.push_back( new Light( Vector3f(100,120,20), 0.5));
+    ligths.push_back( new Light( Vector3f(-300,0,-200), 0.4));
+    ligths.push_back( new Light( Vector3f(300,0,700), 0.4));
     for ( auto l: ligths ) {
         scene->lights.push_back( l );
     }

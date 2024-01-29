@@ -3,8 +3,7 @@
 #include "Utils.h"
 Sphere::Sphere(): radius(0), origin() {
 }
-Sphere::Sphere( double r, const Vector3f& pos, const RGB& _color ): radius(r), origin(pos) {
-    setColor( _color );
+Sphere::Sphere( double r, const Vector3f& pos ): radius(r), origin(pos) {
 }
 
 bool Sphere::isContainPoint( const Vector3f& p ) const {

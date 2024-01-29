@@ -6,7 +6,7 @@
 class Sphere: public Shape {
 public:
     Sphere();
-    Sphere( double r, const Vector3f& pos, const RGB& _color );
+    Sphere( double r, const Vector3f& pos );
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
     [[nodiscard]] float intersectsWithRay( const Ray& ray ) const override;

@@ -9,7 +9,7 @@ public:
     void setOrigin( const Vector3f& orig );
     void setDirection( const Vector3f& dir );
     Ray();
-    Ray(const Vector3f& from, const Vector3f& to);
+    Ray(const Vector3f& from, const Vector3f& dir);
     ~Ray();
 private:
     Vector3f origin;

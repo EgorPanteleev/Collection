@@ -1,7 +1,8 @@
 #include "RayTracer.h"
 #include <cmath>
 #include "Utils.h"
-#define BACKGROUND_COLOR RGB(0,0,0)
+//#define BACKGROUND_COLOR RGB(0, 0, 0)
+#define BACKGROUND_COLOR RGB(173, 216, 230)
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
@@ -14,37 +15,49 @@ RayTracer::~RayTracer() {
 
 IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
     IntersectionData data( std::numeric_limits<float>::max(), nullptr);
-    for ( auto shape: scene->shapes ) {
-        float t = shape->intersectsWithRay(ray);
+    for ( const auto& object: scene->objects ) {
+        float t = object->intersectsWithRay(ray);
         if (t == std::numeric_limits<float>::min()) continue;
+        if ( t < 0 ) continue;
         if ( data.t < t ) continue;
         data.t = t;
-        data.shape = shape;
+        data.object = object;
     }
     return data;
 }
 
-float RayTracer::computeLight( const Vector3f& P, const Vector3f& N, Shape* shape ) const {
+float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, Object* object ) const {
     float i = 0;
+    Vector3f N = object->getNormal( P ).normalize();
     for ( auto light: scene->lights ) {
-        Ray ray = Ray( light->origin, P );
+        Ray ray = Ray( light->origin, P - light->origin );
         IntersectionData iData = closestIntersection( ray );
-        if ( iData.shape != shape ) continue;
-        Vector3f L = light->origin - P;
-        float d = dot(N.normalize(), L.normalize() );
-        if ( d > 0 ) i += light->intensity * d;
+        if ( iData.object != object ) continue;
+        Vector3f L = ( light->origin - P ).normalize();
+        float dNL = dot(N, L );
+        if ( dNL > 0 ) i += light->intensity * dNL;
+        if ( object->getDiffuse() == -1 ) continue;
+        Vector3f R = ( N * 2 * dot(N, L) - L ).normalize();
+        float dRV = dot(R, V.normalize());
+        if ( dRV > 0 ) i += light->intensity * pow(dRV, object->getDiffuse());
     }
     if ( i > 1 ) i = 1;
     return i;
 }
 
-RGB RayTracer::traceRay( Ray& ray ) const {
+RGB RayTracer::traceRay( Ray& ray, int depth ) const {
     IntersectionData iData = closestIntersection( ray );
     if ( iData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR;
     Vector3f P = ray.getOrigin() + ray.getDirection() * iData.t;
-    Vector3f N = iData.shape->getNormal( P );
-    float i = computeLight( P, N, iData.shape );
-    return iData.shape->getColor() * i;
+    float i = computeLight( P, ray.getDirection() * (-1), iData.object );
+    RGB localColor = iData.object->getColor() * i;
+    float r = iData.object->getReflection();
+    if ( depth == 0 || r == 0 ) return localColor;
+    Vector3f N = iData.object->getNormal( P ).normalize();
+    Vector3f reflectedDir = ( ray.getDirection() - N * 2 * dot(N, ray.getDirection() ) );
+    Ray reflectedRay( P, reflectedDir );
+    RGB reflectedColor = traceRay( reflectedRay, depth - 1 ) * 0.7;
+    return localColor * (1 - r) + reflectedColor * r;
 }
 
 void RayTracer::traceAllRays() {
@@ -53,11 +66,9 @@ void RayTracer::traceAllRays() {
     Vector3f from = cam->origin;
     for ( int x = 0; x < canvas->getW(); ++x ) {
         for ( int y = 0; y < canvas->getH(); ++y ) {
-            Vector3f translate = { -cam->Vx / 2 + x * uX, -cam->Vy / 2 + y * uY, cam->dV  };
-            translate = cam->worldToCameraCoordinates( translate );
-            Vector3f to = from + translate;
-            Ray ray( cam->cameraToWorldCoordinates(from), cam->cameraToWorldCoordinates(to));
-            RGB color = traceRay( ray );
+            Vector3f dir = { -cam->Vx / 2 + x * uX, -cam->Vy / 2 + y * uY, cam->dV  };
+            Ray ray( from, dir);
+            RGB color = traceRay( ray, 5 );
             canvas->setPixel( x, y, color );
         }
     }
