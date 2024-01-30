@@ -9,11 +9,10 @@
 #include "Canvas.h"
 #include "Camera.h"
 
-
-struct IntersectionData {
-    IntersectionData(): t(0), object() {};
-    IntersectionData( float _t, Object* _object): t(_t), object(_object) {};
+struct closestIntersectionData {
+    closestIntersectionData():t( std::numeric_limits<float>::max() ), N(), object( nullptr ) {}
     float t;
+    Vector3f N;
     Object* object;
 };
 
@@ -21,8 +20,8 @@ class RayTracer {
 public:
     RayTracer( Camera* c, Scene* s );
     ~RayTracer();
-    [[nodiscard]] IntersectionData closestIntersection( Ray& ray ) const;
-    [[nodiscard]] float computeLight( const Vector3f& P, const Vector3f& V, Object* object ) const;
+    [[nodiscard]] closestIntersectionData closestIntersection( Ray& ray ) const;
+    [[nodiscard]] float computeLight( const Vector3f& P, const Vector3f& V, const closestIntersectionData& iData ) const;
     [[nodiscard]] RGB traceRay( Ray& ray, int depth ) const;
     void traceAllRays();
     [[nodiscard]] Canvas* getCanvas() const;

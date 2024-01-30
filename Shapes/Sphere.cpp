@@ -11,7 +11,7 @@ bool Sphere::isContainPoint( const Vector3f& p ) const {
     return false;
 }
 
-float Sphere::intersectsWithRay( const Ray& ray ) const {
+IntersectionData Sphere::intersectsWithRay( const Ray& ray ) const {
     Vector3f D = ray.getDirection();
     Vector3f OC = ray.getOrigin() - origin;
     float k1 = dot( D, D );
@@ -20,12 +20,13 @@ float Sphere::intersectsWithRay( const Ray& ray ) const {
 
     float disc = k2 * k2 - 4 * k1 * k3;
     if ( disc < 0 ) {
-        return std::numeric_limits<float>::min();
+        return {};
     }
     float t1 = (-k2 + sqrt(disc)) / (2 * k1);
     float t2 = (-k2 - sqrt(disc)) / (2 * k1);
     if ( t1 < t2 ) t2 = t1;
-    return t2;
+    Vector3f P = ray.getOrigin() + ray.getDirection() * t2;
+    return { t2, getNormal( P ) };
 }
 
 Vector3f Sphere::getNormal( const Vector3f& p ) const {

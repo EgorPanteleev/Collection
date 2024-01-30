@@ -7,7 +7,7 @@ public:
     Object( Shape* shape, const Material& material );
     ~Object();
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
-    [[nodiscard]] float intersectsWithRay( const Ray& ray ) const;
+    [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const;
     [[nodiscard]] RGB getColor() const;
     void setColor( const RGB& c );

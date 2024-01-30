@@ -2,10 +2,18 @@
 #define COLLECTION_SHAPE_H
 #include <iostream>
 #include "Ray.h"
+
+struct IntersectionData {
+    IntersectionData(): t( std::numeric_limits<float>::max() ), N() {};
+    IntersectionData( float t, const Vector3f& N ): t( t ), N( N ) {};
+    float t;
+    Vector3f N;
+};
+
 class Shape {
 public:
     [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;
-    [[nodiscard]] virtual float intersectsWithRay( const Ray& ray ) const = 0;
+    [[nodiscard]] virtual IntersectionData intersectsWithRay( const Ray& ray ) const = 0;
     [[nodiscard]] virtual Vector3f getNormal( const Vector3f& p ) const = 0;
 private:
 };

@@ -9,7 +9,7 @@ public:
     Sphere( double r, const Vector3f& pos );
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
-    [[nodiscard]] float intersectsWithRay( const Ray& ray ) const override;
+    [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const override;
 public:
     double radius;
     Vector3f origin;

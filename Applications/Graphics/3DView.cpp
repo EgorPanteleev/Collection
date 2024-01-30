@@ -107,11 +107,11 @@ void RenderScene() {
     double uY = cam->Vy / rayt.getCanvas()->getH();
     if ( first ) {
         first = false;
-        spheres.push_back(new Sphere(50, Vector3f(120, 120, 300), RGB(255,0 ,0 )));
-        spheres.push_back(new Sphere(20, Vector3f(40, 40, 400), RGB(0, 255, 0)));
-        spheres.push_back(new Sphere(30, Vector3f(-20, -20, 500), RGB(0, 0, 255)));
+        spheres.push_back(new Sphere(50, Vector3f(120, 120, 300)));
+        spheres.push_back(new Sphere(20, Vector3f(40, 40, 400)));
+        spheres.push_back(new Sphere(30, Vector3f(-20, -20, 500)));
         for ( auto s: spheres ) {
-            scene->shapes.push_back( s );
+          //  scene->.push_back( s );
         }
         Light* l = new Light();
         l->origin = Vector3f(-150,300,100);
@@ -121,7 +121,7 @@ void RenderScene() {
     }
     if ( key ) rayt.traceAllRays();
     for ( auto s: spheres ) {
-        drawSphere( s->origin, s->radius, 360,s->getColor() );
+        drawSphere( s->origin, s->radius, 360,RGB(0,0,0) );
     }
     glPushMatrix();
     glTranslatef(-cam->Vx / 2,-cam->Vy / 2 ,cam->dV );

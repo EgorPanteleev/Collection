@@ -13,50 +13,51 @@ RayTracer::~RayTracer() {
     delete canvas;
 }
 
-IntersectionData RayTracer::closestIntersection( Ray& ray ) const {
-    IntersectionData data( std::numeric_limits<float>::max(), nullptr);
+closestIntersectionData RayTracer::closestIntersection( Ray& ray ) const {
+    closestIntersectionData cIData;
     for ( const auto& object: scene->objects ) {
-        float t = object->intersectsWithRay(ray);
-        if (t == std::numeric_limits<float>::min()) continue;
-        if ( t < 0 ) continue;
-        if ( data.t < t ) continue;
-        data.t = t;
-        data.object = object;
+        IntersectionData iData = object->intersectsWithRay(ray);
+        if ( iData.t == std::numeric_limits<float>::max()) continue;
+        if ( iData.t <= 0.05 ) continue;
+        if ( cIData.t < iData.t ) continue;
+        cIData.t = iData.t;
+        cIData.N = iData.N;
+        cIData.object = object;
     }
-    return data;
+    return cIData;
 }
 
-float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, Object* object ) const {
+float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const closestIntersectionData& iData ) const {
     float i = 0;
-    Vector3f N = object->getNormal( P ).normalize();
+    Vector3f N = iData.N;
     for ( auto light: scene->lights ) {
         Ray ray = Ray( light->origin, P - light->origin );
-        IntersectionData iData = closestIntersection( ray );
-        if ( iData.object != object ) continue;
+        closestIntersectionData cIData = closestIntersection( ray );
+        if ( cIData.object != iData.object ) continue;
         Vector3f L = ( light->origin - P ).normalize();
         float dNL = dot(N, L );
         if ( dNL > 0 ) i += light->intensity * dNL;
-        if ( object->getDiffuse() == -1 ) continue;
+        if ( iData.object->getDiffuse() == -1 ) continue;
         Vector3f R = ( N * 2 * dot(N, L) - L ).normalize();
         float dRV = dot(R, V.normalize());
-        if ( dRV > 0 ) i += light->intensity * pow(dRV, object->getDiffuse());
+        if ( dRV > 0 ) i += light->intensity * pow(dRV, iData.object->getDiffuse());
     }
     if ( i > 1 ) i = 1;
     return i;
 }
 
 RGB RayTracer::traceRay( Ray& ray, int depth ) const {
-    IntersectionData iData = closestIntersection( ray );
-    if ( iData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR;
-    Vector3f P = ray.getOrigin() + ray.getDirection() * iData.t;
-    float i = computeLight( P, ray.getDirection() * (-1), iData.object );
-    RGB localColor = iData.object->getColor() * i;
-    float r = iData.object->getReflection();
+    closestIntersectionData cIData = closestIntersection( ray );
+    if ( cIData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR;
+    Vector3f P = ray.getOrigin() + ray.getDirection() * cIData.t;
+    float i = computeLight( P, ray.getDirection() * (-1), cIData );
+    RGB localColor = cIData.object->getColor() * i;
+    float r = cIData.object->getReflection();
     if ( depth == 0 || r == 0 ) return localColor;
-    Vector3f N = iData.object->getNormal( P ).normalize();
+    Vector3f N = cIData.N.normalize();
     Vector3f reflectedDir = ( ray.getDirection() - N * 2 * dot(N, ray.getDirection() ) );
     Ray reflectedRay( P, reflectedDir );
-    RGB reflectedColor = traceRay( reflectedRay, depth - 1 ) * 0.7;
+    RGB reflectedColor = traceRay( reflectedRay, depth - 1 ) * 0.9;
     return localColor * (1 - r) + reflectedColor * r;
 }
 
@@ -68,7 +69,7 @@ void RayTracer::traceAllRays() {
         for ( int y = 0; y < canvas->getH(); ++y ) {
             Vector3f dir = { -cam->Vx / 2 + x * uX, -cam->Vy / 2 + y * uY, cam->dV  };
             Ray ray( from, dir);
-            RGB color = traceRay( ray, 5 );
+            RGB color = traceRay( ray, 3 );
             canvas->setPixel( x, y, color );
         }
     }

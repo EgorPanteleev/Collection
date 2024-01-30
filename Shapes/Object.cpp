@@ -13,7 +13,7 @@ bool Object::isContainPoint( const Vector3f& p ) const {
     return shape->isContainPoint( p );
 }
 
-float Object::intersectsWithRay( const Ray& ray ) const {
+IntersectionData Object::intersectsWithRay( const Ray& ray ) const {
     return shape->intersectsWithRay( ray );
 }
 
