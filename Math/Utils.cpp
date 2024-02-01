@@ -14,6 +14,7 @@ float getDistance( const Vector3f& p1, const Vector3f& p2 ) {
                            + pow((p2.getZ() - p1.getZ()), 2) );
 }
 
+
 Mat4f operator*( float a, const Mat4f& m ) {
     return Mat4f{
             m[0] * a,
@@ -81,4 +82,19 @@ Mat4f operator*( const Mat4f& m1, const Mat4f& m2 ) {
     Vector4f vec3 = m1 * m2[2];
     Vector4f vec4 = m1 * m2[3];
     return Mat4f{ vec1, vec2, vec3, vec4 };
+}
+
+Vector3f operator*( const Mat3f& m, const Vector3f& v ) {
+    return Vector3f{
+            m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2],
+            m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2],
+            m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2]
+    };
+}
+
+Mat3f operator*( const Mat3f& m1, const Mat3f& m2 ) {
+    Vector3f vec1 = m1 * m2[0];
+    Vector3f vec2 = m1 * m2[1];
+    Vector3f vec3 = m1 * m2[2];
+    return Mat3f{ vec1, vec2, vec3 };
 }

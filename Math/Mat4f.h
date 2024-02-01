@@ -9,6 +9,7 @@ public:
     [[nodiscard]] float getDet() const;
     [[nodiscard]] Mat4f transpose() const;
     [[nodiscard]] Mat4f inverse() const;
+    [[nodiscard]] static Mat4f identity();
 private:
     Vector4f columns[4];
 };

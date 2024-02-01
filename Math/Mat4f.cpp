@@ -58,3 +58,12 @@ Mat4f Mat4f::inverse() const {
     res = tran / getDet();
     return res;
 }
+
+Mat4f Mat4f::identity() {
+    return {
+            {1,0,0,0},
+            {0,1,0,0},
+            {0,0,1,0},
+            {0,0,0,1}
+    };
+}

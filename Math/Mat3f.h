@@ -13,6 +13,7 @@ public:
     [[nodiscard]] Mat3f transpose() const;
     [[nodiscard]] Mat3f inverse() const;
     [[nodiscard]] Mat3f getUnion() const;
+    [[nodiscard]] static Mat3f identity();
 private:
     Vector3f columns[3];
 };

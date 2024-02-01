@@ -82,3 +82,11 @@ Mat3f Mat3f::getUnion() const {
             {getAlgExtension(1, 0), getAlgExtension(1, 1), getAlgExtension(1, 2) },
             {getAlgExtension(2, 0), getAlgExtension(2, 1), getAlgExtension(2, 2) }};
 }
+
+Mat3f Mat3f::identity() {
+    return {
+            {1, 0,0},
+            {0, 1,0},
+            {0, 0,1}
+    };
+}
