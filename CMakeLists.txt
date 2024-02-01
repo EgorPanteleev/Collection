@@ -5,6 +5,10 @@ project(Collection)
 
 enable_testing()
 
+#add_subdirectory(Models)
+
+add_subdirectory(OBJReader)
+
 add_subdirectory(Math)
 
 add_subdirectory(BitMapImage)

@@ -1,1 +1,3 @@
-1) рефактор, убрать ошибки, разобраться с const и тп, добавить тесты срочно, не понятно где ошибка
+1) vizualize lights, improve triangle meshes
+2) need camera movement
+3) optimization, make algo faster

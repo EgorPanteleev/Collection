@@ -6,7 +6,10 @@
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
-    canvas = new Canvas(2000,2000);
+//      canvas = new Canvas(240,150);
+    canvas = new Canvas(960,600);
+//    canvas = new Canvas(1920,1200);
+//    canvas = new Canvas(3200,2000);
 }
 
 RayTracer::~RayTracer() {
@@ -37,10 +40,10 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const close
         Vector3f L = ( light->origin - P ).normalize();
         float dNL = dot(N, L );
         if ( dNL > 0 ) i += light->intensity * dNL;
-        if ( iData.object->getDiffuse() == -1 ) continue;
-        Vector3f R = ( N * 2 * dot(N, L) - L ).normalize();
-        float dRV = dot(R, V.normalize());
-        if ( dRV > 0 ) i += light->intensity * pow(dRV, iData.object->getDiffuse());
+//        if ( iData.object->getDiffuse() == -1 ) continue;
+//        Vector3f R = ( N * 2 * dot(N, L) - L ).normalize();
+//        float dRV = dot(R, V.normalize());
+//        if ( dRV > 0 ) i += light->intensity * pow(dRV, iData.object->getDiffuse());
     }
     if ( i > 1 ) i = 1;
     return i;
@@ -57,19 +60,21 @@ RGB RayTracer::traceRay( Ray& ray, int depth ) const {
     Vector3f N = cIData.N.normalize();
     Vector3f reflectedDir = ( ray.getDirection() - N * 2 * dot(N, ray.getDirection() ) );
     Ray reflectedRay( P, reflectedDir );
-    RGB reflectedColor = traceRay( reflectedRay, depth - 1 ) * 0.9;
+    RGB reflectedColor = traceRay( reflectedRay, depth - 1 );
     return localColor * (1 - r) + reflectedColor * r;
 }
 
 void RayTracer::traceAllRays() {
     float uX = cam->Vx / canvas->getW();
     float uY = cam->Vy / canvas->getH();
+    float uX2 = uX / 2.0f;
+    float uY2 = uY / 2.0f;
     Vector3f from = cam->origin;
     for ( int x = 0; x < canvas->getW(); ++x ) {
         for ( int y = 0; y < canvas->getH(); ++y ) {
-            Vector3f dir = { -cam->Vx / 2 + x * uX, -cam->Vy / 2 + y * uY, cam->dV  };
+            Vector3f dir = { -cam->Vx / 2 + uX2 + x * uX, -cam->Vy / 2 + uY2 + y * uY, cam->dV  };
             Ray ray( from, dir);
-            RGB color = traceRay( ray, 3 );
+            RGB color = traceRay( ray, 7 );
             canvas->setPixel( x, y, color );
         }
     }

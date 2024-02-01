@@ -28,30 +28,32 @@ bool Triangle::isContainPoint( const Vector3f& p ) const {
            p.getZ() <= std::max(std::max(v1.getZ(), v2.getZ()), v3.getZ() ) );
 }
 float Triangle::intersectsWithRay( const Ray& ray ) const {
+    static float EPSILON = std::numeric_limits<float>::epsilon();
+    static float MAX = std::numeric_limits<float>::max();
     Vector3f edge1 = v2 - v1;
     Vector3f edge2 = v3 - v1;
     Vector3f h = ray.getDirection().cross( edge2 );
     float a = dot(edge1, h);
 
-    if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
-        return std::numeric_limits<float>::max(); // Ray is parallel to the triangle
+    if ( a < EPSILON )
+        return MAX; // Ray is parallel to the triangle
 
     float f = 1.0f / a;
     Vector3f s = ray.getOrigin() - v1;
     float u = f * dot(s, h);
 
     if (u < 0.0f || u > 1.0f)
-        return std::numeric_limits<float>::max();
+        return MAX;
 
     Vector3f q = s.cross( edge1 );
     float v = f * dot(ray.getDirection(), q);
 
     if (v < 0.0f || u + v > 1.0f)
-        return std::numeric_limits<float>::max();
+        return MAX;
 
     float t = f * dot(edge2, q);
 
-    if ( t < std::numeric_limits<float>::epsilon() ) return std::numeric_limits<float>::max();
+    if ( t < EPSILON ) return MAX;
 
     return t;
 }
