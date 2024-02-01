@@ -90,12 +90,13 @@ Mat3f Mat3f::identity() {
 
 Mat3f Mat3f::getRotationMatrix( const Vector3f& axis, float angle ) {
     Vector3f normalizedAxis = axis.normalize();
+    angle = ( angle * M_PI ) / 180;
     Mat3f skewSymmetric = {
-            {0                ,normalizedAxis[2],normalizedAxis[1]},
-            {normalizedAxis[2],0                ,normalizedAxis[0]},
-            {normalizedAxis[1],normalizedAxis[0],0                }
+            {0                ,normalizedAxis[2],-normalizedAxis[1]},
+            {-normalizedAxis[2],0                ,normalizedAxis[0]},
+            {normalizedAxis[1],-normalizedAxis[0],0                }
     };
-
+    //skewSymmetric = skewSymmetric.transpose();
     Mat3f rotation = Mat3f::identity() + std::sin(angle) * skewSymmetric + (1 - std::cos(angle)) * skewSymmetric * skewSymmetric;
 
     return rotation;

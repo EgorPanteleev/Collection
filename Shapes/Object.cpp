@@ -9,8 +9,16 @@ Object::Object( Shape* shape, const Material& material ): shape( shape ), materi
 Object::~Object() {
 }
 
+void Object::rotate( const Vector3f& axis, float angle ) {
+    shape->rotate( axis, angle );
+}
+
 void Object::move( const Vector3f& p ) {
     shape->move( p );
+}
+
+Vector3f Object::getOrigin() const {
+    return shape->getOrigin();
 }
 
 bool Object::isContainPoint( const Vector3f& p ) const {

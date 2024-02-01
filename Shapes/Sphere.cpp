@@ -6,6 +6,14 @@ Sphere::Sphere(): radius(0), origin() {
 Sphere::Sphere( double r, const Vector3f& pos ): radius(r), origin(pos) {
 }
 
+void Sphere::rotate( const Vector3f& axis, float angle ) {
+    Mat3f rotation = Mat3f::getRotationMatrix( axis, angle );
+    Vector3f oldOrigin = origin;
+    move( origin * ( -1 ));
+    origin = rotation * origin;
+    move( oldOrigin );
+}
+
 void Sphere::move( const Vector3f& p ) {
     origin = origin + p;
 }
@@ -35,4 +43,8 @@ IntersectionData Sphere::intersectsWithRay( const Ray& ray ) const {
 
 Vector3f Sphere::getNormal( const Vector3f& p ) const {
     return ( p - origin );
+}
+
+Vector3f Sphere::getOrigin() const {
+    return origin;
 }

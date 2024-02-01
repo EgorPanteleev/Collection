@@ -51,6 +51,10 @@ int testInverse() {
     return 0;
 }
 
+int testRotationMatrix() {
+
+}
+
 int main() {
     int res = 0;
     res += testDet();

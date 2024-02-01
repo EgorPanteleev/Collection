@@ -14,10 +14,21 @@ Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 )
     N = edge1.cross( edge2 ).normalize();
 }
 
+void Triangle::rotate( const Vector3f& axis, float angle ) {
+    Mat3f rotation = Mat3f::getRotationMatrix( axis, angle );
+    v1 = rotation * v1;
+    v2 = rotation * v2;
+    v3 = rotation * v3;
+}
+
 void Triangle::move( const Vector3f& p ) {
     v1 = v1 + p;
     v2 = v2 + p;
     v3 = v3 + p;
+}
+
+Vector3f Triangle::getOrigin() const {
+    return (v1 + v2 + v3) / 3;
 }
 
 bool Triangle::isContainPoint( const Vector3f& p ) const {

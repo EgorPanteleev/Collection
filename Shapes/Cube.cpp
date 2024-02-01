@@ -41,10 +41,27 @@ void Cube::fillTriangles() {
     triangles.emplace_back( f3, b3, b4 );
 }
 
+void Cube::rotate( const Vector3f& axis, float angle ) {
+    Vector3f origin = getOrigin();
+    move( origin * ( -1 ) );
+    for ( auto& triangle: triangles ) {
+        triangle.rotate( axis, angle );
+    }
+    move( origin );
+}
+
 void Cube::move( const Vector3f& p ) {
     for ( auto& triangle: triangles ) {
         triangle.move( p );
     }
+}
+
+Vector3f Cube::getOrigin() const {
+    Vector3f origin = {0,0,0};
+    for ( auto& triangle: triangles ) {
+        origin = origin + triangle.getOrigin();
+    }
+    return origin / (float) triangles.size();
 }
 
 bool Cube::isContainPoint( const Vector3f& p ) const {

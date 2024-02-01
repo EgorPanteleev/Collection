@@ -6,7 +6,9 @@ public:
     Object();
     Object( Shape* shape, const Material& material );
     ~Object();
+    void rotate( const Vector3f& axis, float angle );
     void move( const Vector3f& p );
+    [[nodiscard]] Vector3f getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
     [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const;

@@ -12,8 +12,10 @@
 #define GREEN RGB( 0, 255, 0 )
 #define BLUE RGB( 0, 0, 255 )
 #define YELLOW RGB( 255, 255, 0 )
+#define BROWN RGB( 150, 75, 0 )
 int main() {
-    Camera* cam = new Camera( Vector3f(0,0,-37000000), Vector3f(0,0,1), 6000,3200,2000 );
+    Camera* cam = new Camera( Vector3f(0,0,-80000000), Vector3f(0,0,1), 6000,3200,2000 );
+    //Camera* cam = new Camera( Vector3f(0,0,0), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     RayTracer rayt( cam, scene );
     std::vector<Shape*> shapes;
@@ -35,9 +37,6 @@ int main() {
 
 //    shapes.push_back(new Sphere(5, Vector3f(0, 0, 500)));
 //    materials.emplace_back( RGB( 120, 255, 0), 10 , 0 );
-
-    shapes.push_back( new OBJShape( "C:/Users/igor/CLionProjects/Collection/Models/model.obj") );
-    materials.emplace_back( RED, 1 , 0 );
 ////right
 //    shapes.push_back(new Cube( Vector3f(80, -50, 0), Vector3f(100, 50, 600) ) );
 //    materials.emplace_back( GRAY, 1 , 0 );
@@ -57,7 +56,10 @@ int main() {
 //    shapes.push_back(new Cube( Vector3f(-100, 50, 0), Vector3f(100, 70, 620) ) );
 //    materials.emplace_back( GRAY, 1 , 0 );
 ////// RAND BLOCK
-//    shapes.push_back(new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) ) );
+//    auto* randBlock = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+//    randBlock->move( Vector3f(-50,30,30 ));
+//    randBlock->rotate( Vector3f( 0,1,0), 45);
+//    shapes.push_back(randBlock );
 //    materials.emplace_back( GRAY, 1 , 0 );
 
 
@@ -76,11 +78,19 @@ int main() {
 //    shapes.push_back(new Cube( Vector3f(-13, -30, 595), Vector3f(13, 30, 595) ) );
 //    materials.emplace_back( BLUE, 1 , 0.8 );
 
+    auto* rat = new OBJShape( "C:/Users/igor/CLionProjects/Collection/Modules/model.obj");
+    //rat->rotate( Vector3f( 0,0,1),45);
+    rat->rotate( Vector3f( 1,0,0),270);
+    rat->rotate( Vector3f( 0,1,0),35);
+    shapes.push_back( rat );
+    materials.emplace_back( BROWN, 1 , 0 );
+
     for ( int i = 0; i < shapes.size(); ++i ) {
         scene->objects.push_back( new Object( shapes[i], materials[i] ) );
     }
+//    ligths.push_back( new Light( Vector3f(0,45,3000000000), 1));
     ligths.push_back( new Light( Vector3f(0,45,3000000000), 1));
-    ligths.push_back( new Light( Vector3f(0,45,-3000000000), 1));
+//    ligths.push_back( new Light( Vector3f(0,45,300), 0.6));
 //    ligths.push_back( new Light( Vector3f(-75,35,595), 0.2));
 //    ligths.push_back( new Light( Vector3f(75,35,595), 0.2));
 //    ligths.push_back( new Light( Vector3f(-75,35,5), 0.2));

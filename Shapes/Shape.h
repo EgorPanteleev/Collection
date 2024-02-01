@@ -12,7 +12,9 @@ struct IntersectionData {
 
 class Shape {
 public:
+    virtual void rotate( const Vector3f& axis, float angle ) = 0;
     virtual void move( const Vector3f& p ) = 0;
+    [[nodiscard]] virtual Vector3f getOrigin() const = 0;
     [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;
     [[nodiscard]] virtual IntersectionData intersectsWithRay( const Ray& ray ) const = 0;
     [[nodiscard]] virtual Vector3f getNormal( const Vector3f& p ) const = 0;
