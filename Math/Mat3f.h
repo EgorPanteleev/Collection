@@ -14,6 +14,7 @@ public:
     [[nodiscard]] Mat3f inverse() const;
     [[nodiscard]] Mat3f getUnion() const;
     [[nodiscard]] static Mat3f identity();
+    [[nodiscard]] static Mat3f getRotationMatrix( const Vector3f& axis, float angle );
 private:
     Vector3f columns[3];
 };

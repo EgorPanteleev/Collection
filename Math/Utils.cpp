@@ -98,3 +98,24 @@ Mat3f operator*( const Mat3f& m1, const Mat3f& m2 ) {
     Vector3f vec3 = m1 * m2[2];
     return Mat3f{ vec1, vec2, vec3 };
 }
+
+Mat3f operator*( const Mat3f& m1, float a ) {
+    Vector3f vec1 = m1[0] * a;
+    Vector3f vec2 = m1[1] * a;
+    Vector3f vec3 = m1[2] * a;
+    return Mat3f{ vec1, vec2, vec3 };
+}
+
+Mat3f operator*( float a, const Mat3f& m1 ) {
+    Vector3f vec1 = m1[0] * a;
+    Vector3f vec2 = m1[1] * a;
+    Vector3f vec3 = m1[2] * a;
+    return Mat3f{ vec1, vec2, vec3 };
+}
+
+Mat3f operator+( const Mat3f& m1, const Mat3f& m2 ) {
+    Vector3f vec1 = m1[0] + m2[0];
+    Vector3f vec2 = m1[1] + m2[1];
+    Vector3f vec3 = m1[2] + m2[2];
+    return Mat3f{ vec1, vec2, vec3 };
+}

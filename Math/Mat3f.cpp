@@ -1,10 +1,7 @@
-//
-// Created by igor on 16.01.2024.
-//
-
 #include "Mat3f.h"
 #include "Utils.h"
 #include "Mat2f.h"
+#include <cmath>
 Vector3f& Mat3f::operator[]( int index ) {
     return columns[index];
 }
@@ -89,4 +86,17 @@ Mat3f Mat3f::identity() {
             {0, 1,0},
             {0, 0,1}
     };
+}
+
+Mat3f Mat3f::getRotationMatrix( const Vector3f& axis, float angle ) {
+    Vector3f normalizedAxis = axis.normalize();
+    Mat3f skewSymmetric = {
+            {0                ,normalizedAxis[2],normalizedAxis[1]},
+            {normalizedAxis[2],0                ,normalizedAxis[0]},
+            {normalizedAxis[1],normalizedAxis[0],0                }
+    };
+
+    Mat3f rotation = Mat3f::identity() + std::sin(angle) * skewSymmetric + (1 - std::cos(angle)) * skewSymmetric * skewSymmetric;
+
+    return rotation;
 }
