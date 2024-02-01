@@ -41,6 +41,12 @@ void Cube::fillTriangles() {
     triangles.emplace_back( f3, b3, b4 );
 }
 
+void Cube::move( const Vector3f& p ) {
+    for ( auto& triangle: triangles ) {
+        triangle.move( p );
+    }
+}
+
 bool Cube::isContainPoint( const Vector3f& p ) const {
     for ( const auto& triangle: triangles ) {
         if ( triangle.isContainPoint( p ) ) return true;

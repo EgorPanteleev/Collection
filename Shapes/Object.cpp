@@ -9,6 +9,10 @@ Object::Object( Shape* shape, const Material& material ): shape( shape ), materi
 Object::~Object() {
 }
 
+void Object::move( const Vector3f& p ) {
+    shape->move( p );
+}
+
 bool Object::isContainPoint( const Vector3f& p ) const {
     return shape->isContainPoint( p );
 }

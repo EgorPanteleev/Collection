@@ -6,6 +6,10 @@ Sphere::Sphere(): radius(0), origin() {
 Sphere::Sphere( double r, const Vector3f& pos ): radius(r), origin(pos) {
 }
 
+void Sphere::move( const Vector3f& p ) {
+    origin = origin + p;
+}
+
 bool Sphere::isContainPoint( const Vector3f& p ) const {
     if ( getDistance( p, origin ) == radius ) return true;
     return false;

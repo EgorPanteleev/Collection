@@ -9,6 +9,7 @@ class Cube: public Shape {
 public:
     Cube();
     Cube( const Vector3f& _p1, const Vector3f& _p2);
+    void move( const Vector3f& p ) override;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
     [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const override;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;

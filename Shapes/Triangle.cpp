@@ -14,6 +14,12 @@ Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 )
     N = edge1.cross( edge2 ).normalize();
 }
 
+void Triangle::move( const Vector3f& p ) {
+    v1 = v1 + p;
+    v2 = v2 + p;
+    v3 = v3 + p;
+}
+
 bool Triangle::isContainPoint( const Vector3f& p ) const {
     float detT = (v2.getY() - v3.getY()) * (v1.getX() - v3.getX()) + (v3.getX() - v2.getX()) * (v1.getY() - v3.getY());
     float alpha = ((v2.getY() - v3.getY()) * (p.getX() - v3.getX()) + (v3.getX() - v2.getX()) * (p.getY() - v3.getY())) / detT;

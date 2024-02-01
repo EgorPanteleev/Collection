@@ -4,6 +4,12 @@ OBJShape::OBJShape( const std::string& path ) {
     OBJLoader::load( path, this );
 }
 
+void OBJShape::move( const Vector3f& p ) {
+    for ( auto& triangle: triangles ) {
+        triangle.move( p );
+    }
+}
+
 bool OBJShape::isContainPoint( const Vector3f& p ) const {
     return true;
 }
