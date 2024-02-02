@@ -13,8 +13,10 @@
 #define BLUE RGB( 0, 0, 255 )
 #define YELLOW RGB( 255, 255, 0 )
 #define BROWN RGB( 150, 75, 0 )
+#define PINK RGB( 255,105,180 )
+#define DARK_BLUE RGB(65,105,225)
 int main() {
-    Camera* cam = new Camera( Vector3f(0,0,-80000000), Vector3f(0,0,1), 6000,3200,2000 );
+    Camera* cam = new Camera( Vector3f(0,0,-160000000), Vector3f(0,0,1), 8000,3200,2000 );
     //Camera* cam = new Camera( Vector3f(0,0,0), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     RayTracer rayt( cam, scene );
@@ -82,8 +84,17 @@ int main() {
     //rat->rotate( Vector3f( 0,0,1),45);
     rat->rotate( Vector3f( 1,0,0),270);
     rat->rotate( Vector3f( 0,1,0),35);
+    rat->move( Vector3f( -16000000,0,0) );
     shapes.push_back( rat );
     materials.emplace_back( BROWN, 1 , 0 );
+
+    auto* rat1 = new OBJShape( "C:/Users/igor/CLionProjects/Collection/Modules/model.obj");
+    //rat->rotate( Vector3f( 0,0,1),45);
+    rat1->rotate( Vector3f( 1,0,0),270);
+    rat1->rotate( Vector3f( 0,1,0),155);
+    rat1->move( Vector3f( 15000000,0,0) );
+    shapes.push_back( rat1 );
+    materials.emplace_back( PINK, 1 , 0 );
 
     for ( int i = 0; i < shapes.size(); ++i ) {
         scene->objects.push_back( new Object( shapes[i], materials[i] ) );
@@ -102,21 +113,23 @@ int main() {
         scene->lights.push_back( l );
     }
     clock_t start = clock();
-    rayt.traceAllRays();
+    rayt.traceAllRaysWithThreads( 20 );
     clock_t end = clock();
     double seconds = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("The time: %f seconds\n", seconds); // best - 2.029000
+    printf("The time with multithreading: %f seconds\n", seconds);
     Bitmap bmp(rayt.getCanvas()->getW(), rayt.getCanvas()->getH());
     for (int x = 0; x < rayt.getCanvas()->getW(); ++x) {
         for (int y = 0; y < rayt.getCanvas()->getH(); ++y) {
             RGB color = rayt.getCanvas()->getPixel( x, y );
-//            if ( color.r > 255 ) bmp.setPixel( x,y,255,0,0);
-//            if ( color.g > 255 ) bmp.setPixel( x,y,255,0,0);
-//            if ( color.b > 255 ) bmp.setPixel( x,y,255,0,0);
             bmp.setPixel( x, y, color.r, color.g, color.b );
         }
     }
     bmp.save( "out.bmp" );
+//    start = clock();
+//    rayt.traceAllRays();
+//    end = clock();
+//    seconds = (double)(end - start) / CLOCKS_PER_SEC;
+//    printf("The time without multithreading: %f seconds\n", seconds);
     delete cam, scene;
     return 0;
 }

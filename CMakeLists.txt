@@ -7,6 +7,8 @@ enable_testing()
 
 #add_subdirectory(Models)
 
+add_subdirectory(ThreadsSheduler)
+
 add_subdirectory(OBJReader)
 
 add_subdirectory(Math)
