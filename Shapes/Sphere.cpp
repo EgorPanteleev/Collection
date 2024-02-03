@@ -18,6 +18,10 @@ void Sphere::move( const Vector3f& p ) {
     origin = origin + p;
 }
 
+void Sphere::moveTo( const Vector3f& point ) {
+    move( point - origin );
+}
+
 bool Sphere::isContainPoint( const Vector3f& p ) const {
     if ( getDistance( p, origin ) == radius ) return true;
     return false;

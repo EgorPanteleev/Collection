@@ -27,6 +27,10 @@ void Triangle::move( const Vector3f& p ) {
     v3 = v3 + p;
 }
 
+void Triangle::moveTo( const Vector3f& point ) {
+    move( point - getOrigin() );
+}
+
 Vector3f Triangle::getOrigin() const {
     return (v1 + v2 + v3) / 3;
 }

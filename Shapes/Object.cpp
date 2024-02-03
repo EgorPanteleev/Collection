@@ -17,6 +17,11 @@ void Object::move( const Vector3f& p ) {
     shape->move( p );
 }
 
+void Object::moveTo( const Vector3f& point ) {
+    shape->moveTo( point );
+}
+
+
 Vector3f Object::getOrigin() const {
     return shape->getOrigin();
 }

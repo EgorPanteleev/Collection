@@ -7,9 +7,9 @@
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
-      canvas = new Canvas(240,150);
+//      canvas = new Canvas(240,150);
 //    canvas = new Canvas(960,600);
-//    canvas = new Canvas(1920,1200);
+    canvas = new Canvas(1920,1200);
 //    canvas = new Canvas(3200,2000);
 }
 

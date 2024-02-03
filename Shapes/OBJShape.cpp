@@ -19,6 +19,10 @@ void OBJShape::move( const Vector3f& p ) {
     }
 }
 
+void OBJShape::moveTo( const Vector3f& point ) {
+    move( point - getOrigin() );
+}
+
 Vector3f OBJShape::getOrigin() const {
     Vector3f origin = {0,0,0};
     for ( auto& triangle: triangles ) {

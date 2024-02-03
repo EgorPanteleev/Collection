@@ -17,7 +17,7 @@
 #define DARK_BLUE RGB(65,105,225)
 int main() {
     //Camera* cam = new Camera( Vector3f(0,0,-160000000), Vector3f(0,0,1), 8000,3200,2000 );
-    Camera* cam = new Camera( Vector3f(0, 0,0), Vector3f(0,-1,0), 6000,3200,2000 );
+    Camera* cam = new Camera( Vector3f(0, 0,0), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     RayTracer rayt( cam, scene );
     std::vector<Shape*> shapes;
@@ -58,40 +58,41 @@ int main() {
 //    materials.emplace_back( BROWN, 1 , 0 );
 //// RAND BLOCK
     auto* randBlockForward = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
-    //randBlock->move( Vector3f(-30,0,0 ));
-    //randBlock->rotate( Vector3f( 0,1,0), 45);
+    //randBlockForward->move( Vector3f(0,-10,0 ));
+    randBlockForward->rotate( Vector3f( 0,1,0), 45);
+    randBlockForward->moveTo( Vector3f(0, -40, 325) );
     shapes.push_back(randBlockForward );
     materials.emplace_back( GRAY, 1 , 0 );
 
-    auto* randBlockBackward = new Cube( Vector3f(15, -50, -310), Vector3f(-15, -30, -340) );
-    //randBlock->move( Vector3f(-30,0,0 ));
-    //randBlock->rotate( Vector3f( 0,1,0), 45);
-    shapes.push_back(randBlockBackward );
-    materials.emplace_back( GRAY, 1 , 0 );
-
-    auto* randBlockLeft = new Cube( Vector3f(-300, -30, -15), Vector3f(-340, -50, 15) );
-    //randBlock->move( Vector3f(-30,0,0 ));
-    //randBlock->rotate( Vector3f( 0,1,0), 45);
-    shapes.push_back(randBlockLeft );
-    materials.emplace_back( GRAY, 1 , 0 );
-
-    auto* randBlockRight = new Cube( Vector3f(300, -50, -15), Vector3f(340, -30, 15) );
-    //randBlock->move( Vector3f(-30,0,0 ));
-    //randBlock->rotate( Vector3f( 0,1,0), 45);
-    shapes.push_back(randBlockRight );
-    materials.emplace_back( GRAY, 1 , 0 );
-
-    auto* randBlockUp = new Cube( Vector3f(-15, 300, -15), Vector3f(15, 340, 15) );
-    //randBlock->move( Vector3f(-30,0,0 ));
-    //randBlock->rotate( Vector3f( 0,1,0), 45);
-    shapes.push_back(randBlockUp );
-    materials.emplace_back( GRAY, 1 , 0 );
-
-    auto* randBlockDown = new Cube( Vector3f(15, -300, -15), Vector3f(-15, -340, 15) );
-    //randBlock->move( Vector3f(-30,0,0 ));
-    //randBlock->rotate( Vector3f( 0,1,0), 45);
-    shapes.push_back( randBlockDown );
-    materials.emplace_back( GRAY, 1 , 0 );
+//    auto* randBlockBackward = new Cube( Vector3f(15, -50, -310), Vector3f(-15, -30, -340) );
+//    //randBlock->move( Vector3f(-30,0,0 ));
+//    //randBlock->rotate( Vector3f( 0,1,0), 45);
+//    shapes.push_back(randBlockBackward );
+//    materials.emplace_back( GRAY, 1 , 0 );
+//
+//    auto* randBlockLeft = new Cube( Vector3f(-300, -30, -15), Vector3f(-340, -50, 15) );
+//    //randBlock->move( Vector3f(-30,0,0 ));
+//    //randBlock->rotate( Vector3f( 0,1,0), 45);
+//    shapes.push_back(randBlockLeft );
+//    materials.emplace_back( GRAY, 1 , 0 );
+//
+//    auto* randBlockRight = new Cube( Vector3f(300, -50, -15), Vector3f(340, -30, 15) );
+//    //randBlock->move( Vector3f(-30,0,0 ));
+//    //randBlock->rotate( Vector3f( 0,1,0), 45);
+//    shapes.push_back(randBlockRight );
+//    materials.emplace_back( GRAY, 1 , 0 );
+//
+//    auto* randBlockUp = new Cube( Vector3f(-15, 300, -15), Vector3f(15, 340, 15) );
+//    //randBlock->move( Vector3f(-30,0,0 ));
+//    //randBlock->rotate( Vector3f( 0,1,0), 45);
+//    shapes.push_back(randBlockUp );
+//    materials.emplace_back( GRAY, 1 , 0 );
+//
+//    auto* randBlockDown = new Cube( Vector3f(15, -300, -15), Vector3f(-15, -340, 15) );
+//    //randBlock->move( Vector3f(-30,0,0 ));
+//    //randBlock->rotate( Vector3f( 0,1,0), 45);
+//    shapes.push_back( randBlockDown );
+//    materials.emplace_back( GRAY, 1 , 0 );
 
 
 //    auto* randBlock1 = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
