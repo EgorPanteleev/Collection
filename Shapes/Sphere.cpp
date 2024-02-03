@@ -3,7 +3,7 @@
 #include "Utils.h"
 Sphere::Sphere(): radius(0), origin() {
 }
-Sphere::Sphere( double r, const Vector3f& pos ): radius(r), origin(pos) {
+Sphere::Sphere( float r, const Vector3f& pos ): radius(r), origin(pos) {
 }
 
 void Sphere::rotate( const Vector3f& axis, float angle ) {
@@ -20,6 +20,34 @@ void Sphere::move( const Vector3f& p ) {
 
 void Sphere::moveTo( const Vector3f& point ) {
     move( point - origin );
+}
+
+void Sphere::scale( float scaleValue ) {
+    radius = radius * scaleValue;
+}
+void Sphere::scale( const Vector3f& scaleVec ) {
+    if ( scaleVec[0] != scaleVec[1] || scaleVec[0] != scaleVec[2] ) return; //not sphere! nothing to do
+    radius = radius * scaleVec[0];
+}
+
+void Sphere::scaleTo( float scaleValue ) {
+    BBoxData bbox = getBBox();
+    float len = bbox.pMax[0] - bbox.pMin[0];
+    float cff = scaleValue / len;
+    scale( cff );
+}
+
+void Sphere::scaleTo( const Vector3f& scaleVec ) {
+    if ( scaleVec[0] != scaleVec[1] || scaleVec[0] != scaleVec[2] ) return; //not sphere! nothing to do
+    BBoxData bbox = getBBox();
+    float len = bbox.pMax[0] - bbox.pMin[0];
+    float cff = scaleVec[0] / len;
+    scale( cff );
+}
+
+BBoxData Sphere::getBBox() const {
+    Vector3f r = { radius, radius, radius };
+    return { origin - r, origin + r };
 }
 
 bool Sphere::isContainPoint( const Vector3f& p ) const {

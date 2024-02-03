@@ -21,6 +21,25 @@ void Object::moveTo( const Vector3f& point ) {
     shape->moveTo( point );
 }
 
+void Object::scale( float scaleValue ) {
+    shape->scale( scaleValue );
+}
+
+void Object::scale( const Vector3f& scaleVec ) {
+    shape->scale( scaleVec );
+}
+
+void Object::scaleTo( float scaleValue ) {
+    shape->scaleTo( scaleValue );
+}
+
+void Object::scaleTo( const Vector3f& scaleVec ) {
+    shape->scaleTo( scaleVec );
+}
+
+BBoxData Object::getBBox() const {
+    return shape->getBBox();
+}
 
 Vector3f Object::getOrigin() const {
     return shape->getOrigin();

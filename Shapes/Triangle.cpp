@@ -31,6 +31,40 @@ void Triangle::moveTo( const Vector3f& point ) {
     move( point - getOrigin() );
 }
 
+void Triangle::scale( float scaleValue ) {
+    v1 = v1 * scaleValue;
+    v2 = v2 * scaleValue;
+    v3 = v3 * scaleValue;
+}
+void Triangle::scale( const Vector3f& scaleVec ) {
+    v1 = { v1[0] * scaleVec[0], v1[1] * scaleVec[1], v1[2] * scaleVec[2] };
+    v2 = { v2[0] * scaleVec[0], v2[1] * scaleVec[1], v2[2] * scaleVec[2] };
+    v3 = { v3[0] * scaleVec[0], v3[1] * scaleVec[1], v3[2] * scaleVec[2] };
+}
+
+void Triangle::scaleTo( float scaleValue ) {
+    BBoxData bbox = getBBox();
+    Vector3f len = bbox.pMax - bbox.pMin;
+    Vector3f cff = { scaleValue / len[0], scaleValue / len[1], scaleValue / len[2] };
+    scale( cff );
+}
+void Triangle::scaleTo( const Vector3f& scaleVec ) {
+    BBoxData bbox = getBBox();
+    Vector3f len = bbox.pMax - bbox.pMin;
+    Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
+    scale( cff );
+}
+
+BBoxData Triangle::getBBox() const {
+    float minX = std::min( std::min( v1[0], v2[0] ), v3[0] );
+    float maxX = std::max( std::max( v1[0], v2[0] ), v3[0] );
+    float minY = std::min( std::min( v1[1], v2[1] ), v3[1] );
+    float maxY = std::max( std::max( v1[1], v2[1] ), v3[1] );
+    float minZ = std::min( std::min( v1[2], v2[2] ), v3[2] );
+    float maxZ = std::max( std::max( v1[2], v2[2] ), v3[2] );
+    return { Vector3f( minX, minY, minZ ), Vector3f( maxX, maxY, maxZ ) };
+}
+
 Vector3f Triangle::getOrigin() const {
     return (v1 + v2 + v3) / 3;
 }

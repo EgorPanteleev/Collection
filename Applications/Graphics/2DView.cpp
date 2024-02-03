@@ -58,9 +58,9 @@ int main() {
 //    materials.emplace_back( BROWN, 1 , 0 );
 //// RAND BLOCK
     auto* randBlockForward = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
-    //randBlockForward->move( Vector3f(0,-10,0 ));
-    randBlockForward->rotate( Vector3f( 0,1,0), 45);
     randBlockForward->moveTo( Vector3f(0, -40, 325) );
+    randBlockForward->scaleTo( Vector3f(20,90,20) );
+    randBlockForward->rotate( Vector3f( 0,1,0), 45);
     shapes.push_back(randBlockForward );
     materials.emplace_back( GRAY, 1 , 0 );
 
