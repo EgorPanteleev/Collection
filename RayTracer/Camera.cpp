@@ -8,7 +8,9 @@ Camera::Camera( const Vector3f& pos, const Vector3f& dir, float dv, float vx, fl
     forward = Vector3f(0,0,1);
     right = Vector3f(1,0,0);
     up = Vector3f(0,1,0);
-    LookAt( dir, up);
+    if ( dir.normalize() == up )  LookAt( dir, forward * ( -1 ));
+    else if ( dir.normalize() == up * ( -1 )) LookAt( dir, forward * ( 1 ) );
+    else LookAt( dir, up * ( 1 ) );
 }
 
 Mat4f Camera::LookAt( const Vector3f& target, const Vector3f& _up ) {
@@ -16,10 +18,10 @@ Mat4f Camera::LookAt( const Vector3f& target, const Vector3f& _up ) {
     right = _up.cross(forward).normalize();
     up = forward.cross(right);
     viewMatrix = {
-            Vector4f(      right[0],            up[0],            forward[0],       0 ),
-            Vector4f(      right[1],            up[1],            forward[1],       0 ),
-            Vector4f(      right[2],            up[2],            forward[2],       0 ),
-            Vector4f(-dot( right, target ), -dot( up, target ), -dot( forward, target ),  1 )
+            Vector4f(right[0]   ,right[1]   ,right[2]   ,-dot( right, origin) ),
+            Vector4f(up[0]      ,up[1]      ,up[2]      ,-dot( up, origin) ),
+            Vector4f(forward[0],forward[1],forward[2],-dot( forward, origin) ),
+            Vector4f(0          ,0          ,0          ,1 )
     };
     return viewMatrix;
 }

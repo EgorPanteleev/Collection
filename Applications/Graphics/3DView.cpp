@@ -4,8 +4,19 @@
 #include "RayTracer.h"
 #include "Scene.h"
 #include "Camera.h"
-#include "Sphere.h"
+#include "Shape.h"
 #include "Image.h"
+#include "Object.h"
+#include "Light.h"
+#include "Cube.h"
+#define GRAY RGB( 210, 210, 210 )
+#define RED RGB( 255, 0, 0 )
+#define GREEN RGB( 0, 255, 0 )
+#define BLUE RGB( 0, 0, 255 )
+#define YELLOW RGB( 255, 255, 0 )
+#define BROWN RGB( 150, 75, 0 )
+#define PINK RGB( 255,105,180 )
+#define DARK_BLUE RGB(65,105,225)
 int angX = 0;
 int angY = 0;
 int angZ = 0;
@@ -13,7 +24,7 @@ int zoom = 1;
 float x1 = 0;
 float y1 = 0;
 bool key = false;
-Camera* cam = new Camera( Vector3f(0,0,0), Vector3f(0,0,1), 1000,500,500 );
+Camera* cam = new Camera( Vector3f(0, 0,0), Vector3f(0,0,1), 600 * 1.9,320* 1.9,200* 1.9 );
 Scene* scene = new Scene();
 RayTracer rayt( cam, scene );
 
@@ -37,36 +48,36 @@ void read_kb(unsigned char k, int, int)
         angZ+=7;
 
     if ( k == 'z') {
-        x1 -= 30;
-        cam->LookAt(Vector3f(x1,y1,1) ,Vector3f(0,1,0));
+        x1 -= 10;
+        cam->LookAt(Vector3f(x1,y1,100) ,Vector3f(0,1,0));
         key = true;
     }
 
     if ( k == 'x') {
-        x1 += 30;
-        cam->LookAt(Vector3f(x1,y1,1) ,Vector3f(0,1,0));
+        x1 += 10;
+        cam->LookAt(Vector3f(x1,y1,100) ,Vector3f(0,1,0));
         key = true;
     }
 
     if ( k == 'c') {
-        y1 -= 30;
-        cam->LookAt(Vector3f(x1,y1,1) ,Vector3f(0,1,0));
+        y1 -= 10;
+        cam->LookAt(Vector3f(x1,y1,100) ,Vector3f(0,1,0));
         key = true;
     }
 
     if ( k == 'd') {
-        y1 += 30;
-        cam->LookAt(Vector3f(x1,y1,1) ,Vector3f(0,1,0));
+        y1 += 10;
+        cam->LookAt(Vector3f(x1,y1,100) ,Vector3f(0,1,0));
         key = true;
     }
 
     if (k == '+' || k == '=') {
-        zoom +=30;
+        zoom +=10;
         cam->origin = Vector3f(0,0,zoom);
         key = true;
     }
     if (k == '-' ) {
-        zoom -= 30;
+        zoom -= 10;
         cam->origin = Vector3f(0,0,zoom);
         key = true;
     }
@@ -87,18 +98,14 @@ void drawSphere(Vector3f p, float r, int num_segments, RGB color) {
 }
 
 bool first = true;
-std::vector<Vector3f> fromVec;
-std::vector<Vector3f> toVec;
-std::vector<Sphere*> spheres;
+std::vector<Shape*> shapes;
+std::vector<Material> materials;
+std::vector<Light*> ligths;
 void RenderScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0.8, 0.8, 0.8, 1);
     glLoadIdentity();
-//    glTranslatef(0, 0, zoom);
-//    glRotatef(angX, 1, 0, 0);
-//    glRotatef(angY, 0, 1, 0);
-//    glRotatef(angZ, 0, 0, 1);
     glTranslatef(0, 0, -1600);
     glRotatef(0, 1, 0, 0);
     glRotatef(0, 0, 1, 0);
@@ -107,22 +114,55 @@ void RenderScene() {
     double uY = cam->Vy / rayt.getCanvas()->getH();
     if ( first ) {
         first = false;
-        spheres.push_back(new Sphere(50, Vector3f(120, 120, 300)));
-        spheres.push_back(new Sphere(20, Vector3f(40, 40, 400)));
-        spheres.push_back(new Sphere(30, Vector3f(-20, -20, 500)));
-        for ( auto s: spheres ) {
-          //  scene->.push_back( s );
+        auto* randBlockForward = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+        //randBlock->move( Vector3f(-30,0,0 ));
+        //randBlock->rotate( Vector3f( 0,1,0), 45);
+        shapes.push_back(randBlockForward );
+        materials.emplace_back( GRAY, 1 , 0 );
+
+        auto* randBlockBackward = new Cube( Vector3f(15, -50, -310), Vector3f(-15, -30, -340) );
+        //randBlock->move( Vector3f(-30,0,0 ));
+        //randBlock->rotate( Vector3f( 0,1,0), 45);
+        shapes.push_back(randBlockBackward );
+        materials.emplace_back( GRAY, 1 , 0 );
+
+        auto* randBlockLeft = new Cube( Vector3f(-300, -30, -15), Vector3f(-340, -50, 15) );
+        //randBlock->move( Vector3f(-30,0,0 ));
+        //randBlock->rotate( Vector3f( 0,1,0), 45);
+        shapes.push_back(randBlockLeft );
+        materials.emplace_back( GRAY, 1 , 0 );
+
+        auto* randBlockRight = new Cube( Vector3f(300, -50, -15), Vector3f(340, -30, 15) );
+        //randBlock->move( Vector3f(-30,0,0 ));
+        //randBlock->rotate( Vector3f( 0,1,0), 45);
+        shapes.push_back(randBlockRight );
+        materials.emplace_back( GRAY, 1 , 0 );
+
+        auto* randBlockUp = new Cube( Vector3f(-15, 300, -15), Vector3f(15, 340, 15) );
+        //randBlock->move( Vector3f(-30,0,0 ));
+        //randBlock->rotate( Vector3f( 0,1,0), 45);
+        shapes.push_back(randBlockUp );
+        materials.emplace_back( GRAY, 1 , 0 );
+
+        auto* randBlockDown = new Cube( Vector3f(15, -300, -15), Vector3f(-15, -340, 15) );
+        //randBlock->move( Vector3f(-30,0,0 ));
+        //randBlock->rotate( Vector3f( 0,1,0), 45);
+        shapes.push_back( randBlockDown );
+        materials.emplace_back( GRAY, 1 , 0 );
+
+        ligths.push_back( new Light( Vector3f(0,45,300), 0.6));
+        ligths.push_back( new Light( Vector3f(0,0,-900), 0.6));
+        ligths.push_back( new Light( Vector3f(0,0,900), 0.6));
+
+        for ( int i = 0; i < shapes.size(); ++i ) {
+            scene->objects.push_back( new Object( shapes[i], materials[i] ) );
         }
-        Light* l = new Light();
-        l->origin = Vector3f(-150,300,100);
-        l->intensity = 0.8;
-        scene->lights.push_back(l);
-        rayt.traceAllRays();
+        for ( auto l: ligths ) {
+            scene->lights.push_back( l );
+        }
+        rayt.traceAllRaysWithThreads( 40 );
     }
-    if ( key ) rayt.traceAllRays();
-    for ( auto s: spheres ) {
-        drawSphere( s->origin, s->radius, 360,RGB(0,0,0) );
-    }
+    if ( key ) rayt.traceAllRaysWithThreads( 40 );
     glPushMatrix();
     glTranslatef(-cam->Vx / 2,-cam->Vy / 2 ,cam->dV );
     glBegin(GL_QUADS);

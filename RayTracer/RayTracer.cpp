@@ -7,10 +7,10 @@
 RayTracer::RayTracer( Camera* c, Scene* s ) {
     cam = c;
     scene = s;
-//      canvas = new Canvas(240,150);
+      canvas = new Canvas(240,150);
 //    canvas = new Canvas(960,600);
 //    canvas = new Canvas(1920,1200);
-    canvas = new Canvas(3200,2000);
+//    canvas = new Canvas(3200,2000);
 }
 
 RayTracer::~RayTracer() {
@@ -83,8 +83,9 @@ void RayTracer::traceAllRaysWithThreads( int numThreads ) {
     for ( int x = 0; x < canvas->getW(); ++x ) {
         for ( int y = 0; y < canvas->getH(); ++y ) {
             Vector3f dir = { -cam->Vx / 2 + uX2 + x * uX, -cam->Vy / 2 + uY2 + y * uY, cam->dV  };
+            dir =  cam->worldToCameraCoordinates( dir );
             Ray ray( from, dir);
-            sheduler.addFunction( traceRayUtil, this, x, y, ray, 7 );
+            sheduler.addFunction( traceRayUtil, this, x, y, ray, 15 );
         }
     }
     sheduler.run();

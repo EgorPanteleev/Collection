@@ -31,14 +31,15 @@ void Vector3f::set( const Vector3f& p ) {
 }
 
 Vector3f Vector3f::normalize() const {
+    float len = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ));
+    if ( len == 0 ) return *this;
     Vector3f res;
     res = *this;
-    float len = sqrt( pow( x, 2 ) +  pow( y, 2 ) + pow( z, 2 ));
     return res/len;
 }
 
 Vector3f Vector3f::cross( Vector3f vec ) const {
-    Vector3f res;
+    Vector3f res = {0,0,0};
     res.set(Vector3f (
             y * vec[2] - z * vec[1],
             z * vec[0] - x * vec[2],
