@@ -1,6 +1,7 @@
 #include "Vector4f.h"
 #include <cmath>
 #include "Utils.h"
+#include <optional>
 void Vector4f::setX( float _x ) {
     x = _x;
 }
@@ -58,6 +59,7 @@ float& Vector4f::operator[]( int index ) {
     if ( index == 1) return y;
     if ( index == 2) return z;
     if ( index == 3) return w;
+    return (float &) std::nullopt;
 }
 
 const float& Vector4f::operator[]( int index ) const {
@@ -65,6 +67,7 @@ const float& Vector4f::operator[]( int index ) const {
     if ( index == 1) return y;
     if ( index == 2) return z;
     if ( index == 3) return w;
+    return (float &) std::nullopt;
 }
 
 Vector4f& Vector4f::operator=( const Vector4f& p ) {

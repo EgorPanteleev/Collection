@@ -1,6 +1,6 @@
 project(TestMath)
 
-set(Libs Shapes Math)
+set(Libs Mesh Math)
 
 add_executable( TestTriangle TestTriangle.cpp )
 

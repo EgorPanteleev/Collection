@@ -4,6 +4,7 @@
 
 #include "Vector2f.h"
 #include <cmath>
+#include <optional>
 void Vector2f::setX( float _x ) {
     x = _x;
 }
@@ -35,11 +36,13 @@ Vector2f Vector2f::normalize() const {
 float& Vector2f::operator[]( int index ) {
     if ( index == 0) return x;
     if ( index == 1) return y;
+    return (float &) std::nullopt;
 }
 
 const float& Vector2f::operator[]( int index ) const {
     if ( index == 0) return x;
     if ( index == 1) return y;
+    return (float &) std::nullopt;
 }
 
 Vector2f& Vector2f::operator=( const Vector2f& p ) {

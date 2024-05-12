@@ -10,19 +10,13 @@
 #include "Camera.h"
 #include <mutex>
 #include "BVH.h"
-struct closestIntersectionData {
-    closestIntersectionData():t( std::numeric_limits<float>::max() ), N(), object( nullptr ) {}
-    float t;
-    Vector3f N;
-    Object* object;
-};
 
 class RayTracer {
 public:
     RayTracer( Camera* c, Scene* s, Canvas* _canvas );
     ~RayTracer();
-    [[nodiscard]] closestIntersectionData closestIntersection( Ray& ray );
-    [[nodiscard]] float computeLight( const Vector3f& P, const Vector3f& V, const closestIntersectionData& iData );
+    [[nodiscard]] IntersectionData closestIntersection( Ray& ray );
+    [[nodiscard]] float computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
     [[nodiscard]] RGB traceRay( Ray& ray, int depth );
     static void traceRayUtil( void* self, int x, int y, Ray& ray, int depth );
     void traceAllRaysWithThreads( int numThreads );

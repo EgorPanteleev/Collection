@@ -6,15 +6,15 @@
 #define COLLECTION_INTERSECTIONDATA_H
 
 #include "Vector3f.h"
-#include "Object.h"
-class Object;
+#include "Triangle.h"
+class Triangle;
 class IntersectionData {
 public:
     IntersectionData();
-    IntersectionData( float t, const Vector3f& N, Object* obj );
+    IntersectionData( float t, const Vector3f& N, Triangle* tr );
     float t;
     Vector3f N;
-    Object* object;
+    Triangle* triangle;
 };
 
 #endif //COLLECTION_INTERSECTIONDATA_H

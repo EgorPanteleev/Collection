@@ -52,7 +52,7 @@ int testInverse() {
 }
 
 int testRotationMatrix() {
-
+    return 0;
 }
 
 int main() {

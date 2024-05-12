@@ -33,41 +33,37 @@ RayTracer::~RayTracer() {
 
 ////NEW
 //TODO remove closestIntersectionData
-closestIntersectionData RayTracer::closestIntersection( Ray& ray ) {
-    closestIntersectionData cIData;
-    IntersectionData iData = bvh->IntersectBVH( ray, 0 );
-    cIData.t = iData.t;
-    cIData.N = iData.N;
-    cIData.object = iData.object;
-    return cIData;
+IntersectionData RayTracer::closestIntersection( Ray& ray ) {
+    return bvh->IntersectBVH( ray, 0 );
 }
 
-float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const closestIntersectionData& iData ) {
+float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
     float i = 0;
     Vector3f N = iData.N;
     for ( auto light: scene->lights ) {
         Ray ray = Ray( light->origin, P - light->origin );
-        closestIntersectionData cIData = closestIntersection( ray );
-        if ( cIData.object != iData.object ) continue;
+        IntersectionData cIData = closestIntersection( ray );
+        if ( cIData.triangle == nullptr ) continue;
+        if ( cIData.triangle->owner != iData.triangle->owner ) continue;
         Vector3f L = ( light->origin - P ).normalize();
         float dNL = dot(N, L );
         if ( dNL > 0 ) i += light->intensity * dNL;
-        if ( iData.object->getDiffuse() == -1 ) continue;
+        if ( iData.triangle->owner->getMaterial().getDiffuse() == -1 ) continue;
         Vector3f R = ( N * 2 * dot(N, L) - L ).normalize();
         float dRV = dot(R, V.normalize());
-        if ( dRV > 0 ) i += light->intensity * pow(dRV, iData.object->getDiffuse());
+        if ( dRV > 0 ) i += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
     }
     if ( i > 1 ) i = 1;
     return i;
 }
 
 RGB RayTracer::traceRay( Ray& ray, int depth ) {
-    closestIntersectionData cIData = closestIntersection( ray );
+    IntersectionData cIData = closestIntersection( ray );
     if ( cIData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR;
     Vector3f P = ray.origin + ray.direction * cIData.t;
     float i = computeLight( P, ray.direction * (-1), cIData );
-    RGB localColor = cIData.object->getColor() * i;
-    float r = cIData.object->getReflection();
+    RGB localColor = cIData.triangle->owner->getMaterial().getColor() * i;
+    float r = cIData.triangle->owner->getMaterial().getReflection();
     if ( depth == 0 || r == 0 ) return localColor;
     Vector3f N = cIData.N.normalize();
     Vector3f reflectedDir = ( ray.direction - N * 2 * dot(N, ray.direction ) );

@@ -2,12 +2,12 @@
 #include "Triangle.h"
 
 void Scene::fillTriangles() {
-    for ( auto object: objects ) {
-        for ( auto triangle : object->getTriangles() ) triangles.push_back( triangle );
+    for ( auto mesh: meshes ) {
+        for ( auto& triangle : mesh->getTriangles() ) triangles.push_back( triangle );
     }
 }
 
-std::vector<Triangle> Scene::getTriangles() {
+std::vector<Triangle> Scene::getTriangles() const {
     return triangles;
 }
 

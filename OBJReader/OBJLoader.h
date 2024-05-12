@@ -1,9 +1,9 @@
 #pragma once
-#include "OBJShape.h"
-
+#include "TriangularMesh.h"
+#include <cstring>
 class OBJLoader {
 public:
-    OBJLoader( const std::string& path, OBJShape* target );
-    static bool load( const std::string& path, OBJShape* target );
+    OBJLoader( const std::string& path, TriangularMesh* target );
+    static bool load( const std::string& path, TriangularMesh* target );
 };
 

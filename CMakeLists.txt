@@ -17,7 +17,9 @@ add_subdirectory(Math)
 
 add_subdirectory(BitMapImage)
 
-add_subdirectory(Shapes)
+add_subdirectory(Mesh)
+
+#add_subdirectory(Shapes)
 
 add_subdirectory(RayTracer)
 

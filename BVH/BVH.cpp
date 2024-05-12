@@ -150,7 +150,7 @@ IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx )
             if ( t >= iData.t ) continue;
             iData.t = t;
             iData.N = triangle.getNormal();
-            iData.object = triangle.owner;
+            iData.triangle = &(triangles[indexes[node.leftFirst + i]]);
         }
         return iData;
     }
