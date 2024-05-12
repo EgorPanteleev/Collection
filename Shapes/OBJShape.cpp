@@ -52,6 +52,9 @@ void OBJShape::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
+std::vector<Triangle> OBJShape::getTriangles() { return triangles; }
+
+
 BBoxData OBJShape::getBBox() const {
     static float MAX = std::numeric_limits<float>::max();
     static float MIN = std::numeric_limits<float>::min();
@@ -91,7 +94,7 @@ IntersectionData OBJShape::intersectsWithRay( const Ray& ray ) const {
         min = t;
         N = triangle.getNormal();
     }
-    return { min, N };
+    return { min, N , nullptr};
 }
 
 Vector3f OBJShape::getNormal( const Vector3f& p ) const {

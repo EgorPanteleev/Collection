@@ -1,5 +1,5 @@
 #include "Object.h"
-
+#include <vector>
 Object::Object(): shape( nullptr ), material() {
 }
 
@@ -51,6 +51,13 @@ bool Object::isContainPoint( const Vector3f& p ) const {
 
 IntersectionData Object::intersectsWithRay( const Ray& ray ) const {
     return shape->intersectsWithRay( ray );
+}
+
+std::vector<Triangle> Object::getTriangles() {
+    std::vector<Triangle> triangles = shape->getTriangles();
+    for ( auto& triangle: triangles )
+        triangle.owner = this;
+    return triangles;
 }
 
 Vector3f Object::getNormal( const Vector3f& p ) const {

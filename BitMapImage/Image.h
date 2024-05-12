@@ -1,5 +1,6 @@
 #include <fstream>
 #include <vector>
+#include <cstdint>
 
 #pragma pack(push, 1) // Ensure structure packing
 struct BitmapFileHeader {

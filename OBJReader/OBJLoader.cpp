@@ -6,7 +6,7 @@ OBJLoader::OBJLoader( const std::string& path, OBJShape* target ) {
 
 bool OBJLoader::load( const std::string& path, OBJShape* target ) {
     objl::Loader loader;
-    bool res = loader.LoadFile( "C:/Users/igor/CLionProjects/Collection/OBJReader/model.obj");
+    bool res = loader.LoadFile( path);
     if ( !res ) return res;
     for (int i = 0; i < loader.LoadedMeshes.size(); i++) {
         // Copy one of the loaded meshes to be our current mesh

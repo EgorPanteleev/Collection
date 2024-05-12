@@ -3,7 +3,7 @@
 //
 
 #include "Cube.h"
-
+#include "IntersectionData.h"
 Cube::Cube(): p1({0,0,0}), p2({1,1,1}) {
     fillTriangles();
 }
@@ -87,7 +87,9 @@ void Cube::scaleTo( const Vector3f& scaleVec ) {
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
+
 }
+std::vector<Triangle> Cube::getTriangles() { return triangles; }
 
 BBoxData Cube::getBBox() const {
     static float MAX = std::numeric_limits<float>::max();
@@ -130,7 +132,7 @@ IntersectionData Cube::intersectsWithRay( const Ray& ray ) const {
         min = t;
         N = triangle.getNormal();
     }
-    return { min, N };
+    return { min, N , nullptr};
 }
 
 Vector3f Cube::getNormal( const Vector3f& p ) const {

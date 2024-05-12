@@ -1,6 +1,12 @@
 #pragma once
 #include "Shape.h"
 #include "Material.h"
+#include "Triangle.h"
+#include "IntersectionData.h"
+#include <vector>
+class Shape;
+class Triangle;
+class BBoxData;
 class Object {
 public:
     Object();
@@ -13,6 +19,7 @@ public:
     void scale( const Vector3f& scaleVec );
     void scaleTo( float scaleValue );
     void scaleTo( const Vector3f& scaleVec );
+    std::vector<Triangle> getTriangles();
     [[nodiscard]] BBoxData getBBox() const;
     [[nodiscard]] Vector3f getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;

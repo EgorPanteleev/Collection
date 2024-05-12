@@ -5,6 +5,8 @@ project(Collection)
 
 enable_testing()
 
+add_subdirectory(BVH)
+
 #add_subdirectory(Models)
 
 add_subdirectory(ThreadsSheduler)

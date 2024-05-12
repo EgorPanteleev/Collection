@@ -35,3 +35,7 @@ Mat3f operator*( const Mat3f& m1, float a );
 Mat3f operator*( float a, const Mat3f& m1 );
 
 Mat3f operator+( const Mat3f& m1, const Mat3f& m2 );
+
+Vector3f min( const Vector3f& v1, const Vector3f& v2 );
+
+Vector3f max( const Vector3f& v1, const Vector3f& v2 );

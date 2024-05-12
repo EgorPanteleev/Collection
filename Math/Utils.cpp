@@ -1,7 +1,7 @@
 #include "Utils.h"
 #include <cmath>
 float dot( const Vector3f& p1, const Vector3f& p2 ) {
-    return ( p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ());
+    return ( p1.x * p2.x + p1.y * p2.y + p1.z * p2.z );
 }
 
 float dot( const Vector4f& p1, const Vector4f& p2 ) {
@@ -118,4 +118,12 @@ Mat3f operator+( const Mat3f& m1, const Mat3f& m2 ) {
     Vector3f vec2 = m1[1] + m2[1];
     Vector3f vec3 = m1[2] + m2[2];
     return Mat3f{ vec1, vec2, vec3 };
+}
+
+Vector3f min( const Vector3f& v1, const Vector3f& v2 ) {
+    return { std::min( v1.x, v2.x), std::min( v1.y, v2.y), std::min( v1.z, v2.z) };
+}
+
+Vector3f max( const Vector3f& v1, const Vector3f& v2 ) {
+    return { std::max( v1.x, v2.x), std::max( v1.y, v2.y), std::max( v1.z, v2.z) };
 }

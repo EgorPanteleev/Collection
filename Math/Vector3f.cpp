@@ -25,9 +25,9 @@ float Vector3f::getZ() const {
 }
 
 void Vector3f::set( const Vector3f& p ) {
-    x = p.getX();
-    y = p.getY();
-    z = p.getZ();
+    x = p.x;
+    y = p.y;
+    z = p.z;
 }
 
 Vector3f Vector3f::normalize() const {
@@ -35,28 +35,27 @@ Vector3f Vector3f::normalize() const {
     if ( len == 0 ) return *this;
     Vector3f res;
     res = *this;
-    return res/len;
+    return res / len;
 }
 
-Vector3f Vector3f::cross( Vector3f vec ) const {
-    Vector3f res = {0,0,0};
-    res.set(Vector3f (
-            y * vec[2] - z * vec[1],
-            z * vec[0] - x * vec[2],
-            x * vec[1] - y * vec[0] ) );
-    return res;
+Vector3f Vector3f::cross( const Vector3f& vec ) const {
+    return {
+            y * vec.z - z * vec.y,
+            z * vec.x - x * vec.z,
+            x * vec.y - y * vec.x
+    };
 }
 
 float& Vector3f::operator[]( int index ) {
-    if ( index == 0) return x;
-    if ( index == 1) return y;
-    if ( index == 2) return z;
+    if ( index == 0 ) return x;
+    if ( index == 1 ) return y;
+    if ( index == 2 ) return z;
 }
 
 const float& Vector3f::operator[]( int index ) const {
-    if ( index == 0) return x;
-    if ( index == 1) return y;
-    if ( index == 2) return z;
+    if ( index == 0 ) return x;
+    if ( index == 1 ) return y;
+    if ( index == 2 ) return z;
 }
 
 Vector3f& Vector3f::operator=( const Vector3f& p ) {
@@ -65,39 +64,22 @@ Vector3f& Vector3f::operator=( const Vector3f& p ) {
 }
 
 Vector3f Vector3f::operator+( const Vector3f& p ) const {
-    Vector3f ret;
-    ret.setX( x + p.getX() );
-    ret.setY( y + p.getY() );
-    ret.setZ( z + p.getZ() );
-    return ret;
+    return { x + p.x, y + p.y, z + p.z};
 }
-
 Vector3f Vector3f::operator-( const Vector3f& p ) const {
-    Vector3f ret;
-    ret.setX( x - p.getX() );
-    ret.setY( y - p.getY() );
-    ret.setZ( z - p.getZ() );
-    return ret;
+    return { x - p.x, y - p.y, z - p.z };
 }
 
 Vector3f Vector3f::operator*( float a ) const {
-    Vector3f ret;
-    ret.setX( x * a );
-    ret.setY( y * a );
-    ret.setZ( z * a );
-    return ret;
+    return {x * a, y * a, z * a };
 }
 
 Vector3f Vector3f::operator/( float a ) const {
-    Vector3f ret;
-    ret.setX( x / a );
-    ret.setY( y / a );
-    ret.setZ( z / a );
-    return ret;
+    return {x / a, y / a, z / a };
 }
 
 bool Vector3f::operator==( const Vector3f& p ) const {
-    return ( x == p.getX() && y == p.getY() && z == p.getZ() );
+    return ( x == p.x && y == p.y && z == p.z );
 }
 
 bool Vector3f::operator!=( const Vector3f& p ) const {

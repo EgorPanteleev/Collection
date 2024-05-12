@@ -2,13 +2,10 @@
 #define COLLECTION_SHAPE_H
 #include <iostream>
 #include "Ray.h"
-
-struct IntersectionData {
-    IntersectionData(): t( std::numeric_limits<float>::max() ), N() {};
-    IntersectionData( float t, const Vector3f& N ): t( t ), N( N ) {};
-    float t;
-    Vector3f N;
-};
+#include <limits>
+#include "Triangle.h"
+#include <vector>
+#include "IntersectionData.h"
 
 struct BBoxData {
     BBoxData( const Vector3f& pMin, const Vector3f& pMax ): pMin( pMin ), pMax( pMax ) {}
@@ -16,6 +13,8 @@ struct BBoxData {
     Vector3f pMax;
 };
 
+class Triangle;
+class IntersectionData;
 class Shape {
 public:
     virtual void rotate( const Vector3f& axis, float angle ) = 0;
@@ -25,6 +24,7 @@ public:
     virtual void scale( const Vector3f& scaleVec ) = 0;
     virtual void scaleTo( float scaleValue ) = 0;
     virtual void scaleTo( const Vector3f& scaleVec ) = 0;
+    virtual std::vector <Triangle> getTriangles();
     [[nodiscard]] virtual BBoxData getBBox() const = 0;
     [[nodiscard]] virtual Vector3f getOrigin() const = 0;
     [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;

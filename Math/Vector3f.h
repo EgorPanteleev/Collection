@@ -21,7 +21,7 @@ public:
 
     [[nodiscard]] Vector3f normalize() const;
 
-    [[nodiscard]] Vector3f cross( Vector3f vec ) const;
+    [[nodiscard]] Vector3f cross( const Vector3f& vec ) const;
 
     float& operator[]( int index );
 
@@ -42,8 +42,8 @@ public:
     Vector3f(float _x, float _y, float _z);
     ~Vector3f();
     Vector3f( const Vector3f& p );
-private:
-    float x{};
-    float y{};
-    float z{};
+
+    float x;
+    float y;
+    float z;
 };

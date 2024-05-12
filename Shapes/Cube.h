@@ -16,6 +16,7 @@ public:
     void scale( const Vector3f& scaleVec ) override;
     void scaleTo( float scaleValue ) override;
     void scaleTo( const Vector3f& scaleVec ) override;
+    std::vector<Triangle> getTriangles() override;
     [[nodiscard]] BBoxData getBBox() const override;
     [[nodiscard]] Vector3f getOrigin() const override;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
