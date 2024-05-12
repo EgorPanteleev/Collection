@@ -18,10 +18,10 @@ Mat4f Camera::LookAt( const Vector3f& target, const Vector3f& _up ) {
     right = _up.cross(forward).normalize();
     up = forward.cross(right);
     viewMatrix = {
-            Vector4f(right[0]   ,right[1]   ,right[2]   ,-dot( right, origin) ),
-            Vector4f(up[0]      ,up[1]      ,up[2]      ,-dot( up, origin) ),
-            Vector4f(forward[0],forward[1],forward[2],-dot( forward, origin) ),
-            Vector4f(0          ,0          ,0          ,1 )
+            Vector4f(right[0]   ,right[1]   ,right[2]   ,-dot( right  , origin) ),
+            Vector4f(up[0]      ,up[1]      ,up[2]      ,-dot( up     , origin) ),
+            Vector4f(forward[0] ,forward[1] ,forward[2] ,-dot( forward, origin) ),
+            Vector4f(0          ,0          ,0          ,1                            )
     };
     return viewMatrix;
 }
