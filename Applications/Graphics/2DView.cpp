@@ -399,7 +399,7 @@ void saveToBMP( Canvas* canvas, std::string fileName ) {
 
 int main() {
     RayTracer* rayTracer = nullptr;
-    //int w = 120 ; int h = 75;
+    //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400;
     //int w = 960 ; int h = 600;
@@ -410,15 +410,15 @@ int main() {
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     clock_t start = clock();
     //sphereScene( rayTracer, w, h );//
-    //roomScene( rayTracer, w, h );//57 sec
-    //ratScene( rayTracer, w, h );//2.3 sec
-    //tableScene( rayTracer, w, h );//23 sec
-    //bookScene( rayTracer, w, h );//130 sec
-    //sandwichScene( rayTracer, w, h );//3.29 sec
-    //vagonScene( rayTracer, w, h );//118 sec
-    //sksScene( rayTracer, w, h );//182 sec
-    //dogScene( rayTracer, w, h );//10 sec
-    planeScene( rayTracer, w, h );//357 sec
+    //roomScene( rayTracer, w, h );//57 sec // 13.6 sec
+    //ratScene( rayTracer, w, h );//2.3 sec // 1.7 sec
+    //tableScene( rayTracer, w, h );//23 sec // 1.56 sec
+    //bookScene( rayTracer, w, h );//130 sec // 31 sec
+    //sandwichScene( rayTracer, w, h );//3.29 sec //2 sec
+    //vagonScene( rayTracer, w, h );//118 sec // 1.96 sec
+    sksScene( rayTracer, w, h );//182 sec //1.6 sec
+    //dogScene( rayTracer, w, h );//10 sec //
+    //planeScene( rayTracer, w, h );//357 sec
     //hardScene( rayTracer, w, h ); //720 sec
     clock_t end = clock();
     double seconds = (double)(end - start) / CLOCKS_PER_SEC;

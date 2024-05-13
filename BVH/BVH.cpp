@@ -45,12 +45,11 @@ struct aabb
     }
 };
 
-float BVH::EvaluateSAH( BVHNode& node, int axis, float pos )
-{
-// determine triangle counts and bounds for this split candidate
+float BVH::EvaluateSAH( BVHNode& node, int axis, float pos ) {
+    // determine triangle counts and bounds for this split candidate
     aabb leftBox, rightBox;
     int leftCount = 0, rightCount = 0;
-    for( uint i = 0; i < node.trianglesCount; i++ )
+    for (uint i = 0; i < node.trianglesCount; i++)
     {
         Triangle& triangle = triangles[indexes[node.leftFirst + i]];
         if (triangle.getOrigin()[axis] < pos)
@@ -72,30 +71,84 @@ float BVH::EvaluateSAH( BVHNode& node, int axis, float pos )
     return cost > 0 ? cost : 1e30f;
 }
 
+float FindBestSplitPlane( BVHNode& node, int& axis, float& splitPos )
+{
+    float bestCost = 1e30f;
+    for (int a = 0; a < 3; a++)
+    {
+        float boundsMin = 1e30f, boundsMax = -1e30f;
+        for (int i = 0; i < node.triCount; i++)
+        {
+            Tri& triangle = tri[triIdx[node.leftFirst + i]];
+            boundsMin = min( boundsMin, triangle.centroid[a] );
+            boundsMax = max( boundsMax, triangle.centroid[a] );
+        }
+        if (boundsMin == boundsMax) continue;
+// populate the bins
+        Bin bin[BINS];
+        float scale = BINS / (boundsMax - boundsMin);
+        for (uint i = 0; i < node.triCount; i++)
+        {
+            Tri& triangle = tri[triIdx[node.leftFirst + i]];
+            int binIdx = min( BINS - 1,
+                              (int)((triangle.centroid[a] - boundsMin) * scale) );
+            bin[binIdx].triCount++;
+            bin[binIdx].bounds.grow( triangle.vertex0 );
+            bin[binIdx].bounds.grow( triangle.vertex1 );
+            bin[binIdx].bounds.grow( triangle.vertex2 );
+        }
+// gather data for the 7 planes between the 8 bins
+        float leftArea[BINS - 1], rightArea[BINS - 1];
+        int leftCount[BINS - 1], rightCount[BINS - 1];
+        aabb leftBox, rightBox;
+        int leftSum = 0, rightSum = 0;
+        for (int i = 0; i < BINS - 1; i++)
+        {
+            leftSum += bin[i].triCount;
+            leftCount[i] = leftSum;
+            leftBox.grow( bin[i].bounds );
+            leftArea[i] = leftBox.area();
+            rightSum += bin[BINS - 1 - i].triCount;
+            rightCount[BINS - 2 - i] = rightSum;
+            rightBox.grow( bin[BINS - 1 - i].bounds );
+            rightArea[BINS - 2 - i] = rightBox.area();
+        }
+// calculate SAH cost for the 7 planes
+        scale = (boundsMax - boundsMin) / BINS;
+        for (int i = 0; i < BINS - 1; i++)
+        {
+            float planeCost =
+                    leftCount[i] * leftArea[i] + rightCount[i] * rightArea[i];
+            if (planeCost < bestCost)
+                axis = a, splitPos = boundsMin + scale * (i + 1),
+                bestCost = planeCost;
+        }
+    }
+    return bestCost;
+}
+
 void BVH::Subdivide( uint nodeIdx )
 {
     // terminate recursion
     BVHNode& node = bvhNode[nodeIdx];
     if (node.trianglesCount <= 2) return;
     // determine split axis using SAH
-//    int bestAxis = -1;
-//    float bestPos = 0, bestCost = 1e30f;
-//    for( int axis = 0; axis < 3; axis++ ) for( uint i = 0; i < node.trianglesCount; i++ )
-//        {
-//            triangles& triangle = triangles[indexes[node.leftFirst + i]];
-//            float candidatePos = triangle.getOrigin()[axis];
-//            float cost = EvaluateSAH( node, axis, candidatePos );
-//            if (cost < bestCost)
-//                bestPos = candidatePos, bestAxis = axis, bestCost = cost;
-//        }
-//    int axis = bestAxis;
-//    float splitPos = bestPos;
-    // determine split axis and position
-    Vector3f extent = node.aabbMax - node.aabbMin;
-    int axis = 0;
-    if (extent.y > extent.x) axis = 1;
-    if (extent.z > extent[axis]) axis = 2;
-    float splitPos = node.aabbMin[axis] + extent[axis] * 0.5f;
+    int bestAxis = -1;
+    float bestPos = 0, bestCost = 1e30f;
+    for( int axis = 0; axis < 3; axis++ ) for( uint i = 0; i < node.trianglesCount; i++ )
+        {
+            Triangle& triangle = triangles[indexes[node.leftFirst + i]];
+            float candidatePos = triangle.getOrigin()[axis];
+            float cost = EvaluateSAH( node, axis, candidatePos );
+            if (cost < bestCost)
+                bestPos = candidatePos, bestAxis = axis, bestCost = cost;
+        }
+    int axis = bestAxis;
+    float splitPos = bestPos;
+    Vector3f e = node.aabbMax - node.aabbMin; // extent of parent
+    float parentArea = e.x * e.y + e.y * e.z + e.z * e.x;
+    float parentCost = node.trianglesCount * parentArea;
+    if (bestCost >= parentCost) return;
     // in-place partition
     int i = node.leftFirst;
     int j = i + node.trianglesCount - 1;
@@ -124,6 +177,7 @@ void BVH::Subdivide( uint nodeIdx )
     Subdivide( leftChildIdx );
     Subdivide( rightChildIdx );
 }
+
 
 bool BVH::IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bmax )
 {
