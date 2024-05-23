@@ -23,6 +23,11 @@ public:
     void scale( const Vector3f& scaleVec ) override;
     void scaleTo( float scaleValue ) override;
     void scaleTo( const Vector3f& scaleVec ) override;
+
+    void setMinPoint( const Vector3f& vec, int ind = -1 ) override;
+
+    void setMaxPoint( const Vector3f& vec, int ind = -1 ) override;
+
     std::vector<Triangle> getTriangles() override;
     [[nodiscard]] BBoxData getBBox() const override;
     [[nodiscard]] Vector3f getOrigin() const override;

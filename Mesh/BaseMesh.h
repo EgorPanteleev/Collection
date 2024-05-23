@@ -30,6 +30,11 @@ public:
     virtual void scale( const Vector3f& scaleVec ) = 0;
     virtual void scaleTo( float scaleValue ) = 0;
     virtual void scaleTo( const Vector3f& scaleVec ) = 0;
+
+    virtual void setMinPoint( const Vector3f& vec, int ind = -1 ) {  };
+
+    virtual void setMaxPoint( const Vector3f& vec, int ind = -1 ) {  };
+
     virtual std::vector <Triangle> getTriangles();
     [[nodiscard]] virtual BBoxData getBBox() const = 0;
     [[nodiscard]] virtual Vector3f getOrigin() const = 0;

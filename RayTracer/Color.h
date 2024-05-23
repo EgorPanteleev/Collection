@@ -8,6 +8,7 @@ public:
     RGB operator+( const RGB& color ) const;
     RGB operator*( float a) const;
     RGB operator/( float a) const;
+    bool operator==( const RGB& color ) const;
     RGB();
     RGB( float _r, float _g, float _b);
     ~RGB();

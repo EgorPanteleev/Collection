@@ -122,8 +122,10 @@ void sphereScene( RayTracer*& rayTracer, int w, int h ) {
 }
 
 
+
 void roomScene( RayTracer*& rayTracer, int w, int h ) {
-    Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Camera* cam = new Camera( Vector3f(0,0,300 ), Vector3f(0,0,1), 2400,3200,2000 );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
@@ -131,37 +133,126 @@ void roomScene( RayTracer*& rayTracer, int w, int h ) {
     std::vector<Light*> lights;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(80, -50, 0), Vector3f(100, 50, 600),
-                                    { GRAY, 1 , 0 } ) );
+                                    { GRAY, -1 , 0 } ) );
 ////left
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, 0), Vector3f(-80, 50, 600),
-                                   { GRAY, 1 , 0 } ) );
-////back
-    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 600), Vector3f(100, 50, 600),
-                                   { GRAY, 1 , 0 } ) );
+                                   { GRAY, -1 , 0 } ) );
 ////front
-    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 0), Vector3f(100, 50, 0),
-                                   { GRAY, 1 , 0 } ) );
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 600), Vector3f(100, 50, 610),
+                                   { GRAY, -1 , 0 } ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 50, 0),
+                                   { GRAY, -1 , 0 } ) );
 ////down
     meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
-                                   { GRAY, 1 , 0 } ) );
+                                   { GRAY, -1 , 0 } ) );
 ////up
     meshes.push_back(new CubeMesh( Vector3f(-100, 50, 0), Vector3f(100, 70, 620),
-                                   { GRAY, 1 , 0 } ) );
+                                   { GRAY, -1 , 0 } ) );
 
 ////RAND BLOCK
     auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
     randBlockForward->moveTo( Vector3f(0, -40, 325) );
     randBlockForward->scaleTo( Vector3f(20,90,20) );
     randBlockForward->rotate( Vector3f( 0,1,0), 45);
-    randBlockForward->move( Vector3f(-10,0,0));
+    randBlockForward->move( Vector3f(30,0,0));
     randBlockForward->setMaterial({RED, 1 , 0});
+    randBlockForward->move( Vector3f(-95,0,200));
     //randBlockForward->scaleTo( 200 );
     meshes.push_back(randBlockForward );
+
+////DOG
+    auto* dog = new TriangularMesh();
+    dog->loadMesh( "/home/auser/dev/src/Collection/Models/dog/model.obj" );
+    //dog->rotate( Vector3f( 0, 0, 1), 45 );
+    dog->rotate( Vector3f( 1,0,0),-90);
+    dog->rotate( Vector3f( 0,1,0),-235);
+    dog->scaleTo( 50 );
+    dog->move( Vector3f( -10,0,520) );
+    dog->setMinPoint( { 0, -50, 0 }, 1 );
+    dog->setMaterial( { GRAY, 1 , 0 } );
+    meshes.push_back( dog );
+    ////SKS
+    auto* sks = new TriangularMesh();
+    sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
+    sks->rotate( Vector3f( 0, 0, 1), 60 );
+    //sks->rotate( Vector3f( 1,0,0),100);
+    sks->rotate( Vector3f( 0,1,0), -120);
+    sks->scaleTo(45);
+    sks->setMinPoint( { 0, -50, 0 }, 1 );
+    sks->move( Vector3f( 39,0,305) );
+    sks->move( Vector3f(-95,0,200));
+    sks->setMaterial( { GRAY, 1 , 0 } );
+    meshes.push_back( sks );
+
+    ////TABLE
+    auto* table = new TriangularMesh();
+    table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
+    //table->rotate( Vector3f( 0, 0, 1), 45 );
+    //table->rotate( Vector3f( 1,0,0),270);
+    table->rotate( Vector3f( 0,1,0),0);
+    table->scaleTo( 75 );
+    table->move( Vector3f( 40,40,500) );
+    table->setMinPoint({ 0, -50, 0 }, 1);
+    table->setMaxPoint({ 0, 0, 600 }, 2);
+    table->setMaxPoint({ 80, 0, 0 }, 0);
+    table->setMaterial( { GRAY, 1 , 0 } );
+    meshes.push_back( table );
+
+    // -80, 80 ; -50, 50; 0, 600
+    ////Mirror
+    Vector3f moveVec = { 35,-5,0};
+    RGB colorRam = GRAY;
+    auto* mirrorBottom = new CubeMesh( Vector3f(0, 0, 595), Vector3f(30, 2, 600) );
+    mirrorBottom->setMaterial( { colorRam, 1 , 0 } );
+    mirrorBottom->move(moveVec);
+    meshes.push_back( mirrorBottom );
+
+    auto* mirrorLeft = new CubeMesh( Vector3f(0, 2, 595), Vector3f(2, 37, 600) );
+    mirrorLeft->setMaterial( { colorRam, 1 , 0 } );
+    mirrorLeft->move(moveVec);
+    meshes.push_back( mirrorLeft );
+
+    auto* mirrorRight = new CubeMesh( Vector3f(28, 2, 595), Vector3f(30, 37, 600) );
+    mirrorRight->setMaterial( { colorRam, 1 , 0 } );
+    mirrorRight->move(moveVec);
+    meshes.push_back( mirrorRight );
+
+    auto* mirrorTop = new CubeMesh( Vector3f(2, 35, 595), Vector3f(28, 37, 600) );
+    mirrorTop->setMaterial( { colorRam, 1 , 0 } );
+    mirrorTop->move(moveVec);
+    meshes.push_back( mirrorTop );
+
+    auto* mirror = new CubeMesh( Vector3f(2, 2, 598), Vector3f(30, 35, 600) );
+    mirror->setMaterial( { RED, 1 , 1 } );
+    mirror->move(moveVec);
+    meshes.push_back( mirror );
+
+    //CUBE
+    auto* cube = new CubeMesh( Vector3f(2, 2, 592), Vector3f(12, 4, 602) );
+    cube->setMaterial( { GRAY, 1 , 0 } );
+    cube->move({14,-14,-20});
+    meshes.push_back( cube );
+
+    auto* plane = new TriangularMesh();
+    plane->loadMesh( "/home/auser/dev/src/Collection/Models/plane/model.obj" );
+    //plane->rotate( Vector3f( 0, 0, 1), 10 );
+    plane->rotate( Vector3f( 1,0,0),-15);
+    plane->rotate( Vector3f( 0,1,0),-140);
+    plane->move( Vector3f( 20,0,576) );
+    plane->setMinPoint( Vector3f( 0,-63,0), 1 );
+    plane->scaleTo( 15 );
+    plane->setMaterial( { GRAY, 1 , 0 } );
+    meshes.push_back( plane );
+
 ////LIGHTS
-    lights.push_back( new Light( Vector3f(-75,35,595), 0.15));
-    lights.push_back( new Light( Vector3f(75,35,595), 0.15));
-    lights.push_back( new Light( Vector3f(-75,35,5), 0.15));
-    lights.push_back( new Light( Vector3f(75,35,5), 0.15));
+
+    lights.push_back( new Light( Vector3f(0,25,450), 0.55));
+
+//    lights.push_back( new Light( Vector3f(-75,35,595), 0.15));
+//    lights.push_back( new Light( Vector3f(75,35,595), 0.15));
+//    lights.push_back( new Light( Vector3f(-75,35,5), 0.15));
+//    lights.push_back( new Light( Vector3f(75,35,5), 0.15));
 ////LOADING...
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas );
@@ -183,7 +274,6 @@ void ratScene( RayTracer*& rayTracer, int w, int h ) {
     rat->move( Vector3f( 0,0,500) );
     rat->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( rat );
-
 
     lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
@@ -254,21 +344,21 @@ void sandwichScene( RayTracer*& rayTracer, int w, int h ) {
     rayTracer = new RayTracer( cam, scene, canvas );
 }
 
-void vagonScene( RayTracer*& rayTracer, int w, int h ) {
+void cartScene( RayTracer*& rayTracer, int w, int h ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
     std::vector<BaseMesh*> meshes;
     std::vector<Light*> lights;
 
-    auto* vagon = new TriangularMesh();
-    vagon->loadMesh( "/home/auser/dev/src/Collection/Models/telega/model.obj" );
-    //vagon->rotate( Vector3f( 0, 0, 1), 45 );
-    vagon->rotate( Vector3f( 1,0,0),-90);
-    vagon->rotate( Vector3f( 0,1,0),60);
-    vagon->move( Vector3f( 40,0,1000) );
-    vagon->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( vagon );
+    auto* cart = new TriangularMesh();
+    cart->loadMesh( "/home/auser/dev/src/Collection/Models/telega/model.obj" );
+    //cart->rotate( Vector3f( 0, 0, 1), 45 );
+    cart->rotate( Vector3f( 1,0,0),-90);
+    cart->rotate( Vector3f( 0,1,0),60);
+    cart->move( Vector3f( 40,0,1000) );
+    cart->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
+    meshes.push_back( cart );
 
     lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
@@ -329,10 +419,68 @@ void planeScene( RayTracer*& rayTracer, int w, int h ) {
     //dog->rotate( Vector3f( 0, 0, 1), 45 );
     plane->rotate( Vector3f( 1,0,0),10);
     plane->rotate( Vector3f( 0,1,0),-200);
-    plane->move( Vector3f( 0,-50,14800) );
+    plane->move( Vector3f( 0,0,600) );
     plane->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( plane );
-    int a = plane->getTriangles().size();
+    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas );
+}
+
+void modelRoomScene( RayTracer*& rayTracer, int w, int h ) {
+    Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+    std::vector<BaseMesh*> meshes;
+    std::vector<Light*> lights;
+
+    auto* room = new TriangularMesh();
+    room->loadMesh( "/home/auser/dev/src/Collection/Models/cottage/Cottage_FREE.obj" );
+    //room->rotate( Vector3f( 0, 0, 1), 45 );
+    //room->rotate( Vector3f( 1,0,0),10);
+    //room->rotate( Vector3f( 0,1,0),-200);
+    room->move( Vector3f( 0,0,0) );
+    room->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
+    meshes.push_back( room );
+    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas );
+}
+void cottageScene( RayTracer*& rayTracer, int w, int h ) {
+    Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+    std::vector<BaseMesh*> meshes;
+    std::vector<Light*> lights;
+
+    auto* cottage = new TriangularMesh();
+    cottage->loadMesh( "/home/auser/dev/src/Collection/Models/underground/underground.obj" );
+    //cottage->rotate( Vector3f( 0, 0, 1), 45 );
+    //cottage->rotate( Vector3f( 1,0,0),10);
+    cottage->rotate( Vector3f( 0,1,0),-260);
+    cottage->move( Vector3f( 0,0,800) );
+    cottage->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
+    meshes.push_back( cottage );
+    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas );
+}
+
+void carScene( RayTracer*& rayTracer, int w, int h ) {
+    Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+    std::vector<BaseMesh*> meshes;
+    std::vector<Light*> lights;
+
+    auto* car = new TriangularMesh();
+    car->loadMesh( "/home/auser/dev/src/Collection/Models/koenigsegg/model.obj" );
+    //car->rotate( Vector3f( 0, 0, 1), 45 );
+    //car->rotate( Vector3f( 1,0,0),10);
+    car->rotate( Vector3f( 0,1,0),-210);
+    car->move( Vector3f( 0,0,600) );
+    car->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
+    meshes.push_back( car );
     lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas );
@@ -389,6 +537,7 @@ void saveToBMP( Canvas* canvas, std::string fileName ) {
     for (int x = 0; x < canvas->getW(); ++x) {
         for (int y = 0; y < canvas->getH(); ++y) {
             RGB color = canvas->getPixel( x, y );
+            //std::cout << color.r << " " << color.g << " " << color.b << std::endl;
             bmp.setPixel( x, y, color.r, color.g, color.b );
         }
     }
@@ -404,22 +553,25 @@ int main() {
     //int w = 640 ; int h = 400;
     //int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    int w = 3200 ; int h = 2000;
+    int w = 3200; int h = 2000;
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     clock_t start = clock();
     //sphereScene( rayTracer, w, h );//
     //roomScene( rayTracer, w, h );//57 sec // 13.6 sec
-    //ratScene( rayTracer, w, h );//2.3 sec // 1.7 sec
-    //tableScene( rayTracer, w, h );//23 sec // 1.56 sec
-    //bookScene( rayTracer, w, h );//130 sec // 31 sec
+    ratScene( rayTracer, w, h );//2.3 sec // 1.7 sec // 8.67 sec
+    //tableScene( rayTracer, w, h );//23 sec // 1.56 sec // 7,62 sec
+    //bookScene( rayTracer, w, h );//130 sec // 31 sec //
     //sandwichScene( rayTracer, w, h );//3.29 sec //2 sec
-    //vagonScene( rayTracer, w, h );//118 sec // 1.96 sec
-    sksScene( rayTracer, w, h );//182 sec //1.6 sec
-    //dogScene( rayTracer, w, h );//10 sec //
-    //planeScene( rayTracer, w, h );//357 sec
-    //hardScene( rayTracer, w, h ); //720 sec
+    //cartScene( rayTracer, w, h );//118 sec // 1.96 sec
+    //sksScene( rayTracer, w, h );//182 sec //1.6 sec
+    //dogScene( rayTracer, w, h );//10 sec //9 sec
+    //planeScene( rayTracer, w, h );//357 sec// 8 sec
+    //modelRoomScene( rayTracer, w, h );//357 sec// 8 sec
+    //carScene( rayTracer, w, h );//357 sec// 8 sec
+    //cottageScene( rayTracer, w, h );//357 sec// 8 sec
+    //hardScene( rayTracer, w, h ); //720 sec// 4 sec
     clock_t end = clock();
     double seconds = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Model loads %f seconds\n", seconds);

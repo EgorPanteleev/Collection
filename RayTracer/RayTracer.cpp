@@ -43,8 +43,9 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
     for ( auto light: scene->lights ) {
         Ray ray = Ray( light->origin, P - light->origin );
         IntersectionData cIData = closestIntersection( ray );
+        //N = cIData.N;
         if ( cIData.triangle == nullptr ) continue;
-        if ( cIData.triangle->owner != iData.triangle->owner ) continue;
+        if ( cIData.triangle != iData.triangle ) continue;
         Vector3f L = ( light->origin - P ).normalize();
         float dNL = dot(N, L );
         if ( dNL > 0 ) i += light->intensity * dNL;
@@ -104,9 +105,11 @@ void RayTracer::traceAllRays() {
     float uX2 = uX / 2.0f;
     float uY2 = uY / 2.0f;
     Vector3f from = camera->origin;
+    float Vx2 = camera->Vx / 2;
+    float Vy2 = camera->Vy / 2;
     for ( int x = 0; x < canvas->getW(); ++x ) {
         for ( int y = 0; y < canvas->getH(); ++y ) {
-            Vector3f dir = { -camera->Vx / 2 + uX2 + x * uX, -camera->Vy / 2 + uY2 + y * uY, camera->dV  };
+            Vector3f dir = { -Vx2 + uX2 + x * uX, -Vy2 + uY2 + y * uY, camera->dV  };
             Ray ray( from, dir);
             RGB color = traceRay( ray, 7 );
             canvas->setPixel( x, y, color );

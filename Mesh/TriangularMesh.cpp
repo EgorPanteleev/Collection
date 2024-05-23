@@ -64,8 +64,27 @@ void TriangularMesh::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
-std::vector<Triangle> TriangularMesh::getTriangles() { return triangles; }
+void TriangularMesh::setMinPoint( const Vector3f& vec, int ind ) {
+    Vector3f moveVec = vec - getBBox().pMin;
+    for ( int i = 0; i < 3; ++i ) {
+        if ( ind == -1 || ind == i ) continue;
+        moveVec[i] = 0;
+    }
+    move( moveVec );
+}
 
+void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
+    Vector3f moveVec = vec - getBBox().pMax;
+    for ( int i = 0; i < 3; ++i ) {
+        if ( ind == -1 || ind == i ) continue;
+        moveVec[i] = 0;
+    }
+    move( moveVec );
+}
+
+std::vector<Triangle> TriangularMesh::getTriangles() {
+    return triangles;
+}
 
 BBoxData TriangularMesh::getBBox() const {
     static float MAX = std::numeric_limits<float>::max();
