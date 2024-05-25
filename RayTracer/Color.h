@@ -9,6 +9,7 @@ public:
     RGB operator*( float a) const;
     RGB operator/( float a) const;
     bool operator==( const RGB& color ) const;
+    void scaleTo( float value );
     RGB();
     RGB( float _r, float _g, float _b);
     ~RGB();

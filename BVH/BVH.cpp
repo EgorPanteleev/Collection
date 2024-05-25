@@ -179,12 +179,12 @@ bool BVH::IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bma
     tmin = std::max( tmin, std::min( ty1, ty2 ) ), tmax = std::min( tmax, std::max( ty1, ty2 ) );
     float tz1 = (bmin.z - ray.origin.z) / ray.direction.z, tz2 = (bmax.z - ray.origin.z) / ray.direction.z;
     tmin = std::max( tmin, std::min( tz1, tz2 ) ), tmax = std::min( tmax, std::max( tz1, tz2 ) );
-    return tmax >= tmin && tmin < 1e30f && tmax > 0; //was ray.t
+    return tmax >= tmin && tmin < 1e30f && tmax > 0;
 }
 
 IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx )
 {
-    float MAX = std::numeric_limits<float>::max();
+    static float MAX = std::numeric_limits<float>::max();
     BVHNode& node = bvhNode[nodeIdx];
     if (!IntersectAABB( ray, node.aabbMin, node.aabbMax )) return { MAX, {} , nullptr};
     if (node.isLeaf())
@@ -193,7 +193,6 @@ IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx )
         for (uint i = 0; i < node.trianglesCount; i++ ) {
             Triangle triangle = triangles[indexes[node.leftFirst + i]];
             float t = triangle.intersectsWithRay( ray );
-            if ( t <= 1e-3 ) continue;
             if ( t >= iData.t ) continue;
             iData.t = t;
             iData.N = triangle.getNormal();

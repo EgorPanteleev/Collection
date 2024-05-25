@@ -9,6 +9,8 @@
 #include "BaseMesh.h"
 #include "TriangularMesh.h"
 #include "Material.h"
+#include "PointLight.h"
+#include "SpotLight.h"
 #define GRAY RGB( 210, 210, 210 )
 #define RED RGB( 255, 0, 0 )
 #define GREEN RGB( 0, 255, 0 )
@@ -95,7 +97,7 @@ void loadScene( Scene* scene, std::vector <BaseMesh*>& meshes, std::vector<Light
     }
 }
 
-void sphereScene( RayTracer*& rayTracer, int w, int h ) {
+void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0, 0,-10000 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas(w, h );
@@ -115,16 +117,126 @@ void sphereScene( RayTracer*& rayTracer, int w, int h ) {
 
 
 
-    //lights.push_back( new Light( Vector3f(-3500,0,0 ), 0.004 ));
-    lights.push_back( new Light( Vector3f(-1000,0,0 ), 0.004 ));
+    //lights.push_back( new PointLight( Vector3f(-3500,0,0 ), 0.004 ));
+    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 0.004 ));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
+
+void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+
+    std::vector<BaseMesh*> meshes;
+    std::vector<Light*> lights;
+    float roomRefl = 0;
+////right
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+                                    { GREEN, -1 , roomRefl } ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+                                   { RED, -1 , roomRefl } ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+                                   { GRAY, -1 , roomRefl } ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+                                   { GRAY, -1 , roomRefl } ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+                                   { GRAY, -1 , roomRefl } ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 620),
+                                   { GRAY, -1 , 0 } ) );
+
+////RAND BLOCK
+    auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward->moveTo( Vector3f(0, -40, 325) );
+    randBlockForward->scaleTo( Vector3f(30,100,30) );
+    randBlockForward->rotate( Vector3f( 0,1,0), 25);
+    randBlockForward->move( Vector3f(30,0,0));
+    randBlockForward->setMaterial({GRAY, -1 , 0});
+    randBlockForward->move( Vector3f(-10,0,-150));
+    //randBlockForward->scaleTo( 200 );
+    meshes.push_back(randBlockForward );
+
+    auto* randBlockForward2 = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward2->moveTo( Vector3f(0, -40, 325) );
+    randBlockForward2->scaleTo( Vector3f(30,260,30) );
+    randBlockForward2->rotate( Vector3f( 0,1,0), -25);
+    randBlockForward2->move( Vector3f(35,0,0));
+    randBlockForward2->setMaterial({GRAY, -1 , 0.8});
+    randBlockForward2->move( Vector3f(-50,0,-100));
+    //randBlockForward2->scaleTo( 200 );
+    meshes.push_back(randBlockForward2 );
+
+////LIGHTS
+
+    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    int lightWidth = 20;
+    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+
+////LOADING...
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
+
+void simpleRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    Camera* cam = new Camera( Vector3f(0,0,300 ), Vector3f(0,0,1), 2400,3200,2000 );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+
+    std::vector<BaseMesh*> meshes;
+    std::vector<Light*> lights;
+////right
+    meshes.push_back( new CubeMesh( Vector3f(80, -50, 0), Vector3f(100, 50, 600),
+                                    { GRAY, -1 , 0 } ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 0), Vector3f(-80, 50, 600),
+                                   { GRAY, -1 , 0 } ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 600), Vector3f(100, 50, 610),
+                                   { GRAY, -1 , 0 } ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 50, 0),
+                                   { GRAY, -1 , 0 } ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+                                   { GRAY, -1 , 0 } ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-100, 50, 0), Vector3f(100, 70, 620),
+                                   { GRAY, -1 , 0 } ) );
+
+////RAND BLOCK
+    auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward->moveTo( Vector3f(0, -40, 325) );
+    randBlockForward->scaleTo( Vector3f(20,90,20) );
+    randBlockForward->rotate( Vector3f( 0,1,0), 45);
+    randBlockForward->move( Vector3f(30,0,0));
+    randBlockForward->setMaterial({RED, 1 , 0});
+    randBlockForward->move( Vector3f(-50,0,180));
+    //randBlockForward->scaleTo( 200 );
+    meshes.push_back(randBlockForward );
+
+////LIGHTS
+
+    lights.push_back( new PointLight( Vector3f(0,25,450), 0.45));
+
+//    lights.push_back( new PointLight( Vector3f(-75,35,595), 0.15));
+//    lights.push_back( new PointLight( Vector3f(75,35,595), 0.15));
+//    lights.push_back( new PointLight( Vector3f(-75,35,5), 0.15));
+//    lights.push_back( new PointLight( Vector3f(75,35,5), 0.15));
+////LOADING...
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
 
-
-void roomScene( RayTracer*& rayTracer, int w, int h ) {
-    Camera* cam = new Camera( Vector3f(0,0,300 ), Vector3f(0,0,1), 2400,3200,2000 );
+void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    Camera* cam = new Camera( Vector3f(0,0,300 ), Vector3f(0,0,1), 3000,3200,2000 );
     //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -224,7 +336,7 @@ void roomScene( RayTracer*& rayTracer, int w, int h ) {
     meshes.push_back( mirrorTop );
 
     auto* mirror = new CubeMesh( Vector3f(2, 2, 598), Vector3f(30, 35, 600) );
-    mirror->setMaterial( { RED, 1 , 1 } );
+    mirror->setMaterial( { GRAY, 1 , 1 } );
     mirror->move(moveVec);
     meshes.push_back( mirror );
 
@@ -247,19 +359,21 @@ void roomScene( RayTracer*& rayTracer, int w, int h ) {
 
 ////LIGHTS
 
-    lights.push_back( new Light( Vector3f(0,25,450), 0.55));
+    //lights.push_back( new PointLight( Vector3f(0,25,450), 0.55));
+    int lightWidth = 20;
+    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,45,480 - lightWidth), Vector3f(0 + lightWidth,45,480 + lightWidth), 0.70));
 
-//    lights.push_back( new Light( Vector3f(-75,35,595), 0.15));
-//    lights.push_back( new Light( Vector3f(75,35,595), 0.15));
-//    lights.push_back( new Light( Vector3f(-75,35,5), 0.15));
-//    lights.push_back( new Light( Vector3f(75,35,5), 0.15));
+//    lights.push_back( new PointLight( Vector3f(-75,35,595), 0.15));
+//    lights.push_back( new PointLight( Vector3f(75,35,595), 0.15));
+//    lights.push_back( new PointLight( Vector3f(-75,35,5), 0.15));
+//    lights.push_back( new PointLight( Vector3f(75,35,5), 0.15));
 ////LOADING...
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
 
-void ratScene( RayTracer*& rayTracer, int w, int h ) {
+void ratScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -275,13 +389,13 @@ void ratScene( RayTracer*& rayTracer, int w, int h ) {
     rat->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( rat );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
 
-void tableScene( RayTracer*& rayTracer, int w, int h ) {
+void tableScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -297,12 +411,12 @@ void tableScene( RayTracer*& rayTracer, int w, int h ) {
     table->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( table );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void bookScene( RayTracer*& rayTracer, int w, int h ) {
+void bookScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -318,12 +432,12 @@ void bookScene( RayTracer*& rayTracer, int w, int h ) {
     book->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( book );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void sandwichScene( RayTracer*& rayTracer, int w, int h ) {
+void sandwichScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -339,12 +453,12 @@ void sandwichScene( RayTracer*& rayTracer, int w, int h ) {
     sandwich->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( sandwich );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void cartScene( RayTracer*& rayTracer, int w, int h ) {
+void cartScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -360,12 +474,12 @@ void cartScene( RayTracer*& rayTracer, int w, int h ) {
     cart->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( cart );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void sksScene( RayTracer*& rayTracer, int w, int h ) {
+void sksScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -381,12 +495,12 @@ void sksScene( RayTracer*& rayTracer, int w, int h ) {
     sks->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( sks );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void dogScene( RayTracer*& rayTracer, int w, int h ) {
+void dogScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -402,12 +516,12 @@ void dogScene( RayTracer*& rayTracer, int w, int h ) {
     dog->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( dog );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void planeScene( RayTracer*& rayTracer, int w, int h ) {
+void planeScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -422,12 +536,12 @@ void planeScene( RayTracer*& rayTracer, int w, int h ) {
     plane->move( Vector3f( 0,0,600) );
     plane->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( plane );
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void modelRoomScene( RayTracer*& rayTracer, int w, int h ) {
+void modelRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -442,11 +556,11 @@ void modelRoomScene( RayTracer*& rayTracer, int w, int h ) {
     room->move( Vector3f( 0,0,0) );
     room->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( room );
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
-void cottageScene( RayTracer*& rayTracer, int w, int h ) {
+void cottageScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -461,12 +575,12 @@ void cottageScene( RayTracer*& rayTracer, int w, int h ) {
     cottage->move( Vector3f( 0,0,800) );
     cottage->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( cottage );
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void carScene( RayTracer*& rayTracer, int w, int h ) {
+void carScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -481,12 +595,12 @@ void carScene( RayTracer*& rayTracer, int w, int h ) {
     car->move( Vector3f( 0,0,600) );
     car->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     meshes.push_back( car );
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
-void hardScene( RayTracer*& rayTracer, int w, int h ) {
+void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -526,9 +640,9 @@ void hardScene( RayTracer*& rayTracer, int w, int h ) {
     asd->rotate( Vector3f( 0,1,0),0);
     meshes.push_back( asd );
 
-    lights.push_back( new Light( Vector3f(20 ,0,0), 0.5));
+    lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
 
@@ -547,37 +661,50 @@ void saveToBMP( Canvas* canvas, std::string fileName ) {
 //rat // table // book // sandwich // telega
 
 int main() {
+    srand(time( nullptr ));
     RayTracer* rayTracer = nullptr;
+
+    ////OPTIONS
+
+    ////RESOLUTION
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
-    //int w = 640 ; int h = 400;
-    //int w = 960 ; int h = 600;
+    //int w = 640 ; int h = 400; //53 sec //
+    int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
+
+    ////NUM SAMPLES
+    int depth = 1;
+    int ambientSamples = 5;
+    int lightSamples = 5;
+
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     clock_t start = clock();
-    //sphereScene( rayTracer, w, h );//
-    //roomScene( rayTracer, w, h );//57 sec // 13.6 sec
-    ratScene( rayTracer, w, h );//2.3 sec // 1.7 sec // 8.67 sec
-    //tableScene( rayTracer, w, h );//23 sec // 1.56 sec // 7,62 sec
-    //bookScene( rayTracer, w, h );//130 sec // 31 sec //
-    //sandwichScene( rayTracer, w, h );//3.29 sec //2 sec
-    //cartScene( rayTracer, w, h );//118 sec // 1.96 sec
-    //sksScene( rayTracer, w, h );//182 sec //1.6 sec
-    //dogScene( rayTracer, w, h );//10 sec //9 sec
-    //planeScene( rayTracer, w, h );//357 sec// 8 sec
-    //modelRoomScene( rayTracer, w, h );//357 sec// 8 sec
-    //carScene( rayTracer, w, h );//357 sec// 8 sec
-    //cottageScene( rayTracer, w, h );//357 sec// 8 sec
-    //hardScene( rayTracer, w, h ); //720 sec// 4 sec
+    //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
+    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
+    //tableScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//23 sec // 1.56 sec // 7,62 sec
+    //bookScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//130 sec // 31 sec //
+    //sandwichScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//3.29 sec //2 sec
+    //cartScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//118 sec // 1.96 sec
+    //sksScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//182 sec //1.6 sec
+    //dogScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//10 sec //9 sec
+    //planeScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
+    //modelRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
+    //carScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
+    //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
+    //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     clock_t end = clock();
     double seconds = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Model loads %f seconds\n", seconds);
     start = clock();
-    //rayt.traceAllRaysWithThreads( 1);
-    rayTracer->traceAllRays();
+    rayTracer->traceAllRaysWithThreads( 16 );
+    //rayTracer->traceAllRays(); // 6 sec // 19 sec
     end = clock();
     seconds = (double)(end - start) / CLOCKS_PER_SEC;
     printf("RayTracer works %f seconds\n", seconds);
@@ -587,3 +714,6 @@ int main() {
    //TODO think about camera, i think its bad right now
     return 0;
 }
+
+
+//поправить тень, один раз выбрать точки рандомные

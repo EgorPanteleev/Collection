@@ -3,7 +3,13 @@
 //
 
 #include "Light.h"
+#include "Color.h"
 
-Light::Light():origin(), intensity(){}
+Light::Light():intensity( 0 ) {
+    lightColor = RGB(255,255,255);
+}
 
-Light::Light( const Vector3f& origin, float intensity ): origin( origin ), intensity( intensity ) {}
+
+Light::Type Light::getType() const {
+    return BASE;
+}
