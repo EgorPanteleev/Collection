@@ -657,6 +657,7 @@ void saveToBMP( Canvas* canvas, const std::string& fileName ) {
         }
     }
     bmp.save( fileName );
+    std::cout << "Image saved to " << fileName << " succesfully!" << std::endl;
 }
 
 //rat // table // book // sandwich // telega
@@ -672,9 +673,9 @@ int main( int argc, char* argv[] ) {
     ////RESOLUTION
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
-    //int w = 640 ; int h = 400; //53 sec //
+    int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600;
-    int w = 1920 ; int h = 1200;
+    //int w = 1920 ; int h = 1200;
     //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
@@ -685,11 +686,11 @@ int main( int argc, char* argv[] ) {
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
-    clock_t start = clock();
+    auto start = std::chrono::high_resolution_clock::now();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
     //tableScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//23 sec // 1.56 sec // 7,62 sec
     //bookScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//130 sec // 31 sec //
@@ -702,15 +703,15 @@ int main( int argc, char* argv[] ) {
     //carScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    clock_t end = clock();
-    double seconds = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Model loads %f seconds\n", seconds);
-    start = clock();
-    //rayTracer->traceAllRaysWithThreads( 16 );
-    rayTracer->traceAllRays( RayTracer::SERIAL ); // 6 sec // 19 sec
-    end = clock();
-    seconds = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("RayTracer works %f seconds\n", seconds);
+    auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> loadTime = end - start;
+    std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
+    start = std::chrono::high_resolution_clock::now();;
+    rayTracer->traceAllRays( RayTracer::PARALLEL );
+    end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> renderTime = end - start;
+    std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
+
     saveToBMP( rayTracer->getCanvas(), "out.bmp" );
     } Kokkos::finalize();
    //delete
@@ -729,7 +730,7 @@ int main( int argc, char* argv[] ) {
 
 //(release) Kokkos CPU testing on 3200x2000, depth - 2, samples - 5, light - samples - 5, time - 310 sec
 
-//(release) Kokkos CPU testing on 1920x1200, depth - 2, samples - 5, light - samples - 5, time - 114 sec
+//(release) Kokkos CPU testing on 1920x1200, depth - 2, samples - 5, light - samples - 5, time - 110 sec
 
 
 // END //

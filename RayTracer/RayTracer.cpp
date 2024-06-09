@@ -15,10 +15,10 @@ depth( _depth ), numAmbientSamples( _numAmbientSamples ), numLightSamples( _numL
     Kokkos::deep_copy(scene, *s);
     canvas = Kokkos::View<Canvas*>("canvas");
     Kokkos::deep_copy(canvas, *_canvas);
-    BVH* _bvh = new BVH( s->getTriangles() );
-    _bvh->BuildBVH();
-    bvh = Kokkos::View<BVH*>("BVH");
-    Kokkos::deep_copy(bvh, *_bvh);
+    bvh = new BVH( s->getTriangles() );
+    bvh->BuildBVH();
+//    bvh = Kokkos::View<BVH*>("BVH");
+//    Kokkos::deep_copy(bvh, *_bvh);
 }
 RayTracer::~RayTracer() {
     //delete canvas;
@@ -40,7 +40,7 @@ RayTracer::~RayTracer() {
 
 
 IntersectionData RayTracer::closestIntersection( Ray& ray ) {
-    return bvh(0).IntersectBVH( ray, 0 );
+    return bvh->IntersectBVH( ray, 0 );
 }
 
 
@@ -223,26 +223,6 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
 void RayTracer::printProgress( int x ) const {
     std::cout << "Progress: " << ( (float) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
 }
-struct MyFunctor {
-    // Data members, if needed
-    Kokkos::View<RGB**> colors;
-    RayTracer* rayTracer;
-    Vector3f from;
-    int depth;
-    float uX, uY, uX2, uY2, Vx2, Vy2, dV;
-    // Constructor, if needed
-    MyFunctor(float _uX, float _uY, float _uX2, float _uY2, float _Vx2, float _Vy2, float _dV, int _depth, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
-    : uX(_uX), uY(_uY), uX2(_uX2), uY2(_uY2), Vx2(_Vx2), Vy2(_Vy2), dV(_dV), from(_from), rayTracer( _rayTracer ), depth( _depth ), colors( result ) {
-    }
-    // Functor operator to perform computation
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const int i, const int j) const {
-        Vector3f dir = { -Vx2 + uX2 + i * uX, -Vy2 + uY2 + j * uY, dV  };
-        Ray ray( from, dir);
-        colors(i, j) = rayTracer->traceRay( ray, depth, 1 );
-        //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
-    }
-};
 
 void RayTracer::traceAllRays( Type type ) {
     switch (type) {
@@ -288,10 +268,10 @@ void RayTracer::traceAllRaysParallel() {
     float Vx2 = camera(0).Vx / 2;
     float Vy2 = camera(0).Vy / 2;
     Kokkos::View<RGB**> result = Kokkos::View<RGB**>("colors", canvas(0).getW(), canvas(0).getH() );
-    MyFunctor functor( uX, uY, uX2, uY2, Vx2, Vy2, camera(0).dV, depth, from, this, result );
+    RenderFunctor renderFunctor( uX, uY, uX2, uY2, Vx2, Vy2, camera(0).dV, depth, from, this, result );
     typedef Kokkos::MDRangePolicy<Kokkos::Rank<2>> range_policy_2d;
     range_policy_2d policy({0, 0}, {canvas(0).getW(), canvas(0).getH()});
-    Kokkos::parallel_for("parallel2D", policy, functor);
+    Kokkos::parallel_for("parallel2D", policy, renderFunctor);
     for ( int i = 0; i < canvas(0).getW(); i++ ) {
         for ( int j = 0; j < canvas(0).getH(); j++ ) {
             canvas(0).setPixel( i, j, result(i, j) );
@@ -310,6 +290,16 @@ Camera* RayTracer::getCamera() const {
     return &(camera(0));
 }
 
-//TODO MONTE CARLO
 
-//TODO Blinn-Phong, then Cook-Torrance
+RenderFunctor::RenderFunctor(float _uX, float _uY, float _uX2, float _uY2, float _Vx2,
+                             float _Vy2, float _dV, int _depth, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
+        : uX(_uX), uY(_uY), uX2(_uX2), uY2(_uY2), Vx2(_Vx2),
+          Vy2(_Vy2), dV(_dV), from(_from), rayTracer( _rayTracer ), depth( _depth ), colors( result ) {
+}
+
+void RenderFunctor::operator()(const int i, const int j) const {
+    Vector3f dir = { -Vx2 + uX2 + i * uX, -Vy2 + uY2 + j * uY, dV  };
+    Ray ray( from, dir);
+    colors(i, j) = rayTracer->traceRay( ray, depth, 1 );
+    //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
+}
