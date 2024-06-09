@@ -8,8 +8,10 @@ set(Libs RayTracer Mesh Image)
 
 add_executable( 2DView 2DView.cpp )
 
-#add_executable( 3DView 3DView.cpp )
+add_executable( 3DView 3DView.cpp )
 
-target_link_libraries(2DView ${Libs})
+target_link_libraries(2DView ${Libs} Kokkos::kokkos )
+
+target_link_libraries(3DView Kokkos::kokkos)
 
 #target_link_libraries(3DView ${OpenGlLibs} ${Libs})

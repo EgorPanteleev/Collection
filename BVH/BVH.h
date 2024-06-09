@@ -32,6 +32,8 @@ public:
 
     BVH( std::vector <Triangle> _triangles );
 
+    BVH();
+
     void BuildBVH();
 
     void UpdateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax );
@@ -46,11 +48,11 @@ public:
 
     IntersectionData IntersectBVH( Ray& ray, const uint nodeIdx );
 private:
+
     std::vector <Triangle> triangles;
     std::vector <uint> indexes;
     std::vector<BVHNode> bvhNode;
     uint rootNodeIdx = 0, nodesUsed = 1;
-
 };
 
 

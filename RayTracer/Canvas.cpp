@@ -9,15 +9,20 @@ Canvas::Canvas( int _w, int _h ) {
     }
 }
 
+Canvas::Canvas() {
+    numX = 0;
+    numY = 0;
+}
+
 Canvas::~Canvas() {
-    delete[] data;
+    //delete[] data;
 }
 void Canvas::setPixel( int x, int y, const RGB& color ) {
     data[x][y] = color;
 }
 
 RGB Canvas::getPixel( int x, int y ) const {
-    return data[x][y];
+   return data[x][y];
 }
 
 int Canvas::getW() const {

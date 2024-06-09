@@ -28,11 +28,11 @@ struct BitmapInfoHeader {
 
 class Bitmap {
 public:
-    Bitmap(int width, int height);
+     Bitmap(int width, int height);
 
-    void setPixel(int x, int y, uint8_t red, uint8_t green, uint8_t blue);
+     void setPixel(int x, int y, uint8_t red, uint8_t green, uint8_t blue);
 
-    void save(const std::string& filename);
+     void save(const std::string& filename);
 
 private:
     int width;

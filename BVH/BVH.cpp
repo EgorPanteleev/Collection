@@ -3,6 +3,9 @@
 BVH::BVH( std::vector <Triangle> _triangles): triangles( _triangles ) {
 }
 
+BVH::BVH(): triangles() {
+}
+
 void BVH::BuildBVH() {
     for( int i = 0; i < triangles.size(); i++ ) bvhNode.push_back({});
     // populate triangle index array

@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.26)
-set(CMAKE_CXX_STANDARD 23)
+cmake_minimum_required(VERSION 3.29)
+set(CMAKE_CXX_STANDARD 17)
 
 project(Collection)
+
+find_package(Kokkos REQUIRED)
 
 enable_testing()
 

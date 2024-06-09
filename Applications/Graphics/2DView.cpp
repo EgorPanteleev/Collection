@@ -11,6 +11,7 @@
 #include "Material.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "cstdlib"
 #define GRAY RGB( 210, 210, 210 )
 #define RED RGB( 255, 0, 0 )
 #define GREEN RGB( 0, 255, 0 )
@@ -646,11 +647,11 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 }
 
 
-void saveToBMP( Canvas* canvas, std::string fileName ) {
+void saveToBMP( Canvas* canvas, const std::string& fileName ) {
     Bitmap bmp(canvas->getW(), canvas->getH());
     for (int x = 0; x < canvas->getW(); ++x) {
         for (int y = 0; y < canvas->getH(); ++y) {
-            RGB color = canvas->getPixel( x, y );
+            RGB color = canvas->getPixel(x, y);
             //std::cout << color.r << " " << color.g << " " << color.b << std::endl;
             bmp.setPixel( x, y, color.r, color.g, color.b );
         }
@@ -660,22 +661,24 @@ void saveToBMP( Canvas* canvas, std::string fileName ) {
 
 //rat // table // book // sandwich // telega
 
-int main() {
+int main( int argc, char* argv[] ) {
+    setenv("OMP_PROC_BIND", "spread", 1);
+    setenv("OMP_PLACES", "threads", 1);
+    Kokkos::initialize(argc, argv); {
     srand(time( nullptr ));
     RayTracer* rayTracer = nullptr;
-
     ////OPTIONS
 
     ////RESOLUTION
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    int w = 960 ; int h = 600;
-    //int w = 1920 ; int h = 1200;
+    //int w = 960 ; int h = 600;
+    int w = 1920 ; int h = 1200;
     //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
-    int depth = 1;
+    int depth = 2;
     int ambientSamples = 5;
     int lightSamples = 5;
 
@@ -684,9 +687,9 @@ int main() {
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     clock_t start = clock();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
     //tableScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//23 sec // 1.56 sec // 7,62 sec
     //bookScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//130 sec // 31 sec //
@@ -703,12 +706,13 @@ int main() {
     double seconds = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Model loads %f seconds\n", seconds);
     start = clock();
-    rayTracer->traceAllRaysWithThreads( 16 );
-    //rayTracer->traceAllRays(); // 6 sec // 19 sec
+    //rayTracer->traceAllRaysWithThreads( 16 );
+    rayTracer->traceAllRays( RayTracer::SERIAL ); // 6 sec // 19 sec
     end = clock();
     seconds = (double)(end - start) / CLOCKS_PER_SEC;
     printf("RayTracer works %f seconds\n", seconds);
     saveToBMP( rayTracer->getCanvas(), "out.bmp" );
+    } Kokkos::finalize();
    //delete
    //TODO mb need init rayTracer more
    //TODO think about camera, i think its bad right now
@@ -716,4 +720,21 @@ int main() {
 }
 
 
+// NET ROOM //
+
+//(release) testing on 3200x2000, depth - 2, samples - 5, light - samples - 5, time - 610 sec
+
+//(release) testing on 3200x2000, depth - 2, samples - 5, light - samples - 5, time - 252 sec
+
+
+//(release) Kokkos CPU testing on 3200x2000, depth - 2, samples - 5, light - samples - 5, time - 310 sec
+
+//(release) Kokkos CPU testing on 1920x1200, depth - 2, samples - 5, light - samples - 5, time - 114 sec
+
+
+// END //
+
+// TODO //
 //поправить тень, один раз выбрать точки рандомные
+
+// END //
