@@ -13,6 +13,8 @@ public:
     [[nodiscard]] int getW() const;
     [[nodiscard]] int getH() const;
     [[nodiscard]] RGB** getData() const;
+    void saveToPNG( const std::string& fileName ) const;
+
 public:
     RGB** data;
     int numX;

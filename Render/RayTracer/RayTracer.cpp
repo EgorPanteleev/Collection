@@ -1,7 +1,7 @@
 #include "RayTracer.h"
 #include <cmath>
 #include "Utils.h"
-#include "Sheduler.h"
+//#include "Sheduler.h"
 //#define BACKGROUND_COLOR RGB(0, 0, 0)
 #define BACKGROUND_COLOR RGB(173, 216, 230)
 //#define BACKGROUND_COLOR RGB(255, 255, 255)
@@ -225,7 +225,7 @@ void RayTracer::printProgress( int x ) const {
     std::cout << "Progress: " << ( (float) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
 }
 
-void RayTracer::traceAllRays( Type type ) {
+void RayTracer::render( Type type ) {
     switch (type) {
         case Type::SERIAL: {
             traceAllRaysSerial();

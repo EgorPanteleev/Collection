@@ -3,7 +3,6 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "SphereMesh.h"
-#include "Image.h"
 #include <ctime>
 #include "CubeMesh.h"
 #include "BaseMesh.h"
@@ -648,19 +647,6 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 }
 
 
-void saveToBMP( Canvas* canvas, const std::string& fileName ) {
-    Bitmap bmp(canvas->getW(), canvas->getH());
-    for (int x = 0; x < canvas->getW(); ++x) {
-        for (int y = 0; y < canvas->getH(); ++y) {
-            RGB color = canvas->getPixel(x, y);
-            //std::cout << color.r << " " << color.g << " " << color.b << std::endl;
-            bmp.setPixel( x, y, color.r, color.g, color.b );
-        }
-    }
-    bmp.save( fileName );
-    std::cout << "Image saved to " << fileName << " succesfully!" << std::endl;
-}
-
 //rat // table // book // sandwich // telega
 
 int main( int argc, char* argv[] ) {
@@ -708,15 +694,16 @@ int main( int argc, char* argv[] ) {
         std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();;
-    rayTracer->traceAllRays( RayTracer::PARALLEL );
+    rayTracer->render( RayTracer::PARALLEL );
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> renderTime = end - start;
     std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
 
-    saveToBMP( rayTracer->getCanvas(), "out.bmp" );
+    rayTracer->getCanvas()->saveToPNG( "out.png" );
 
     Denoiser::denoise( rayTracer->getCanvas()->getData(), w, h );
-    saveToBMP( rayTracer->getCanvas(), "outDenoised.bmp" );
+    rayTracer->getCanvas()->saveToPNG( "outDenoised.png" );
+
 
     } Kokkos::finalize();
    //delete

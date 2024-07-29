@@ -19,13 +19,15 @@ add_subdirectory(OBJReader)
 
 add_subdirectory(Math)
 
-add_subdirectory(BitMapImage)
-
 add_subdirectory(Mesh)
 
 #add_subdirectory(Shapes)
 
-add_subdirectory(RayTracer)
+add_subdirectory(Render/General)
+
+#add_subdirectory(Render/Rasterizer)
+
+add_subdirectory(Render/RayTracer)
 
 add_subdirectory(Applications)
 

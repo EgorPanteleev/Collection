@@ -7,7 +7,6 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "SphereMesh.h"
-#include "Image.h"
 #include <ctime>
 #include "CubeMesh.h"
 #include "BaseMesh.h"
@@ -18,10 +17,6 @@
 #include "cstdlib"
 //#include "GroupOfMeshes.h"
 #include "Denoiser.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 #define GRAY RGB( 210, 210, 210 )
 #define RED RGB( 255, 0, 0 )
 #define GREEN RGB( 0, 255, 0 )
@@ -45,33 +40,6 @@ GLuint createTexture(const unsigned char* data, int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-    return textureID;
-}
-
-
-GLuint LoadTextureFromFile(const char* filename, int* width, int* height)
-{
-    int nrChannels;
-    unsigned char* data = stbi_load(filename, width, height, &nrChannels, 0);
-    if (!data)
-    {
-        std::cerr << "Failed to load texture" << std::endl;
-        return 0;
-    }
-
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-    glTexImage2D(GL_TEXTURE_2D, 0, format, *width, *height, 0, format, GL_UNSIGNED_BYTE, data);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Set texture wrapping to GL_REPEAT
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Use linear filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    stbi_image_free(data);
-
     return textureID;
 }
 
@@ -161,31 +129,6 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
-
-
-void saveToPNG( Canvas* canvas, const std::string& fileName ) {
-    // Create an array to store pixel data (RGBA format)
-    unsigned char* image = new unsigned char[canvas->getW() * canvas->getH() * 4];
-    for (int y = 0; y < canvas->getH(); ++y) {
-        for (int x = 0; x < canvas->getW(); ++x) {
-            int index = (y * canvas->getW() + x) * 4;
-            image[index + 0] = canvas->getPixel( x, canvas->getH() - 1 - y  ).r;
-            image[index + 1] = canvas->getPixel( x, canvas->getH() - 1 - y ).g;
-            image[index + 2] = canvas->getPixel( x, canvas->getH() - 1 - y ).b;
-            image[index + 3] = 255;  // Alpha component (opaque)
-        }
-    }
-
-    // Save the image as a PNG file
-    if (stbi_write_png( fileName.c_str(), canvas->getW(), canvas->getH(), 4, image, canvas->getW() * 4))
-        std::cout << "Image saved successfully: " << fileName << std::endl;
-    else std::cerr << "Failed to save image: " << fileName << std::endl;
-
-    // Clean up
-    delete[] image;
-}
-
-
 int main(  int argc, char* argv[]  )
 {
     // Initialize GLFW
@@ -221,14 +164,6 @@ int main(  int argc, char* argv[]  )
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
-    // Load an image
-    int image_width = 0, image_height = 0;
-    GLuint myTexture = LoadTextureFromFile("", &image_width, &image_height);
-//    if (myImageTexture == 0)
-//    {
-//        std::cerr << "Failed to load texture" << std::endl;
-//        return -1;
-//    }
     // Set the scale factor
 
     // Main loop
@@ -267,7 +202,7 @@ int main(  int argc, char* argv[]  )
                 std::chrono::duration<double> loadTime = end - start;
                 std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
                 start = std::chrono::high_resolution_clock::now();;
-                rayTracer->traceAllRays( RayTracer::PARALLEL );
+                rayTracer->render( RayTracer::PARALLEL );
                 end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> renderTime = end - start;
                 std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;

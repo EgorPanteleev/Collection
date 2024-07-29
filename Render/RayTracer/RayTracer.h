@@ -21,7 +21,7 @@ public:
     KOKKOS_INLINE_FUNCTION IntersectionData closestIntersection( Ray& ray );
     KOKKOS_INLINE_FUNCTION float computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
     KOKKOS_INLINE_FUNCTION RGB traceRay( Ray& ray, int nextDepth, float throughput );
-    void traceAllRays( Type type );
+    void render( Type type );
     [[nodiscard]] Canvas* getCanvas() const;
     [[nodiscard]] Scene* getScene() const;
     [[nodiscard]] Camera* getCamera() const;
