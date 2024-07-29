@@ -676,13 +676,13 @@ int main( int argc, char* argv[] ) {
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600;
-    int w = 1920 ; int h = 1200;
-    //int w = 3200; int h = 2000;
+    //int w = 1920 ; int h = 1200;
+    int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
     int depth = 2;
     int ambientSamples = 5;
-    int lightSamples = 3;
+    int lightSamples = 1;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /

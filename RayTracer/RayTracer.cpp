@@ -52,7 +52,7 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
     for ( auto light: scene(0).lights ) {
         int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
         float i1 = 0;
-        if ( light->isIntersectsWithRay( Ray( P, V ) ) ) return -light->intensity;
+        if ( light->isIntersectsWithRay( Ray( P, V ) ) ) return -1;
         for ( size_t j = 0; j < numLS; j++ ) {
             Vector3f origin = light->getSamplePoint();
             Vector3f L = (origin - P).normalize();
@@ -61,7 +61,8 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
             if (cIData.triangle == nullptr) continue;
             if (cIData.triangle != iData.triangle) continue;
             float dNL = dot(N, L);
-            i1 += d * light->intensity * dNL;
+            float distance = cIData.t * 0.01;
+            i1 += d * light->intensity * dNL / ( distance * distance );
             //specular
             //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
 

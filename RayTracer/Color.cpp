@@ -23,11 +23,7 @@ bool RGB::operator==( const RGB& color ) const {
 RGB::RGB(): r(0), g(0), b(0) {
 }
 RGB::RGB( float _r, float _g, float _b): r(_r), g(_g), b(_b) {
-//    float max = std::max ( std::max( r, g), b );
-//    if ( max < 255 ) return;
-//    r = ( r / max ) * 255;
-//    g = ( g / max ) * 255;
-//    b = ( b / max ) * 255;
+    scaleTo( 255 );
 }
 
 void RGB::scaleTo( float value ) {
