@@ -34,6 +34,11 @@
 #build directory
 *build*
 *release*
+*debug*
 
 # Clion
 *.idea
+
+#Models
+
+*Model*

@@ -11,6 +11,8 @@ add_subdirectory(BVH)
 
 #add_subdirectory(Models)
 
+add_subdirectory(Externals)
+
 add_subdirectory(ThreadsSheduler)
 
 add_subdirectory(OBJReader)

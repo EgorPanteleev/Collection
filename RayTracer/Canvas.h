@@ -12,6 +12,7 @@ public:
     [[nodiscard]] RGB getPixel( int x, int y ) const;
     [[nodiscard]] int getW() const;
     [[nodiscard]] int getH() const;
+    [[nodiscard]] RGB** getData() const;
 public:
     RGB** data;
     int numX;

@@ -12,6 +12,7 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "cstdlib"
+#include "Denoiser.h"
 #define GRAY RGB( 210, 210, 210 )
 #define RED RGB( 255, 0, 0 )
 #define GREEN RGB( 0, 255, 0 )
@@ -673,24 +674,24 @@ int main( int argc, char* argv[] ) {
     ////RESOLUTION
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
-    int w = 640 ; int h = 400; //53 sec //
+    //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600;
-    //int w = 1920 ; int h = 1200;
+    int w = 1920 ; int h = 1200;
     //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
     int depth = 2;
     int ambientSamples = 5;
-    int lightSamples = 5;
+    int lightSamples = 3;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     auto start = std::chrono::high_resolution_clock::now();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
     //tableScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//23 sec // 1.56 sec // 7,62 sec
     //bookScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//130 sec // 31 sec //
@@ -713,6 +714,11 @@ int main( int argc, char* argv[] ) {
     std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
 
     saveToBMP( rayTracer->getCanvas(), "out.bmp" );
+
+    Denoiser denoiser( rayTracer->getCanvas() );
+    denoiser.denoise();
+    saveToBMP( rayTracer->getCanvas(), "outDenoised.bmp" );
+
     } Kokkos::finalize();
    //delete
    //TODO mb need init rayTracer more

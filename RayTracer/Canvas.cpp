@@ -31,3 +31,7 @@ int Canvas::getW() const {
 int Canvas::getH() const {
     return numY;
 }
+
+[[nodiscard]] RGB** Canvas::getData() const {
+    return data;
+}
