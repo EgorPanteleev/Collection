@@ -10,13 +10,7 @@
 class Denoiser {
 public:
 
-    Denoiser( Canvas* canvas );
-
-    void denoise();
-
-private:
-
-    Canvas* canvas;
+    static void denoise( RGB** data, int w, int h );
 
 };
 

@@ -6,11 +6,8 @@
 #include "OpenImageDenoise/oidn.hpp"
 #include <iostream>
 
-Denoiser::Denoiser( Canvas* _canvas ) {
-    canvas = _canvas;
-}
 
-void Denoiser::denoise() {
+void Denoiser::denoise( RGB** data, int w, int h ) {
     //auto& out = mPathTracerBuffers;
 
     // Initialize OIDN device
@@ -21,15 +18,15 @@ void Denoiser::denoise() {
     const int channels = 3; // ARGB
     // Create the denoising filter
     oidn::FilterRef filter = device.newFilter("RT"); // Use the 'RT' filter for path tracing
-    RGB* data = new RGB[canvas->getW() * canvas->getH()];
-    for ( int x = 0; x < canvas->getW(); x++ ) {
-        for ( int y = 0; y < canvas->getH(); y++ ) {
-            data[ y * canvas->getW() + x ] = canvas->getPixel( x, y ) / 255;
+    RGB* buffer = new RGB[ w * h ];
+    for ( int x = 0; x < w; x++ ) {
+        for ( int y = 0; y < h; y++ ) {
+            buffer[ y * w + x ] = data[x][y] / 255;
         }
     }
     // Set the input and output buffer (same buffer for in-place denoising)
-    filter.setImage("color", data, oidn::Format::Float3, canvas->getW(), canvas->getH(), 0, sizeof(float) * channels );
-    filter.setImage("output", data, oidn::Format::Float3, canvas->getW(), canvas->getH(), 0, sizeof(float) * channels );
+    filter.setImage("color", buffer, oidn::Format::Float3, w, h, 0, sizeof(float) * channels );
+    filter.setImage("output", buffer, oidn::Format::Float3, w, h, 0, sizeof(float) * channels );
 
     // Set additional parameters if needed
     filter.set("hdr", false); // Assuming the input image is not HDR
@@ -40,9 +37,9 @@ void Denoiser::denoise() {
     // Execute the filter
     filter.execute();
 
-    for ( int x = 0; x < canvas->getW(); x++ ) {
-        for ( int y = 0; y < canvas->getH(); y++ ) {
-            canvas->setPixel( x, y, data[y * canvas->getW() + x] * 255 );
+    for ( int x = 0; x < w; x++ ) {
+        for ( int y = 0; y < h; y++ ) {
+            data[x][y] = buffer[y * w + x] * 255;
         }
     }
 }
