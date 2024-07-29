@@ -15,6 +15,7 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "cstdlib"
+#include "Rasterizer.h"
 //#include "GroupOfMeshes.h"
 #include "Denoiser.h"
 #define GRAY RGB( 210, 210, 210 )
@@ -70,7 +71,7 @@ void loadScene( Scene* scene, std::vector <BaseMesh*>& meshes, std::vector<Light
     }
 }
 
-void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+void testScene( RayTracer*& rayTracer, Rasterizer*& rasterizer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
     //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
@@ -80,10 +81,10 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     std::vector<Light*> lights;
     float roomRefl = 0;
 ////right
-    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 290),
                                     { GREEN, -1 , roomRefl } ) );
 ////left
-    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 290),
                                    { RED, -1 , roomRefl } ) );
 ////front
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
@@ -92,10 +93,10 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
                                    { GRAY, -1 , roomRefl } ) );
 ////down
-    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 300),
                                    { GRAY, -1 , roomRefl } ) );
 ////up
-    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 620),
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 300),
                                    { GRAY, -1 , 0 } ) );
 
 ////RAND BLOCK
@@ -104,7 +105,7 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     randBlockForward->scaleTo( Vector3f(30,100,30) );
     randBlockForward->rotate( Vector3f( 0,1,0), 25);
     randBlockForward->move( Vector3f(30,0,0));
-    randBlockForward->setMaterial({GRAY, -1 , 0});
+    randBlockForward->setMaterial({CYAN, -1 , 0});
     randBlockForward->move( Vector3f(-10,0,-150));
     //randBlockForward->scaleTo( 200 );
     meshes.push_back(randBlockForward );
@@ -114,7 +115,7 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     randBlockForward2->scaleTo( Vector3f(30,260,30) );
     randBlockForward2->rotate( Vector3f( 0,1,0), -25);
     randBlockForward2->move( Vector3f(35,0,0));
-    randBlockForward2->setMaterial({GRAY, -1 , 0.8});
+    randBlockForward2->setMaterial({PINK, -1 , 0.8});
     randBlockForward2->move( Vector3f(-50,0,-100));
     //randBlockForward2->scaleTo( 200 );
     meshes.push_back(randBlockForward2 );
@@ -128,9 +129,13 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 ////LOADING...
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+    rasterizer = new Rasterizer( cam, scene, canvas );
 }
 int main(  int argc, char* argv[]  )
 {
+    srand(time( nullptr ));
+    setenv("OMP_PROC_BIND", "spread", 1);
+    setenv("OMP_PLACES", "threads", 1);
     // Initialize GLFW
     if (!glfwInit())
         return -1;
@@ -169,14 +174,18 @@ int main(  int argc, char* argv[]  )
     // Main loop
     Kokkos::initialize(argc, argv); {
     RayTracer* rayTracer = nullptr;
+    Rasterizer* rasterizer = nullptr;
     //                int w = io.DisplaySize.x;
     //                int h = io.DisplaySize.y;
-    int w = 1920;
-    int h = 1200;
+    int w = 3200;
+    int h = 2000;
     int depth = 2;
     int ambientSamples = 1;
     int lightSamples = 1;
-    testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );
+    Canvas* textureCanvas = nullptr;
+    testScene( rayTracer, rasterizer, w, h, depth, ambientSamples, lightSamples );
+
+    GLuint texture;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -194,28 +203,35 @@ int main(  int argc, char* argv[]  )
         ImGui::Begin("Control Window", nullptr, ImGuiWindowFlags_NoDecoration  | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
         ImGui::Text("Button Controls:");
         if (ImGui::Button("Ray Tracer")) {
-            setenv("OMP_PROC_BIND", "spread", 1);
-            setenv("OMP_PLACES", "threads", 1);
-                srand(time( nullptr ));
-                auto start = std::chrono::high_resolution_clock::now();
-                auto end = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> loadTime = end - start;
-                std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
-                start = std::chrono::high_resolution_clock::now();;
-                rayTracer->render( RayTracer::PARALLEL );
-                end = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> renderTime = end - start;
-                std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
+            auto start = std::chrono::high_resolution_clock::now();;
+            rayTracer->render( RayTracer::PARALLEL );
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> renderTime = end - start;
+            std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
+            textureCanvas = rayTracer->getCanvas();
+            texture = getTexture( rayTracer->getCanvas() );
         }
+        if (ImGui::Button("Rasterizator")) {
+            auto start = std::chrono::high_resolution_clock::now();;
+            rasterizer->render();
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> renderTime = end - start;
+            std::cout << "Rasterizator works "<< renderTime.count() << " seconds" << std::endl;
+            textureCanvas = rasterizer->getCanvas();
+            texture = getTexture( rasterizer->getCanvas() );
+        }
+
         if ( ImGui::Button("Denoise")) {
-            Denoiser::denoise( rayTracer->getCanvas()->getData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
+            if ( textureCanvas != nullptr )
+                Denoiser::denoise( textureCanvas->getData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
+            texture = getTexture( textureCanvas );
         }
 
         //ImGui::Separator();
         ImGui::End();
         // Second window with an image
         ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoDecoration  | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar );
-        ImGui::Image((void*)(intptr_t)getTexture( rayTracer->getCanvas() ), ImVec2( ImGui::GetWindowSize().x , ImGui::GetWindowSize().y ));
+        ImGui::Image((void*)(intptr_t)texture, ImVec2( ImGui::GetWindowSize().x , ImGui::GetWindowSize().y ));
         ImGui::End();
 /// ---///////////////////
         // Rendering

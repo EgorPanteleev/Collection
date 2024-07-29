@@ -25,7 +25,7 @@ add_subdirectory(Mesh)
 
 add_subdirectory(Render/General)
 
-#add_subdirectory(Render/Rasterizer)
+add_subdirectory(Render/Rasterizer)
 
 add_subdirectory(Render/RayTracer)
 

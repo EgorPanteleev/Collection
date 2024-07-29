@@ -4,7 +4,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++ -static-libgcc")
 
 #set(OpenGlLibs freeglut_static opengl32 glu32 winmm )
 
-set(Libs RayTracer Mesh)
+set(Libs RayTracer Rasterizer Mesh)
 
 add_executable( 2DView 2DView.cpp )
 

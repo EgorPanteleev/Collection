@@ -11,7 +11,8 @@ public:
     std::vector<BaseMesh*> meshes;
     std::vector<Light*> lights;
     void fillTriangles();
-    std::vector<Triangle> getTriangles() const;
+    [[nodiscard]] std::vector<BaseMesh*> getMeshes() const;
+    [[nodiscard]] std::vector<Triangle> getTriangles() const;
 public:
     std::vector<Triangle> triangles;
 };

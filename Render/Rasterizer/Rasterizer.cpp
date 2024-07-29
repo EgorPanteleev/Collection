@@ -1,0 +1,166 @@
+//
+// Created by auser on 7/29/24.
+//
+
+#include "Rasterizer.h"
+
+Rasterizer::Rasterizer( Camera* c, Scene* s, Canvas* _canvas ) {
+    zBuffer = new float*[_canvas->getW()];
+    for ( int i = 0; i < _canvas->getW(); i++ ) {
+        zBuffer[i] = new float[_canvas->getH()];
+    }
+    for ( int i = 0; i < _canvas->getW(); i++ ) {
+        for ( int j = 0; j < _canvas->getH(); j++ ) {
+            zBuffer[i][j] = std::numeric_limits<float>::max();
+        }
+    }
+
+    camera = Kokkos::View<Camera*>("camera");
+    Kokkos::deep_copy(camera, *c);
+    s->fillTriangles();
+    scene = Kokkos::View<Scene*>("scene");
+    Kokkos::deep_copy(scene, *s);
+    canvas = Kokkos::View<Canvas*>("canvas");
+    Kokkos::deep_copy(canvas, *_canvas);
+}
+
+Rasterizer::~Rasterizer() {
+}
+
+
+void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
+    float k;
+    static float MAX = std::numeric_limits<float>::max();
+    if ( v2.getX() == v1.getX() ) k = MAX;
+    else if ( v2.getY() == v1.getY() ) k = -MAX;
+    else k = abs( v2.getY() - v1.getY() ) / abs( v2.getX() - v1.getX() );
+
+    if ( k <= 1 ) {
+        if ( k == -MAX ) k = 0;
+        if ( v1.getX() - v2.getX() > 0 ) std::swap( v1, v2 );
+        int cf = v1.getY() - v2.getY() < 0 ? 1 : -1;
+        for ( int x = (int) v1.getX(); x <= (int) v2.getX(); x++ ) {
+            canvas(0).setPixel( x, v1.getY() + k * ( x - v1.getX() ) * cf, color );
+        }
+    } else {
+        if ( k == MAX ) k = 0;
+        else k = 1 / k;
+        if ( v1.getY() - v2.getY() > 0 ) std::swap( v1, v2 );
+        int cf = v1.getX() - v2.getX() < 0 ? 1 : -1;
+        for ( int y = (int) v1.getY(); y <= (int) v2.getY(); y++ ) {
+            canvas(0).setPixel( v1.getX() + k * ( y - v1.getY() ) * cf, y, color );
+        }
+    }
+}
+
+Vector3f Rasterizer::transform( Vector3f p ) {
+    p = p - camera(0).origin;
+    float del = p.z == 0 ? 1 : p.z;
+    return { p.x * (float) camera(0).dV / del + camera(0).Vx / 2,
+             p.y * (float) camera(0).dV / del + camera(0).Vy/2,
+             p.z                                                 };
+}
+
+void Rasterizer::clear() {
+    for ( int i = 0; i < canvas(0).getW(); i++ ) {
+        for ( int j = 0; j < canvas(0).getH(); j++ ) {
+            zBuffer[i][j] = std::numeric_limits<float>::max();
+            //canvas(0).setPixel( i, j, { 0, 0, 0 } );
+        }
+    }
+}
+
+float getZ( int x, int y, Vector3f v1, Vector3f v2, Vector3f v3 ) {
+    float denominator = (v2.y - v3.y) * (v1.x - v3.x) + (v3.x - v2.x) * (v1.y - v3.y);
+    float w1 = ((v2.y - v3.y) * (x - v3.x) + (v3.x - v2.x) * (y - v3.y)) / denominator;
+    float w2 = ((v3.y - v1.y) * (x - v3.x) + (v1.x - v3.x) * (y - v3.y)) / denominator;
+    float w3 = 1.0f - w1 - w2;
+    return w1 * v1.z + w2 * v2.z + w3 * v3.z;
+}
+
+void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
+    Vector3f v1 = transform( tri.v1 );
+    Vector3f v2 = transform( tri.v2 );
+    Vector3f v3 = transform( tri.v3 );
+    if ( abs( v1.getY() - v3.getY() ) < abs( v2.getY() - v3.getY() ) ) std::swap( v1, v2 );
+    if ( abs( v1.getY() - v2.getY() ) < abs( v1.getY() - v3.getY() ) ) std::swap( v2, v3 );
+    float dy = abs( v1.getY() - v2.getY() );
+    int xMin, xMax;
+    xMin = std::min( std::min(v1.getX(), v2.getX() ), v3.getX() );
+    xMax = std::max( std::max(v1.getX(), v2.getX() ), v3.getX() );
+    static float MAX = std::numeric_limits<float>::max();
+    float k12;
+    if ( v2.getX() == v1.getX() ) k12 = MAX;
+    else if ( v2.getY() == v1.getY() ) k12 = -MAX;
+    else k12 = ( v2.getY() - v1.getY() ) / ( v2.getX() - v1.getX() );
+    float b12 = v1.getY() - k12 * v1.getX();
+
+    float k13;
+    if ( v3.getX() == v1.getX() ) k13 = MAX;
+    else if ( v3.getY() == v1.getY() ) k13 = -MAX;
+    else k13 = ( v3.getY() - v1.getY() ) / ( v3.getX() - v1.getX() );
+    float b13 = v1.getY() - k13 * v1.getX();
+
+    float k23;
+    if ( v3.getX() == v2.getX() ) k23 = MAX;
+    else if ( v3.getY() == v2.getY() ) k23 = -MAX;
+    else k23 = ( v3.getY() - v2.getY() ) / ( v3.getX() - v2.getX() );
+    float b23 = v2.getY() - k23 * v2.getX();
+    Vector3f v11 = v1;
+    Vector3f v22 = v2;
+    if ( v11.getY() > v22.getY() ) std::swap( v11, v22 );
+    int asd = v22.getY() > 2000 ? 2000 : v22.getY();
+    int asdd= v11.getY() < 0 ? 0 : v11.getY();
+    for ( int y = asdd; y < asd; y++) {
+        float x12 = MAX;
+        if ( k12 == MAX && y < std::max( v1.getY(), v2.getY() ) && y > std::min( v1.getY(), v2.getY() ) ) x12 = std::floor( v1.getX() );
+        else x12 = std::floor( ( y - b12 ) / k12 );
+
+        float x13 = MAX;
+        if ( k13 == MAX && y < std::max( v1.getY(), v3.getY() ) && y > std::min( v1.getY(), v3.getY() )  ) x13 = std::floor( v1.getX() );
+        else x13 = std::floor( ( y - b13 ) / k13 );
+
+        float x23 = MAX;
+        if ( k23 == MAX && y < std::max( v2.getY(), v3.getY() ) && y > std::min( v2.getY(), v3.getY() ) ) x23 = std::floor( v2.getX() );
+        else x23 = std::floor( ( y - b23 ) / k23 );
+        std::vector<float> vals;
+        if ( x12 <= xMax && x12 >= xMin ) vals.push_back( x12 );
+        if ( x13 <= xMax && x13 >= xMin ) vals.push_back( x13 );
+        if ( x23 <= xMax && x23 >= xMin ) vals.push_back( x23 );
+        if ( vals.size() <= 1 ) continue;
+        if ( vals[0] == vals[1] && vals.size() >= 3 ) std::swap( vals[1], vals[2] );
+        if ( vals[0] > vals[1] ) std::swap( vals[0], vals[1] );
+        int asd1 = vals[1] > 3200 ? 3200 : vals[1];
+        int asdd1= vals[0] < 0 ? 0 : vals[0];
+        for ( int x = asdd1; x < asd1; x++ ) {
+            float z = getZ( x, y, v1, v2, v3 );
+            if ( z <= 0 ) continue;
+            if ( z <= zBuffer[x][y]) {
+                zBuffer[x][y] = z;
+                canvas(0).setPixel( x, y, color );
+            }
+        }
+    }
+
+}
+
+
+void Rasterizer::render() {
+    clear();
+    for ( auto mesh: scene(0).getMeshes() ) {
+        for ( const auto& triangle: mesh->getTriangles() ) {
+            drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
+        }
+    }
+}
+
+Canvas* Rasterizer::getCanvas() const {
+    return &(canvas(0));
+}
+
+Scene* Rasterizer::getScene() const {
+    return &(scene(0));
+}
+Camera* Rasterizer::getCamera() const {
+    return &(camera(0));
+}

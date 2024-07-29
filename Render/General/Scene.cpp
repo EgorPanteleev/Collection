@@ -7,6 +7,10 @@ void Scene::fillTriangles() {
     }
 }
 
+std::vector<BaseMesh*> Scene::getMeshes() const {
+    return meshes;
+}
+
 std::vector<Triangle> Scene::getTriangles() const {
     return triangles;
 }
