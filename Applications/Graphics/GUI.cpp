@@ -17,12 +17,38 @@
 #include "SpotLight.h"
 #include "cstdlib"
 //#include "GroupOfMeshes.h"
-//#include "Denoiser.h"
+#include "Denoiser.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#define GRAY RGB( 210, 210, 210 )
+#define RED RGB( 255, 0, 0 )
+#define GREEN RGB( 0, 255, 0 )
+#define BLUE RGB( 0, 0, 255 )
+#define YELLOW RGB( 255, 255, 0 )
+#define BROWN RGB( 150, 75, 0 )
+#define PINK RGB( 255,105,180 )
+#define DARK_BLUE RGB(65,105,225)
+#define CYAN RGB( 0, 255, 255)
 // Function to load a texture from a file using stb_image
+
+GLuint createTexture(const unsigned char* data, int width, int height) {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return textureID;
+}
+
+
 GLuint LoadTextureFromFile(const char* filename, int* width, int* height)
 {
     int nrChannels;
@@ -48,6 +74,25 @@ GLuint LoadTextureFromFile(const char* filename, int* width, int* height)
 
     return textureID;
 }
+
+GLuint getTexture( Canvas* canvas ) {
+    // Rasterized data (example)
+    int w = canvas->getW();
+    int h = canvas->getH();
+    unsigned char* data = new unsigned char[w * h * 3];
+    // Fill the rasterized data with a simple gradient for demonstration
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            RGB color = canvas->getPixel( x, h - y );
+            data[(y * w + x) * 3 + 0] = color.r;
+            data[(y * w + x) * 3 + 1] = color.g;
+            data[(y * w + x) * 3 + 2] = color.b;
+        }
+    }
+
+    // Create texture from rasterized data
+    return createTexture(data, w, h);
+}
 void loadScene( Scene* scene, std::vector <BaseMesh*>& meshes, std::vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
         scene->meshes.push_back( mesh );
@@ -58,33 +103,61 @@ void loadScene( Scene* scene, std::vector <BaseMesh*>& meshes, std::vector<Light
 }
 
 void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    float FOV = 100;
-    float dV = w / 2 / tan( FOV * M_PI / 360  );
-//    Camera* cam = new Camera( Vector3f(-4.24462,-0.129327,1.31629 ), Vector3f(0,0,1), dV,w,h );
-    Camera* cam = new Camera( Vector3f(-1,0,-3 ), Vector3f(0.3,0,1), dV,w,h );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
+
     std::vector<BaseMesh*> meshes;
     std::vector<Light*> lights;
+    float roomRefl = 0;
+////right
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+                                    { GREEN, -1 , roomRefl } ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+                                   { RED, -1 , roomRefl } ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+                                   { GRAY, -1 , roomRefl } ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+                                   { GRAY, -1 , roomRefl } ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+                                   { GRAY, -1 , roomRefl } ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 620),
+                                   { GRAY, -1 , 0 } ) );
 
-    auto* room = new TriangularMesh();
-    room->loadMesh( "/home/auser/dev/src/Collection/Models/restroom/restroom.obj" );
-//    room->rotate( Vector3f( 0, 0, 1), 30 );
-    room->rotate( Vector3f( 0,1,0),90);
-//    room->rotate( Vector3f( 1,0,0),90);
-//    room->move( Vector3f( 0,0,100) );
-    room->setMaterial( { RGB( 130, 130, 130 ), 1 , 0, 1 } );
-    meshes.push_back( room );
+////RAND BLOCK
+    auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward->moveTo( Vector3f(0, -40, 325) );
+    randBlockForward->scaleTo( Vector3f(30,100,30) );
+    randBlockForward->rotate( Vector3f( 0,1,0), 25);
+    randBlockForward->move( Vector3f(30,0,0));
+    randBlockForward->setMaterial({GRAY, -1 , 0});
+    randBlockForward->move( Vector3f(-10,0,-150));
+    //randBlockForward->scaleTo( 200 );
+    meshes.push_back(randBlockForward );
 
+    auto* randBlockForward2 = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward2->moveTo( Vector3f(0, -40, 325) );
+    randBlockForward2->scaleTo( Vector3f(30,260,30) );
+    randBlockForward2->rotate( Vector3f( 0,1,0), -25);
+    randBlockForward2->move( Vector3f(35,0,0));
+    randBlockForward2->setMaterial({GRAY, -1 , 0.8});
+    randBlockForward2->move( Vector3f(-50,0,-100));
+    //randBlockForward2->scaleTo( 200 );
+    meshes.push_back(randBlockForward2 );
 
-    lights.push_back( new PointLight( Vector3f(0 ,1.5,-1), 3));
-//    lights.push_back( new PointLight( cam->origin, 1 ) );
-//    float lightWidth = 0.3;
-//    float lightLength = 0.3;
-//    int roomHeight = 4;
-//    int roomLength = 5;
-//    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,roomHeight/2,roomLength/2 - lightLength),
-//                                     Vector3f(0 + lightWidth,roomHeight/2,roomLength/2 + lightLength), 1));
+////LIGHTS
+
+    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    int lightWidth = 20;
+    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+
+////LOADING...
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -150,7 +223,7 @@ int main(  int argc, char* argv[]  )
 
     // Load an image
     int image_width = 0, image_height = 0;
-    GLuint myImageTexture = LoadTextureFromFile("", &image_width, &image_height);
+    GLuint myTexture = LoadTextureFromFile("", &image_width, &image_height);
 //    if (myImageTexture == 0)
 //    {
 //        std::cerr << "Failed to load texture" << std::endl;
@@ -159,7 +232,17 @@ int main(  int argc, char* argv[]  )
     // Set the scale factor
 
     // Main loop
+    Kokkos::initialize(argc, argv); {
     RayTracer* rayTracer = nullptr;
+    //                int w = io.DisplaySize.x;
+    //                int h = io.DisplaySize.y;
+    int w = 1920;
+    int h = 1200;
+    int depth = 2;
+    int ambientSamples = 1;
+    int lightSamples = 1;
+    testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );
+
     while (!glfwWindowShouldClose(window))
     {
         // Poll and handle events
@@ -178,15 +261,8 @@ int main(  int argc, char* argv[]  )
         if (ImGui::Button("Ray Tracer")) {
             setenv("OMP_PROC_BIND", "spread", 1);
             setenv("OMP_PLACES", "threads", 1);
-            Kokkos::initialize(argc, argv); {
                 srand(time( nullptr ));
-                int w = io.DisplaySize.x; ;
-                int h = io.DisplaySize.y;
-                int depth = 2;
-                int ambientSamples = 1;
-                int lightSamples = 5;
                 auto start = std::chrono::high_resolution_clock::now();
-                testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> loadTime = end - start;
                 std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
@@ -195,21 +271,16 @@ int main(  int argc, char* argv[]  )
                 end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> renderTime = end - start;
                 std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
-                saveToPNG( rayTracer->getCanvas(), "out.png" );
-            } Kokkos::finalize();
-            myImageTexture = LoadTextureFromFile("/home/auser/dev/src/Collection/release/Applications/Graphics/out.png", &image_width, &image_height);
         }
         if ( ImGui::Button("Denoise")) {
             Denoiser::denoise( rayTracer->getCanvas()->getData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
-            saveToPNG( rayTracer->getCanvas(), "outDenoised.png" );
-            myImageTexture = LoadTextureFromFile("/home/auser/dev/src/Collection/release/Applications/Graphics/outDenoised.png", &image_width, &image_height);
         }
 
         //ImGui::Separator();
         ImGui::End();
         // Second window with an image
         ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoDecoration  | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar );
-        ImGui::Image((void*)(intptr_t)myImageTexture, ImVec2( ImGui::GetWindowSize().x , ImGui::GetWindowSize().y ));
+        ImGui::Image((void*)(intptr_t)getTexture( rayTracer->getCanvas() ), ImVec2( ImGui::GetWindowSize().x , ImGui::GetWindowSize().y ));
         ImGui::End();
 /// ---///////////////////
         // Rendering
@@ -231,7 +302,7 @@ int main(  int argc, char* argv[]  )
         // Swap buffers
         glfwSwapBuffers(window);
     }
-
+    } Kokkos::finalize();
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

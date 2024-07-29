@@ -673,11 +673,11 @@ int main( int argc, char* argv[] ) {
 
     ////RESOLUTION
     //int w = 8 ; int h = 5;
-    //int w = 240 ; int h = 150;
+    int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
     int depth = 2;
@@ -715,8 +715,7 @@ int main( int argc, char* argv[] ) {
 
     saveToBMP( rayTracer->getCanvas(), "out.bmp" );
 
-    Denoiser denoiser( rayTracer->getCanvas() );
-    denoiser.denoise();
+    Denoiser::denoise( rayTracer->getCanvas()->getData(), w, h );
     saveToBMP( rayTracer->getCanvas(), "outDenoised.bmp" );
 
     } Kokkos::finalize();
