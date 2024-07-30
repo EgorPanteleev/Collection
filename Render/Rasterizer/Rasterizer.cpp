@@ -109,7 +109,7 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
     Vector3f v11 = v1;
     Vector3f v22 = v2;
     if ( v11.getY() > v22.getY() ) std::swap( v11, v22 );
-    int asd = v22.getY() > 2000 ? 2000 : v22.getY();
+    int asd = v22.getY() > canvas(0).getH() ? canvas(0).getH() : v22.getY();
     int asdd= v11.getY() < 0 ? 0 : v11.getY();
     for ( int y = asdd; y < asd; y++) {
         float x12 = MAX;
@@ -130,7 +130,7 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
         if ( vals.size() <= 1 ) continue;
         if ( vals[0] == vals[1] && vals.size() >= 3 ) std::swap( vals[1], vals[2] );
         if ( vals[0] > vals[1] ) std::swap( vals[0], vals[1] );
-        int asd1 = vals[1] > 3200 ? 3200 : vals[1];
+        int asd1 = vals[1] > canvas(0).getW() ? canvas(0).getW() : vals[1];
         int asdd1= vals[0] < 0 ? 0 : vals[0];
         for ( int x = asdd1; x < asd1; x++ ) {
             float z = getZ( x, y, v1, v2, v3 );
@@ -144,15 +144,160 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
 
 }
 
+//struct BBox {
+//    BBox( const Vector2f& _min, const Vector2f& _max ): min( _min ), max( _max ) {}
+//    Vector2f min;
+//    Vector2f max;
+//};
+//
+//BBox getBBox( Triangle tri ) {
+//    float minX = std::min( std::min( tri.v1[0], tri.v2[0] ), tri.v3[0] );
+//    float maxX = std::max( std::max( tri.v1[0], tri.v2[0] ), tri.v3[0] );
+//    float minY = std::min( std::min( tri.v1[1], tri.v2[1] ), tri.v3[1] );
+//    float maxY = std::max( std::max( tri.v1[1], tri.v2[1] ), tri.v3[1] );
+//    return { Vector2f( minX, minY ), Vector2f( maxX, maxY ) };
+//}
+//
+//bool isPointInTriangle( Triangle tri, Vector2f p ) {
+//    // Vectors from point A to point P
+//    double v0x = tri.v3.x - tri.v1.x;
+//    double v0y = tri.v3.y - tri.v1.y;
+//    double v1x = tri.v2.x - tri.v1.x;
+//    double v1y = tri.v2.y - tri.v1.y;
+//    double v2x = p.getX() - tri.v1.x;
+//    double v2y = p.getY() - tri.v1.y;
+//
+//    // Dot products
+//    double dot00 = v0x * v0x + v0y * v0y;
+//    double dot01 = v0x * v1x + v0y * v1y;
+//    double dot02 = v0x * v2x + v0y * v2y;
+//    double dot11 = v1x * v1x + v1y * v1y;
+//    double dot12 = v1x * v2x + v1y * v2y;
+//
+//    // Barycentric coordinates
+//    double invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+//    double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+//    double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+//
+//    // Check if point is in triangle
+//    return (u >= 0) && (v >= 0) && (u + v <= 1);
+//}
+
+//void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
+//    Vector3f v1 = transform( tri.v1 );
+//    Vector3f v2 = transform( tri.v2 );
+//    Vector3f v3 = transform( tri.v3 );
+//    Triangle triangle( v1, v2, v3 );
+//    BBox bbox = getBBox( triangle );
+//    bbox.min = { bbox.min.getX() < 0 ? 0 : bbox.min.getX(), bbox.min.getY() < 0 ? 0 : bbox.min.getY() };
+//    bbox.max = { bbox.max.getX() > canvas(0).getW() ? canvas(0).getW() : bbox.max.getX(),
+//                 bbox.max.getY() > canvas(0).getH() ? canvas(0).getH() : bbox.max.getY() };
+//    for ( int x = bbox.min.getX(); x < bbox.max.getX(); x++ ) {
+//        for (int y = bbox.min.getY(); y < bbox.max.getY(); y++) {
+//            if (!isPointInTriangle(triangle, Vector2f(x, y))) continue;
+//            float z = getZ(x, y, v1, v2, v3);
+//            if (z <= 0) continue;
+//            if (z > zBuffer[x][y]) continue;
+//            zBuffer[x][y] = z;
+//            canvas(0).setPixel(x, y, color);
+//        }
+//    }
+//}
+
+//void drawHorizontalLine(int x1, int x2, int y, RGB color, Canvas* canvas ) {
+//    if (x1 > x2) std::swap(x1, x2);
+//    x1 = x1 < 0 ? 0 : x1;
+//    x2 = x2 > canvas->getW() ? canvas->getW() : x2;
+//    for (int x = x1; x < x2; ++x) {
+//        canvas->setPixel( x, y, color );
+//    }
+//}
+//
+//void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
+//    Vector3f v0 = transform( tri.v1 );
+//    Vector3f v1 = transform( tri.v2 );
+//    Vector3f v2 = transform( tri.v3 );
+//// Sort vertices by y-coordinate
+//    if (v0.y > v1.y) std::swap(v0, v1);
+//    if (v0.y > v2.y) std::swap(v0, v2);
+//    if (v1.y > v2.y) std::swap(v1, v2);
+//
+//// Compute inverse slopes
+//    float invslope1 = (v1.x - v0.x) / static_cast<float>(v1.y - v0.y);
+//    float invslope2 = (v2.x - v0.x) / static_cast<float>(v2.y - v0.y);
+//    float invslope3 = (v2.x - v1.x) / static_cast<float>(v2.y - v1.y);
+//
+//// Starting x-coordinates
+//    float curx1 = v0.x;
+//    float curx2 = v0.x;
+//
+//// Fill bottom part of the triangle (v0 to v1)
+//    float asd1 = v0.y < 0 ? 0 : v0.y;
+//    float asd2 = v1.y > canvas(0).getH() ? canvas(0).getH() : v1.y;
+//    for (int y = asd1; y < asd2; ++y) {
+//        drawHorizontalLine(static_cast<int>(curx1), static_cast<int>(curx2), y, color, &canvas(0) );
+//        curx1 += invslope1;
+//        curx2 += invslope2;
+//    }
+//
+//// Fill top part of the triangle (v1 to v2)
+//    curx1 = v1.x;
+//    asd1 = v1.y < 0 ? 0 : v1.y;
+//    asd2 = v2.y > canvas(0).getH() ? canvas(0).getH() : v2.y;
+//    for (int y = asd1; y < asd2; ++y) {
+//        drawHorizontalLine(static_cast<int>(curx1), static_cast<int>(curx2), y, color, &canvas(0) );
+//        curx1 += invslope3;
+//        curx2 += invslope2;
+//    }
+//}
+
+//void Rasterizer::render() {
+//    clear();
+//    for ( auto mesh: scene(0).getMeshes() ) {
+//        for ( const auto& triangle: mesh->getTriangles() ) {
+//            drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
+//        }
+//    }
+//}
+
+
+//void Rasterizer::render() {
+//    RenderFunctor1 renderFunctor1( this );
+//    Kokkos::parallel_for("parallel1D", getScene()->getMeshes().size(), renderFunctor1);
+//}
+//
+//RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
+//}
+//
+//void RenderFunctor1::operator()(const int i ) const {
+//    auto mesh = rasterizer->getScene()->getMeshes()[i];
+//    for ( const auto& triangle:mesh->getTriangles() ) {
+//        rasterizer->drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
+//    }
+//}
+
 
 void Rasterizer::render() {
-    clear();
-    for ( auto mesh: scene(0).getMeshes() ) {
-        for ( const auto& triangle: mesh->getTriangles() ) {
-            drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
-        }
-    }
+    RenderFunctor2 renderFunctor2( this );
+    Kokkos::parallel_for("parallel1D", scene(0).getMeshes().size(), renderFunctor2);
 }
+
+RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer, BaseMesh* _mesh ): rasterizer( _rasterizer ), mesh( _mesh) {
+}
+
+void RenderFunctor1::operator()(const int i ) const {
+    rasterizer->drawFilledTriangle( mesh->getTriangles()[i], mesh->getMaterial().getColor() );
+}
+
+RenderFunctor2::RenderFunctor2( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
+}
+
+void RenderFunctor2::operator()(const int i ) const {
+    auto mesh = rasterizer->getScene()->getMeshes()[i];
+    RenderFunctor1 renderFunctor1( rasterizer, mesh );
+    Kokkos::parallel_for("parallel1D", mesh->getTriangles().size(), renderFunctor1);
+}
+
 
 Canvas* Rasterizer::getCanvas() const {
     return &(canvas(0));

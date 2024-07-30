@@ -40,4 +40,27 @@ private:
 };
 
 
+struct RenderFunctor1 {
+
+    RenderFunctor1( Rasterizer* _rasterizer, BaseMesh* _mesh );
+
+
+    KOKKOS_INLINE_FUNCTION void operator()(const int i) const;
+
+    Rasterizer* rasterizer;
+
+    BaseMesh* mesh;
+};
+
+struct RenderFunctor2 {
+
+    RenderFunctor2( Rasterizer* _rasterizer );
+
+
+    KOKKOS_INLINE_FUNCTION void operator()(const int i) const;
+
+    Rasterizer* rasterizer;
+
+};
+
 #endif //COLLECTION_RASTERIZER_H
