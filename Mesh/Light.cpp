@@ -5,11 +5,11 @@
 #include "Light.h"
 #include "Color.h"
 
-Light::Light():intensity( 0 ) {
+__host__ __device__ Light::Light():intensity( 0 ) {
     lightColor = RGB(255,255,255);
 }
 
 
-Light::Type Light::getType() const {
+__host__ __device__ Light::Type Light::getType() const {
     return BASE;
 }

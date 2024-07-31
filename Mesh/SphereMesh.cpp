@@ -5,16 +5,16 @@
 #include "SphereMesh.h"
 #include <cmath>
 #include "Utils.h"
-SphereMesh::SphereMesh(): radius(0), origin() {
+__host__ __device__ SphereMesh::SphereMesh(): radius(0), origin() {
 }
-SphereMesh::SphereMesh( float r, const Vector3f& pos ): radius(r), origin(pos) {
+__host__ __device__ SphereMesh::SphereMesh( float r, const Vector3f& pos ): radius(r), origin(pos) {
 }
 
-SphereMesh::SphereMesh( float r, const Vector3f& pos, const Material& m ): radius(r), origin(pos) {
+__host__ __device__ SphereMesh::SphereMesh( float r, const Vector3f& pos, const Material& m ): radius(r), origin(pos) {
     material = m;
 }
 
-void SphereMesh::rotate( const Vector3f& axis, float angle ) {
+__host__ __device__ void SphereMesh::rotate( const Vector3f& axis, float angle ) {
     Mat3f rotation = Mat3f::getRotationMatrix( axis, angle );
     Vector3f oldOrigin = origin;
     move( origin * ( -1 ));
@@ -22,30 +22,30 @@ void SphereMesh::rotate( const Vector3f& axis, float angle ) {
     move( oldOrigin );
 }
 
-void SphereMesh::move( const Vector3f& p ) {
+__host__ __device__ void SphereMesh::move( const Vector3f& p ) {
     origin = origin + p;
 }
 
-void SphereMesh::moveTo( const Vector3f& point ) {
+__host__ __device__ void SphereMesh::moveTo( const Vector3f& point ) {
     move( point - origin );
 }
 
-void SphereMesh::scale( float scaleValue ) {
+__host__ __device__ void SphereMesh::scale( float scaleValue ) {
     radius = radius * scaleValue;
 }
-void SphereMesh::scale( const Vector3f& scaleVec ) {
+__host__ __device__ void SphereMesh::scale( const Vector3f& scaleVec ) {
     if ( scaleVec[0] != scaleVec[1] || scaleVec[0] != scaleVec[2] ) return; //not sphere! nothing to do
     radius = radius * scaleVec[0];
 }
 
-void SphereMesh::scaleTo( float scaleValue ) {
+__host__ __device__ void SphereMesh::scaleTo( float scaleValue ) {
     BBoxData bbox = getBBox();
     float len = bbox.pMax[0] - bbox.pMin[0];
     float cff = scaleValue / len;
     scale( cff );
 }
 
-void SphereMesh::scaleTo( const Vector3f& scaleVec ) {
+__host__ __device__ void SphereMesh::scaleTo( const Vector3f& scaleVec ) {
     if ( scaleVec[0] != scaleVec[1] || scaleVec[0] != scaleVec[2] ) return; //not sphere! nothing to do
     BBoxData bbox = getBBox();
     float len = bbox.pMax[0] - bbox.pMin[0];
@@ -53,17 +53,17 @@ void SphereMesh::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
-BBoxData SphereMesh::getBBox() const {
+__host__ __device__ BBoxData SphereMesh::getBBox() const {
     Vector3f r = { radius, radius, radius };
     return { origin - r, origin + r };
 }
 
-bool SphereMesh::isContainPoint( const Vector3f& p ) const {
+__host__ __device__ bool SphereMesh::isContainPoint( const Vector3f& p ) const {
     if ( getDistance( p, origin ) == radius ) return true;
     return false;
 }
 
-IntersectionData SphereMesh::intersectsWithRay( const Ray& ray ) const {
+__host__ __device__ IntersectionData SphereMesh::intersectsWithRay( const Ray& ray ) const {
     Vector3f D = ray.direction;
     Vector3f OC = ray.origin - origin;
     float k1 = dot( D, D );
@@ -83,10 +83,10 @@ IntersectionData SphereMesh::intersectsWithRay( const Ray& ray ) const {
     return { t2, getNormal( P ) , nullptr};
 }
 
-Vector3f SphereMesh::getNormal( const Vector3f& p ) const {
+__host__ __device__ Vector3f SphereMesh::getNormal( const Vector3f& p ) const {
     return ( p - origin );
 }
 
-Vector3f SphereMesh::getOrigin() const {
+__host__ __device__ Vector3f SphereMesh::getOrigin() const {
     return origin;
 }

@@ -4,13 +4,13 @@
 
 #include "BaseMesh.h"
 
-BaseMesh::BaseMesh(): material() {}
+__host__ __device__ BaseMesh::BaseMesh(): material() {}
 
-void BaseMesh::setMaterial( const Material& _material ) {
+__host__ __device__ void BaseMesh::setMaterial( const Material& _material ) {
     material = _material;
 }
 
-Material BaseMesh::getMaterial() const {
+__host__ __device__ Material BaseMesh::getMaterial() const {
     return material;
 }
 
@@ -19,6 +19,6 @@ void BaseMesh::loadMesh( const std::string& path ) {
     //TODO
     //Not impemented yet
 }
-Vector <Triangle> BaseMesh::getTriangles() {
+__host__ __device__ Vector <Triangle> BaseMesh::getTriangles() {
     return {};
 }

@@ -5,7 +5,7 @@
 #include "stb_image_write.h"
 #include <iostream>
 
-Canvas::Canvas( int _w, int _h ) {
+__host__ __device__ Canvas::Canvas( int _w, int _h ) {
     numX = _w;
     numY = _h;
     data = new RGB*[numX];
@@ -14,30 +14,30 @@ Canvas::Canvas( int _w, int _h ) {
     }
 }
 
-Canvas::Canvas() {
+__host__ __device__ Canvas::Canvas() {
     numX = 0;
     numY = 0;
 }
 
-Canvas::~Canvas() {
+__host__ __device__ Canvas::~Canvas() {
     //delete[] data;
 }
-void Canvas::setPixel( int x, int y, const RGB& color ) {
+__host__ __device__ void Canvas::setPixel( int x, int y, const RGB& color ) {
     data[x][y] = color;
 }
 
-RGB Canvas::getPixel( int x, int y ) const {
+__host__ __device__ RGB Canvas::getPixel( int x, int y ) const {
    return data[x][y];
 }
 
-int Canvas::getW() const {
+__host__ __device__ int Canvas::getW() const {
     return numX;
 }
-int Canvas::getH() const {
+__host__ __device__ int Canvas::getH() const {
     return numY;
 }
 
-[[nodiscard]] RGB** Canvas::getData() const {
+[[nodiscard]] __host__ __device__ RGB** Canvas::getData() const {
     return data;
 }
 

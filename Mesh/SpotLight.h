@@ -10,15 +10,15 @@
 
 class SpotLight: public Light {
 public:
-    SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity );
+    __host__ __device__ SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity );
 
-    SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity, const RGB& _lightColor );
+    __host__ __device__ SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity, const RGB& _lightColor );
 
-    Type getType() const override;
+    __host__ __device__ Type getType() const override;
 
-    bool isIntersectsWithRay( const Ray& ray ) const override;
+    __host__ __device__ bool isIntersectsWithRay( const Ray& ray ) const override;
 
-    Vector3f getSamplePoint() const override;
+    __device__ Vector3f getSamplePoint() const override;
 private:
     Vector3f pMin, pMax;
 };

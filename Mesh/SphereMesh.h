@@ -9,21 +9,21 @@
 #include "BaseMesh.h"
 class SphereMesh: public BaseMesh {
 public:
-    SphereMesh();
-    SphereMesh( float r, const Vector3f& pos );
-    SphereMesh( float r, const Vector3f& pos, const Material& m );
-    void rotate( const Vector3f& axis, float angle ) override;
-    void move( const Vector3f& p ) override;
-    void moveTo( const Vector3f& point ) override;
-    void scale( float scaleValue ) override;
-    void scale( const Vector3f& scaleVec ) override;
-    void scaleTo( float scaleValue ) override;
-    void scaleTo( const Vector3f& scaleVec ) override;
-    [[nodiscard]] BBoxData getBBox() const override;
-    [[nodiscard]] Vector3f getOrigin() const override;
-    [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
-    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
-    [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const override;
+    __host__ __device__ SphereMesh();
+    __host__ __device__ SphereMesh( float r, const Vector3f& pos );
+    __host__ __device__ SphereMesh( float r, const Vector3f& pos, const Material& m );
+    __host__ __device__ void rotate( const Vector3f& axis, float angle ) override;
+    __host__ __device__ void move( const Vector3f& p ) override;
+    __host__ __device__ void moveTo( const Vector3f& point ) override;
+    __host__ __device__ void scale( float scaleValue ) override;
+    __host__ __device__ void scale( const Vector3f& scaleVec ) override;
+    __host__ __device__ void scaleTo( float scaleValue ) override;
+    __host__ __device__ void scaleTo( const Vector3f& scaleVec ) override;
+    [[nodiscard]] __host__ __device__ BBoxData getBBox() const override;
+    [[nodiscard]] __host__ __device__ Vector3f getOrigin() const override;
+    [[nodiscard]] __host__ __device__ bool isContainPoint( const Vector3f& p ) const override;
+    [[nodiscard]] __host__ __device__ Vector3f getNormal( const Vector3f& p ) const override;
+    [[nodiscard]] __host__ __device__ IntersectionData intersectsWithRay( const Ray& ray ) const override;
 
 public:
     float radius;

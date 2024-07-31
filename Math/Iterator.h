@@ -4,27 +4,28 @@
 
 #ifndef COLLECTION_ITERATOR_H
 #define COLLECTION_ITERATOR_H
+#include <hip/hip_runtime.h>
 
 template <typename Type>
 class Iterator {
 public:
-    Iterator(Type* ptr) : mPtr(ptr) {}
+    __host__ __device__ Iterator(Type* ptr) : mPtr(ptr) {}
 
-    Type& operator*() { return *mPtr; }
-    const Type& operator*() const { return *mPtr; }
+    __host__ __device__ Type& operator*() { return *mPtr; }
+    __host__ __device__ const Type& operator*() const { return *mPtr; }
 
-    Iterator& operator++() {
+    __host__ __device__ Iterator& operator++() {
         ++mPtr;
         return *this;
     }
-    Iterator operator++(int) {
+    __host__ __device__ Iterator operator++(int) {
         Iterator temp = *this;
         ++(*this);
         return temp;
     }
 
-    bool operator==(const Iterator& other) const { return mPtr == other.mPtr; }
-    bool operator!=(const Iterator& other) const { return mPtr != other.mPtr; }
+    __host__ __device__ bool operator==(const Iterator& other) const { return mPtr == other.mPtr; }
+    __host__ __device__ bool operator!=(const Iterator& other) const { return mPtr != other.mPtr; }
 
 private:
     Type* mPtr;

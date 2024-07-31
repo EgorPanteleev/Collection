@@ -4,19 +4,19 @@
 
 #include "CubeMesh.h"
 #include "IntersectionData.h"
-CubeMesh::CubeMesh(): p1({0,0,0}), p2({1,1,1}) {
+__host__ __device__ CubeMesh::CubeMesh(): p1({0,0,0}), p2({1,1,1}) {
     fillTriangles();
 }
-CubeMesh::CubeMesh( const Vector3f& _p1, const Vector3f& _p2): p1(_p1), p2(_p2) {
+__host__ __device__ CubeMesh::CubeMesh( const Vector3f& _p1, const Vector3f& _p2): p1(_p1), p2(_p2) {
     fillTriangles();
 }
 
-CubeMesh::CubeMesh( const Vector3f& _p1, const Vector3f& _p2, const Material& _material ): p1(_p1), p2(_p2) {
+__host__ __device__ CubeMesh::CubeMesh( const Vector3f& _p1, const Vector3f& _p2, const Material& _material ): p1(_p1), p2(_p2) {
     material = _material;
     fillTriangles();
 }
 
-void CubeMesh::fillTriangles() {
+__host__ __device__ void CubeMesh::fillTriangles() {
     Vector3f f1 = p1;
     Vector3f f2 = { p2.getX(), p1.getY(), p1.getZ() };
     Vector3f f3 = { p2.getX(), p1.getY(), p2.getZ() };

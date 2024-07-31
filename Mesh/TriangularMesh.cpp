@@ -11,7 +11,7 @@ void TriangularMesh::loadMesh( const std::string& path ) {
     OBJLoader::load( path, this );
 }
 
-void TriangularMesh::rotate( const Vector3f& axis, float angle ) {
+__host__ __device__ void TriangularMesh::rotate( const Vector3f& axis, float angle ) {
     Vector3f origin = getOrigin();
     move( origin * ( -1 ) );
     for ( auto& triangle: triangles ) {
@@ -20,24 +20,24 @@ void TriangularMesh::rotate( const Vector3f& axis, float angle ) {
     move( origin );
 }
 
-void TriangularMesh::move( const Vector3f& p ) {
+__host__ __device__ void TriangularMesh::move( const Vector3f& p ) {
     for ( auto& triangle: triangles ) {
         triangle.move( p );
     }
 }
 
-void TriangularMesh::moveTo( const Vector3f& point ) {
+__host__ __device__ void TriangularMesh::moveTo( const Vector3f& point ) {
     move( point - getOrigin() );
 }
 
-void TriangularMesh::scale( float scaleValue ) {
+__host__ __device__ void TriangularMesh::scale( float scaleValue ) {
     Vector3f oldOrigin = getOrigin();
     for ( auto& triangle: triangles ) {
         triangle.scale( scaleValue );
     }
     moveTo( oldOrigin );
 }
-void TriangularMesh::scale( const Vector3f& scaleVec ) {
+__host__ __device__ void TriangularMesh::scale( const Vector3f& scaleVec ) {
     Vector3f oldOrigin = getOrigin();
     for ( auto& triangle: triangles ) {
         triangle.scale( scaleVec );
@@ -49,7 +49,7 @@ void TriangularMesh::scale( const Vector3f& scaleVec ) {
 //Vector3f len = bbox.pMax - bbox.pMin;
 //Vector3f cff = { scaleValue / len[0], scaleValue / len[1], scaleValue / len[2] };
 //scale( cff );
-void TriangularMesh::scaleTo( float scaleValue ) {
+__host__ __device__ void TriangularMesh::scaleTo( float scaleValue ) {
     BBoxData bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     float maxLen = std::max ( std::max( len.getX(), len.getY() ), len.getZ());
@@ -57,14 +57,14 @@ void TriangularMesh::scaleTo( float scaleValue ) {
     scale( cff );
 }
 
-void TriangularMesh::scaleTo( const Vector3f& scaleVec ) {
+__host__ __device__ void TriangularMesh::scaleTo( const Vector3f& scaleVec ) {
     BBoxData bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
 }
 
-void TriangularMesh::setMinPoint( const Vector3f& vec, int ind ) {
+__host__ __device__ void TriangularMesh::setMinPoint( const Vector3f& vec, int ind ) {
     Vector3f moveVec = vec - getBBox().pMin;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
@@ -73,7 +73,7 @@ void TriangularMesh::setMinPoint( const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
+__host__ __device__ void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
     Vector3f moveVec = vec - getBBox().pMax;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
@@ -82,11 +82,11 @@ void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-Vector<Triangle> TriangularMesh::getTriangles() {
+__host__ __device__ Vector<Triangle> TriangularMesh::getTriangles() {
     return triangles;
 }
 
-BBoxData TriangularMesh::getBBox() const {
+__host__ __device__ BBoxData TriangularMesh::getBBox() const {
     static float MAX = std::numeric_limits<float>::max();
     static float MIN = std::numeric_limits<float>::min();
     Vector3f min = {MAX,MAX,MAX};
@@ -104,7 +104,7 @@ BBoxData TriangularMesh::getBBox() const {
 }
 
 
-Vector3f TriangularMesh::getOrigin() const {
+__host__ __device__ Vector3f TriangularMesh::getOrigin() const {
     Vector3f origin = {0,0,0};
     for ( auto& triangle: triangles ) {
         origin = origin + triangle.getOrigin();
@@ -112,14 +112,14 @@ Vector3f TriangularMesh::getOrigin() const {
     return origin / (float) triangles.size();
 }
 
-bool TriangularMesh::isContainPoint( const Vector3f& p ) const {
+__host__ __device__ bool TriangularMesh::isContainPoint( const Vector3f& p ) const {
     for ( const auto& triangle: triangles ) {
         if ( triangle.isContainPoint( p ) ) return true;
     }
     return false;
 }
 
-IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
+__host__ __device__ IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
     float min = std::numeric_limits<float>::max();
     Vector3f N = {};
     for ( const auto& triangle: triangles ) {
@@ -131,16 +131,16 @@ IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
     return { min, N , nullptr};
 }
 
-Vector3f TriangularMesh::getNormal( const Vector3f& p ) const {
+__host__ __device__ Vector3f TriangularMesh::getNormal( const Vector3f& p ) const {
     return {};
 }
 
-void TriangularMesh::setTriangles( Vector<Triangle>& _triangles ) {
+__host__ __device__ void TriangularMesh::setTriangles( Vector<Triangle>& _triangles ) {
     triangles = _triangles;
     for ( auto& triangle: triangles )
         triangle.owner = this;
 }
-void TriangularMesh::addTriangle( const Triangle& triangle ) {
+__host__ __device__ void TriangularMesh::addTriangle( const Triangle& triangle ) {
     triangles.push_back( triangle );
     triangles[ triangles.size() - 1 ].owner = this;
 }

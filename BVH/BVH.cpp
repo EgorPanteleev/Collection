@@ -1,12 +1,12 @@
 #include "BVH.h"
 
-BVH::BVH( Vector <Triangle> _triangles): triangles( _triangles ) {
+__host__ __device__ BVH::BVH( Vector <Triangle> _triangles): triangles( _triangles ) {
 }
 
-BVH::BVH(): triangles() {
+__host__ __device__ BVH::BVH(): triangles() {
 }
 
-void BVH::BuildBVH() {
+__host__ __device__ void BVH::BuildBVH() {
     for( int i = 0; i < triangles.size(); i++ ) bvhNode.push_back({});
     // populate triangle index array
     for (int i = 0; i < triangles.size(); i++) indexes.push_back(i);
@@ -19,7 +19,7 @@ void BVH::BuildBVH() {
     Subdivide( 0, 0, nodesUsed, centroidMin, centroidMax );
 }
 
-void BVH::UpdateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax )
+__host__ __device__ void BVH::UpdateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax )
 {
     BVHNode& node = bvhNode[nodeIdx];
 
@@ -44,17 +44,17 @@ void BVH::UpdateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centr
 
 struct aabb
 {
-    Vector3f bmin = { 1e30f, 1e30f , 1e30f }, bmax = { -1e30f, -1e30f , -1e30f };
-    void grow( Vector3f p ) { bmin = min( bmin, p ); bmax = max( bmax, p ); }
-    void grow( aabb& b ) { if (b.bmin.x != 1e30f) { grow( b.bmin ); grow( b.bmax ); } }
-    float area()
+    __host__ __device__ Vector3f bmin = { 1e30f, 1e30f , 1e30f }, bmax = { -1e30f, -1e30f , -1e30f };
+    __host__ __device__ void grow( Vector3f p ) { bmin = min( bmin, p ); bmax = max( bmax, p ); }
+    __host__ __device__ void grow( aabb& b ) { if (b.bmin.x != 1e30f) { grow( b.bmin ); grow( b.bmax ); } }
+    __host__ __device__ float area()
     {
         Vector3f e = bmax - bmin; // box extent
         return e.x * e.y + e.y * e.z + e.z * e.x;
     }
 };
 
-float BVH::EvaluateSAH( BVHNode& node, int axis, float pos ) {
+__host__ __device__ float BVH::EvaluateSAH( BVHNode& node, int axis, float pos ) {
     // determine triangle counts and bounds for this split candidate
     aabb leftBox, rightBox;
     int leftCount = 0, rightCount = 0;
@@ -79,8 +79,13 @@ float BVH::EvaluateSAH( BVHNode& node, int axis, float pos ) {
     float cost = leftCount * leftBox.area() + rightCount * rightBox.area();
     return cost > 0 ? cost : 1e30f;
 }
-
-void BVH::Subdivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroidMin, Vector3f& centroidMax )
+template <typename Type>
+__host__ __device__ void swap( Type t1, Type t2 ) {
+    Type t3 = t1;
+    t1 = t2;
+    t2 = t3;
+}
+__host__ __device__ void BVH::Subdivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroidMin, Vector3f& centroidMax )
 {
     BVHNode& node = bvhNode[nodeIdx];
     if (node.trianglesCount <= 2) return;
@@ -107,7 +112,7 @@ void BVH::Subdivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroid
     {
         // use the exact calculation we used for binning to prevent rare inaccuracies
         int binIdx = std::min( BINS - 1, (int)((triangles[indexes[i]].getOrigin()[axis] - centroidMin[axis]) * scale) );
-        if (binIdx < splitPos) i++; else std::swap( indexes[i], indexes[j--] );
+        if (binIdx < splitPos) i++; else swap( indexes[i], indexes[j--] );
     }
     // abort split if one of the sides is empty
     int leftCount = i - node.leftFirst;
@@ -128,7 +133,7 @@ void BVH::Subdivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroid
     Subdivide( rightChildIdx, depth + 1, nodePtr, centroidMin, centroidMax );
 }
 
-float BVH::FindBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f& centroidMin, Vector3f& centroidMax )
+__host__ __device__ float BVH::FindBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f& centroidMin, Vector3f& centroidMax )
 {
     float bestCost = 1e30f;
     for (int a = 0; a < 3; a++)
@@ -174,7 +179,7 @@ float BVH::FindBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f
 }
 
 
-bool BVH::IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bmax )
+__host__ __device__ bool BVH::IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bmax )
 {
     float tx1 = (bmin.x - ray.origin.x) / ray.direction.x, tx2 = (bmax.x - ray.origin.x) / ray.direction.x;
     float tmin = std::min( tx1, tx2 ), tmax = std::max( tx1, tx2 );
@@ -185,7 +190,7 @@ bool BVH::IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bma
     return tmax >= tmin && tmin < 1e30f && tmax > 0;
 }
 
-IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx )
+__host__ __device__ IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx )
 {
     static float MAX = std::numeric_limits<float>::max();
     BVHNode& node = bvhNode[nodeIdx];

@@ -1,17 +1,17 @@
 #include "Scene.h"
 #include "Triangle.h"
 
-void Scene::fillTriangles() {
+__host__ __device__ void Scene::fillTriangles() {
     for ( auto mesh: meshes ) {
         for ( auto& triangle : mesh->getTriangles() ) triangles.push_back( triangle );
     }
 }
 
-Vector<BaseMesh*> Scene::getMeshes() const {
+__host__ __device__ Vector<BaseMesh*> Scene::getMeshes() const {
     return meshes;
 }
 
-Vector<Triangle> Scene::getTriangles() const {
+__host__ __device__ Vector<Triangle> Scene::getTriangles() const {
     return triangles;
 }
 

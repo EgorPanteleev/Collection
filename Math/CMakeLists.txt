@@ -1,5 +1,7 @@
 project(Math)
 
+set (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fgpu-rdc --hip-link")
+
 #static Library
 file(GLOB SOURCES "*.cpp")
 file(GLOB HEADERS "*.h")

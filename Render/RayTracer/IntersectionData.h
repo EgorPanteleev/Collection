@@ -10,8 +10,8 @@
 class Triangle;
 class IntersectionData {
 public:
-    IntersectionData();
-    IntersectionData( float t, const Vector3f& N, Triangle* tr );
+    __host__ __device__ IntersectionData();
+    __host__ __device__ IntersectionData( float t, const Vector3f& N, Triangle* tr );
     float t;
     Vector3f N;
     Triangle* triangle;

@@ -1,6 +1,8 @@
 #include "RayTracer.h"
 #include <cmath>
 #include "Utils.h"
+#include <hiprand/hiprand_kernel.h>
+#include "hip/hip_runtime.h"
 //#include "Sheduler.h"
 //#define BACKGROUND_COLOR RGB(0, 0, 0)
 #define BACKGROUND_COLOR RGB(173, 216, 230)
@@ -20,7 +22,7 @@ depth( _depth ), numAmbientSamples( _numAmbientSamples ), numLightSamples( _numL
 //    bvh = Kokkos::View<BVH*>("BVH");
 //    Kokkos::deep_copy(bvh, *_bvh);
 }
-RayTracer::~RayTracer() {
+__host__ __device__ RayTracer::~RayTracer() {
     //delete canvas;
 }
 
@@ -39,12 +41,12 @@ RayTracer::~RayTracer() {
 //}
 
 
-IntersectionData RayTracer::closestIntersection( Ray& ray ) {
+__host__ __device__ IntersectionData RayTracer::closestIntersection( Ray& ray ) {
     return bvh->IntersectBVH( ray, 0 );
 }
 
 
-float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
+__host__ __device__ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
     float i = 0;
     Vector3f N = iData.N;
     float d = 0.8;
@@ -132,9 +134,11 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
 //    return res;
 //}
 ////cosine
-Vector3f generateSamplePoint( Vector3f N ) {
-    const float u = rand() / (float) RAND_MAX;
-    const float v = rand() / (float) RAND_MAX;
+__host__ __device__ Vector3f generateSamplePoint( Vector3f N ) {
+    hiprandState state;
+    hiprand_init( 1, 1, 0, &state );
+    const float u = hiprand_uniform(&state);
+    const float v = hiprand_uniform(&state);
     float r = sqrt( u );
     float theta = 2.0 * M_PI * v;
     Vector3f up = { 0, 0, 1 };
@@ -150,7 +154,7 @@ Vector3f generateSamplePoint( Vector3f N ) {
     return res;
 }
 
-RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
+__host__ __device__ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     IntersectionData cIData = closestIntersection( ray );
     if ( cIData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR * throughput;
     Vector3f P = ray.origin + ray.direction * cIData.t;
@@ -221,8 +225,8 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
 
 }
 
-void RayTracer::printProgress( int x ) const {
-    std::cout << "Progress: " << ( (float) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
+__host__ __device__ void RayTracer::printProgress( int x ) const {
+    //std::cout << "Progress: " << ( (float) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
 }
 
 void RayTracer::render( Type type ) {
@@ -238,7 +242,7 @@ void RayTracer::render( Type type ) {
     }
 }
 
-void RayTracer::traceAllRaysSerial() {
+__host__ __device__ void RayTracer::traceAllRaysSerial() {
     float uX = camera(0).Vx / canvas(0).getW();
     float uY = camera(0).Vy / canvas(0).getH();
     float uX2 = uX / 2.0f;
@@ -280,14 +284,14 @@ void RayTracer::traceAllRaysParallel() {
     }
 }
 
-Canvas* RayTracer::getCanvas() const {
+__host__ __device__ Canvas* RayTracer::getCanvas() const {
     return &(canvas(0));
 }
 
-Scene* RayTracer::getScene() const {
+__host__ __device__ Scene* RayTracer::getScene() const {
     return &(scene(0));
 }
-Camera* RayTracer::getCamera() const {
+__host__ __device__ Camera* RayTracer::getCamera() const {
     return &(camera(0));
 }
 
@@ -298,7 +302,7 @@ RenderFunctor::RenderFunctor(float _uX, float _uY, float _uX2, float _uY2, float
           Vy2(_Vy2), dV(_dV), from(_from), rayTracer( _rayTracer ), depth( _depth ), colors( result ) {
 }
 
-void RenderFunctor::operator()(const int i, const int j) const {
+__host__ __device__ void RenderFunctor::operator()(const int i, const int j) const {
     Vector3f dir = { -Vx2 + uX2 + i * uX, -Vy2 + uY2 + j * uY, dV  };
     Ray ray( from, dir);
     colors(i, j) = rayTracer->traceRay( ray, depth, 1 );

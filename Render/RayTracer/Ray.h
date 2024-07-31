@@ -4,9 +4,9 @@
 
 class Ray {
 public:
-    Ray();
-    Ray(const Vector3f& from, const Vector3f& dir);
-    ~Ray();
+    __host__ __device__ Ray();
+    __host__ __device__ Ray(const Vector3f& from, const Vector3f& dir);
+    __host__ __device__ ~Ray();
 
     Vector3f origin;
     Vector3f direction;

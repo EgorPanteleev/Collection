@@ -4,11 +4,11 @@
 
 #include "Ray.h"
 #include <cmath>
-Ray::Ray():origin(), direction(){}
-Ray::Ray(const Vector3f& from, const Vector3f& dir):origin(from), direction( dir.normalize() ) {
+__host__ __device__ Ray::Ray():origin(), direction(){}
+__host__ __device__ Ray::Ray(const Vector3f& from, const Vector3f& dir):origin(from), direction( dir.normalize() ) {
 }
 
-Ray::~Ray() {
+__host__ __device__ Ray::~Ray() {
     origin = Vector3f();
     direction = Vector3f();
 }

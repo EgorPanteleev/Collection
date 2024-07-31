@@ -3,9 +3,13 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(Collection)
 
+set (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fgpu-rdc --hip-link")
+
 find_package(Kokkos REQUIRED)
 
 enable_testing()
+
+add_subdirectory(Math)
 
 add_subdirectory(BVH)
 
@@ -16,8 +20,6 @@ add_subdirectory(Externals)
 add_subdirectory(ThreadsSheduler)
 
 add_subdirectory(OBJReader)
-
-add_subdirectory(Math)
 
 add_subdirectory(Mesh)
 

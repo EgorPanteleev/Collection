@@ -2,14 +2,14 @@
 #include "Color.h"
 class Material {
 public:
-    Material();
-    Material( const RGB& color, float diffuse, float reflection );
-    [[nodiscard]] RGB getColor() const;
-    void setColor( const RGB& c );
-    [[nodiscard]] float getDiffuse() const;
-    void setDiffuse( float d );
-    [[nodiscard]] float getReflection() const;
-    void setReflection( float r );
+    __host__ __device__ Material();
+    __host__ __device__ Material( const RGB& color, float diffuse, float reflection );
+    [[nodiscard]] __host__ __device__ RGB getColor() const;
+    __host__ __device__ void setColor( const RGB& c );
+    [[nodiscard]] __host__ __device__ float getDiffuse() const;
+    __host__ __device__ void setDiffuse( float d );
+    [[nodiscard]] __host__ __device__ float getReflection() const;
+    __host__ __device__ void setReflection( float r );
 private:
     RGB color;
     float diffuse;

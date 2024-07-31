@@ -1,27 +1,27 @@
 #include "Material.h"
 
-Material::Material(): color(), diffuse( 0 ), reflection( 0 ) {
+__host__ __device__ Material::Material(): color(), diffuse( 0 ), reflection( 0 ) {
 }
-Material::Material( const RGB& color, float diffuse, float reflection ): color( color ) ,diffuse( diffuse ), reflection( reflection ) {
+__host__ __device__ Material::Material( const RGB& color, float diffuse, float reflection ): color( color ) ,diffuse( diffuse ), reflection( reflection ) {
 }
 
-RGB Material::getColor() const {
+__host__ __device__ RGB Material::getColor() const {
     return color;
 }
-void Material::setColor( const RGB& c ) {
+__host__ __device__ void Material::setColor( const RGB& c ) {
     color = c;
 }
 
-float Material::getDiffuse() const {
+__host__ __device__ float Material::getDiffuse() const {
     return diffuse;
 }
-void Material::setDiffuse( float d ) {
+__host__ __device__ void Material::setDiffuse( float d ) {
     diffuse = d;
 }
 
-float Material::getReflection() const {
+__host__ __device__ float Material::getReflection() const {
     return reflection;
 }
-void Material::setReflection( float r ) {
+__host__ __device__ void Material::setReflection( float r ) {
     reflection = r;
 }

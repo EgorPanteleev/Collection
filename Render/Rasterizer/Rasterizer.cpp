@@ -27,8 +27,14 @@ Rasterizer::Rasterizer( Camera* c, Scene* s, Canvas* _canvas ) {
 Rasterizer::~Rasterizer() {
 }
 
+template <typename Type>
+__host__ __device__ void swap( Type t1, Type t2 ) {
+    Type t3 = t1;
+    t1 = t2;
+    t2 = t3;
+}
 
-void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
+__host__ __device__ void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
     float k;
     static float MAX = std::numeric_limits<float>::max();
     if ( v2.getX() == v1.getX() ) k = MAX;
@@ -37,7 +43,7 @@ void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
 
     if ( k <= 1 ) {
         if ( k == -MAX ) k = 0;
-        if ( v1.getX() - v2.getX() > 0 ) std::swap( v1, v2 );
+        if ( v1.getX() - v2.getX() > 0 ) swap( v1, v2 );
         int cf = v1.getY() - v2.getY() < 0 ? 1 : -1;
         for ( int x = (int) v1.getX(); x <= (int) v2.getX(); x++ ) {
             canvas(0).setPixel( x, v1.getY() + k * ( x - v1.getX() ) * cf, color );
@@ -45,7 +51,7 @@ void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
     } else {
         if ( k == MAX ) k = 0;
         else k = 1 / k;
-        if ( v1.getY() - v2.getY() > 0 ) std::swap( v1, v2 );
+        if ( v1.getY() - v2.getY() > 0 ) swap( v1, v2 );
         int cf = v1.getX() - v2.getX() < 0 ? 1 : -1;
         for ( int y = (int) v1.getY(); y <= (int) v2.getY(); y++ ) {
             canvas(0).setPixel( v1.getX() + k * ( y - v1.getY() ) * cf, y, color );
@@ -53,7 +59,7 @@ void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
     }
 }
 
-Vector3f Rasterizer::transform( Vector3f p ) {
+__host__ __device__ Vector3f Rasterizer::transform( Vector3f p ) {
     p = p - camera(0).origin;
     float del = p.z == 0 ? 1 : p.z;
     return { p.x * (float) camera(0).dV / del + camera(0).Vx / 2,
@@ -61,7 +67,7 @@ Vector3f Rasterizer::transform( Vector3f p ) {
              p.z                                                 };
 }
 
-void Rasterizer::clear() {
+__host__ __device__ void Rasterizer::clear() {
     for ( int i = 0; i < canvas(0).getW(); i++ ) {
         for ( int j = 0; j < canvas(0).getH(); j++ ) {
             zBuffer[i][j] = std::numeric_limits<float>::max();
@@ -70,7 +76,7 @@ void Rasterizer::clear() {
     }
 }
 
-float getZ( int x, int y, Vector3f v1, Vector3f v2, Vector3f v3 ) {
+__host__ __device__ float getZ( int x, int y, Vector3f v1, Vector3f v2, Vector3f v3 ) {
     float denominator = (v2.y - v3.y) * (v1.x - v3.x) + (v3.x - v2.x) * (v1.y - v3.y);
     float w1 = ((v2.y - v3.y) * (x - v3.x) + (v3.x - v2.x) * (y - v3.y)) / denominator;
     float w2 = ((v3.y - v1.y) * (x - v3.x) + (v1.x - v3.x) * (y - v3.y)) / denominator;
@@ -78,12 +84,12 @@ float getZ( int x, int y, Vector3f v1, Vector3f v2, Vector3f v3 ) {
     return w1 * v1.z + w2 * v2.z + w3 * v3.z;
 }
 
-void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
+__host__ __device__ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
     Vector3f v1 = transform( tri.v1 );
     Vector3f v2 = transform( tri.v2 );
     Vector3f v3 = transform( tri.v3 );
-    if ( abs( v1.getY() - v3.getY() ) < abs( v2.getY() - v3.getY() ) ) std::swap( v1, v2 );
-    if ( abs( v1.getY() - v2.getY() ) < abs( v1.getY() - v3.getY() ) ) std::swap( v2, v3 );
+    if ( abs( v1.getY() - v3.getY() ) < abs( v2.getY() - v3.getY() ) ) swap( v1, v2 );
+    if ( abs( v1.getY() - v2.getY() ) < abs( v1.getY() - v3.getY() ) ) swap( v2, v3 );
     float dy = abs( v1.getY() - v2.getY() );
     int xMin, xMax;
     xMin = std::min( std::min(v1.getX(), v2.getX() ), v3.getX() );
@@ -108,7 +114,7 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
     float b23 = v2.getY() - k23 * v2.getX();
     Vector3f v11 = v1;
     Vector3f v22 = v2;
-    if ( v11.getY() > v22.getY() ) std::swap( v11, v22 );
+    if ( v11.getY() > v22.getY() ) swap( v11, v22 );
     int asd = v22.getY() > canvas(0).getH() ? canvas(0).getH() : v22.getY();
     int asdd= v11.getY() < 0 ? 0 : v11.getY();
     for ( int y = asdd; y < asd; y++) {
@@ -128,8 +134,8 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
         if ( x13 <= xMax && x13 >= xMin ) vals.push_back( x13 );
         if ( x23 <= xMax && x23 >= xMin ) vals.push_back( x23 );
         if ( vals.size() <= 1 ) continue;
-        if ( vals[0] == vals[1] && vals.size() >= 3 ) std::swap( vals[1], vals[2] );
-        if ( vals[0] > vals[1] ) std::swap( vals[0], vals[1] );
+        if ( vals[0] == vals[1] && vals.size() >= 3 ) swap( vals[1], vals[2] );
+        if ( vals[0] > vals[1] ) swap( vals[0], vals[1] );
         int asd1 = vals[1] > canvas(0).getW() ? canvas(0).getW() : vals[1];
         int asdd1= vals[0] < 0 ? 0 : vals[0];
         for ( int x = asdd1; x < asd1; x++ ) {
@@ -205,7 +211,7 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
 //}
 
 //void drawHorizontalLine(int x1, int x2, int y, RGB color, Canvas* canvas ) {
-//    if (x1 > x2) std::swap(x1, x2);
+//    if (x1 > x2) swap(x1, x2);
 //    x1 = x1 < 0 ? 0 : x1;
 //    x2 = x2 > canvas->getW() ? canvas->getW() : x2;
 //    for (int x = x1; x < x2; ++x) {
@@ -218,9 +224,9 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
 //    Vector3f v1 = transform( tri.v2 );
 //    Vector3f v2 = transform( tri.v3 );
 //// Sort vertices by y-coordinate
-//    if (v0.y > v1.y) std::swap(v0, v1);
-//    if (v0.y > v2.y) std::swap(v0, v2);
-//    if (v1.y > v2.y) std::swap(v1, v2);
+//    if (v0.y > v1.y) swap(v0, v1);
+//    if (v0.y > v2.y) swap(v0, v2);
+//    if (v1.y > v2.y) swap(v1, v2);
 //
 //// Compute inverse slopes
 //    float invslope1 = (v1.x - v0.x) / static_cast<float>(v1.y - v0.y);
@@ -266,23 +272,23 @@ void Rasterizer::render() {
     Kokkos::parallel_for("parallel1D", getScene()->getMeshes().size(), renderFunctor1);
 }
 
-RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
+__host__ __device__ RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
 }
 
-void RenderFunctor1::operator()(const int i ) const {
+__host__ __device__ void RenderFunctor1::operator()(const int i ) const {
     auto mesh = rasterizer->getScene()->getMeshes()[i];
     for ( const auto& triangle:mesh->getTriangles() ) {
         rasterizer->drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
     }
 }
 
-Canvas* Rasterizer::getCanvas() const {
+__host__ __device__ Canvas* Rasterizer::getCanvas() const {
     return &(canvas(0));
 }
 
-Scene* Rasterizer::getScene() const {
+__host__ __device__ Scene* Rasterizer::getScene() const {
     return &(scene(0));
 }
-Camera* Rasterizer::getCamera() const {
+__host__ __device__ Camera* Rasterizer::getCamera() const {
     return &(camera(0));
 }

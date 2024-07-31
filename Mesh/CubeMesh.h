@@ -11,11 +11,11 @@
 
 class CubeMesh: public TriangularMesh {
 public:
-    CubeMesh();
-    CubeMesh( const Vector3f& _p1, const Vector3f& _p2);
-    CubeMesh( const Vector3f& _p1, const Vector3f& _p2, const Material& _material );
+    __host__ __device__ CubeMesh();
+    __host__ __device__ CubeMesh( const Vector3f& _p1, const Vector3f& _p2);
+    __host__ __device__ CubeMesh( const Vector3f& _p1, const Vector3f& _p2, const Material& _material );
 private:
-    void fillTriangles();
+    __host__ __device__ void fillTriangles();
     Vector3f p1;
     Vector3f p2;
 };

@@ -4,23 +4,23 @@
 
 #include "PointLight.h"
 
-PointLight::PointLight( const Vector3f& _origin, float _intensity ): origin( _origin ) {
+__host__ __device__ PointLight::PointLight( const Vector3f& _origin, float _intensity ): origin( _origin ) {
     intensity = _intensity;
 }
 
-PointLight::PointLight( const Vector3f& _origin, float _intensity, const RGB& _lightColor ): origin( _origin ) {
+__host__ __device__ PointLight::PointLight( const Vector3f& _origin, float _intensity, const RGB& _lightColor ): origin( _origin ) {
     intensity = _intensity;
     lightColor = _lightColor;
 }
 
-Light::Type PointLight::getType() const {
+__host__ __device__ Light::Type PointLight::getType() const {
     return POINT;
 }
 
-bool PointLight::isIntersectsWithRay( const Ray& ray ) const {
+__host__ __device__ bool PointLight::isIntersectsWithRay( const Ray& ray ) const {
     return false;
 }
 
-Vector3f PointLight::getSamplePoint() const {
+__device__ Vector3f PointLight::getSamplePoint() const {
     return origin;
 }

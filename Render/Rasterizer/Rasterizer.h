@@ -16,22 +16,22 @@ class Rasterizer {
 public:
     Rasterizer( Camera* c, Scene* s, Canvas* _canvas );
 
-    ~Rasterizer();
+    __host__ __device__ ~Rasterizer();
 
-    void drawLine( Vector2f v1, Vector2f v2, RGB color);
+    __host__ __device__ void drawLine( Vector2f v1, Vector2f v2, RGB color);
 
-    void drawFilledTriangle( Triangle tri, RGB color);
+    __host__ __device__ void drawFilledTriangle( Triangle tri, RGB color);
 
     void render();
 
-    [[nodiscard]] Canvas* getCanvas() const;
-    [[nodiscard]] Scene* getScene() const;
-    [[nodiscard]] Camera* getCamera() const;
+    [[nodiscard]] __host__ __device__ Canvas* getCanvas() const;
+    [[nodiscard]] __host__ __device__ Scene* getScene() const;
+    [[nodiscard]] __host__ __device__ Camera* getCamera() const;
 private:
 
-    Vector3f transform( Vector3f p );
+    __host__ __device__ Vector3f transform( Vector3f p );
 
-    void clear();
+    __host__ __device__ void clear();
 
     float** zBuffer;
     Kokkos::View<Camera*> camera;
@@ -42,7 +42,7 @@ private:
 
 struct RenderFunctor1 {
 
-    RenderFunctor1( Rasterizer* _rasterizer );
+    __host__ __device__ RenderFunctor1( Rasterizer* _rasterizer );
 
 
     KOKKOS_INLINE_FUNCTION void operator()(const int i) const;

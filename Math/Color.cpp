@@ -2,31 +2,31 @@
 #include "Color.h"
 #include "cmath"
 
-void RGB::set( float _r, float _g, float _b ) {
+__host__ __device__ void RGB::set( float _r, float _g, float _b ) {
     //*this = RGB( _r, _g, _b );
 }
 
-RGB RGB::operator+( const RGB& color ) const {
+__host__ __device__ RGB RGB::operator+( const RGB& color ) const {
     return { r + color.r, g + color.g, b + color.b };
 }
 
-RGB RGB::operator*( float a) const {
+__host__ __device__ RGB RGB::operator*( float a) const {
     return { r * a, g * a, b * a };
 }
-RGB RGB::operator/( float a) const {
+__host__ __device__ RGB RGB::operator/( float a) const {
     return { r / a, g / a, b / a };
 }
-bool RGB::operator==( const RGB& color ) const {
+__host__ __device__ bool RGB::operator==( const RGB& color ) const {
     return r == color.r && g == color.g && b == color.b;
 }
 
-RGB::RGB(): r(0), g(0), b(0) {
+__host__ __device__ RGB::RGB(): r(0), g(0), b(0) {
 }
-RGB::RGB( float _r, float _g, float _b): r(_r), g(_g), b(_b) {
+__host__ __device__ RGB::RGB( float _r, float _g, float _b): r(_r), g(_g), b(_b) {
     scaleTo( 255 );
 }
 
-void RGB::scaleTo( float value ) {
+__host__ __device__ void RGB::scaleTo( float value ) {
     float max = std::max ( std::max( r, g), b );
     if ( max < value ) return;
     r = ( r / max ) * value;
@@ -34,7 +34,7 @@ void RGB::scaleTo( float value ) {
     b = ( b / max ) * value;
 }
 
-RGB::~RGB() {
+__host__ __device__ RGB::~RGB() {
     r = 0;
     g = 0;
     b = 0;

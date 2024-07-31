@@ -1,41 +1,40 @@
 #pragma once
-
+#include "hip/hip_runtime.h"
 class Vector2f {
 public:
-    void setX( float _x );
+    __host__ __device__ void setX( float _x );
 
-    void setY( float _y );
+    __host__ __device__ void setY( float _y );
 
-    [[nodiscard]] float getX() const;
+    [[nodiscard]] __host__ __device__ float getX() const;
 
-    [[nodiscard]] float getY() const;
+    [[nodiscard]] __host__ __device__ float getY() const;
 
-    void set( const Vector2f& p );
-    //operators
+    __host__ __device__ void set( const Vector2f& p );
 
-    Vector2f& operator=( const Vector2f& p );
+    __host__ __device__ Vector2f& operator=( const Vector2f& p );
 
-    [[nodiscard]] Vector2f normalize() const;
+    [[nodiscard]] __host__ __device__ Vector2f normalize() const;
 
-    float& operator[]( int index );
+    __host__ __device__ float& operator[]( int index );
 
-    const float& operator[]( int index ) const;
+    __host__ __device__ const float& operator[]( int index ) const;
 
-    Vector2f operator+( const Vector2f& p ) const;
+    __host__ __device__ Vector2f operator+( const Vector2f& p ) const;
 
-    Vector2f operator-( const Vector2f& p ) const;
+    __host__ __device__ Vector2f operator-( const Vector2f& p ) const;
 
-    Vector2f operator*( float a ) const;
+    __host__ __device__ Vector2f operator*( float a ) const;
 
-    Vector2f operator/( float a ) const;
+    __host__ __device__ Vector2f operator/( float a ) const;
 
-    bool operator==( const Vector2f& p ) const;
+    __host__ __device__ bool operator==( const Vector2f& p ) const;
 
-    bool operator!=( const Vector2f& p ) const;
-    Vector2f();
-    Vector2f(float _x, float _y );
-    ~Vector2f();
-    Vector2f( const Vector2f& p );
+    __host__ __device__ bool operator!=( const Vector2f& p ) const;
+    __host__ __device__ Vector2f();
+    __host__ __device__ Vector2f(float _x, float _y );
+    __host__ __device__ ~Vector2f();
+    __host__ __device__ Vector2f( const Vector2f& p );
 private:
     float x{};
     float y{};

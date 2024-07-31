@@ -6,21 +6,21 @@
 constexpr float EPSILON = std::numeric_limits<float>::epsilon();
 constexpr float MAX = std::numeric_limits<float>::max();
 
-Triangle::Triangle(): v1(), v2(), v3() {
+__host__ __device__ Triangle::Triangle(): v1(), v2(), v3() {
     edge1 = v2 - v1;
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
 }
 
-Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 ): v1( v1 ), v2( v2 ), v3( v3 ) {
+__host__ __device__ Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 ): v1( v1 ), v2( v2 ), v3( v3 ) {
     edge1 = v2 - v1;
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
 }
 
-void Triangle::rotate( const Vector3f& axis, float angle ) {
+__host__ __device__ void Triangle::rotate( const Vector3f& axis, float angle ) {
     Mat3f rotation = Mat3f::getRotationMatrix( axis, angle );
     v1 = rotation * v1;
     v2 = rotation * v2;
@@ -31,18 +31,18 @@ void Triangle::rotate( const Vector3f& axis, float angle ) {
     origin = (v1 + v2 + v3) / 3;
 }
 
-void Triangle::move( const Vector3f& p ) {
+__host__ __device__ void Triangle::move( const Vector3f& p ) {
     v1 = v1 + p;
     v2 = v2 + p;
     v3 = v3 + p;
     origin = (v1 + v2 + v3) / 3;
 }
 
-void Triangle::moveTo( const Vector3f& point ) {
+__host__ __device__ void Triangle::moveTo( const Vector3f& point ) {
     move( point - getOrigin() );
 }
 
-void Triangle::scale( float scaleValue ) {
+__host__ __device__ void Triangle::scale( float scaleValue ) {
     v1 = v1 * scaleValue;
     v2 = v2 * scaleValue;
     v3 = v3 * scaleValue;
@@ -51,7 +51,7 @@ void Triangle::scale( float scaleValue ) {
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
 }
-void Triangle::scale( const Vector3f& scaleVec ) {
+__host__ __device__ void Triangle::scale( const Vector3f& scaleVec ) {
     v1 = { v1[0] * scaleVec[0], v1[1] * scaleVec[1], v1[2] * scaleVec[2] };
     v2 = { v2[0] * scaleVec[0], v2[1] * scaleVec[1], v2[2] * scaleVec[2] };
     v3 = { v3[0] * scaleVec[0], v3[1] * scaleVec[1], v3[2] * scaleVec[2] };
@@ -61,20 +61,20 @@ void Triangle::scale( const Vector3f& scaleVec ) {
     origin = (v1 + v2 + v3) / 3;
 }
 
-void Triangle::scaleTo( float scaleValue ) {
+__host__ __device__ void Triangle::scaleTo( float scaleValue ) {
     BBoxData bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleValue / len[0], scaleValue / len[1], scaleValue / len[2] };
     scale( cff );
 }
-void Triangle::scaleTo( const Vector3f& scaleVec ) {
+__host__ __device__ void Triangle::scaleTo( const Vector3f& scaleVec ) {
     BBoxData bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
 }
 
-BBoxData Triangle::getBBox() const {
+__host__ __device__ BBoxData Triangle::getBBox() const {
     float minX = std::min( std::min( v1[0], v2[0] ), v3[0] );
     float maxX = std::max( std::max( v1[0], v2[0] ), v3[0] );
     float minY = std::min( std::min( v1[1], v2[1] ), v3[1] );
@@ -84,11 +84,11 @@ BBoxData Triangle::getBBox() const {
     return { Vector3f( minX, minY, minZ ), Vector3f( maxX, maxY, maxZ ) };
 }
 
-Vector3f Triangle::getOrigin() const {
+__host__ __device__ Vector3f Triangle::getOrigin() const {
     return origin;
 }
 
-bool Triangle::isContainPoint( const Vector3f& p ) const {
+__host__ __device__ bool Triangle::isContainPoint( const Vector3f& p ) const {
     float detT = (v2.getY() - v3.getY()) * (v1.getX() - v3.getX()) + (v3.getX() - v2.getX()) * (v1.getY() - v3.getY());
     float alpha = ((v2.getY() - v3.getY()) * (p.getX() - v3.getX()) + (v3.getX() - v2.getX()) * (p.getY() - v3.getY())) / detT;
     float beta = ((v3.getY() - v1.getY()) * (p.getX() - v3.getX()) + (v1.getX() - v3.getX()) * (p.getY() - v3.getY())) / detT;
@@ -102,7 +102,7 @@ bool Triangle::isContainPoint( const Vector3f& p ) const {
            p.getZ() <= std::max(std::max(v1.getZ(), v2.getZ()), v3.getZ() ) );
 }
 
-float Triangle::intersectsWithRay( const Ray& ray ) const {
+__host__ __device__ float Triangle::intersectsWithRay( const Ray& ray ) const {
     Vector3f h = ray.direction.cross( edge2 );
     float a = dot(edge1, h);
 
@@ -126,6 +126,6 @@ float Triangle::intersectsWithRay( const Ray& ray ) const {
     return t;
 }
 
-Vector3f Triangle::getNormal() const {
+__host__ __device__ Vector3f Triangle::getNormal() const {
     return N;
 }

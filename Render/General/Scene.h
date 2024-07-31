@@ -8,11 +8,11 @@
 
 class Scene {
 public:
-    Vector<BaseMesh*> meshes;
-    Vector<Light*> lights;
-    void fillTriangles();
-    [[nodiscard]] Vector<BaseMesh*> getMeshes() const;
-    [[nodiscard]] Vector<Triangle> getTriangles() const;
+    __host__ __device__ Vector<BaseMesh*> meshes;
+    __host__ __device__ Vector<Light*> lights;
+    __host__ __device__ void fillTriangles();
+    [[nodiscard]] __host__ __device__ Vector<BaseMesh*> getMeshes() const;
+    [[nodiscard]] __host__ __device__ Vector<Triangle> getTriangles() const;
 public:
     Vector<Triangle> triangles;
 };

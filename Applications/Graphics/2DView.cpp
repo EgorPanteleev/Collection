@@ -12,6 +12,7 @@
 #include "SpotLight.h"
 #include "cstdlib"
 #include "Denoiser.h"
+#include "hip/hip_runtime.h"
 #define GRAY RGB( 210, 210, 210 )
 #define RED RGB( 255, 0, 0 )
 #define GREEN RGB( 0, 255, 0 )

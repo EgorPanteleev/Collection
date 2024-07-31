@@ -4,22 +4,23 @@
 
 #include "SpotLight.h"
 #include <random>
+#include <hiprand/hiprand_kernel.h>
 
-SpotLight::SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity ): pMin( _pMin ), pMax( _pMax ) {
+__host__ __device__ SpotLight::SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity ): pMin( _pMin ), pMax( _pMax ) {
     intensity = _intensity;
 }
 
-SpotLight::SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity, const RGB& _lightColor ): pMin( _pMin ), pMax( _pMax ) {
+__host__ __device__ SpotLight::SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity, const RGB& _lightColor ): pMin( _pMin ), pMax( _pMax ) {
     intensity = _intensity;
     lightColor = _lightColor;
 }
 
-Light::Type SpotLight::getType() const {
+__host__ __device__ Light::Type SpotLight::getType() const {
     return SPOT;
 }
 
 
-bool SpotLight::isIntersectsWithRay( const Ray& ray ) const {
+__host__ __device__ bool SpotLight::isIntersectsWithRay( const Ray& ray ) const {
     float tx1 = (pMin.x - ray.origin.x) / ray.direction.x, tx2 = (pMax.x - ray.origin.x) / ray.direction.x;
     float tmin = std::min( tx1, tx2 ), tmax = std::max( tx1, tx2 );
     float ty1 = (pMin.y - ray.origin.y) / ray.direction.y, ty2 = (pMax.y - ray.origin.y) / ray.direction.y;
@@ -29,8 +30,10 @@ bool SpotLight::isIntersectsWithRay( const Ray& ray ) const {
     return tmax >= tmin && tmin < 1e30f && tmax > 0;
 }
 
-Vector3f SpotLight::getSamplePoint() const {
-    float randX = pMin.x + ( rand() / (float) RAND_MAX ) * ( pMax.x - pMin.x );
-    float randZ = pMin.z + ( rand() / (float) RAND_MAX ) * ( pMax.z - pMin.z );
+__device__ Vector3f SpotLight::getSamplePoint() const {
+    hiprandState state;
+    hiprand_init( 1, 1, 0, &state );
+    float randX = pMin.x + ( hiprand_uniform(&state) ) * ( pMax.x - pMin.x );
+    float randZ = pMin.z + ( hiprand_uniform(&state) ) * ( pMax.z - pMin.z );
     return { randX, ( pMax.y + pMin.y ) / 2, randZ };
 }
