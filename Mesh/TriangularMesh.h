@@ -13,7 +13,7 @@
 class BBoxData;
 class TriangularMesh: public BaseMesh {
 public:
-//    TriangularMesh( std::vector<Triangle> _triangles );
+//    TriangularMesh( Vector<Triangle> _triangles );
 //    TriangularMesh( const std::string& path );
     void loadMesh( const std::string& path ) override;
     void rotate( const Vector3f& axis, float angle ) override;
@@ -28,16 +28,16 @@ public:
 
     void setMaxPoint( const Vector3f& vec, int ind = -1 ) override;
 
-    std::vector<Triangle> getTriangles() override;
+    Vector<Triangle> getTriangles() override;
     [[nodiscard]] BBoxData getBBox() const override;
     [[nodiscard]] Vector3f getOrigin() const override;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
     [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const override;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
-    void setTriangles( std::vector<Triangle>& _triangles );
+    void setTriangles( Vector<Triangle>& _triangles );
     void addTriangle( const Triangle& triangle );
 protected:
-    std::vector<Triangle> triangles;
+    Vector<Triangle> triangles;
 };
 
 #endif //COLLECTION_TRIANGULARMESH_H

@@ -1,20 +1,20 @@
 #ifndef COLLECTION_SCENE_H
 #define COLLECTION_SCENE_H
 #include <iostream>
-#include <vector>
+#include "Vector.h"
 #include "BaseMesh.h"
 #include "Light.h"
 #include "Triangle.h"
 
 class Scene {
 public:
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
     void fillTriangles();
-    [[nodiscard]] std::vector<BaseMesh*> getMeshes() const;
-    [[nodiscard]] std::vector<Triangle> getTriangles() const;
+    [[nodiscard]] Vector<BaseMesh*> getMeshes() const;
+    [[nodiscard]] Vector<Triangle> getTriangles() const;
 public:
-    std::vector<Triangle> triangles;
+    Vector<Triangle> triangles;
 };
 
 #endif //COLLECTION_SCENE_H

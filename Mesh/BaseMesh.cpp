@@ -19,6 +19,6 @@ void BaseMesh::loadMesh( const std::string& path ) {
     //TODO
     //Not impemented yet
 }
-std::vector <Triangle> BaseMesh::getTriangles() {
+Vector <Triangle> BaseMesh::getTriangles() {
     return {};
 }

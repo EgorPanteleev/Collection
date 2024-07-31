@@ -1,6 +1,6 @@
 #include <functional>
 #include <thread>
-#include <vector>
+#include "Vector.h"
 class Sheduler {
 public:
     Sheduler( int numThreads );
@@ -13,8 +13,8 @@ public:
 private:
     void createThread( std::function<void()> func ) const;
     int numThreads;
-    std::vector<std::function<void()>> functions;
-    std::vector<std::thread> threads;
+    Vector<std::function<void()>> functions;
+    Vector<std::thread> threads;
 };
 
 

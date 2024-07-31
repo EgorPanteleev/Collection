@@ -4,7 +4,7 @@
 //    OBJLoader::load( path, this );
 //}
 //
-//TriangularMesh::TriangularMesh( std::vector<Triangle> _triangles ): triangles( _triangles ) {
+//TriangularMesh::TriangularMesh( Vector<Triangle> _triangles ): triangles( _triangles ) {
 //}
 
 void TriangularMesh::loadMesh( const std::string& path ) {
@@ -82,7 +82,7 @@ void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-std::vector<Triangle> TriangularMesh::getTriangles() {
+Vector<Triangle> TriangularMesh::getTriangles() {
     return triangles;
 }
 
@@ -135,7 +135,7 @@ Vector3f TriangularMesh::getNormal( const Vector3f& p ) const {
     return {};
 }
 
-void TriangularMesh::setTriangles( std::vector<Triangle>& _triangles ) {
+void TriangularMesh::setTriangles( Vector<Triangle>& _triangles ) {
     triangles = _triangles;
     for ( auto& triangle: triangles )
         triangle.owner = this;

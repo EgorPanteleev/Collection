@@ -61,7 +61,7 @@ GLuint getTexture( Canvas* canvas ) {
     // Create texture from rasterized data
     return createTexture(data, w, h);
 }
-void loadScene( Scene* scene, std::vector <BaseMesh*>& meshes, std::vector<Light*>& lights ) {
+void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
         scene->meshes.push_back( mesh );
     }
@@ -76,8 +76,8 @@ void testScene( RayTracer*& rayTracer, Rasterizer*& rasterizer, int w, int h, in
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
     float roomRefl = 0;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 290),

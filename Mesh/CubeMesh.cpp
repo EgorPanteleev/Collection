@@ -27,23 +27,23 @@ void CubeMesh::fillTriangles() {
     Vector3f b3 = p2;
     Vector3f b4 = { p1.getX(), p2.getY(), p2.getZ() };
     // down
-    triangles.emplace_back( f1, f2, f3 );
-    triangles.emplace_back( f1, f3, f4 );
+    triangles.push_back( { f1, f2, f3 } );
+    triangles.push_back( { f1, f3, f4 } );
     //up
-    triangles.emplace_back( b1, b3, b2 );
-    triangles.emplace_back( b1, b4, b3 );
+    triangles.push_back( { b1, b3, b2 } );
+    triangles.push_back( { b1, b4, b3 } );
     //left
-    triangles.emplace_back( b1, f1, f4 );
-    triangles.emplace_back( b1, f4, b4 );
+    triangles.push_back( { b1, f1, f4 } );
+    triangles.push_back( { b1, f4, b4 } );
     //right
-    triangles.emplace_back( f2, b2, f3 );
-    triangles.emplace_back( f3, b2, b3 );
+    triangles.push_back( { f2, b2, f3 } );
+    triangles.push_back( { f3, b2, b3 } );
     //front
-    triangles.emplace_back( f2, f1, b1 );
-    triangles.emplace_back( f2, b1, b2 );
+    triangles.push_back( { f2, f1, b1 } );
+    triangles.push_back( { f2, b1, b2 } );
     //back
-    triangles.emplace_back( f4, f3, b4 );
-    triangles.emplace_back( f3, b3, b4 );
+    triangles.push_back( { f4, f3, b4 } );
+    triangles.push_back( { f3, b3, b4 } );
     for ( auto& triangle: triangles )
         triangle.owner = this;
 }

@@ -27,7 +27,7 @@ or view this file with any Markdown viewer.
 | [How can I display an image? What is ImTextureID, how does it work?](#q-how-can-i-display-an-image-what-is-imtextureid-how-does-it-work)|
 | [How can I use maths operators with ImVec2?](#q-how-can-i-use-maths-operators-with-imvec2) |
 | [How can I use my own maths types instead of ImVec2/ImVec4?](#q-how-can-i-use-my-own-maths-types-instead-of-imvec2imvec4) |
-| [How can I interact with standard C++ types (such as std::string and std::vector)?](#q-how-can-i-interact-with-standard-c-types-such-as-stdstring-and-stdvector) |
+| [How can I interact with standard C++ types (such as std::string and Vector)?](#q-how-can-i-interact-with-standard-c-types-such-as-stdstring-and-stdvector) |
 | [How can I display custom shapes? (using low-level ImDrawList API)](#q-how-can-i-display-custom-shapes-using-low-level-imdrawlist-api) |
 | **Q&A: Fonts, Text** |
 | [How should I handle DPI in my application?](#q-how-should-i-handle-dpi-in-my-application) |
@@ -473,10 +473,10 @@ This way you will be able to use your own types everywhere, e.g. passing `MyVect
 
 ---
 
-### Q: How can I interact with standard C++ types (such as std::string and std::vector)?
+### Q: How can I interact with standard C++ types (such as std::string and Vector)?
 - Being highly portable (backends/bindings for several languages, frameworks, programming styles, obscure or older platforms/compilers), and aiming for compatibility & performance suitable for every modern real-time game engine, Dear ImGui does not use any of std C++ types. We use raw types (e.g. char* instead of std::string) because they adapt to more use cases.
 - To use ImGui::InputText() with a std::string or any resizable string class, see [misc/cpp/imgui_stdlib.h](https://github.com/ocornut/imgui/blob/master/misc/cpp/imgui_stdlib.h).
-- To use combo boxes and list boxes with `std::vector` or any other data structure: the `BeginCombo()/EndCombo()` API
+- To use combo boxes and list boxes with `Vector` or any other data structure: the `BeginCombo()/EndCombo()` API
 lets you iterate and submit items yourself, so does the `ListBoxHeader()/ListBoxFooter()` API.
 Prefer using them over the old and awkward `Combo()/ListBox()` api.
 - Generally for most high-level types you should be able to access the underlying data type.

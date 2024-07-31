@@ -7,24 +7,24 @@ void Scene::fillTriangles() {
     }
 }
 
-std::vector<BaseMesh*> Scene::getMeshes() const {
+Vector<BaseMesh*> Scene::getMeshes() const {
     return meshes;
 }
 
-std::vector<Triangle> Scene::getTriangles() const {
+Vector<Triangle> Scene::getTriangles() const {
     return triangles;
 }
 
-//std::vector<Shape*>::const_iterator Scene::begin() const {
+//Vector<Shape*>::const_iterator Scene::begin() const {
 //    return shapes.begin();
 //}
-//std::vector<Shape*>::const_iterator Scene::end() const {
+//Vector<Shape*>::const_iterator Scene::end() const {
 //    return shapes.end();
 //}
 //
-//std::vector<Light*>::const_iterator Scene::begin() const {
+//Vector<Light*>::const_iterator Scene::begin() const {
 //    return lights.begin();
 //}
-//std::vector<Light*>::const_iterator Scene::end() const {
+//Vector<Light*>::const_iterator Scene::end() const {
 //    return lights.end();
 //}

@@ -5526,7 +5526,7 @@ Other Changes:
 - Fixed text baseline alignment of small button (no padding) after regular buttons.
 - Fixed ListBoxHeader() not honoring negative sizes the same way as BeginChild() or BeginChildFrame(). (#263)
 - Fixed warnings for more pedantic compiler settings (#258).
-- ImVector<> cannot be re-defined anymore, cannot be replaced with std::vector<>. Allowed us to clean up and optimize
+- ImVector<> cannot be re-defined anymore, cannot be replaced with Vector<>. Allowed us to clean up and optimize
   lots of code. Yeah! (#262)
 - ImDrawList: store pointer to their owner name for easier auditing/debugging.
 - Examples: added scroll tracking example with SetScrollFromCursorPos().
@@ -6103,7 +6103,7 @@ Decorated log and release notes: https://github.com/ocornut/imgui/releases/tag/v
 - Added extra asserts to catch incorrect usage.
 - PushStyleColor() / PushStyleVar() can be used outside the scope of a window (namely to change variables that are used within the Begin() call).
 - PushTextWrapPos() defaults to 0.0 (right-end of current drawing region).
-- Fixed compatibility with std::vector if user decide to #define ImVector.
+- Fixed compatibility with Vector if user decide to #define ImVector.
 - MouseWheel input is now normalized.
 - Added IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT compile-time option to redefine the vertex layout.
 - Style editor: colors listed inside a scrolling region.

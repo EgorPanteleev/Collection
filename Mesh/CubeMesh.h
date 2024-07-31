@@ -5,7 +5,7 @@
 #ifndef COLLECTION_CUBEMESH_H
 #define COLLECTION_CUBEMESH_H
 
-#include <vector>
+#include "Vector.h"
 #include "TriangularMesh.h"
 #include "Vector.h"
 

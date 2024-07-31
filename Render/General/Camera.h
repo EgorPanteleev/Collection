@@ -1,6 +1,6 @@
 #ifndef COLLECTION_CAMERA_H
 #define COLLECTION_CAMERA_H
-#include "Vector.h"
+#include "Vector3f.h"
 #include "Mat4f.h"
 class Camera {
 public:

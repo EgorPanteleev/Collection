@@ -123,7 +123,7 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
         float x23 = MAX;
         if ( k23 == MAX && y < std::max( v2.getY(), v3.getY() ) && y > std::min( v2.getY(), v3.getY() ) ) x23 = std::floor( v2.getX() );
         else x23 = std::floor( ( y - b23 ) / k23 );
-        std::vector<float> vals;
+        Vector<float> vals;
         if ( x12 <= xMax && x12 >= xMin ) vals.push_back( x12 );
         if ( x13 <= xMax && x13 >= xMin ) vals.push_back( x13 );
         if ( x23 <= xMax && x23 >= xMin ) vals.push_back( x23 );

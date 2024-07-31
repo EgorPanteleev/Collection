@@ -8,7 +8,7 @@
 #include <cmath>
 #include "Vector3f.h"
 #include "Triangle.h"
-#include <vector>
+#include "Vector.h"
 #include "Utils.h"
 
 struct BVHNode
@@ -30,7 +30,7 @@ struct BVHNode
 class BVH {
 public:
 
-    BVH( std::vector <Triangle> _triangles );
+    BVH( Vector <Triangle> _triangles );
 
     BVH();
 
@@ -49,9 +49,9 @@ public:
     IntersectionData IntersectBVH( Ray& ray, const uint nodeIdx );
 private:
 
-    std::vector <Triangle> triangles;
-    std::vector <uint> indexes;
-    std::vector<BVHNode> bvhNode;
+    Vector <Triangle> triangles;
+    Vector <uint> indexes;
+    Vector<BVHNode> bvhNode;
     uint rootNodeIdx = 0, nodesUsed = 1;
 };
 

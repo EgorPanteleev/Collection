@@ -89,7 +89,7 @@
 //    canvas = new Canvas( w, h );
 //}
 
-void loadScene( Scene* scene, std::vector <BaseMesh*>& meshes, std::vector<Light*>& lights ) {
+void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
         scene->meshes.push_back( mesh );
     }
@@ -103,8 +103,8 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas(w, h );
 
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     meshes.push_back(new SphereMesh(1500, Vector3f(0, 0, 3000), {YELLOW, 0 , 0 }));
 
@@ -130,8 +130,8 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
     float roomRefl = 0;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
@@ -190,8 +190,8 @@ void simpleRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(80, -50, 0), Vector3f(100, 50, 600),
                                     { GRAY, -1 , 0 } ) );
@@ -242,8 +242,8 @@ void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(80, -50, 0), Vector3f(100, 50, 600),
                                     { GRAY, -1 , 0 } ) );
@@ -378,8 +378,8 @@ void ratScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* rat = new TriangularMesh();
     rat->loadMesh( "/home/auser/dev/src/Collection/Models/rat/model.obj" );
@@ -400,8 +400,8 @@ void tableScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numL
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* table = new TriangularMesh();
     table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
@@ -421,8 +421,8 @@ void bookScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* book = new TriangularMesh();
     book->loadMesh( "/home/auser/dev/src/Collection/Models/book/model.obj" );
@@ -442,8 +442,8 @@ void sandwichScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int n
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* sandwich = new TriangularMesh();
     sandwich->loadMesh( "/home/auser/dev/src/Collection/Models/sandwich/model.obj" );
@@ -463,8 +463,8 @@ void cartScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* cart = new TriangularMesh();
     cart->loadMesh( "/home/auser/dev/src/Collection/Models/telega/model.obj" );
@@ -484,8 +484,8 @@ void sksScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* sks = new TriangularMesh();
     sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
@@ -505,8 +505,8 @@ void dogScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* dog = new TriangularMesh();
     dog->loadMesh( "/home/auser/dev/src/Collection/Models/dog/model.obj" );
@@ -526,8 +526,8 @@ void planeScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numL
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* plane = new TriangularMesh();
     plane->loadMesh( "/home/auser/dev/src/Collection/Models/plane/model.obj" );
@@ -546,8 +546,8 @@ void modelRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* room = new TriangularMesh();
     room->loadMesh( "/home/auser/dev/src/Collection/Models/cottage/Cottage_FREE.obj" );
@@ -565,8 +565,8 @@ void cottageScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* cottage = new TriangularMesh();
     cottage->loadMesh( "/home/auser/dev/src/Collection/Models/underground/underground.obj" );
@@ -585,8 +585,8 @@ void carScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
 
     auto* car = new TriangularMesh();
     car->loadMesh( "/home/auser/dev/src/Collection/Models/koenigsegg/model.obj" );
@@ -605,8 +605,8 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    std::vector<BaseMesh*> meshes;
-    std::vector<Light*> lights;
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
     auto* table = new TriangularMesh();
     table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
     //table->rotate( Vector3f( 0, 0, 1), 20 );
@@ -659,15 +659,15 @@ int main( int argc, char* argv[] ) {
 
     ////RESOLUTION
     //int w = 8 ; int h = 5;
-    int w = 240 ; int h = 150;
+    //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    //int w = 3200; int h = 2000;
+    int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
     int depth = 2;
-    int ambientSamples = 5;
+    int ambientSamples = 1;
     int lightSamples = 1;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3

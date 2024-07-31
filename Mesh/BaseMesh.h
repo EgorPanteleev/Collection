@@ -8,7 +8,7 @@
 #include "Ray.h"
 #include <limits>
 #include "Triangle.h"
-#include <vector>
+#include "Vector.h"
 #include "IntersectionData.h"
 #include "Material.h"
 struct BBoxData {
@@ -35,7 +35,7 @@ public:
 
     virtual void setMaxPoint( const Vector3f& vec, int ind = -1 ) {  };
 
-    virtual std::vector <Triangle> getTriangles();
+    virtual Vector <Triangle> getTriangles();
     [[nodiscard]] virtual BBoxData getBBox() const = 0;
     [[nodiscard]] virtual Vector3f getOrigin() const = 0;
     [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;

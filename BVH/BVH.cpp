@@ -1,6 +1,6 @@
 #include "BVH.h"
 
-BVH::BVH( std::vector <Triangle> _triangles): triangles( _triangles ) {
+BVH::BVH( Vector <Triangle> _triangles): triangles( _triangles ) {
 }
 
 BVH::BVH(): triangles() {

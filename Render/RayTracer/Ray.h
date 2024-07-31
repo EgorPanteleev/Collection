@@ -1,6 +1,6 @@
 #ifndef COLLECTION_RAY_H
 #define COLLECTION_RAY_H
-#include "Vector.h"
+#include "Vector3f.h"
 
 class Ray {
 public:
