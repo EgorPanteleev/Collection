@@ -261,43 +261,20 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
 //}
 
 
-//void Rasterizer::render() {
-//    RenderFunctor1 renderFunctor1( this );
-//    Kokkos::parallel_for("parallel1D", getScene()->getMeshes().size(), renderFunctor1);
-//}
-//
-//RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
-//}
-//
-//void RenderFunctor1::operator()(const int i ) const {
-//    auto mesh = rasterizer->getScene()->getMeshes()[i];
-//    for ( const auto& triangle:mesh->getTriangles() ) {
-//        rasterizer->drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
-//    }
-//}
-
-
 void Rasterizer::render() {
-    RenderFunctor2 renderFunctor2( this );
-    Kokkos::parallel_for("parallel1D", scene(0).getMeshes().size(), renderFunctor2);
+    RenderFunctor1 renderFunctor1( this );
+    Kokkos::parallel_for("parallel1D", getScene()->getMeshes().size(), renderFunctor1);
 }
 
-RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer, BaseMesh* _mesh ): rasterizer( _rasterizer ), mesh( _mesh) {
+RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
 }
 
 void RenderFunctor1::operator()(const int i ) const {
-    rasterizer->drawFilledTriangle( mesh->getTriangles()[i], mesh->getMaterial().getColor() );
-}
-
-RenderFunctor2::RenderFunctor2( Rasterizer* _rasterizer ): rasterizer( _rasterizer ) {
-}
-
-void RenderFunctor2::operator()(const int i ) const {
     auto mesh = rasterizer->getScene()->getMeshes()[i];
-    RenderFunctor1 renderFunctor1( rasterizer, mesh );
-    Kokkos::parallel_for("parallel1D", mesh->getTriangles().size(), renderFunctor1);
+    for ( const auto& triangle:mesh->getTriangles() ) {
+        rasterizer->drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
+    }
 }
-
 
 Canvas* Rasterizer::getCanvas() const {
     return &(canvas(0));
