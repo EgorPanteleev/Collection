@@ -2,8 +2,8 @@
 #include <cmath>
 #include "Utils.h"
 //#include "Sheduler.h"
-//#define BACKGROUND_COLOR RGB(0, 0, 0)
-#define BACKGROUND_COLOR RGB(173, 216, 230)
+#define BACKGROUND_COLOR RGB(0, 0, 0)
+//#define BACKGROUND_COLOR RGB(255, 0, 0)
 //#define BACKGROUND_COLOR RGB(255, 255, 255)
 
 RayTracer::RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples  ):
@@ -15,7 +15,7 @@ depth( _depth ), numAmbientSamples( _numAmbientSamples ), numLightSamples( _numL
     Kokkos::deep_copy(scene, *s);
     canvas = Kokkos::View<Canvas*>("canvas");
     Kokkos::deep_copy(canvas, *_canvas);
-    bvh = new BVH( s->getTriangles() );
+    bvh = new BVH( s->getTriangles(), s->getSpheres() );
     bvh->BuildBVH();
 //    bvh = Kokkos::View<BVH*>("BVH");
 //    Kokkos::deep_copy(bvh, *_bvh);
@@ -52,15 +52,17 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
     for ( auto light: scene(0).lights ) {
         int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
         float i1 = 0;
-        if ( light->isIntersectsWithRay( Ray( P, V ) ) ) return -1;
+        if ( light->isIntersectsWithRay( Ray( P, V ) ) && !iData.sphere->intersectsWithRay( Ray( P, V ) ) ) return -1;
         for ( size_t j = 0; j < numLS; j++ ) {
             Vector3f origin = light->getSamplePoint();
             Vector3f L = (origin - P).normalize();
             Ray ray = Ray(origin, L * ( -1 ) );
             IntersectionData cIData = closestIntersection( ray );
-            if (cIData.triangle == nullptr) continue;
-            if (cIData.triangle != iData.triangle) continue;
-            float dNL = dot(N, L);
+            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
+            if (cIData.triangle != iData.triangle ) continue;
+            if (cIData.sphere != iData.sphere ) continue;
+            float dNL = dot( iData.N, L);
+            if ( dNL < 0 ) continue;
             float distance = cIData.t * 0.01;
             i1 += d * light->intensity * dNL / ( distance * distance );
             //specular
@@ -101,16 +103,14 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
             float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
             float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
 
-
             float rs = ( D * G * F ) / ( 4 * dNL * dNV );
 
             i1 += s * rs * light->intensity * dNL;
-
 //            Vector3f R = (N * 2 * dNL - L).normalize();
 //            float dRV = dot(R, V.normalize());
 //            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
         }
-        i1 /= numLS;
+        i1 /= (float) numLS;
         i += i1;
     }
     //if ( i > 1 ) i = 1;
@@ -156,14 +156,21 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     Vector3f P = ray.origin + ray.direction * cIData.t;
     float i = computeLight( P, ray.direction * (-1), cIData );
     if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
-    RGB diffuse = cIData.triangle->owner->getMaterial().getColor() * i * throughput;
+    RGB diffuse;
+    float reflection;
+    if ( cIData.triangle == nullptr ) {
+        diffuse = cIData.sphere->material.getColor() * i * throughput;
+        reflection = cIData.sphere->material.getReflection();// -> shining
+    } else {
+        diffuse = cIData.triangle->owner->getMaterial().getColor() * i * throughput;
+        reflection = cIData.triangle->owner->getMaterial().getReflection();// -> shining
+    }
     if ( nextDepth == 0 ) return diffuse;
     //REFLECTION
-    float r = cIData.triangle->owner->getMaterial().getReflection();// -> shining
-    if ( r == 0 ) {
+    if ( reflection == 0 ) {
         //Global illumination
         RGB ambient = {};
-        throughput *= 0.8;
+        throughput *= 0.6;
         for (int j = 0; j < numAmbientSamples; j++ ) {
             Vector3f samplePoint = generateSamplePoint( cIData.N );
             Ray sampleRay = { P + samplePoint * 1e-3, samplePoint };
@@ -176,11 +183,11 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
         return diffuse + ambient;
     }
     else {
-        Vector3f N = cIData.N.normalize();
+        Vector3f N = cIData.N;
         Vector3f reflectedDir = ( ray.direction - N * 2 * dot(N, ray.direction ) );
         Ray reflectedRay( P + reflectedDir * 1e-3, reflectedDir );
         RGB reflectedColor = traceRay( reflectedRay, nextDepth - 1, throughput );
-        return diffuse * ( 1 - r ) + reflectedColor * r;
+        return diffuse * ( 1 - reflection ) + reflectedColor * reflection;
     }
 
     //r = ambient + sum(light_color * dot(N,L) * ( d * diffuse + s * specular ) )

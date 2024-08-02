@@ -11,12 +11,7 @@
 #include "Vector.h"
 #include "IntersectionData.h"
 #include "Material.h"
-struct BBoxData {
-    BBoxData( const Vector3f& pMin, const Vector3f& pMax ): pMin( pMin ), pMax( pMax ) {}
-    Vector3f pMin;
-    Vector3f pMax;
-};
-
+#include "BBoxData.h"
 class Triangle;
 class IntersectionData;
 class BaseMesh {

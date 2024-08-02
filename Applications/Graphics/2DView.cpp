@@ -2,7 +2,7 @@
 #include "RayTracer.h"
 #include "Scene.h"
 #include "Camera.h"
-#include "SphereMesh.h"
+#include "Sphere.h"
 #include <ctime>
 #include "CubeMesh.h"
 #include "BaseMesh.h"
@@ -12,15 +12,6 @@
 #include "SpotLight.h"
 #include "cstdlib"
 #include "Denoiser.h"
-#define GRAY RGB( 210, 210, 210 )
-#define RED RGB( 255, 0, 0 )
-#define GREEN RGB( 0, 255, 0 )
-#define BLUE RGB( 0, 0, 255 )
-#define YELLOW RGB( 255, 255, 0 )
-#define BROWN RGB( 150, 75, 0 )
-#define PINK RGB( 255,105,180 )
-#define DARK_BLUE RGB(65,105,225)
-#define CYAN RGB( 0, 255, 255)
 
 
 //// RAND BLOCK
@@ -104,22 +95,72 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     Canvas* canvas = new Canvas(w, h );
 
     Vector<BaseMesh*> meshes;
+    Vector<Sphere> spheres;
     Vector<Light*> lights;
 
-    meshes.push_back(new SphereMesh(1500, Vector3f(0, 0, 3000), {YELLOW, 0 , 0 }));
+    spheres.push_back(Sphere(1500, Vector3f(0, 0, 3000), {YELLOW, -1 , 0 }));
 
-    meshes.push_back(new SphereMesh(300, Vector3f(2121, 0, 2250), {RED, 0 , 0}));
+    spheres.push_back(Sphere(300, Vector3f(2121, 0, 2250), {RED, -1 , 0 }));
 
-    meshes.push_back(new SphereMesh(300, Vector3f(1030, 0, 1000),{GREEN, 0 , 0}));
+    spheres.push_back(Sphere(300, Vector3f(1030, 0, 1000),{GREEN, -1 , 0 }));
 
-    meshes.push_back(new SphereMesh(300, Vector3f(-2121, 0, 2250),{PINK, 0 , 0}));
+    spheres.push_back(Sphere(300, Vector3f(-2121, 0, 2250),{PINK, -1 , 0 }));
 
-    meshes.push_back(new SphereMesh(300, Vector3f(-1030, 0, 1000),{CYAN, 0 , 0}));
+    spheres.push_back(Sphere(300, Vector3f(-1030, 0, 1000),{CYAN, -1 , 0 }));
 
 
+//    lights.push_back( new PointLight( Vector3f(2000,0,2900 ), 1200 ));
+    lights.push_back( new PointLight( Vector3f(-3500,0,0 ), 1200 ));
+//    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 500 ));
+    loadScene( scene, meshes, lights );
+    for ( const auto& sphere: spheres ) {
+        scene->spheres.push_back( sphere );
+    }
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
 
-    //lights.push_back( new PointLight( Vector3f(-3500,0,0 ), 0.004 ));
-    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 0.004 ));
+void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas(w, h );
+
+    Vector<BaseMesh*> meshes;
+    Vector<Sphere> spheres;
+    Vector<Light*> lights;
+    float roomRefl = 0;
+////right
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+                                    { GREEN, -1 , roomRefl } ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+                                   { RED, -1 , roomRefl } ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+                                   { GRAY, -1 , roomRefl } ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+                                   { GRAY, -1 , roomRefl } ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+                                   { GRAY, -1 , roomRefl } ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 620),
+                                   { GRAY, -1 , 0 } ) );
+
+////RAND SPHERE
+    Sphere sphere = Sphere(25, Vector3f(0, -20, 190), {BLUE, -1 , 1});
+    spheres.push_back( sphere );
+////LIGHTS
+
+    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    int lightWidth = 20;
+    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+    //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,-45,180 - lightWidth), Vector3f(0 + lightWidth,-45,180 + lightWidth), 0.7));
+
+
+    for ( const auto& sphere: spheres ) {
+        scene->spheres.push_back( sphere );
+    }
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -661,9 +702,9 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600;
+    int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
     int depth = 2;
@@ -675,7 +716,8 @@ int main( int argc, char* argv[] ) {
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     auto start = std::chrono::high_resolution_clock::now();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
+    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec

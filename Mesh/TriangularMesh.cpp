@@ -128,7 +128,7 @@ IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
         min = t;
         N = triangle.getNormal();
     }
-    return { min, N , nullptr};
+    return { min, N , nullptr, nullptr };
 }
 
 Vector3f TriangularMesh::getNormal( const Vector3f& p ) const {

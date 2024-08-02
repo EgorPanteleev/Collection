@@ -6,7 +6,7 @@
 #include "RayTracer.h"
 #include "Scene.h"
 #include "Camera.h"
-#include "SphereMesh.h"
+#include "Sphere.h"
 #include <ctime>
 #include "CubeMesh.h"
 #include "BaseMesh.h"

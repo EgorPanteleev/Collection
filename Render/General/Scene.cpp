@@ -7,6 +7,8 @@ void Scene::fillTriangles() {
     }
 }
 
+[[nodiscard]] Vector<Sphere> Scene::getSpheres() const { return spheres; }
+
 Vector<BaseMesh*> Scene::getMeshes() const {
     return meshes;
 }

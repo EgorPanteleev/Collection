@@ -5,6 +5,8 @@
 #include "IntersectionData.h"
 #include <limits>
 
-IntersectionData::IntersectionData(): t( std::numeric_limits<float>::max() ), N(), triangle() {};
+IntersectionData::IntersectionData():
+t( std::numeric_limits<float>::max() ), N(), triangle( nullptr ), sphere( nullptr ) {};
 
-    IntersectionData::IntersectionData( float t, const Vector3f& N, Triangle* tr ): t( t ), N( N ), triangle( tr ) {};
+IntersectionData::IntersectionData( float t, const Vector3f& N, Triangle* tr, Sphere* sp ):
+                                    t( t ), N( N ), triangle( tr ), sphere( sp ) {};

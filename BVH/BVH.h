@@ -10,6 +10,7 @@
 #include "Triangle.h"
 #include "Vector.h"
 #include "Utils.h"
+#include "Sphere.h"
 
 struct BVHNode
 {
@@ -30,7 +31,7 @@ struct BVHNode
 class BVH {
 public:
 
-    BVH( Vector <Triangle> _triangles );
+    BVH( Vector <Triangle> _triangles, Vector <Sphere> _spheres );
 
     BVH();
 
@@ -48,8 +49,8 @@ public:
 
     IntersectionData IntersectBVH( Ray& ray, const uint nodeIdx );
 private:
-
     Vector <Triangle> triangles;
+    Vector <Sphere> spheres;
     Vector <uint> indexes;
     Vector<BVHNode> bvhNode;
     uint rootNodeIdx = 0, nodesUsed = 1;
