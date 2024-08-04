@@ -63,10 +63,10 @@ GLuint getTexture( Canvas* canvas ) {
 }
 void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
-        scene->meshes.push_back( mesh );
+        scene->add( mesh );
     }
     for ( const auto& light: lights ) {
-        scene->lights.push_back( light );
+        scene->add( light );
     }
 }
 

@@ -98,23 +98,23 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     Vector<Sphere> spheres;
     Vector<Light*> lights;
 
-    spheres.push_back(Sphere(1500, Vector3f(0, 0, 3000), {YELLOW, -1 , 0 }));
+    spheres.push_back(Sphere(1500, Vector3f(0, 0, 3000), {YELLOW, -1, 0 }));
 
     spheres.push_back(Sphere(300, Vector3f(2121, 0, 2250), {RED, -1 , 0 }));
 
     spheres.push_back(Sphere(300, Vector3f(1030, 0, 1000),{GREEN, -1 , 0 }));
 
-    spheres.push_back(Sphere(300, Vector3f(-2121, 0, 2250),{PINK, -1 , 0 }));
+    spheres.push_back(Sphere(300, Vector3f(-2121, 0, 2250),{PINK, -1, 0 }));
 
-    spheres.push_back(Sphere(300, Vector3f(-1030, 0, 1000),{CYAN, -1 , 0 }));
+    spheres.push_back(Sphere(300, Vector3f(-1030, 0, 1000),{CYAN, 500 }));
 
 
 //    lights.push_back( new PointLight( Vector3f(2000,0,2900 ), 1200 ));
-    lights.push_back( new PointLight( Vector3f(-3500,0,0 ), 1200 ));
+//    lights.push_back( new PointLight( Vector3f(-3500,0,0 ), 9999999 ));
 //    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 500 ));
     loadScene( scene, meshes, lights );
-    for ( const auto& sphere: spheres ) {
-        scene->add( sphere );
+    for ( auto& sphere: spheres ) {
+        scene->add( &sphere );
     }
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -148,18 +148,20 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
                                    { GRAY, -1 , 0 } ) );
 
 ////RAND SPHERE
-    Sphere sphere = Sphere(25, Vector3f(0, -10, 150), {BLUE, 0.7});
+    Sphere sphere = Sphere(25, Vector3f(0, -10, 150), {BLUE, -1, 0 });
     spheres.push_back( sphere );
 ////LIGHTS
 
+    Sphere sphere1 = Sphere(10, Vector3f(0, 55, 150), {BLUE, 0.7});
+    spheres.push_back( sphere1 );
     //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
     int lightWidth = 20;
     //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
     //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,-45,180 - lightWidth), Vector3f(0 + lightWidth,-45,180 + lightWidth), 0.7));
 
 
-    for ( const auto& sph: spheres ) {
-        scene->add( sph );
+    for ( auto& sph: spheres ) {
+        scene->add( &sph );
     }
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
@@ -210,14 +212,14 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     randBlockForward2->scaleTo( Vector3f(30,260,30) );
     randBlockForward2->rotate( Vector3f( 0,1,0), -25);
     randBlockForward2->move( Vector3f(35,0,0));
-    randBlockForward2->setMaterial({GRAY, -1 , 0.8});
+    randBlockForward2->setMaterial({GRAY, 0.7});
     randBlockForward2->move( Vector3f(-50,0,-100));
     //randBlockForward2->scaleTo( 200 );
     meshes.push_back(randBlockForward2 );
 
 ////LIGHTS
 
-    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
     int lightWidth = 20;
     //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
 
@@ -703,22 +705,22 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    int w = 960 ; int h = 600;
-    //int w = 1920 ; int h = 1200;
+    //int w = 960 ; int h = 600;
+    int w = 1920 ; int h = 1200;
     //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
-    int depth = 2;
-    int ambientSamples = 4;
-    int lightSamples = 4;
+    int depth = 1;
+    int ambientSamples = 7;
+    int lightSamples = 7;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     auto start = std::chrono::high_resolution_clock::now();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
+    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
@@ -734,7 +736,7 @@ int main( int argc, char* argv[] ) {
     //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> loadTime = end - start;
+    std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();;
     rayTracer->render( RayTracer::PARALLEL );

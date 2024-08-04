@@ -41,7 +41,10 @@ RayTracer::~RayTracer() {
 IntersectionData RayTracer::closestIntersection( Ray& ray ) {
     return bvh->IntersectBVH( ray, 0 );
 }
-
+template <typename Type>
+float getIntensity( Type* light ) {
+    return light->getIntensity();
+}
 
 float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
     float i = 0;
@@ -49,10 +52,9 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
     float d = 0.8;
     float s = 1 - d;
     for ( auto light: scene(0).getLights() ) {
-        int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
+        //int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
         float i1 = 0;
-        if ( light->isIntersectsWithRay( Ray( P, V ) ) ) return -1;
-        for ( size_t j = 0; j < numLS; j++ ) {
+        for ( size_t j = 0; j < numLightSamples; j++ ) {
             Vector3f origin = light->getSamplePoint();
             Vector3f L = (origin - P).normalize();
             Ray ray = Ray(origin, L * ( -1 ) );
@@ -63,7 +65,7 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
             float dNL = dot( iData.N, L);
             if ( dNL < 0 ) continue;
             float distance = cIData.t * 0.01;
-            i1 += d * light->intensity * dNL / ( distance * distance );
+            i1 += d * light->getIntensity() * dNL / ( distance * distance );
             //specular
             //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
 
@@ -104,144 +106,13 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
 
             float rs = ( D * G * F ) / ( 4 * dNL * dNV );
             //TODO idk about dist
-            i1 += s * rs * light->intensity * dNL / ( distance * distance );
+            i1 += s * rs * light->getIntensity() * dNL / ( distance * distance );
 //            Vector3f R = (N * 2 * dNL - L).normalize();
 //            float dRV = dot(R, V.normalize());
 //            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
         }
-        i += i1 / (float) numLS;
+        i += i1 / (float) numLightSamples;
     }
-
-
-    for ( auto light: scene(0).getLightMeshes() ) {
-        float i1 = 0;
-        for ( size_t j = 0; j < numLightSamples; j++ ) {
-            Vector3f origin = light->getSamplePoint();
-            Vector3f L = (origin - P).normalize();
-            Ray ray = Ray(origin, L * ( -1 ) );
-            IntersectionData cIData = closestIntersection( ray );
-            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
-            if (cIData.triangle != iData.triangle ) continue;
-            if (cIData.sphere != iData.sphere ) continue;
-            float dNL = dot( iData.N, L);
-            if ( dNL < 0 ) continue;
-            float distance = cIData.t * 0.01;
-            i1 += d * light->getMaterial().getIntensity() * dNL / ( distance * distance );
-            //specular
-            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
-
-            Vector3f H = (L + V ).normalize();
-            float roughness = 0.1;
-            //float power = 1 / roughness;
-            float power = 2.0f / pow( roughness, 4 ) - 2; //better
-            float a2 = pow( roughness, 4 );
-            float dNH = dot( N, H );
-
-            auto X = []( float val ) {
-                return ( val > 0 ) ? 1 : 0;
-            };
-
-
-            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
-
-            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
-            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
-
-            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
-
-            float dNV = dot( N, V );
-
-            float dVH = dot( V, H ); // really H, ost M
-
-            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
-
-            auto G1 = [=]( const Vector3f& x ) {
-                float dNX = dot(x,N);
-                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
-            };
-
-            float G = G1( V ) * G1( L ); //GGX
-            float refraction = 0.9;
-            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
-            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
-
-            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
-            //TODO idk about dist
-            i1 += s * rs * light->getMaterial().getIntensity() * dNL / ( distance * distance );
-//            Vector3f R = (N * 2 * dNL - L).normalize();
-//            float dRV = dot(R, V.normalize());
-//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
-        }
-        i1 /= (float) numLightSamples;
-        i += i1;
-    }
-
-    for ( auto& light: scene(0).getLightSpheres() ) {
-        float i1 = 0;
-        //if ( light.intersectsWithRay( Ray( P, V ) ) != std::numeric_limits<float>::max() ) return -1;
-        for ( size_t j = 0; j < numLightSamples; j++ ) {
-            Vector3f origin = light.getSamplePoint();
-            Vector3f L = (origin - P).normalize();
-            Ray ray = Ray(origin, L * ( -1 ) );
-            IntersectionData cIData = closestIntersection( ray );
-            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
-            if (cIData.triangle != iData.triangle ) continue;
-            if (cIData.sphere != iData.sphere ) continue;
-            float dNL = dot( iData.N, L);
-            if ( dNL < 0 ) continue;
-            float distance = cIData.t * 0.01;
-            i1 += d * light.getMaterial().getIntensity() * dNL / ( distance * distance );
-            //specular
-            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
-
-            Vector3f H = (L + V ).normalize();
-            float roughness = 0.1;
-            //float power = 1 / roughness;
-            float power = 2.0f / pow( roughness, 4 ) - 2; //better
-            float a2 = pow( roughness, 4 );
-            float dNH = dot( N, H );
-
-            auto X = []( float val ) {
-                return ( val > 0 ) ? 1 : 0;
-            };
-
-
-            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
-
-            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
-            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
-
-            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
-
-            float dNV = dot( N, V );
-
-            float dVH = dot( V, H ); // really H, ost M
-
-            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
-
-            auto G1 = [=]( const Vector3f& x ) {
-                float dNX = dot(x,N);
-                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
-            };
-
-            float G = G1( V ) * G1( L ); //GGX
-            float refraction = 0.9;
-            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
-            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
-
-            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
-            //TODO idk about dist
-            i1 += s * rs * light.getMaterial().getIntensity() * dNL / ( distance * distance );
-//            Vector3f R = (N * 2 * dNL - L).normalize();
-//            float dRV = dot(R, V.normalize());
-//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
-        }
-        //TODO WAS / numSamplesLight
-        i1 /= (float) numLightSamples;
-        i += i1;
-    }
-
-
     //if ( i > 1 ) i = 1;
     return i;
 }
@@ -290,7 +161,7 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     Vector3f P = ray.origin + ray.direction * cIData.t;
     float i = computeLight( P, ray.direction * (-1), cIData );
     //if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
-    RGB diffuse;
+    RGB diffuse = {};
     float reflection;
     if ( cIData.triangle == nullptr ) {
         diffuse = cIData.sphere->material.getColor() * i * throughput;
@@ -392,9 +263,9 @@ void RayTracer::traceAllRaysSerial() {
         for ( int y = 0; y < canvas(0).getH(); ++y ) {
             Vector3f dir = { -Vx2 + uX2 + x * uX, -Vy2 + uY2 + y * uY, camera(0).dV  };
             Ray ray( from, dir);
-            diffuse = { 0, 0, 0 };
-            ambient = { 0, 0, 0 };
-            specular = { 0, 0, 0 };
+            //diffuse = { 0, 0, 0 };
+            //ambient = { 0, 0, 0 };
+            //specular = { 0, 0, 0 };
             RGB color = traceRay( ray, depth, 1 );
             color.scaleTo( 255 );
             canvas(0).setPixel( x, y, color );
@@ -410,7 +281,7 @@ void RayTracer::traceAllRaysParallel() {
     float Vx2 = camera(0).Vx / 2;
     float Vy2 = camera(0).Vy / 2;
     Kokkos::View<RGB**> result = Kokkos::View<RGB**>("colors", canvas(0).getW(), canvas(0).getH() );
-    RenderFunctor renderFunctor( uX, uY, uX2, uY2, Vx2, Vy2, camera(0).dV, depth, from, this, result );
+    RenderFunctor renderFunctor( uX, uY, uX2, uY2, Vx2, Vy2, from, this, result );
     typedef Kokkos::MDRangePolicy<Kokkos::Rank<2>> range_policy_2d;
     range_policy_2d policy({0, 0}, {canvas(0).getW(), canvas(0).getH()});
     Kokkos::parallel_for("parallel2D", policy, renderFunctor);
@@ -432,16 +303,20 @@ Camera* RayTracer::getCamera() const {
     return &(camera(0));
 }
 
+int RayTracer::getDepth() const {
+    return depth;
+}
+
 
 RenderFunctor::RenderFunctor(float _uX, float _uY, float _uX2, float _uY2, float _Vx2,
-                             float _Vy2, float _dV, int _depth, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
+                             float _Vy2, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
         : uX(_uX), uY(_uY), uX2(_uX2), uY2(_uY2), Vx2(_Vx2),
-          Vy2(_Vy2), dV(_dV), from(_from), rayTracer( _rayTracer ), depth( _depth ), colors( result ) {
+          Vy2(_Vy2), from(_from), rayTracer( _rayTracer ), colors( result ) {
 }
 
 void RenderFunctor::operator()(const int i, const int j) const {
-    Vector3f dir = { -Vx2 + uX2 + i * uX, -Vy2 + uY2 + j * uY, dV  };
+    Vector3f dir = { -Vx2 + uX2 + i * uX, -Vy2 + uY2 + j * uY, rayTracer->getCamera()->dV  };
     Ray ray( from, dir);
-    colors(i, j) = rayTracer->traceRay( ray, depth, 1 );
+    colors(i, j) = rayTracer->traceRay( ray, rayTracer->getDepth(), 1 );
     //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
 }

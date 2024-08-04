@@ -26,6 +26,6 @@ Vector<Triangle> BaseMesh::getTriangles() {
 
 Vector3f BaseMesh::getSamplePoint() {
     if ( getTriangles().size() == 0 ) return {};
-    int ind = std::floor( rand() / (float) RAND_MAX * getTriangles().size() );
+    int ind = std::floor( rand() / (float) RAND_MAX * ( getTriangles().size() - 1 ) );
     return getTriangles()[ind].getSamplePoint();
 }

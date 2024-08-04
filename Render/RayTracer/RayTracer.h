@@ -25,6 +25,7 @@ public:
     [[nodiscard]] Canvas* getCanvas() const;
     [[nodiscard]] Scene* getScene() const;
     [[nodiscard]] Camera* getCamera() const;
+    [[nodiscard]] int getDepth() const;
 private:
     void printProgress( int x ) const;
     void traceAllRaysSerial();
@@ -36,16 +37,16 @@ private:
     int depth;
     int numAmbientSamples;
     int numLightSamples;
-    RGB diffuse;
-    RGB ambient;
-    RGB specular;
+    //RGB diffuse;
+    //RGB ambient;
+    //RGB specular;
 };
 
 
 struct RenderFunctor {
 
     RenderFunctor(float _uX, float _uY, float _uX2, float _uY2, float _Vx2,
-                  float _Vy2, float _dV, int _depth, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result );
+                  float _Vy2, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result );
 
 
     KOKKOS_INLINE_FUNCTION void operator()(const int i, const int j) const;
@@ -53,8 +54,7 @@ struct RenderFunctor {
     Kokkos::View<RGB**> colors;
     RayTracer* rayTracer;
     Vector3f from;
-    int depth;
-    float uX, uY, uX2, uY2, Vx2, Vy2, dV;
+    float uX, uY, uX2, uY2, Vx2, Vy2;
 };
 
 

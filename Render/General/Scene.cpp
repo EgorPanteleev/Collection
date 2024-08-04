@@ -2,32 +2,33 @@
 #include "Triangle.h"
 
 Scene::Scene( Vector<BaseMesh*> _meshes, Vector<Sphere> _spheres, Vector<Light*> _lights ) {
-    meshes = _meshes;
-    fillTriangles();
-    spheres = _spheres;
-    lights = _lights;
-    for ( auto mesh: meshes )
-        if ( mesh->getMaterial().getIntensity() != 0 ) lightMeshes.push_back( mesh );
-    for ( const auto& sphere: spheres )
-        if ( sphere.material.getIntensity() != 0 ) lightSpheres.push_back( sphere );
+    for ( auto mesh: meshes ) add( mesh );
+    for ( auto& sphere: spheres ) add( &sphere);
+    for ( auto light: _lights ) add( light) ;
 }
 
-Scene::Scene(): meshes(), spheres(), lights(), lightSpheres(), lightMeshes(), triangles() {
+Scene::Scene(): meshes(), spheres(), lights(), triangles() {
 
 }
-void Scene::add( const Sphere& sphere ) {
-    spheres.push_back( sphere );
-    if ( sphere.material.getIntensity() != 0 )
-        lightSpheres.push_back( sphere );
+
+Scene::~Scene() {
+//    for ( auto light: lights ) {
+//        delete light;
+//    }
+}
+void Scene::add( Sphere* sphere ) {
+    spheres.push_back( *sphere );
+    if ( sphere->material.getIntensity() != 0 )
+        lights.push_back( new LightInstance( sphere ) );
 }
 void Scene::add( BaseMesh* mesh ) {
     meshes.push_back( mesh );
     for ( auto& triangle: mesh->getTriangles() ) triangles.push_back( triangle );
     if ( mesh->getMaterial().getIntensity() != 0 )
-        lightMeshes.push_back( mesh );
+        lights.push_back( new LightInstance( mesh ) );
 }
 void Scene::add( Light* light ) {
-    lights.push_back( light );
+    lights.push_back( new LightInstance( light ) );
 }
 
 void Scene::fillTriangles() {
@@ -46,16 +47,10 @@ Vector<Triangle> Scene::getTriangles() const {
     return triangles;
 }
 
-Vector<Light*> Scene::getLights() const {
+Vector<LightInstance*> Scene::getLights() const {
     return lights;
 }
 
-Vector<BaseMesh*> Scene::getLightMeshes() const {
-    return lightMeshes;
-}
-Vector<Sphere> Scene::getLightSpheres() const {
-    return lightSpheres;
-}
 
 //Vector<Shape*>::const_iterator Scene::begin() const {
 //    return shapes.begin();
