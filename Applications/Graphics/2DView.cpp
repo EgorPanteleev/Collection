@@ -120,7 +120,7 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
 }
 
 void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas(w, h );
 
@@ -148,7 +148,7 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
                                    { GRAY, -1 , 0 } ) );
 
 ////RAND SPHERE
-    Sphere sphere = Sphere(10, Vector3f(0, -37, 190), {BLUE, 1});
+    Sphere sphere = Sphere(25, Vector3f(0, -10, 150), {BLUE, 0.7});
     spheres.push_back( sphere );
 ////LIGHTS
 
@@ -182,7 +182,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
                                    { RED, -1 , roomRefl } ) );
 ////front
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
-                                   { GRAY, 1 } ) );
+                                   { GRAY, -1, roomRefl } ) );
 ////back
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
                                    { GRAY, -1 , roomRefl } ) );
@@ -217,7 +217,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
 
 ////LIGHTS
 
-    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
     int lightWidth = 20;
     //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
 
@@ -703,22 +703,22 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600;
+    int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
-    int depth = 1;
-    int ambientSamples = 5;
-    int lightSamples = 5;
+    int depth = 2;
+    int ambientSamples = 4;
+    int lightSamples = 4;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
 // rat scene ( 3200x2000 ) - 100 / 79 / 4.6
     auto start = std::chrono::high_resolution_clock::now();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    //sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
+    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec

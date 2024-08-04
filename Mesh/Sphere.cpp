@@ -62,7 +62,7 @@ Vector3f Sphere::getSamplePoint() {
     P.y = radius * sin(theta) * sin(phi);
     P.z = radius * cos(theta);
 
-    return P;
+    return P + origin;
 }
 
 BBoxData Sphere::getBBox() const {

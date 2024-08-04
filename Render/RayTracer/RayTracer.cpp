@@ -109,8 +109,7 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
 //            float dRV = dot(R, V.normalize());
 //            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
         }
-        i1 /= (float) numLS;
-        i += i1;
+        i += i1 / (float) numLS;
     }
 
 
@@ -315,7 +314,7 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
         //ambient = ambient * 2 / numSamples;
         //cosine
         ambient = ambient * 1 / (float) numAmbientSamples;
-        return diffuse + ambient;
+        return diffuse;// + ambient;
     }
     else {
         Vector3f N = cIData.N;
