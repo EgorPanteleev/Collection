@@ -53,6 +53,18 @@ void Sphere::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
+Vector3f Sphere::getSamplePoint() {
+    float theta = rand() / (float) RAND_MAX * M_PI;  // Угол от 0 до π
+    float phi = rand() / (float) RAND_MAX * 2 * M_PI;  // Угол от 0 до 2π
+
+    Vector3f P;
+    P.x = radius * sin(theta) * cos(phi);
+    P.y = radius * sin(theta) * sin(phi);
+    P.z = radius * cos(theta);
+
+    return P;
+}
+
 BBoxData Sphere::getBBox() const {
     Vector3f r = { radius, radius, radius };
     return { origin - r, origin + r };
@@ -84,6 +96,10 @@ float Sphere::intersectsWithRay( const Ray& ray ) const {
 
 Vector3f Sphere::getNormal( const Vector3f& p ) const {
     return ( p - origin ).normalize();
+}
+
+Material Sphere::getMaterial() const {
+    return material;
 }
 
 Vector3f Sphere::getOrigin() const {

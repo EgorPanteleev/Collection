@@ -23,7 +23,9 @@ bool RGB::operator==( const RGB& color ) const {
 RGB::RGB(): r(0), g(0), b(0) {
 }
 RGB::RGB( float _r, float _g, float _b): r(_r), g(_g), b(_b) {
-    scaleTo( 255 );
+    if ( r > 255 ) r = 255;
+    if ( g > 255 ) g = 255;
+    if ( b > 255 ) b = 255;
 }
 
 void RGB::scaleTo( float value ) {

@@ -1,8 +1,10 @@
 #include "Material.h"
 
-Material::Material(): color(), diffuse( 0 ), reflection( 0 ) {
+Material::Material(): color(), intensity( 0 ), diffuse( 0 ), reflection( 0 ) {
 }
-Material::Material( const RGB& color, float diffuse, float reflection ): color( color ) ,diffuse( diffuse ), reflection( reflection ) {
+
+Material::Material( const RGB& color, float intensity ): color( color ), intensity( intensity ) {}
+Material::Material( const RGB& color, float diffuse, float reflection ): color( color ), intensity( 0 ), diffuse( diffuse ), reflection( reflection ) {
 }
 
 RGB Material::getColor() const {
@@ -10,6 +12,10 @@ RGB Material::getColor() const {
 }
 void Material::setColor( const RGB& c ) {
     color = c;
+}
+
+float Material::getIntensity() const {
+    return intensity;
 }
 
 float Material::getDiffuse() const {

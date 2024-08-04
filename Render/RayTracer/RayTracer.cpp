@@ -10,7 +10,6 @@ RayTracer::RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _num
 depth( _depth ), numAmbientSamples( _numAmbientSamples ), numLightSamples( _numLightSamples ) {
     camera = Kokkos::View<Camera*>("camera");
     Kokkos::deep_copy(camera, *c);
-    s->fillTriangles();
     scene = Kokkos::View<Scene*>("scene");
     Kokkos::deep_copy(scene, *s);
     canvas = Kokkos::View<Canvas*>("canvas");
@@ -49,10 +48,10 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
     Vector3f N = iData.N;
     float d = 0.8;
     float s = 1 - d;
-    for ( auto light: scene(0).lights ) {
+    for ( auto light: scene(0).getLights() ) {
         int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
         float i1 = 0;
-        if ( light->isIntersectsWithRay( Ray( P, V ) ) && !iData.sphere->intersectsWithRay( Ray( P, V ) ) ) return -1;
+        if ( light->isIntersectsWithRay( Ray( P, V ) ) ) return -1;
         for ( size_t j = 0; j < numLS; j++ ) {
             Vector3f origin = light->getSamplePoint();
             Vector3f L = (origin - P).normalize();
@@ -65,6 +64,70 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
             if ( dNL < 0 ) continue;
             float distance = cIData.t * 0.01;
             i1 += d * light->intensity * dNL / ( distance * distance );
+            //specular
+            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
+
+            Vector3f H = (L + V ).normalize();
+            float roughness = 0.5;
+            //float power = 1 / roughness;
+            float power = 2.0f / pow( roughness, 4 ) - 2; //better
+            float a2 = pow( roughness, 4 );
+            float dNH = dot( N, H );
+
+            auto X = []( float val ) {
+                return ( val > 0 ) ? 1 : 0;
+            };
+
+
+            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
+
+            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
+            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
+
+            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
+
+            float dNV = dot( N, V );
+
+            float dVH = dot( V, H ); // really H, ost M
+
+            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
+
+            auto G1 = [=]( const Vector3f& x ) {
+                float dNX = dot(x,N);
+                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
+            };
+
+            float G = G1( V ) * G1( L ); //GGX
+            float refraction = 0.5;
+            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
+            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
+
+            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
+            //TODO idk about dist
+            i1 += s * rs * light->intensity * dNL / ( distance * distance );
+//            Vector3f R = (N * 2 * dNL - L).normalize();
+//            float dRV = dot(R, V.normalize());
+//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
+        }
+        i1 /= (float) numLS;
+        i += i1;
+    }
+
+
+    for ( auto light: scene(0).getLightMeshes() ) {
+        float i1 = 0;
+        for ( size_t j = 0; j < numLightSamples; j++ ) {
+            Vector3f origin = light->getSamplePoint();
+            Vector3f L = (origin - P).normalize();
+            Ray ray = Ray(origin, L * ( -1 ) );
+            IntersectionData cIData = closestIntersection( ray );
+            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
+            if (cIData.triangle != iData.triangle ) continue;
+            if (cIData.sphere != iData.sphere ) continue;
+            float dNL = dot( iData.N, L);
+            if ( dNL < 0 ) continue;
+            float distance = cIData.t * 0.01;
+            i1 += d * light->getMaterial().getIntensity() * dNL / ( distance * distance );
             //specular
             //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
 
@@ -104,15 +167,82 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
             float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
 
             float rs = ( D * G * F ) / ( 4 * dNL * dNV );
-
-            i1 += s * rs * light->intensity * dNL;
+            //TODO idk about dist
+            i1 += s * rs * light->getMaterial().getIntensity() * dNL / ( distance * distance );
 //            Vector3f R = (N * 2 * dNL - L).normalize();
 //            float dRV = dot(R, V.normalize());
 //            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
         }
-        i1 /= (float) numLS;
+        i1 /= (float) numLightSamples;
         i += i1;
     }
+
+    for ( auto& light: scene(0).getLightSpheres() ) {
+        float i1 = 0;
+        //if ( light.intersectsWithRay( Ray( P, V ) ) != std::numeric_limits<float>::max() ) return -1;
+        for ( size_t j = 0; j < numLightSamples; j++ ) {
+            Vector3f origin = light.getSamplePoint();
+            Vector3f L = (origin - P).normalize();
+            Ray ray = Ray(origin, L * ( -1 ) );
+            IntersectionData cIData = closestIntersection( ray );
+            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
+            if (cIData.triangle != iData.triangle ) continue;
+            if (cIData.sphere != iData.sphere ) continue;
+            float dNL = dot( iData.N, L);
+            if ( dNL < 0 ) continue;
+            float distance = cIData.t * 0.01;
+            i1 += d * light.getMaterial().getIntensity() * dNL / ( distance * distance );
+            //specular
+            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
+
+            Vector3f H = (L + V ).normalize();
+            float roughness = 0.1;
+            //float power = 1 / roughness;
+            float power = 2.0f / pow( roughness, 4 ) - 2; //better
+            float a2 = pow( roughness, 4 );
+            float dNH = dot( N, H );
+
+            auto X = []( float val ) {
+                return ( val > 0 ) ? 1 : 0;
+            };
+
+
+            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
+
+            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
+            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
+
+            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
+
+            float dNV = dot( N, V );
+
+            float dVH = dot( V, H ); // really H, ost M
+
+            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
+
+            auto G1 = [=]( const Vector3f& x ) {
+                float dNX = dot(x,N);
+                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
+            };
+
+            float G = G1( V ) * G1( L ); //GGX
+            float refraction = 0.9;
+            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
+            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
+
+            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
+            //TODO idk about dist
+            i1 += s * rs * light.getMaterial().getIntensity() * dNL / ( distance * distance );
+//            Vector3f R = (N * 2 * dNL - L).normalize();
+//            float dRV = dot(R, V.normalize());
+//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
+        }
+        //TODO WAS / numSamplesLight
+        i1 /= (float) numLightSamples;
+        i += i1;
+    }
+
+
     //if ( i > 1 ) i = 1;
     return i;
 }
@@ -153,9 +283,14 @@ Vector3f generateSamplePoint( Vector3f N ) {
 RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     IntersectionData cIData = closestIntersection( ray );
     if ( cIData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR * throughput;
+    if ( cIData.triangle != nullptr ) {
+        if ( cIData.triangle->owner->getMaterial().getIntensity() != 0 ) return  {255,255,255};
+    } else {
+        if ( cIData.sphere->material.getIntensity() != 0 ) return {255,255,255};
+    }
     Vector3f P = ray.origin + ray.direction * cIData.t;
     float i = computeLight( P, ray.direction * (-1), cIData );
-    if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
+    //if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
     RGB diffuse;
     float reflection;
     if ( cIData.triangle == nullptr ) {

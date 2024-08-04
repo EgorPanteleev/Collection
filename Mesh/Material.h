@@ -3,15 +3,18 @@
 class Material {
 public:
     Material();
+    Material( const RGB& color, float intensity );
     Material( const RGB& color, float diffuse, float reflection );
     [[nodiscard]] RGB getColor() const;
     void setColor( const RGB& c );
+    [[nodiscard]] float getIntensity() const;
     [[nodiscard]] float getDiffuse() const;
     void setDiffuse( float d );
     [[nodiscard]] float getReflection() const;
     void setReflection( float r );
 private:
     RGB color;
+    float intensity;
     float diffuse;
     float reflection;
 };

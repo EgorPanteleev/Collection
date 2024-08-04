@@ -74,6 +74,17 @@ void Triangle::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
+Vector3f Triangle::getSamplePoint() const {
+        float u = rand() / (float) RAND_MAX;
+        float v = rand() / (float) RAND_MAX;
+        if (u + v > 1.0f) {
+            u = 1.0f - u;
+            v = 1.0f - v;
+        }
+        Vector3f P = v1 + ( v2 - v1 ) * u + ( v3 - v1 ) * v;
+        return P;
+}
+
 BBoxData Triangle::getBBox() const {
     float minX = std::min( std::min( v1[0], v2[0] ), v3[0] );
     float maxX = std::max( std::max( v1[0], v2[0] ), v3[0] );

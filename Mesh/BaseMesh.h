@@ -31,6 +31,7 @@ public:
     virtual void setMaxPoint( const Vector3f& vec, int ind = -1 ) {  };
 
     virtual Vector <Triangle> getTriangles();
+    [[nodiscard]] Vector3f getSamplePoint();
     [[nodiscard]] virtual BBoxData getBBox() const = 0;
     [[nodiscard]] virtual Vector3f getOrigin() const = 0;
     [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;

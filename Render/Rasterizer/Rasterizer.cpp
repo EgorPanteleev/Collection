@@ -17,7 +17,6 @@ Rasterizer::Rasterizer( Camera* c, Scene* s, Canvas* _canvas ) {
 
     camera = Kokkos::View<Camera*>("camera");
     Kokkos::deep_copy(camera, *c);
-    s->fillTriangles();
     scene = Kokkos::View<Scene*>("scene");
     Kokkos::deep_copy(scene, *s);
     canvas = Kokkos::View<Canvas*>("canvas");

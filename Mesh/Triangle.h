@@ -16,6 +16,7 @@ public:
     void scale( const Vector3f& scaleVec );
     void scaleTo( float scaleValue );
     void scaleTo( const Vector3f& scaleVec );
+    [[nodiscard]] Vector3f getSamplePoint() const;
     [[nodiscard]] BBoxData getBBox() const;
     [[nodiscard]] Vector3f getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
