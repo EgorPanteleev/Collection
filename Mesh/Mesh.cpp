@@ -1,17 +1,33 @@
-#include "TriangularMesh.h"
-#include "OBJLoader.h"
-//TriangularMesh::TriangularMesh( const std::string& path ) {
-//    OBJLoader::load( path, this );
-//}
 //
-//TriangularMesh::TriangularMesh( Vector<Triangle> _triangles ): triangles( _triangles ) {
-//}
+// Created by auser on 5/12/24.
+//
 
-void TriangularMesh::loadMesh( const std::string& path ) {
+#include <cmath>
+#include "Mesh.h"
+#include "OBJLoader.h"
+
+Mesh::Mesh(): material(), triangles() {}
+
+void Mesh::setMaterial(const Material& _material ) {
+    material = _material;
+}
+
+Material Mesh::getMaterial() const {
+    return material;
+}
+
+Vector3f Mesh::getSamplePoint() {
+    int size = (int) triangles.size();
+    if ( size == 0 ) return {};
+    int ind = std::floor( rand() / (float) RAND_MAX * ( (float) size - 1 ) );
+    return triangles[ind].getSamplePoint();
+}
+
+void Mesh::loadMesh(const std::string& path ) {
     OBJLoader::load( path, this );
 }
 
-void TriangularMesh::rotate( const Vector3f& axis, float angle ) {
+void Mesh::rotate(const Vector3f& axis, float angle ) {
     Vector3f origin = getOrigin();
     move( origin * ( -1 ) );
     for ( auto& triangle: triangles ) {
@@ -20,36 +36,32 @@ void TriangularMesh::rotate( const Vector3f& axis, float angle ) {
     move( origin );
 }
 
-void TriangularMesh::move( const Vector3f& p ) {
+void Mesh::move(const Vector3f& p ) {
     for ( auto& triangle: triangles ) {
         triangle.move( p );
     }
 }
 
-void TriangularMesh::moveTo( const Vector3f& point ) {
+void Mesh::moveTo(const Vector3f& point ) {
     move( point - getOrigin() );
 }
 
-void TriangularMesh::scale( float scaleValue ) {
+void Mesh::scale(float scaleValue ) {
     Vector3f oldOrigin = getOrigin();
     for ( auto& triangle: triangles ) {
         triangle.scale( scaleValue );
     }
     moveTo( oldOrigin );
 }
-void TriangularMesh::scale( const Vector3f& scaleVec ) {
+void Mesh::scale(const Vector3f& scaleVec ) {
     Vector3f oldOrigin = getOrigin();
     for ( auto& triangle: triangles ) {
         triangle.scale( scaleVec );
     }
     moveTo( oldOrigin );
 }
-//  OLD
-//BBoxData bbox = getBBox();
-//Vector3f len = bbox.pMax - bbox.pMin;
-//Vector3f cff = { scaleValue / len[0], scaleValue / len[1], scaleValue / len[2] };
-//scale( cff );
-void TriangularMesh::scaleTo( float scaleValue ) {
+
+void Mesh::scaleTo(float scaleValue ) {
     BBoxData bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     float maxLen = std::max ( std::max( len.getX(), len.getY() ), len.getZ());
@@ -57,14 +69,14 @@ void TriangularMesh::scaleTo( float scaleValue ) {
     scale( cff );
 }
 
-void TriangularMesh::scaleTo( const Vector3f& scaleVec ) {
+void Mesh::scaleTo(const Vector3f& scaleVec ) {
     BBoxData bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
 }
 
-void TriangularMesh::setMinPoint( const Vector3f& vec, int ind ) {
+void Mesh::setMinPoint(const Vector3f& vec, int ind ) {
     Vector3f moveVec = vec - getBBox().pMin;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
@@ -73,7 +85,7 @@ void TriangularMesh::setMinPoint( const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
+void Mesh::setMaxPoint(const Vector3f& vec, int ind ) {
     Vector3f moveVec = vec - getBBox().pMax;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
@@ -82,11 +94,11 @@ void TriangularMesh::setMaxPoint( const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-Vector<Triangle> TriangularMesh::getTriangles() {
+Vector<Triangle> Mesh::getTriangles() {
     return triangles;
 }
 
-BBoxData TriangularMesh::getBBox() const {
+BBoxData Mesh::getBBox() const {
     Vector3f min = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
     Vector3f max = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
     for ( auto& triangle: triangles ) {
@@ -102,7 +114,7 @@ BBoxData TriangularMesh::getBBox() const {
 }
 
 
-Vector3f TriangularMesh::getOrigin() const {
+Vector3f Mesh::getOrigin() const {
     Vector3f origin = {0,0,0};
     for ( auto& triangle: triangles ) {
         origin = origin + triangle.getOrigin();
@@ -110,14 +122,14 @@ Vector3f TriangularMesh::getOrigin() const {
     return origin / (float) triangles.size();
 }
 
-bool TriangularMesh::isContainPoint( const Vector3f& p ) const {
+bool Mesh::isContainPoint(const Vector3f& p ) const {
     for ( const auto& triangle: triangles ) {
         if ( triangle.isContainPoint( p ) ) return true;
     }
     return false;
 }
 
-IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
+IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
     float min = __FLT_MAX__;
     Vector3f N = {};
     for ( const auto& triangle: triangles ) {
@@ -129,16 +141,12 @@ IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
     return { min, N , nullptr, nullptr };
 }
 
-Vector3f TriangularMesh::getNormal( const Vector3f& p ) const {
-    return {};
-}
-
-void TriangularMesh::setTriangles( Vector<Triangle>& _triangles ) {
+void Mesh::setTriangles(Vector<Triangle>& _triangles ) {
     triangles = _triangles;
     for ( auto& triangle: triangles )
         triangle.owner = this;
 }
-void TriangularMesh::addTriangle( const Triangle& triangle ) {
+void Mesh::addTriangle(const Triangle& triangle ) {
     triangles.push_back( triangle );
     triangles[ triangles.size() - 1 ].owner = this;
 }

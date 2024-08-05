@@ -78,7 +78,7 @@ Vector3f Triangle::getSamplePoint() const {
             u = 1.0f - u;
             v = 1.0f - v;
         }
-        Vector3f P = v1 + ( v2 - v1 ) * u + ( v3 - v1 ) * v;
+        Vector3f P = v1 + edge1 * u + edge2 * v;
         return P;
 }
 
@@ -114,7 +114,7 @@ float Triangle::intersectsWithRay( const Ray& ray ) const {
     Vector3f h = ray.direction.cross( edge2 );
     float a = dot(edge1, h);
 
-    if ( a < __FLT_EPSILON__ ) return __FLT_MAX__; // Ray is parallel to the triangle
+    if ( a < __FLT_EPSILON__ ) return __FLT_MAX__;
 
     float f = 1.0f / a;
     Vector3f s = ray.origin - v1;

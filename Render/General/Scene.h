@@ -3,7 +3,7 @@
 #include <iostream>
 #include <utility>
 #include "Vector.h"
-#include "BaseMesh.h"
+#include "Mesh.h"
 #include "Light.h"
 #include "Triangle.h"
 #include "Sphere.h"
@@ -21,7 +21,7 @@ public:
         sphereLight = {};
     }
     LightInstance( Light* _light ): light( _light ), type( COMMON_LIGHT ), meshLight( nullptr ), sphereLight() {}
-    LightInstance( BaseMesh* _light ): meshLight( _light ), type( MESH_LIGHT ), light( nullptr ), sphereLight() {}
+    LightInstance(Mesh* _light ): meshLight(_light ), type(MESH_LIGHT ), light(nullptr ), sphereLight() {}
     LightInstance( Sphere* _light ): sphereLight( *_light ), type( SPHERE_LIGHT ), meshLight( nullptr ),light( nullptr ) {}
     Type getType() { return type; }
     float getIntensity() {
@@ -48,27 +48,27 @@ public:
 private:
     Type type;
     Light* light;
-    BaseMesh* meshLight;
+    Mesh* meshLight;
     Sphere sphereLight;
 };
 
 
 class Scene {
 public:
-    Scene( Vector<BaseMesh*> meshes, Vector<Sphere> spheres, Vector<Light*> lights );
+    Scene(Vector<Mesh*> meshes, Vector<Sphere> spheres, Vector<Light*> lights );
     Scene();
     ~Scene();
     Sphere add( Sphere sphere );
-    BaseMesh* add( BaseMesh* mesh );
+    Mesh* add(Mesh* mesh );
     Light* add( Light* light );
     [[nodiscard]] Vector<Sphere> getSpheres() const;
-    [[nodiscard]] Vector<BaseMesh*> getMeshes() const;
+    [[nodiscard]] Vector<Mesh*> getMeshes() const;
     [[nodiscard]] Vector<Triangle> getTriangles() const;
     [[nodiscard]] Vector<LightInstance*> getLights() const;
 
 private:
     void fillTriangles();
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Sphere> spheres;
     Vector<LightInstance*> lights;
     Vector<Triangle> triangles;

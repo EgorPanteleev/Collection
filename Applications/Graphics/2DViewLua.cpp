@@ -26,7 +26,12 @@ int main( int argc, char* argv[] ) {
    // scene->add( new PointLight( Vector3f(-3500,0,0 ), 9999999 ) );
     Kokkos::initialize(argc, argv); {
     RayTracer* rayTracer = new RayTracer( camera, scene, canvas, settings[0], settings[1], settings[2] );
+    auto start = std::chrono::high_resolution_clock::now();;
     rayTracer->render( RayTracer::PARALLEL );
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> renderTime = end - start;
+    std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
+    //10.1, 9.9, 8,
     rayTracer->getCanvas()->saveToPNG( "out.png" );
         if ( settings[3] == 1 ) {
             Denoiser::denoise( rayTracer->getCanvas()->getData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );

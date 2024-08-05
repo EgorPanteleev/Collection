@@ -1,7 +1,6 @@
 #include <iostream>
 #include "RayTracer.h"
 #include "CubeMesh.h"
-#include "TriangularMesh.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "cstdlib"
@@ -15,7 +14,7 @@ extern "C" {
 
 
 
-void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights ) {
+void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
         scene->add( mesh );
     }
@@ -28,7 +27,7 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas(w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Sphere> spheres;
     Vector<Light*> lights;
 
@@ -58,7 +57,7 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas(w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Sphere> spheres;
     Vector<Light*> lights;
     float roomRefl = 0;
@@ -107,7 +106,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
     float roomRefl = 0;
 ////right
@@ -168,7 +167,7 @@ void simpleRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(80, -50, 0), Vector3f(100, 50, 600),
@@ -220,7 +219,7 @@ void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(80, -50, 0), Vector3f(100, 50, 600),
@@ -253,7 +252,7 @@ void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     meshes.push_back(randBlockForward );
 
 ////DOG
-    auto* dog = new TriangularMesh();
+    auto* dog = new Mesh();
     dog->loadMesh( "/home/auser/dev/src/Collection/Models/dog/model.obj" );
     //dog->rotate( Vector3f( 0, 0, 1), 45 );
     dog->rotate( Vector3f( 1,0,0),-90);
@@ -264,7 +263,7 @@ void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     dog->setMaterial( { GRAY, 1 , 0 } );
     meshes.push_back( dog );
     ////SKS
-    auto* sks = new TriangularMesh();
+    auto* sks = new Mesh();
     sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
     sks->rotate( Vector3f( 0, 0, 1), 60 );
     //sks->rotate( Vector3f( 1,0,0),100);
@@ -277,7 +276,7 @@ void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     meshes.push_back( sks );
 
     ////TABLE
-    auto* table = new TriangularMesh();
+    auto* table = new Mesh();
     table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
     //table->rotate( Vector3f( 0, 0, 1), 45 );
     //table->rotate( Vector3f( 1,0,0),270);
@@ -325,7 +324,7 @@ void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     cube->move({14,-14,-20});
     meshes.push_back( cube );
 
-    auto* plane = new TriangularMesh();
+    auto* plane = new Mesh();
     plane->loadMesh( "/home/auser/dev/src/Collection/Models/plane/model.obj" );
     //plane->rotate( Vector3f( 0, 0, 1), 10 );
     plane->rotate( Vector3f( 1,0,0),-15);
@@ -356,10 +355,10 @@ void ratScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* rat = new TriangularMesh();
+    auto* rat = new Mesh();
     rat->loadMesh( "/home/auser/dev/src/Collection/Models/rat/model.obj" );
     //rat->rotate( Vector3f( 0, 0, 1), 45 );
     rat->rotate( Vector3f( 1,0,0),270);
@@ -378,10 +377,10 @@ void tableScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numL
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* table = new TriangularMesh();
+    auto* table = new Mesh();
     table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
     //table->rotate( Vector3f( 0, 0, 1), 45 );
     //table->rotate( Vector3f( 1,0,0),270);
@@ -399,10 +398,10 @@ void bookScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* book = new TriangularMesh();
+    auto* book = new Mesh();
     book->loadMesh( "/home/auser/dev/src/Collection/Models/book/model.obj" );
     //book->rotate( Vector3f( 0, 0, 1), 45 );
     book->rotate( Vector3f( 1,0,0),-30);
@@ -420,10 +419,10 @@ void sandwichScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int n
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* sandwich = new TriangularMesh();
+    auto* sandwich = new Mesh();
     sandwich->loadMesh( "/home/auser/dev/src/Collection/Models/sandwich/model.obj" );
     sandwich->rotate( Vector3f( 0, 0, 1), 180 );
     sandwich->rotate( Vector3f( 1,0,0),-90);
@@ -441,10 +440,10 @@ void cartScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* cart = new TriangularMesh();
+    auto* cart = new Mesh();
     cart->loadMesh( "/home/auser/dev/src/Collection/Models/telega/model.obj" );
     //cart->rotate( Vector3f( 0, 0, 1), 45 );
     cart->rotate( Vector3f( 1,0,0),-90);
@@ -462,10 +461,10 @@ void sksScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* sks = new TriangularMesh();
+    auto* sks = new Mesh();
     sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
     //sks->rotate( Vector3f( 0, 0, 1), 45 );
     sks->rotate( Vector3f( 1,0,0),-90);
@@ -483,10 +482,10 @@ void dogScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* dog = new TriangularMesh();
+    auto* dog = new Mesh();
     dog->loadMesh( "/home/auser/dev/src/Collection/Models/dog/model.obj" );
     //dog->rotate( Vector3f( 0, 0, 1), 45 );
     dog->rotate( Vector3f( 1,0,0),-90);
@@ -504,10 +503,10 @@ void planeScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numL
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* plane = new TriangularMesh();
+    auto* plane = new Mesh();
     plane->loadMesh( "/home/auser/dev/src/Collection/Models/plane/model.obj" );
     //dog->rotate( Vector3f( 0, 0, 1), 45 );
     plane->rotate( Vector3f( 1,0,0),10);
@@ -524,10 +523,10 @@ void modelRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* room = new TriangularMesh();
+    auto* room = new Mesh();
     room->loadMesh( "/home/auser/dev/src/Collection/Models/cottage/Cottage_FREE.obj" );
     //room->rotate( Vector3f( 0, 0, 1), 45 );
     //room->rotate( Vector3f( 1,0,0),10);
@@ -543,10 +542,10 @@ void cottageScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* cottage = new TriangularMesh();
+    auto* cottage = new Mesh();
     cottage->loadMesh( "/home/auser/dev/src/Collection/Models/underground/underground.obj" );
     //cottage->rotate( Vector3f( 0, 0, 1), 45 );
     //cottage->rotate( Vector3f( 1,0,0),10);
@@ -563,10 +562,10 @@ void carScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS 
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
 
-    auto* car = new TriangularMesh();
+    auto* car = new Mesh();
     car->loadMesh( "/home/auser/dev/src/Collection/Models/koenigsegg/model.obj" );
     //car->rotate( Vector3f( 0, 0, 1), 45 );
     //car->rotate( Vector3f( 1,0,0),10);
@@ -583,9 +582,9 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
-    auto* table = new TriangularMesh();
+    auto* table = new Mesh();
     table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
     //table->rotate( Vector3f( 0, 0, 1), 20 );
     //table->rotate( Vector3f( 1,0,0),20);
@@ -595,7 +594,7 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 
 
 
-    auto* sks = new TriangularMesh();
+    auto* sks = new Mesh();
     sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
     sks->rotate( Vector3f( 0, 0, 1), 0 );
     sks->rotate( Vector3f( 1,0,0),0);
@@ -611,7 +610,7 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     for ( const auto& a: tr1 ) {
         tr2.push_back( a );
     }
-    auto asd = new TriangularMesh();
+    auto asd = new Mesh();
     asd->setTriangles( tr2 );
     asd->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
     asd->rotate( Vector3f( 0, 0, 1), 0 );
@@ -630,7 +629,7 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
     float roomRefl = 0;
 //////right
@@ -655,7 +654,7 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 ////AUDI
     int roomLength = 300;
     int roomHeight = 140;
-    auto* audi = new TriangularMesh();
+    auto* audi = new Mesh();
     audi->loadMesh( "/home/auser/dev/src/Collection/Models/audi/audi.obj" );
 //    audi->scaleTo( 500 );
 //    audi->moveTo(Vector3f( 0,0, roomLength / 2 + 160 ) );

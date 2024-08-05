@@ -7,7 +7,6 @@
 #include <iostream>
 #include "RayTracer.h"
 #include "CubeMesh.h"
-#include "TriangularMesh.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "cstdlib"

@@ -48,33 +48,34 @@ float getIntensity( Type* light ) {
 
 
 RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
-    Vector3f i = { 0, 0, 0 };
+    RGB i;
     Vector3f N = iData.N;
     float d = 0.8;
     float s = 1 - d;
+    float constexpr del = 1.0f / 255;
     for ( auto light: scene(0).getLights() ) {
-        //int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
-        Vector3f i1 = { 0, 0, 0 };
+        RGB i1;
         for ( size_t j = 0; j < numLightSamples; j++ ) {
             Vector3f origin = light->getSamplePoint();
             Vector3f L = (origin - P).normalize();
-            Ray ray = Ray(origin, L * ( -1 ) );
-            IntersectionData cIData = closestIntersection( ray );
-            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
-            if (cIData.triangle != iData.triangle ) continue;
-            if (cIData.sphere != iData.sphere ) continue;
             float dNL = dot( iData.N, L);
             if ( dNL < 0 ) continue;
-            float distance = cIData.t * 0.01;
-            i1 = i1 + d * light->getIntensity() * ( light->getColor() / 255 ) * dNL / ( distance * distance );
+            Ray ray = Ray(origin, L * ( -1 ) );
+            IntersectionData cIData = closestIntersection( ray );
+            if ( cIData.t == __FLT_MAX__ ) continue;
+            if (cIData.triangle != iData.triangle ) continue;
+            if (cIData.sphere != iData.sphere ) continue;
+            float distance = cIData.t * 0.01f;
+            float inverseDistance2 = 1 / ( distance * distance );
+            i1 = i1 + d * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
             //specular
             //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
 
             Vector3f H = (L + V ).normalize();
             float roughness = 0.5;
             //float power = 1 / roughness;
-            float power = 2.0f / pow( roughness, 4 ) - 2; //better
-            float a2 = pow( roughness, 4 );
+            //float power = 2.0f / pow( roughness, 4 ) - 2; //better
+            auto a2 = (float) pow( roughness, 4 );
             float dNH = dot( N, H );
 
             auto X = []( float val ) {
@@ -87,7 +88,7 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
             float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
             //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
 
-            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
+            float D = ( a2 * (float) X( dNH ) ) / (float) ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
 
             float dNV = dot( N, V );
 
@@ -107,7 +108,7 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
 
             float rs = ( D * G * F ) / ( 4 * dNL * dNV );
             //TODO idk about dist
-            i1 = i1 + s * rs * light->getIntensity() * ( light->getColor() / 255 ) * dNL / ( distance * distance );
+            i1 = i1 + s * rs * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
 //            Vector3f R = (N * 2 * dNL - L).normalize();
 //            float dRV = dot(R, V.normalize());
 //            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
@@ -115,7 +116,7 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
         i = i + i1 / (float) numLightSamples;
     }
     //if ( i > 1 ) i = 1;
-    return { i[0], i[1], i[2] };
+    return i;
 }
 
 

@@ -143,7 +143,7 @@ bool loadScene( lua_State* L, Scene* scene ) {
     return true;
 }
 
-void processMovement( lua_State* L, BaseMesh* mesh ) {
+void processMovement(lua_State* L, Mesh* mesh ) {
     Vector3f moveTo = loadVector3f( L, "moveTo" );
     if ( moveTo != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->moveTo( moveTo );
     Vector3f move = loadVector3f( L, "move" );
@@ -191,15 +191,15 @@ bool loadMeshes( lua_State* L, Scene* scene ) {
         lua_rawgeti(L, -1, i);
         if (lua_istable(L, -1)) {
             std::string type = loadString(L, "Type");
-            BaseMesh* mesh = nullptr;
+            Mesh* mesh = nullptr;
             if ( type == "CubeMesh" ) {
                 Vector3f min = loadVector3f( L, "min" );
                 Vector3f max = loadVector3f( L, "max" );
                 Material material = loadMaterial( L );
                 mesh = new CubeMesh( min, max, material );
-            } else if ( type == "BaseMesh" ) {
+            } else if ( type == "Mesh" ) {
                 std::string path = loadString(L, "Path");
-                auto* sks = new TriangularMesh();
+                auto* sks = new Mesh();
                 sks->loadMesh( path );
                 mesh = sks;
             }

@@ -6,10 +6,10 @@
 #define COLLECTION_CUBEMESH_H
 
 #include "Vector.h"
-#include "TriangularMesh.h"
+#include "Mesh.h"
 #include "Vector.h"
 
-class CubeMesh: public TriangularMesh {
+class CubeMesh: public Mesh {
 public:
     CubeMesh();
     CubeMesh( const Vector3f& _p1, const Vector3f& _p2);

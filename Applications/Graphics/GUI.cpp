@@ -9,8 +9,7 @@
 #include "Sphere.h"
 #include <ctime>
 #include "CubeMesh.h"
-#include "BaseMesh.h"
-#include "TriangularMesh.h"
+#include "Mesh.h"
 #include "Material.h"
 #include "PointLight.h"
 #include "SpotLight.h"
@@ -61,7 +60,7 @@ GLuint getTexture( Canvas* canvas ) {
     // Create texture from rasterized data
     return createTexture(data, w, h);
 }
-void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights ) {
+void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
         scene->add( mesh );
     }
@@ -76,7 +75,7 @@ void testScene( RayTracer*& rayTracer, Rasterizer*& rasterizer, int w, int h, in
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
-    Vector<BaseMesh*> meshes;
+    Vector<Mesh*> meshes;
     Vector<Light*> lights;
     float roomRefl = 0;
 ////right

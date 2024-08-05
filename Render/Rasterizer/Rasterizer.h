@@ -49,7 +49,7 @@ struct RenderFunctor1 {
 
     Rasterizer* rasterizer;
 
-    BaseMesh* mesh;
+    Mesh* mesh;
 };
 
 

@@ -19,8 +19,8 @@ Camera = {
 }
 
 Canvas = {
-	w = 3200,
-	h = 2000,
+	w = 800,
+	h = 500,
 }
 
 Objects = {

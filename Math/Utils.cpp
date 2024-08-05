@@ -127,6 +127,10 @@ Mat3f operator+( const Mat3f& m1, const Mat3f& m2 ) {
     Vector3f vec3 = m1[2] + m2[2];
     return { vec1, vec2, vec3 };
 }
+RGB operator+( const RGB& col, const Vector3f& vec ) {
+    return { col.r + vec.x, col.g + vec.y, col.b + vec.z };
+}
+
 
 Vector3f min( const Vector3f& v1, const Vector3f& v2 ) {
     return { std::min( v1.x, v2.x), std::min( v1.y, v2.y), std::min( v1.z, v2.z) };

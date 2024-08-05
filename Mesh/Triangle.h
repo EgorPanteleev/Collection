@@ -1,10 +1,10 @@
 #pragma once
 #include "Vector3f.h"
 #include "Ray.h"
-#include "BaseMesh.h"
+#include "Mesh.h"
 #include "Material.h"
 class BBoxData;
-class BaseMesh;
+class Mesh;
 class Triangle {
 public:
     Triangle();
@@ -23,8 +23,7 @@ public:
     [[nodiscard]] float intersectsWithRay( const Ray& ray ) const;
     [[nodiscard]] Vector3f getNormal() const;
     Vector3f v1, v2, v3;
-    Material material;
-    BaseMesh* owner;
+    Mesh* owner;
 private:
     Vector3f edge1, edge2;
     Vector3f origin;

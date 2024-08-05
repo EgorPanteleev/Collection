@@ -1,7 +1,7 @@
 #include "Scene.h"
 #include "Triangle.h"
 
-Scene::Scene( Vector<BaseMesh*> _meshes, Vector<Sphere> _spheres, Vector<Light*> _lights ) {
+Scene::Scene(Vector<Mesh*> _meshes, Vector<Sphere> _spheres, Vector<Light*> _lights ) {
     for ( auto mesh: meshes ) add( mesh );
     for ( auto& sphere: spheres ) add( sphere );
     for ( auto light: _lights ) add( light) ;
@@ -23,7 +23,7 @@ Sphere Scene::add( Sphere sphere ) {
     return sphere;
 }
 
-BaseMesh* Scene::add( BaseMesh* mesh ) {
+Mesh* Scene::add(Mesh* mesh ) {
     meshes.push_back( mesh );
     for ( auto& triangle: mesh->getTriangles() ) triangles.push_back( triangle );
     if ( mesh->getMaterial().getIntensity() != 0 )
@@ -43,7 +43,7 @@ void Scene::fillTriangles() {
 
 [[nodiscard]] Vector<Sphere> Scene::getSpheres() const { return spheres; }
 
-Vector<BaseMesh*> Scene::getMeshes() const {
+Vector<Mesh*> Scene::getMeshes() const {
     return meshes;
 }
 

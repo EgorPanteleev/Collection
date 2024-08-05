@@ -214,23 +214,23 @@ IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx ) {
         IntersectionData iData;
         for (uint i = 0; i < node.trianglesCount; i++ ) {
             int leafTriIdx = indexes[node.leftFirst + i];
-            if ( leafTriIdx >= triangles.size() ) {
-                leafTriIdx -= triangles.size();
+            size_t size = triangles.size();
+            if ( leafTriIdx >= size ) {
+                leafTriIdx -= size;
                 Sphere& sphere = spheres[leafTriIdx];
                 float t = sphere.intersectsWithRay( ray );
-                if ( t < 0.05 ) continue;
-                if ( t >= iData.t ) continue;
+                if ( t < 0.05 || t >= iData.t ) continue;
                 iData.t = t;
                 iData.N = sphere.getNormal( ray.origin + ray.direction * t );
-                iData.sphere = &(spheres[leafTriIdx]);
+                iData.sphere = &sphere;
                 iData.triangle = nullptr;
             } else {
-                Triangle triangle = triangles[leafTriIdx];
+                Triangle& triangle = triangles[leafTriIdx];
                 float t = triangle.intersectsWithRay( ray );
                 if ( t >= iData.t ) continue;
                 iData.t = t;
                 iData.N = triangle.getNormal();
-                iData.triangle = &(triangles[leafTriIdx]);
+                iData.triangle = &triangle;
                 iData.sphere = nullptr;
             }
         }

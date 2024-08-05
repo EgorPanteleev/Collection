@@ -1,11 +1,11 @@
 #include "OBJLoader.h"
 #include "OBJ_Loader.h"
 #include <random>
-OBJLoader::OBJLoader( const std::string& path, TriangularMesh* target ) {
+OBJLoader::OBJLoader( const std::string& path, Mesh* target ) {
     load( path, target );
 }
 
-bool OBJLoader::load( const std::string& path, TriangularMesh* target ) {
+bool OBJLoader::load( const std::string& path, Mesh* target ) {
     objl::Loader loader;
     bool res = loader.LoadFile( path);
     if ( !res ) return res;
