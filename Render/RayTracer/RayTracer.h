@@ -46,8 +46,7 @@ private:
 
 struct RenderFunctor {
 
-    RenderFunctor(float _uX, float _uY, float _uX2, float _uY2, float _Vx2,
-                  float _Vy2, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result );
+    RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& result );
 
 
     KOKKOS_INLINE_FUNCTION void operator()(const int i, const int j) const;

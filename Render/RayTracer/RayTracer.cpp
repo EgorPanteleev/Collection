@@ -349,15 +349,8 @@ void RayTracer::traceAllRaysSerial() {
     }
 }
 void RayTracer::traceAllRaysParallel() {
-    float uX = camera(0).Vx / canvas(0).getW();
-    float uY = camera(0).Vy / canvas(0).getH();
-    float uX2 = uX / 2.0f;
-    float uY2 = uY / 2.0f;
-    Vector3f from = camera(0).origin;
-    float Vx2 = camera(0).Vx / 2;
-    float Vy2 = camera(0).Vy / 2;
     Kokkos::View<RGB**> result = Kokkos::View<RGB**>("colors", canvas(0).getW(), canvas(0).getH() );
-    RenderFunctor renderFunctor( uX, uY, uX2, uY2, Vx2, Vy2, from, this, result );
+    RenderFunctor renderFunctor( this, result );
     typedef Kokkos::MDRangePolicy<Kokkos::Rank<2>> range_policy_2d;
     range_policy_2d policy({0, 0}, {canvas(0).getW(), canvas(0).getH()});
     Kokkos::parallel_for("parallel2D", policy, renderFunctor);
@@ -384,10 +377,17 @@ int RayTracer::getDepth() const {
 }
 
 
-RenderFunctor::RenderFunctor(float _uX, float _uY, float _uX2, float _uY2, float _Vx2,
-                             float _Vy2, Vector3f _from, RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
-        : uX(_uX), uY(_uY), uX2(_uX2), uY2(_uY2), Vx2(_Vx2),
-          Vy2(_Vy2), from(_from), rayTracer( _rayTracer ), colors( result ) {
+RenderFunctor::RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
+        :rayTracer( _rayTracer ), colors( result ) {
+    Canvas* canvas = rayTracer->getCanvas();
+    Camera* camera = rayTracer->getCamera();
+    uX = camera->Vx / canvas->getW();
+    uY = camera->Vy / canvas->getH();
+    uX2 = uX * 0.5f;
+    uY2 = uY * 0.5f;
+    from = camera->origin;
+    Vx2 = camera->Vx * 0.5f;
+    Vy2 = camera->Vy * 0.5f;
 }
 
 void RenderFunctor::operator()(const int i, const int j) const {
