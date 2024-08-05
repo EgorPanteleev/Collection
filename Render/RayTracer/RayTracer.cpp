@@ -27,7 +27,7 @@ RayTracer::~RayTracer() {
 //    closestIntersectionData cIData;
 //    for ( const auto& object: scene->objects ) {
 //        IntersectionData iData = object->intersectsWithRay(ray);
-//        if ( iData.t == std::numeric_limits<float>::max()) continue;
+//        if ( iData.t == __FLT_MAX__) continue;
 //        if ( iData.t <= 0.05 ) continue;
 //        if ( cIData.t < iData.t ) continue;
 //        cIData.t = iData.t;
@@ -45,6 +45,79 @@ template <typename Type>
 float getIntensity( Type* light ) {
     return light->getIntensity();
 }
+
+
+RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
+    Vector3f i = { 0, 0, 0 };
+    Vector3f N = iData.N;
+    float d = 0.8;
+    float s = 1 - d;
+    for ( auto light: scene(0).getLights() ) {
+        //int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
+        Vector3f i1 = { 0, 0, 0 };
+        for ( size_t j = 0; j < numLightSamples; j++ ) {
+            Vector3f origin = light->getSamplePoint();
+            Vector3f L = (origin - P).normalize();
+            Ray ray = Ray(origin, L * ( -1 ) );
+            IntersectionData cIData = closestIntersection( ray );
+            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
+            if (cIData.triangle != iData.triangle ) continue;
+            if (cIData.sphere != iData.sphere ) continue;
+            float dNL = dot( iData.N, L);
+            if ( dNL < 0 ) continue;
+            float distance = cIData.t * 0.01;
+            i1 = i1 + d * light->getIntensity() * ( light->getColor() / 255 ) * dNL / ( distance * distance );
+            //specular
+            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
+
+            Vector3f H = (L + V ).normalize();
+            float roughness = 0.5;
+            //float power = 1 / roughness;
+            float power = 2.0f / pow( roughness, 4 ) - 2; //better
+            float a2 = pow( roughness, 4 );
+            float dNH = dot( N, H );
+
+            auto X = []( float val ) {
+                return ( val > 0 ) ? 1 : 0;
+            };
+
+
+            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
+
+            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
+            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
+
+            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
+
+            float dNV = dot( N, V );
+
+            float dVH = dot( V, H ); // really H, ost M
+
+            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
+
+            auto G1 = [=]( const Vector3f& x ) {
+                float dNX = dot(x,N);
+                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
+            };
+
+            float G = G1( V ) * G1( L ); //GGX
+            float refraction = 0.5;
+            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
+            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
+
+            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
+            //TODO idk about dist
+            i1 = i1 + s * rs * light->getIntensity() * ( light->getColor() / 255 ) * dNL / ( distance * distance );
+//            Vector3f R = (N * 2 * dNL - L).normalize();
+//            float dRV = dot(R, V.normalize());
+//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
+        }
+        i = i + i1 / (float) numLightSamples;
+    }
+    //if ( i > 1 ) i = 1;
+    return { i[0], i[1], i[2] };
+}
+
 
 float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
     float i = 0;
@@ -152,22 +225,24 @@ Vector3f generateSamplePoint( Vector3f N ) {
 
 RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     IntersectionData cIData = closestIntersection( ray );
-    if ( cIData.t == std::numeric_limits<float>::max() ) return BACKGROUND_COLOR * throughput;
+    if ( cIData.t == __FLT_MAX__ ) return BACKGROUND_COLOR * throughput;
     if ( cIData.triangle != nullptr ) {
-        if ( cIData.triangle->owner->getMaterial().getIntensity() != 0 ) return  {255,255,255};
+        if ( cIData.triangle->owner->getMaterial().getIntensity() != 0 ) return  cIData.triangle->owner->getMaterial().getColor();
     } else {
-        if ( cIData.sphere->material.getIntensity() != 0 ) return {255,255,255};
+        if ( cIData.sphere->material.getIntensity() != 0 ) return cIData.sphere->material.getColor();
     }
     Vector3f P = ray.origin + ray.direction * cIData.t;
-    float i = computeLight( P, ray.direction * (-1), cIData );
+    RGB i = computeDiffuseLight( P, ray.direction * (-1), cIData );
     //if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
     RGB diffuse = {};
     float reflection;
     if ( cIData.triangle == nullptr ) {
-        diffuse = cIData.sphere->material.getColor() * i * throughput;
+        RGB materialColor = cIData.sphere->material.getColor();
+        diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
         reflection = cIData.sphere->material.getReflection();// -> shining
     } else {
-        diffuse = cIData.triangle->owner->getMaterial().getColor() * i * throughput;
+        RGB materialColor = cIData.triangle->owner->getMaterial().getColor();
+        diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
         reflection = cIData.triangle->owner->getMaterial().getReflection();// -> shining
     }
     if ( nextDepth == 0 ) return diffuse;
@@ -185,7 +260,7 @@ RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
         //ambient = ambient * 2 / numSamples;
         //cosine
         ambient = ambient * 1 / (float) numAmbientSamples;
-        return diffuse;// + ambient;
+        return diffuse + ambient;
     }
     else {
         Vector3f N = cIData.N;

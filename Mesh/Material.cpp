@@ -18,6 +18,10 @@ float Material::getIntensity() const {
     return intensity;
 }
 
+void Material::setIntensity( float i ) {
+    intensity = i;
+}
+
 float Material::getDiffuse() const {
     return diffuse;
 }

@@ -87,10 +87,8 @@ Vector<Triangle> TriangularMesh::getTriangles() {
 }
 
 BBoxData TriangularMesh::getBBox() const {
-    static float MAX = std::numeric_limits<float>::max();
-    static float MIN = std::numeric_limits<float>::min();
-    Vector3f min = {MAX,MAX,MAX};
-    Vector3f max = {MIN,MIN,MIN};
+    Vector3f min = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
+    Vector3f max = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
     for ( auto& triangle: triangles ) {
         BBoxData bbox = triangle.getBBox();
         if ( bbox.pMin[0] < min[0] ) min[0] = bbox.pMin[0];
@@ -120,7 +118,7 @@ bool TriangularMesh::isContainPoint( const Vector3f& p ) const {
 }
 
 IntersectionData TriangularMesh::intersectsWithRay( const Ray& ray ) const {
-    float min = std::numeric_limits<float>::max();
+    float min = __FLT_MAX__;
     Vector3f N = {};
     for ( const auto& triangle: triangles ) {
         float t = triangle.intersectsWithRay( ray );

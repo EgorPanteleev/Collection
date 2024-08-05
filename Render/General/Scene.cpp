@@ -3,7 +3,7 @@
 
 Scene::Scene( Vector<BaseMesh*> _meshes, Vector<Sphere> _spheres, Vector<Light*> _lights ) {
     for ( auto mesh: meshes ) add( mesh );
-    for ( auto& sphere: spheres ) add( &sphere);
+    for ( auto& sphere: spheres ) add( sphere );
     for ( auto light: _lights ) add( light) ;
 }
 
@@ -16,11 +16,12 @@ Scene::~Scene() {
 //        delete light;
 //    }
 }
-void Scene::add( Sphere* sphere ) {
-    spheres.push_back( *sphere );
-    if ( sphere->material.getIntensity() != 0 )
-        lights.push_back( new LightInstance( sphere ) );
+void Scene::add( Sphere sphere ) {
+    spheres.push_back( sphere );
+    if ( sphere.material.getIntensity() != 0 )
+        lights.push_back( new LightInstance( &sphere ) );
 }
+
 void Scene::add( BaseMesh* mesh ) {
     meshes.push_back( mesh );
     for ( auto& triangle: mesh->getTriangles() ) triangles.push_back( triangle );

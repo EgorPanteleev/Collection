@@ -3,9 +3,6 @@
 #include <iostream>
 //Triangle::
 
-constexpr float EPSILON = std::numeric_limits<float>::epsilon();
-constexpr float MAX = std::numeric_limits<float>::max();
-
 Triangle::Triangle(): v1(), v2(), v3() {
     edge1 = v2 - v1;
     edge2 = v3 - v1;
@@ -117,22 +114,22 @@ float Triangle::intersectsWithRay( const Ray& ray ) const {
     Vector3f h = ray.direction.cross( edge2 );
     float a = dot(edge1, h);
 
-    if ( a < EPSILON ) return MAX; // Ray is parallel to the triangle
+    if ( a < __FLT_EPSILON__ ) return __FLT_MAX__; // Ray is parallel to the triangle
 
     float f = 1.0f / a;
     Vector3f s = ray.origin - v1;
     float u = f * dot(s, h);
 
-    if ( u < 0.0f || u > 1.0f ) return MAX;
+    if ( u < 0.0f || u > 1.0f ) return __FLT_MAX__;
 
     Vector3f q = s.cross( edge1 );
     float v = f * dot(ray.direction, q);
 
-    if  ( v < 0.0f || u + v > 1.0f ) return MAX;
+    if  ( v < 0.0f || u + v > 1.0f ) return __FLT_MAX__;
 
     float t = f * dot(edge2, q);
 
-    if ( t < EPSILON ) return MAX;
+    if ( t < __FLT_EPSILON__ ) return __FLT_MAX__;
 
     return t;
 }

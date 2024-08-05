@@ -8,6 +8,7 @@ public:
     [[nodiscard]] RGB getColor() const;
     void setColor( const RGB& c );
     [[nodiscard]] float getIntensity() const;
+    void setIntensity( float i );
     [[nodiscard]] float getDiffuse() const;
     void setDiffuse( float d );
     [[nodiscard]] float getReflection() const;

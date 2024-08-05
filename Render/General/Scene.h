@@ -38,6 +38,13 @@ public:
             case SPHERE_LIGHT: return sphereLight.getSamplePoint();
         }
     }
+    RGB getColor() {
+        switch (type) {
+            case COMMON_LIGHT: return light->lightColor;
+            case MESH_LIGHT: return meshLight->getMaterial().getColor();
+            case SPHERE_LIGHT: return sphereLight.getMaterial().getColor();
+        }
+    }
 private:
     Type type;
     Light* light;
@@ -51,7 +58,7 @@ public:
     Scene( Vector<BaseMesh*> meshes, Vector<Sphere> spheres, Vector<Light*> lights );
     Scene();
     ~Scene();
-    void add( Sphere* sphere );
+    void add( Sphere sphere );
     void add( BaseMesh* mesh );
     void add( Light* light );
     [[nodiscard]] Vector<Sphere> getSpheres() const;

@@ -4,6 +4,7 @@
 #include "Mat4f.h"
 #include "Mat3f.h"
 #include "Mat2f.h"
+#include "Color.h"
 float dot( const Vector3f& p1, const Vector3f& p2 );
 
 float dot( const Vector4f& p1, const Vector4f& p2 );
@@ -27,6 +28,10 @@ Vector4f operator*( const Vector4f& v, const Mat4f& m );
 Mat4f operator*( const Mat4f& m1, const Mat4f& m2 );
 
 Vector3f operator*( const Mat3f& m, const Vector3f& v );
+
+Vector3f operator*( float a, const Vector3f& v );
+
+Vector3f operator*( float a, const RGB& col );
 
 Mat3f operator*( const Mat3f& m1, const Mat3f& m2 );
 

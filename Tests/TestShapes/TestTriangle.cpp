@@ -28,7 +28,7 @@ int testintersectsWithRay() {
     if ( tr1.intersectsWithRay( Ray({0,0,-999}, {0,0,1}) ) != 999 ) return 1;
     if ( (int) ( tr1.intersectsWithRay( Ray({0,0,-1}, {2,3,1}) ) * 1000 )
     != (int) ( sqrtf(14) * 1000 ) ) return 1;
-    if (  tr1.intersectsWithRay( Ray({0,0,-1}, {1,0,0}) ) != std::numeric_limits<float>::max() ) return 1;
+    if (  tr1.intersectsWithRay( Ray({0,0,-1}, {1,0,0}) ) != __FLT_MAX__ ) return 1;
     return 0;
 }
 

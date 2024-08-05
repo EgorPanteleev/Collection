@@ -1,84 +1,19 @@
 #include <iostream>
 #include "RayTracer.h"
-#include "Scene.h"
-#include "Camera.h"
-#include "Sphere.h"
-#include <ctime>
 #include "CubeMesh.h"
-#include "BaseMesh.h"
 #include "TriangularMesh.h"
-#include "Material.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "cstdlib"
 #include "Denoiser.h"
 
-
-//// RAND BLOCK
-//    auto* randBlockForward = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
-//    randBlockForward->moveTo( Vector3f(0, -40, 325) );
-//    randBlockForward->scaleTo( Vector3f(20,90,20) );
-//    randBlockForward->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back(randBlockForward );
-//    materials.emplace_back( GRAY, 1 , 0 );
-
-//    auto* randBlockBackward = new Cube( Vector3f(15, -50, -310), Vector3f(-15, -30, -340) );
-//    //randBlock->move( Vector3f(-30,0,0 ));
-//    //randBlock->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back(randBlockBackward );
-//    materials.emplace_back( GRAY, 1 , 0 );
-//
-//    auto* randBlockLeft = new Cube( Vector3f(-300, -30, -15), Vector3f(-340, -50, 15) );
-//    //randBlock->move( Vector3f(-30,0,0 ));
-//    //randBlock->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back(randBlockLeft );
-//    materials.emplace_back( GRAY, 1 , 0 );
-//
-//    auto* randBlockRight = new Cube( Vector3f(300, -50, -15), Vector3f(340, -30, 15) );
-//    //randBlock->move( Vector3f(-30,0,0 ));
-//    //randBlock->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back(randBlockRight );
-//    materials.emplace_back( GRAY, 1 , 0 );
-//
-//    auto* randBlockUp = new Cube( Vector3f(-15, 300, -15), Vector3f(15, 340, 15) );
-//    //randBlock->move( Vector3f(-30,0,0 ));
-//    //randBlock->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back(randBlockUp );
-//    materials.emplace_back( GRAY, 1 , 0 );
-//
-//    auto* randBlockDown = new Cube( Vector3f(15, -300, -15), Vector3f(-15, -340, 15) );
-//    //randBlock->move( Vector3f(-30,0,0 ));
-//    //randBlock->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back( randBlockDown );
-//    materials.emplace_back( GRAY, 1 , 0 );
+extern "C" {
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
 
 
-//    auto* randBlock1 = new Cube( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
-//    randBlock1->move( Vector3f(30,0,0 ));
-//    //randBlock->rotate( Vector3f( 0,1,0), 45);
-//    shapes.push_back(randBlock1 );
-//    materials.emplace_back( GRAY, 1 , 0 );
-
-
-//    shapes.push_back(new Cube( Vector3f(-12, -19, 593), Vector3f(10, -17, 600) ) );
-//    materials.emplace_back( YELLOW, 1 , 0 );
-//
-//    shapes.push_back(new Cube( Vector3f(-10, -17, 595), Vector3f(10, 17, 595) ) );
-//    materials.emplace_back( YELLOW, 1 , 0 );
-//
-//    shapes.push_back(new Cube( Vector3f(-10, -17, 595), Vector3f(10, 17, 595) ) );
-//    materials.emplace_back( YELLOW, 1 , 0 );
-//
-//    shapes.push_back(new Cube( Vector3f(-10, -17, 595), Vector3f(10, 17, 595) ) );
-//    materials.emplace_back( YELLOW, 1 , 0 );
-
-//    shapes.push_back(new Cube( Vector3f(-13, -30, 595), Vector3f(13, 30, 595) ) );
-//    materials.emplace_back( BLUE, 1 , 0.8 );
-
-
-//void initCanvas(Canvas* canvas, int w, int h ) {
-//    canvas = new Canvas( w, h );
-//}
 
 void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto& mesh: meshes ) {
@@ -88,7 +23,6 @@ void loadScene( Scene* scene, Vector <BaseMesh*>& meshes, Vector<Light*>& lights
         scene->add( light );
     }
 }
-
 void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
     Camera* cam = new Camera( Vector3f(0, 0,-10000 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
@@ -114,7 +48,7 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
 //    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 500 ));
     loadScene( scene, meshes, lights );
     for ( auto& sphere: spheres ) {
-        scene->add( &sphere );
+        scene->add( sphere );
     }
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -161,7 +95,7 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
 
 
     for ( auto& sph: spheres ) {
-        scene->add( &sph );
+        scene->add( sph );
     }
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
@@ -192,7 +126,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
                                    { GRAY, -1 , roomRefl } ) );
 ////up
-    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 620),
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
                                    { GRAY, -1 , roomRefl } ) );
 
 ////RAND BLOCK

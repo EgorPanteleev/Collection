@@ -11,7 +11,7 @@ Rasterizer::Rasterizer( Camera* c, Scene* s, Canvas* _canvas ) {
     }
     for ( int i = 0; i < _canvas->getW(); i++ ) {
         for ( int j = 0; j < _canvas->getH(); j++ ) {
-            zBuffer[i][j] = std::numeric_limits<float>::max();
+            zBuffer[i][j] = __FLT_MAX__;
         }
     }
 
@@ -29,20 +29,19 @@ Rasterizer::~Rasterizer() {
 
 void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
     float k;
-    static float MAX = std::numeric_limits<float>::max();
-    if ( v2.getX() == v1.getX() ) k = MAX;
-    else if ( v2.getY() == v1.getY() ) k = -MAX;
+    if ( v2.getX() == v1.getX() ) k = __FLT_MAX__;
+    else if ( v2.getY() == v1.getY() ) k = -__FLT_MAX__;
     else k = abs( v2.getY() - v1.getY() ) / abs( v2.getX() - v1.getX() );
 
     if ( k <= 1 ) {
-        if ( k == -MAX ) k = 0;
+        if ( k == -__FLT_MAX__ ) k = 0;
         if ( v1.getX() - v2.getX() > 0 ) std::swap( v1, v2 );
         int cf = v1.getY() - v2.getY() < 0 ? 1 : -1;
         for ( int x = (int) v1.getX(); x <= (int) v2.getX(); x++ ) {
             canvas(0).setPixel( x, v1.getY() + k * ( x - v1.getX() ) * cf, color );
         }
     } else {
-        if ( k == MAX ) k = 0;
+        if ( k == __FLT_MAX__ ) k = 0;
         else k = 1 / k;
         if ( v1.getY() - v2.getY() > 0 ) std::swap( v1, v2 );
         int cf = v1.getX() - v2.getX() < 0 ? 1 : -1;
@@ -63,7 +62,7 @@ Vector3f Rasterizer::transform( Vector3f p ) {
 void Rasterizer::clear() {
     for ( int i = 0; i < canvas(0).getW(); i++ ) {
         for ( int j = 0; j < canvas(0).getH(); j++ ) {
-            zBuffer[i][j] = std::numeric_limits<float>::max();
+            zBuffer[i][j] = __FLT_MAX__;
             //canvas(0).setPixel( i, j, { 0, 0, 0 } );
         }
     }
@@ -87,22 +86,21 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
     int xMin, xMax;
     xMin = std::min( std::min(v1.getX(), v2.getX() ), v3.getX() );
     xMax = std::max( std::max(v1.getX(), v2.getX() ), v3.getX() );
-    static float MAX = std::numeric_limits<float>::max();
     float k12;
-    if ( v2.getX() == v1.getX() ) k12 = MAX;
-    else if ( v2.getY() == v1.getY() ) k12 = -MAX;
+    if ( v2.getX() == v1.getX() ) k12 = __FLT_MAX__;
+    else if ( v2.getY() == v1.getY() ) k12 = -__FLT_MAX__;
     else k12 = ( v2.getY() - v1.getY() ) / ( v2.getX() - v1.getX() );
     float b12 = v1.getY() - k12 * v1.getX();
 
     float k13;
-    if ( v3.getX() == v1.getX() ) k13 = MAX;
-    else if ( v3.getY() == v1.getY() ) k13 = -MAX;
+    if ( v3.getX() == v1.getX() ) k13 = __FLT_MAX__;
+    else if ( v3.getY() == v1.getY() ) k13 = -__FLT_MAX__;
     else k13 = ( v3.getY() - v1.getY() ) / ( v3.getX() - v1.getX() );
     float b13 = v1.getY() - k13 * v1.getX();
 
     float k23;
-    if ( v3.getX() == v2.getX() ) k23 = MAX;
-    else if ( v3.getY() == v2.getY() ) k23 = -MAX;
+    if ( v3.getX() == v2.getX() ) k23 = __FLT_MAX__;
+    else if ( v3.getY() == v2.getY() ) k23 = -__FLT_MAX__;
     else k23 = ( v3.getY() - v2.getY() ) / ( v3.getX() - v2.getX() );
     float b23 = v2.getY() - k23 * v2.getX();
     Vector3f v11 = v1;
@@ -111,16 +109,16 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
     int asd = v22.getY() > canvas(0).getH() ? canvas(0).getH() : v22.getY();
     int asdd= v11.getY() < 0 ? 0 : v11.getY();
     for ( int y = asdd; y < asd; y++) {
-        float x12 = MAX;
-        if ( k12 == MAX && y < std::max( v1.getY(), v2.getY() ) && y > std::min( v1.getY(), v2.getY() ) ) x12 = std::floor( v1.getX() );
+        float x12 = __FLT_MAX__;
+        if ( k12 == __FLT_MAX__ && y < std::max( v1.getY(), v2.getY() ) && y > std::min( v1.getY(), v2.getY() ) ) x12 = std::floor( v1.getX() );
         else x12 = std::floor( ( y - b12 ) / k12 );
 
-        float x13 = MAX;
-        if ( k13 == MAX && y < std::max( v1.getY(), v3.getY() ) && y > std::min( v1.getY(), v3.getY() )  ) x13 = std::floor( v1.getX() );
+        float x13 = __FLT_MAX__;
+        if ( k13 == __FLT_MAX__ && y < std::max( v1.getY(), v3.getY() ) && y > std::min( v1.getY(), v3.getY() )  ) x13 = std::floor( v1.getX() );
         else x13 = std::floor( ( y - b13 ) / k13 );
 
-        float x23 = MAX;
-        if ( k23 == MAX && y < std::max( v2.getY(), v3.getY() ) && y > std::min( v2.getY(), v3.getY() ) ) x23 = std::floor( v2.getX() );
+        float x23 = __FLT_MAX__;
+        if ( k23 == __FLT_MAX__ && y < std::max( v2.getY(), v3.getY() ) && y > std::min( v2.getY(), v3.getY() ) ) x23 = std::floor( v2.getX() );
         else x23 = std::floor( ( y - b23 ) / k23 );
         Vector<float> vals;
         if ( x12 <= xMax && x12 >= xMin ) vals.push_back( x12 );

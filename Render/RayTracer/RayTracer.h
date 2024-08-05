@@ -19,6 +19,7 @@ public:
     RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
     ~RayTracer();
     KOKKOS_INLINE_FUNCTION IntersectionData closestIntersection( Ray& ray );
+    KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
     KOKKOS_INLINE_FUNCTION float computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
     KOKKOS_INLINE_FUNCTION RGB traceRay( Ray& ray, int nextDepth, float throughput );
     void render( Type type );

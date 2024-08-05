@@ -207,9 +207,8 @@ bool BVH::IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bma
 }
 
 IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx ) {
-    static float MAX = std::numeric_limits<float>::max();
     BVHNode& node = bvhNode[nodeIdx];
-    if (!IntersectAABB( ray, node.aabbMin, node.aabbMax )) return { MAX, {} , nullptr, nullptr };
+    if (!IntersectAABB( ray, node.aabbMin, node.aabbMax )) return { __FLT_MAX__, {} , nullptr, nullptr };
     if (node.isLeaf())
     {
         IntersectionData iData;
