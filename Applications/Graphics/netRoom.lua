@@ -1,6 +1,6 @@
 Colors = {
     WHITE     = { 255, 255, 255 },
-    ORANGE    = { 255, 127, 0   },
+    ORANGE    = { 249, 231, 132 },
     GRAY      = { 210, 210, 210 },
     RED       = { 255, 0  , 0   },
     GREEN     = { 0  , 255, 0   },
@@ -72,7 +72,7 @@ Objects = {
             Type = "CubeMesh",
             min = { -15, -50, 310 },
             max = { 15, -30, 340 },
-            material = { Colors.PINK, 0.7 },
+            material = { Colors.DARK_BLUE, 0.5 },
             moveTo = { 0, -40, 325 },
             scaleTo = { 30, 100, 30 },
             rotate = { 0, 25, 0 },
@@ -83,7 +83,7 @@ Objects = {
             Type = "CubeMesh",
             min = { -15, -50, 310 },
             max = { 15, -30, 340 },
-            material = { Colors.GRAY, -1, 1 },
+            material = { Colors.PINK, 0.5 },
             moveTo = { 0, -40, 325 },
             scaleTo = { 30, 260, 30 },
             rotate = { 0, -25, 0 },
@@ -93,13 +93,13 @@ Objects = {
 }
 
 Lights = {
-    Spheres = {
-        {
-            origin = { 0, 55, 150 },
-            radius = 5,
-            material = { Colors.DARK_BLUE, 0.7 }
-        },
-    },
+--     Spheres = {
+--         {
+--             origin = { 0, 55, 150 },
+--             radius = 5,
+--             material = { Colors.ORANGE, 0.7 }
+--         },
+--     },
 --    Meshes = {
 --        -- Define mesh lights here
 --    }

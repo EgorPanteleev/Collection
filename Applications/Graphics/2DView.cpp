@@ -624,6 +624,205 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
+void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+
+    Vector<BaseMesh*> meshes;
+    Vector<Light*> lights;
+    float roomRefl = 0;
+//////right
+//    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+//                                    { GREEN, -1 , roomRefl } ) );
+//////left
+//    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+//                                   { RED, -1 , roomRefl } ) );
+//////front
+//    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+//                                   { GRAY, -1, roomRefl } ) );
+//////back
+//    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+//                                   { GRAY, -1 , roomRefl } ) );
+//////down
+//    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+//                                   { GRAY, -1 , roomRefl } ) );
+//////up
+//    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
+//                                   { GRAY, -1 , roomRefl } ) );
+
+////AUDI
+    int roomLength = 300;
+    int roomHeight = 140;
+    auto* audi = new TriangularMesh();
+    audi->loadMesh( "/home/auser/dev/src/Collection/Models/audi/audi.obj" );
+//    audi->scaleTo( 500 );
+//    audi->moveTo(Vector3f( 0,0, roomLength / 2 + 160 ) );
+////    //rat->rotate( Vector3f( 0, 0, 1), 45 );
+//    audi->rotate( Vector3f( 1,0,0),270);
+//    audi->rotate( Vector3f( 0,1,0), 145);
+//    audi->move( Vector3f( -4,0,3) );
+//    audi->setMinPoint( Vector3f( 0,-roomHeight / 2,0), 1 );
+//    audi->setMaterial( { WHITE, -1 , 0 } );
+
+    ////Grill
+   // Material grill = { BLACK, 0.8, 0.3/*0.3*/, 0.1 };
+    Material grill = { BLACK, -1, 0.3 };
+    //Front
+    //Top of grill
+//    audi->setMaterial( grill, 47 );
+//    audi->setMaterial( grill, 38 );
+//    audi->setMaterial( grill, 25 );
+//    //Left/Right grill
+//    audi->setMaterial( grill, 34 );
+//    //Bottom of grill
+//    audi->setMaterial( grill, 31 );
+//    audi->setMaterial( grill, 58 );
+//    //Boxes
+//    audi->setMaterial( grill, 27 ); //front boxes( grill )
+//    audi->setMaterial( grill, 30 ); //front boxes( grill )
+//    //Radiator
+//    Material radiator = { { 100, 100, 100 }, 1, 0, 1 };
+//    audi->setMaterial( radiator, 59 ); //radiator bottom
+//    audi->setMaterial( radiator, 57 ); //l/r radiator
+//    audi->setMaterial( radiator, 60 ); //radiator front
+//    //Back
+//    audi->setMaterial( grill, 33 );
+//    audi->setMaterial( radiator, 73 );
+//
+//
+//    ////Signs
+//    Material signs = { { 220, 220, 220 }, 1, 0.7, 1 };
+//    //Front
+//    audi->setMaterial( signs, 1 );
+//    //Back
+//    audi->setMaterial( signs, 23 ); // audi
+//    audi->setMaterial( signs, 39 );
+//
+//    ////Wheels
+//    ////Tires
+//    Material tires = { BLACK, 1 , 0, 1 };
+//    //Front
+//    audi->setMaterial( tires, 5 ); //front tire
+//    //Back
+//    audi->setMaterial( tires, 20 ); //back tires
+//    ////Rims
+//    Material rims = { { 220, 220, 220 }, 1, 0.4, 1 };
+//    //Front
+//    audi->setMaterial( rims, 15 );
+//    audi->setMaterial( rims, 13 );
+//    audi->setMaterial( rims, 14 );
+//    //Back
+//    audi->setMaterial( rims, 22 );
+//    audi->setMaterial( rims, 21 );
+//    ////Brakes
+//    Material mainBreaks = { RED, 1 , 0, 1 };
+//    audi->setMaterial( mainBreaks, 134 ); //main tormoza(red) back
+//    audi->setMaterial( mainBreaks, 130 ); //main tormoza(red) front
+//    audi->setMaterial( mainBreaks, 41 ); //hueta na tormoze
+//    audi->setMaterial( mainBreaks, 42 ); //hueta na tormoze
+//    Material secondBreaks = { GRAY, 1 , 0, 1 };
+//    audi->setMaterial( secondBreaks, 132 ); //tormoz disk big back
+//    audi->setMaterial( secondBreaks, 82 ); //tormoz disk big
+//    audi->setMaterial( secondBreaks, 12 ); //tormoz disk
+//    audi->setMaterial( secondBreaks, 18 ); //tormoz disk
+//
+//    ////Bolts
+//    Material bolts = { YELLOW, 1, 0.2, 1 };
+//    audi->setMaterial( bolts, 9 );
+//    audi->setMaterial( bolts, 10 );
+//    audi->setMaterial( bolts, 8 ); //big bolt
+//    audi->setMaterial( bolts, 16 ); //BOLTI back
+//    //Sign
+//    Material bSign = signs;
+//    audi->setMaterial( bSign, 6 ); //SIGN
+//    audi->setMaterial( { BLACK, 1 , 0, 1 }, 2 ); //sign back wheel
+//    //Obodok
+//    Material obod = { YELLOW, 1, 0.2, 1 };
+//    audi->setMaterial( obod, 7 ); //obodok
+//    audi->setMaterial( obod, 4 ); //obodok back wheel
+//
+//
+//    ////BODY
+//    Material body = { DARK_BLUE, 1 , 0/*0.15*/, 1 };
+//    audi->setMaterial( body, 0 ); //sign podstavka
+//    audi->setMaterial( body, 44 ); //back bagajnik
+//    audi->setMaterial( body, 146 ); //l/r door front
+//    audi->setMaterial( body, 145 ); //back bumper
+//    audi->setMaterial( body, 144 ); //front krilo
+//    audi->setMaterial( body, 138 ); //hueta mezhdu l/r windows
+//    audi->setMaterial( body, 139 );//l/r porogi
+//    audi->setMaterial( body, 136 ); //l/r porogi
+//    audi->setMaterial( body, 80 ); //back door
+//    audi->setMaterial( body, 66 ); //capot
+//    audi->setMaterial( body, 46 ); //roof and back
+//    audi->setMaterial( body, 49 ); // front bumper
+//    audi->setMaterial( body, 24 ); //side mirrors
+//    audi->setMaterial( body, 157 ); // back mid hz
+//    audi->setMaterial( body, 29 ); //side mirrors mid
+//    audi->setMaterial( body, 35 ); //side mirrors mid
+//    audi->setMaterial( body, 53 ); // spoiler
+//    audi->setMaterial( body, 50 ); //FRONT
+//    audi->setMaterial( body, 56 ); //FRONT
+//    audi->setMaterial( body, 128 );//okolo grill
+//    audi->setMaterial( body, 51 );//obvodka u grill
+//    audi->setMaterial( body, 54 );// top grill obvodka
+//    audi->setMaterial( body, 52 ); //obvodka u kapota
+//    audi->setMaterial( body, 103 ); // okolo tires
+//    audi->setMaterial( body, 61 ); //l/r grill obdodka
+//    audi->setMaterial( body, 79 ); // to kosmos pimpo4ka
+//    audi->setMaterial( body, 78 ); // roof hueta
+//    audi->setMaterial( body, 76 ); // roof hueta
+//    audi->setMaterial( body, 63 ); // obvodka back mirror
+//    audi->setMaterial( body, 72 ); //back bumper obvodka
+//    audi->setMaterial( body, 75 ); //back bumper obvodka
+//    audi->setMaterial( body, 74 ); //back bumper obvodka( ele vidno)
+//    audi->setMaterial( body, 28 ); //obodok right mirror
+//    audi->setMaterial( body, 83 ); //back
+//    audi->setMaterial( body, 55 ); //front obodot snuzu
+//    ////Obvodka
+//    Material obvodka = { BLACK, 0.7 , 0, 0.5 };
+//    audi->setMaterial( obvodka, 150 ); //l/r windows obvodka
+//    audi->setMaterial( obvodka, 70 ); //front window obvodka l/r
+//    audi->setMaterial( obvodka, 68 ); //front window obvodka bottom
+//    audi->setMaterial( obvodka, 65 ); // obvodka side mirrors (doors)
+//    audi->setMaterial( obvodka, 148 ); //obvodka door front side
+//
+//    ////Handles
+//    Material handles = body;
+//    audi->setMaterial( handles, 37 );
+//    audi->setMaterial( handles, 36 );
+//
+//    ////Lights
+//    //Front
+//    Material mLights = {BLACK, 1 , 0.2, 0 };
+//    audi->setMaterial( mLights, 153 );
+//    //Back
+//    audi->setMaterial( mLights, 114 );
+//    audi->setMaterial( mLights, 112 );
+//
+//    ////Windows
+//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 32 ); //l/r mirror
+//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 71 ); //back mirror
+//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 67 ); //front mirror
+//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 45 ); //side mirrors ( doors )
+//
+//    ////Other
+//    audi->setMaterial( {{200,200,200}, 1 , 0.6, 1 }, 3 ); //vihlop
+    meshes.push_back( audi );
+
+////LIGHTS
+
+    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    int lightWidth = 20;
+    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+
+////LOADING...
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
+
 
 //rat // table // book // sandwich // telega
 
@@ -639,12 +838,12 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600;
+    int w = 960 ; int h = 600;
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
-    int depth = 2;
+    int depth = 1;
     int ambientSamples = 7;
     int lightSamples = 7;
 
@@ -669,6 +868,7 @@ int main( int argc, char* argv[] ) {
     //carScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
+    //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;

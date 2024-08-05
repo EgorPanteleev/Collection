@@ -15,7 +15,7 @@ Colors = {
 Camera = {
 	pos = { 0, 0, -10000 },
 	lookAt = { 0, 0, 1 },
-	FOV = 77.3196166,
+	FOV = 33,
 }
 
 Canvas = {
@@ -28,12 +28,12 @@ Objects = {
         {
             origin = { 0, 0, 3000 },
             radius = 1500,
-            material = { Colors.ORANGE, -1, 0 }
+            material = { Colors.ORANGE, -1, 0.5 }
         },
         {
             origin = { 2121, 0, 2250 },
             radius = 300,
-            material = { Colors.RED, -1, 0 }
+            material = { Colors.RED, 500  }
         },
         {
             origin = { 1030, 0, 1000 },
@@ -43,13 +43,13 @@ Objects = {
         {
             origin = { -2121, 0, 2250 },
             radius = 300,
-            material = { Colors.CYAN, -1, 0 }
+            material = { Colors.CYAN, 500 }
         },
---         {
---             origin = { -1030, 0, 1000 },
---             radius = 300,
---             material = { Colors.PINK, -1, 0 }
---         },
+        {
+            origin = { -1030, 0, 1000 },
+            radius = 300,
+            material = { Colors.PINK, -1, 0 }
+        },
     },
 --     Meshes = {
 --         {
@@ -68,11 +68,11 @@ Objects = {
 
 Lights = {
     Spheres = {
-        {
-            origin = { -1030, 0, 1000 },
-            radius = 300,
-            material = { Colors.PINK, 500 }
-        },
+--         {
+--             origin = { -1030, 0, 1000 },
+--             radius = 300,
+--             material = { Colors.PINK, 500 }
+--         },
 --         {
 --             origin = { 0, 0, 3000 },
 --             radius = 1500,
