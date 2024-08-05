@@ -146,7 +146,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     randBlockForward2->scaleTo( Vector3f(30,260,30) );
     randBlockForward2->rotate( Vector3f( 0,1,0), -25);
     randBlockForward2->move( Vector3f(35,0,0));
-    randBlockForward2->setMaterial({GRAY, 0.7});
+    randBlockForward2->setMaterial({DARK_BLUE, 1});
     randBlockForward2->move( Vector3f(-50,0,-100));
     //randBlockForward2->scaleTo( 200 );
     meshes.push_back(randBlockForward2 );
@@ -640,11 +640,11 @@ int main( int argc, char* argv[] ) {
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600;
-    int w = 1920 ; int h = 1200;
-    //int w = 3200; int h = 2000;
+    //int w = 1920 ; int h = 1200;
+    int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
-    int depth = 1;
+    int depth = 2;
     int ambientSamples = 7;
     int lightSamples = 7;
 

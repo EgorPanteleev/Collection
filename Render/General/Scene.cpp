@@ -16,20 +16,23 @@ Scene::~Scene() {
 //        delete light;
 //    }
 }
-void Scene::add( Sphere sphere ) {
+Sphere Scene::add( Sphere sphere ) {
     spheres.push_back( sphere );
     if ( sphere.material.getIntensity() != 0 )
         lights.push_back( new LightInstance( &sphere ) );
+    return sphere;
 }
 
-void Scene::add( BaseMesh* mesh ) {
+BaseMesh* Scene::add( BaseMesh* mesh ) {
     meshes.push_back( mesh );
     for ( auto& triangle: mesh->getTriangles() ) triangles.push_back( triangle );
     if ( mesh->getMaterial().getIntensity() != 0 )
         lights.push_back( new LightInstance( mesh ) );
+    return mesh;
 }
-void Scene::add( Light* light ) {
+Light* Scene::add( Light* light ) {
     lights.push_back( new LightInstance( light ) );
+    return light;
 }
 
 void Scene::fillTriangles() {

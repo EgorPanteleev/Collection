@@ -58,9 +58,9 @@ public:
     Scene( Vector<BaseMesh*> meshes, Vector<Sphere> spheres, Vector<Light*> lights );
     Scene();
     ~Scene();
-    void add( Sphere sphere );
-    void add( BaseMesh* mesh );
-    void add( Light* light );
+    Sphere add( Sphere sphere );
+    BaseMesh* add( BaseMesh* mesh );
+    Light* add( Light* light );
     [[nodiscard]] Vector<Sphere> getSpheres() const;
     [[nodiscard]] Vector<BaseMesh*> getMeshes() const;
     [[nodiscard]] Vector<Triangle> getTriangles() const;

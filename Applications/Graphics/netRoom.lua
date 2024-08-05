@@ -19,8 +19,8 @@ Camera = {
 }
 
 Canvas = {
-	w = 800,
-	h = 500,
+	w = 3200,
+	h = 2000,
 }
 
 Objects = {
@@ -67,14 +67,36 @@ Objects = {
             max = { 100, 90, 620 },
             material = { Colors.GRAY, -1, 0 }
         },
+        --rand1
+        {
+            Type = "CubeMesh",
+            min = { -15, -50, 310 },
+            max = { 15, -30, 340 },
+            material = { Colors.PINK, 0.7 },
+            moveTo = { 0, -40, 325 },
+            scaleTo = { 30, 100, 30 },
+            rotate = { 0, 25, 0 },
+            move = { 20, 0, -150 },
+        },
+        --rand2
+        {
+            Type = "CubeMesh",
+            min = { -15, -50, 310 },
+            max = { 15, -30, 340 },
+            material = { Colors.GRAY, -1, 1 },
+            moveTo = { 0, -40, 325 },
+            scaleTo = { 30, 260, 30 },
+            rotate = { 0, -25, 0 },
+            move = { -15, 0, -100 },
+        },
     }
 }
 
 Lights = {
     Spheres = {
         {
-            origin = { 0, 50, 150 },
-            radius = 15,
+            origin = { 0, 55, 150 },
+            radius = 5,
             material = { Colors.DARK_BLUE, 0.7 }
         },
     },

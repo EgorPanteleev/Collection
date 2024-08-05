@@ -8,6 +8,8 @@
 #include "LuaLoader.h"
 
 int main( int argc, char* argv[] ) {
+    setenv("OMP_PROC_BIND", "spread", 1 );
+    setenv("OMP_PLACES", "threads", 1 );
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 

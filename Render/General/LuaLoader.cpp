@@ -9,6 +9,7 @@ std::string loadString( lua_State* L, const std::string& fieldName ) {
     lua_getfield(L, -1, fieldName.c_str() );
     if (!lua_isstring(L, -1)) {
         printf("Failed to load string in field %s.\n", fieldName.c_str() );
+        lua_pop(L, 1);
         return "";
     }
     res = lua_tostring(L, -1);
@@ -21,6 +22,7 @@ float loadNumber( lua_State* L, const std::string& fieldName ) {
     lua_getfield(L, -1, fieldName.c_str() );
     if (!lua_isnumber(L, -1)) {
         printf("Failed to load number in field %s.\n", fieldName.c_str() );
+        lua_pop(L, 1);
         return __FLT_MAX__;
     }
     res = lua_tonumber(L, -1);
@@ -32,6 +34,7 @@ float loadNumber( lua_State* L ) {
     float res;
     if (!lua_isnumber(L, -1)) {
         printf("Failed to load number.\n");
+        lua_pop(L, 1);
         return __FLT_MAX__;
     }
     res = lua_tonumber(L, -1);
@@ -44,6 +47,7 @@ Vector<float> loadTable( lua_State* L, const std::string& fieldName ) {
     lua_getfield(L, -1, fieldName.c_str() );
     if (!lua_istable(L, -1)) {
         printf("Failed to load table in field %s.\n", fieldName.c_str() );
+        lua_pop(L, 1);
         return {};
     }
     for (int i = 0; i < lua_rawlen(L, -1); i++) {
@@ -66,11 +70,13 @@ Vector<float> loadTable( lua_State* L ) {
 
 Vector3f loadVector3f( lua_State* L, const std::string& fieldName ) {
     Vector<float> res = loadTable( L, fieldName );
+    if ( res.size() < 3 ) return { __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ };
     return { res[0], res[1], res[2] };
 }
 
 Vector3f loadVector3f( lua_State* L ) {
     Vector<float> res = loadTable( L );
+    if ( res.size() < 3 ) return {};
     return { res[0], res[1], res[2] };
 }
 
@@ -137,6 +143,42 @@ bool loadScene( lua_State* L, Scene* scene ) {
     return true;
 }
 
+void processMovement( lua_State* L, BaseMesh* mesh ) {
+    Vector3f moveTo = loadVector3f( L, "moveTo" );
+    if ( moveTo != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->moveTo( moveTo );
+    Vector3f move = loadVector3f( L, "move" );
+    if ( move != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->move( move );
+    Vector3f scaleTo = loadVector3f( L, "scaleTo" );
+    if ( scaleTo != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->scaleTo( scaleTo );
+    float scale = loadNumber( L, "scale" );
+    if ( scale != __FLT_MAX__ ) mesh->scale( scale );
+    Vector3f rotate = loadVector3f( L, "rotate" );
+    if ( rotate != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) {
+        mesh->rotate({ 1, 0, 0 }, rotate[0] );
+        mesh->rotate({ 0, 1, 0 }, rotate[1] );
+        mesh->rotate({ 0, 0, 1 }, rotate[2] );
+    }
+    Vector<float> minPoint = loadTable( L, "minPoint" );
+    if ( minPoint.size() < 2 ) return;
+    mesh->setMinPoint( { minPoint[0], minPoint[0], minPoint[0] }, (int) minPoint[1] );
+    mesh->setMinPoint( { minPoint[0], minPoint[0], minPoint[0] }, (int) minPoint[1] );
+}
+
+void processMovement( lua_State* L, Sphere* sphere ) {
+    Vector3f move = loadVector3f( L, "move" );
+    sphere->move( move );
+    Vector3f moveTo = loadVector3f( L, "moveTo" );
+    sphere->moveTo( move );
+    float scale = loadNumber( L, "scale" );
+    sphere->scale( scale );
+    Vector3f scaleTo = loadVector3f( L, "scaleTo" );
+    sphere->scaleTo( scaleTo );
+    Vector3f rotate = loadVector3f( L, "rotate" );
+    sphere->rotate({ 1, 0, 0 }, rotate[0] );
+    sphere->rotate({ 0, 1, 0 }, rotate[1] );
+    sphere->rotate({ 0, 0, 1 }, rotate[2] );
+}
+
 bool loadMeshes( lua_State* L, Scene* scene ) {
     lua_getfield( L, -1, "Meshes");
     if (!lua_istable(L, -1)) {
@@ -149,17 +191,21 @@ bool loadMeshes( lua_State* L, Scene* scene ) {
         lua_rawgeti(L, -1, i);
         if (lua_istable(L, -1)) {
             std::string type = loadString(L, "Type");
+            BaseMesh* mesh = nullptr;
             if ( type == "CubeMesh" ) {
                 Vector3f min = loadVector3f( L, "min" );
                 Vector3f max = loadVector3f( L, "max" );
                 Material material = loadMaterial( L );
-                scene->add( new CubeMesh( min, max, material ) );
+                mesh = new CubeMesh( min, max, material );
             } else if ( type == "BaseMesh" ) {
                 std::string path = loadString(L, "Path");
                 auto* sks = new TriangularMesh();
                 sks->loadMesh( path );
-                scene->add( sks );
+                mesh = sks;
             }
+            if ( !mesh ) continue;
+            processMovement( L, mesh );
+            scene->add( mesh );
         }
         lua_pop(L, 1);
     }
@@ -181,7 +227,9 @@ bool loadSpheres( lua_State* L, Scene* scene ) {
             Vector3f origin = loadVector3f(L, "origin");
             float radius = loadNumber( L, "radius" );
             Material material = loadMaterial( L );
-            scene->add( Sphere( radius, origin, material ) );
+            Sphere sphere = Sphere( radius, origin, material );
+            //processMovement( L, &sphere );
+            scene->add( sphere );
         }
         lua_pop(L, 1);
     }
