@@ -237,7 +237,7 @@ bool loadSpheres( lua_State* L, Scene* scene ) {
     return true;
 }
 
-Camera* loadCamera( lua_State* L ) {
+Camera* loadCamera( lua_State* L, int w, int h ) {
     lua_getglobal(L, "Camera");
     if (!lua_istable(L, -1)) {
         std::cerr << "Camera not found." << std::endl;
@@ -247,8 +247,6 @@ Camera* loadCamera( lua_State* L ) {
     Vector3f pos = loadVector3f( L, "pos" );
     Vector3f lookAt = loadVector3f( L, "lookAt" );
     float FOV = loadNumber( L, "FOV" );
-    float w = 3200;
-    float h = 2000;
 //    float aspectRatio = 1.6;
     float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
     return new Camera( pos, lookAt, dV, w, h );
@@ -271,5 +269,14 @@ Vector<float> loadSettings( lua_State* L ) {
     res.push_back( lightSamples );
     res.push_back( denoise );
     return res;
+}
+
+RayTracer* loadRayTracer( lua_State* L ) {
+    Scene* scene = new Scene();
+    loadScene( L, scene );
+    Canvas* canvas = loadCanvas( L );
+    Camera* camera = loadCamera( L, canvas->getW(), canvas->getH() );
+    auto settings = loadSettings( L );
+    return new RayTracer( camera, scene, canvas, settings[0], settings[1], settings[2] );
 }
 

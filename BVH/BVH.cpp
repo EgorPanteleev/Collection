@@ -221,7 +221,6 @@ IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx ) {
                 float t = sphere.intersectsWithRay( ray );
                 if ( t < 0.05 || t >= iData.t ) continue;
                 iData.t = t;
-                iData.N = sphere.getNormal( ray.origin + ray.direction * t );
                 iData.sphere = &sphere;
                 iData.triangle = nullptr;
             } else {
@@ -229,7 +228,6 @@ IntersectionData BVH::IntersectBVH( Ray& ray, const uint nodeIdx ) {
                 float t = triangle.intersectsWithRay( ray );
                 if ( t >= iData.t ) continue;
                 iData.t = t;
-                iData.N = triangle.getNormal();
                 iData.triangle = &triangle;
                 iData.sphere = nullptr;
             }

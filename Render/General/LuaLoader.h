@@ -39,9 +39,10 @@ bool loadMeshes( lua_State* L, Scene* scene );
 
 bool loadSpheres( lua_State* L, Scene* scene );
 
-Camera* loadCamera( lua_State* L );
+Camera* loadCamera( lua_State* L, int w, int h  );
 
 Vector<float> loadSettings( lua_State* L );
 
+RayTracer* loadRayTracer( lua_State* L );
 
 #endif //COLLECTION_LUALOADER_H

@@ -822,13 +822,76 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
+void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    float FOV = 67.38;
+    float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), dV,w,h );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
 
-//rat // table // book // sandwich // telega
+    Vector<Mesh*> meshes;
+    Vector<Light*> lights;
+    float roomRefl = 0;
+
+    Material floor = {GRAY, -1, 0 };
+    floor.setTexture( "/home/auser/dev/src/Collection/Textures/WoodFloorBright/");
+    Material wall = {GRAY, -1, 0 };
+    wall.setTexture( "/home/auser/dev/src/Collection/Textures/Plaster/");
+    Material ceil = {GRAY, -1, 0 };
+    ceil.setTexture( "/home/auser/dev/src/Collection/Textures/PorceLain/");
+    Material ground = {GRAY, -1, 0 };
+    ground.setTexture( "/home/auser/dev/src/Collection/Textures/Ground/");
+    Material carpet = {GRAY, -1, 0 };
+    carpet.setTexture( "/home/auser/dev/src/Collection/Textures/Carpet/");
+    Material giraffe = {GRAY, -1, 0 };
+    giraffe.setTexture( "/home/auser/dev/src/Collection/Textures/GiraffeFur/");
+    Material mink = {GRAY, -1, 0 };
+    mink.setTexture( "/home/auser/dev/src/Collection/Textures/MinkFur/");
+
+////right
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 300),
+                                    wall ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 300),
+                                   wall ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+                                   wall ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+                                   wall ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 320),
+                                   giraffe ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 320),
+                                   ceil ) );
+////Spheres
+    Vector<Sphere> spheres;
+    spheres.push_back( { 20, Vector3f(-40, -30, 180), carpet } );
+    spheres.push_back( { 20, Vector3f(40, -30, 220), carpet } );
+    spheres.push_back( { 20, Vector3f(0, -30, 200), carpet } );
+
+////LIGHTS
+
+//    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+//    int lightWidth = 20;
+//    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.4));
+    spheres.push_back( { 10, Vector3f(0, 60, 200), {WHITE, 0.7 } } );
+////LOADING...
+    for ( auto sphere: spheres ) {
+        scene->add( sphere );
+    }
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
 
 int main( int argc, char* argv[] ) {
     setenv("OMP_PROC_BIND", "spread", 1);
     setenv("OMP_PLACES", "threads", 1);
     Kokkos::initialize(argc, argv); {
+    std::cout << "Default Execution Space: " << Kokkos::DefaultExecutionSpace::name() << std::endl;
     srand(time( nullptr ));
     RayTracer* rayTracer = nullptr;
     ////OPTIONS
@@ -837,14 +900,14 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    int w = 960 ; int h = 600;
+    //int w = 960 ; int h = 600; //3 sec
     //int w = 1920 ; int h = 1200;
-    //int w = 3200; int h = 2000;
+    int w = 3200; int h = 2000;
 
     ////NUM SAMPLES
-    int depth = 1;
-    int ambientSamples = 7;
-    int lightSamples = 7;
+    int depth = 2;
+    int ambientSamples = 2;
+    int lightSamples = 2;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
@@ -852,7 +915,7 @@ int main( int argc, char* argv[] ) {
     auto start = std::chrono::high_resolution_clock::now();
     //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
     //sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
@@ -868,6 +931,7 @@ int main( int argc, char* argv[] ) {
     //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
+    sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
@@ -879,7 +943,7 @@ int main( int argc, char* argv[] ) {
 
     rayTracer->getCanvas()->saveToPNG( "out.png" );
 
-    Denoiser::denoise( rayTracer->getCanvas()->getData(), w, h );
+    Denoiser::denoise( rayTracer->getCanvas()->getColorData(), rayTracer->getCanvas()->getNormalData(),rayTracer->getCanvas()->getAlbedoData(), w, h );
     rayTracer->getCanvas()->saveToPNG( "outDenoised.png" );
 
 

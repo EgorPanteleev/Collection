@@ -13,38 +13,26 @@ int main( int argc, char* argv[] ) {
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
-    if (luaL_dofile(L, "/home/auser/dev/src/Collection/Applications/Graphics/netRoom.lua") != LUA_OK) {
+    if (luaL_dofile(L, "/home/auser/dev/src/Collection/Applications/Graphics/spheres.lua") != LUA_OK) {
         std::cerr << lua_tostring(L, -1) << std::endl;
         lua_close(L);
         return 1;
     }
-    Scene* scene = new Scene();
-    loadScene( L, scene );
-    Canvas* canvas = loadCanvas( L );
-    Camera* camera = loadCamera( L );
-    auto settings = loadSettings( L );
    // scene->add( new PointLight( Vector3f(-3500,0,0 ), 9999999 ) );
     Kokkos::initialize(argc, argv); {
-    RayTracer* rayTracer = new RayTracer( camera, scene, canvas, settings[0], settings[1], settings[2] );
-    auto start = std::chrono::high_resolution_clock::now();;
-    rayTracer->render( RayTracer::PARALLEL );
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> renderTime = end - start;
-    std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
-    //10.1, 9.9, 8,
-    rayTracer->getCanvas()->saveToPNG( "out.png" );
-        if ( settings[3] == 1 ) {
-            Denoiser::denoise( rayTracer->getCanvas()->getData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
+        RayTracer* rayTracer = loadRayTracer( L );
+        auto start = std::chrono::high_resolution_clock::now();;
+        rayTracer->render( RayTracer::PARALLEL );
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> renderTime = end - start;
+        std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
+        //10.1, 9.9, 8,
+        rayTracer->getCanvas()->saveToPNG( "out.png" );
+        if ( true ) {
+            Denoiser::denoise( rayTracer->getCanvas()->getColorData(), rayTracer->getCanvas()->getNormalData(), rayTracer->getCanvas()->getAlbedoData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
             rayTracer->getCanvas()->saveToPNG( "outDenoised.png" );
         }
     } Kokkos::finalize();
-
-//    RayTracer rt;
-//    loadCameraFromLua(L, rt);
-//    loadLightsFromLua(L, rt);
-//
-//    rt.render();
-
     lua_close(L);
     return 0;
 }

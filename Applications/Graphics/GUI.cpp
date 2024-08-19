@@ -177,7 +177,7 @@ int main(  int argc, char* argv[]  )
     //                int h = io.DisplaySize.y;
     int w = 3200;
     int h = 2000;
-    int depth = 2;
+    int depth = 1;
     int ambientSamples = 1;
     int lightSamples = 1;
     Canvas* textureCanvas = nullptr;
@@ -221,7 +221,7 @@ int main(  int argc, char* argv[]  )
 
         if ( ImGui::Button("Denoise")) {
             if ( textureCanvas != nullptr )
-                Denoiser::denoise( textureCanvas->getData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
+                Denoiser::denoise( textureCanvas->getColorData(), textureCanvas->getNormalData(), textureCanvas->getAlbedoData(), rayTracer->getCanvas()->getW(), rayTracer->getCanvas()->getH() );
             texture = getTexture( textureCanvas );
         }
 

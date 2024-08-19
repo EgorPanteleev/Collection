@@ -1,6 +1,8 @@
 #include "Triangle.h"
 #include "Utils.h"
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 //Triangle::
 
 Triangle::Triangle(): v1(), v2(), v3() {
@@ -8,6 +10,13 @@ Triangle::Triangle(): v1(), v2(), v3() {
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
+    float xMax = std::max( std::max( v1.x, v2.x ), v3.x );
+    float yMax = std::max( std::max( v1.y, v2.y ), v3.y );
+    float xMin = std::min( std::min( v1.x, v2.x ), v3.x );
+    float yMin = std::min( std::min( v1.y, v2.y ), v3.y );
+    v1Tex = { (v1.x - xMin) / (xMax - xMin), (v1.y - yMin) / (yMax - yMin) };
+    v2Tex = { (v2.x - xMin) / (xMax - xMin), (v2.y - yMin) / (yMax - yMin) };
+    v3Tex = { (v3.x - xMin) / (xMax - xMin), (v3.y - yMin) / (yMax - yMin) };
 }
 
 Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 ): v1( v1 ), v2( v2 ), v3( v3 ) {
@@ -15,6 +24,22 @@ Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 )
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
+    Vector3f targetNormal(0, 0, 1);
+
+    Vector3f axis = targetNormal.cross(N);
+    float angle = acos( dot( targetNormal, N ) );
+
+    Mat3f rotationMatrix = Mat3f::getRotationMatrix( axis, angle );
+
+    Vector3f rv1 = rotationMatrix * v1;
+    Vector3f rv2 = rotationMatrix * v2;
+    Vector3f rv3 = rotationMatrix * v3;
+    float xMax = std::max( std::max( rv1.x, rv2.x ), rv3.x );
+    float yMax = std::max( std::max( rv1.y, rv2.y ), rv3.y );
+
+    v1Tex = { rv1.x == xMax ? 1.0f : 0.0f, rv1.y == yMax ? 1.0f : 0.0f };
+    v2Tex = { rv2.x == xMax ? 1.0f : 0.0f, rv2.y == yMax ? 1.0f : 0.0f };
+    v3Tex = { rv3.x == xMax ? 1.0f : 0.0f, rv3.y == yMax ? 1.0f : 0.0f };
 }
 
 void Triangle::rotate( const Vector3f& axis, float angle ) {
@@ -136,4 +161,153 @@ float Triangle::intersectsWithRay( const Ray& ray ) const {
 
 Vector3f Triangle::getNormal() const {
     return N;
+}
+
+Vector3f Triangle::getNormal( const Vector3f& P ) const {
+    Material material = owner->getMaterial();
+    if ( !material.getTexture().normalMap.data ) return N;
+
+    Vector3f edge3 = P - v1;
+    float d00 = dot(edge1, edge1);
+    float d01 = dot(edge1, edge2);
+    float d11 = dot(edge2, edge2);
+    float d20 = dot(edge3, edge1);
+    float d21 = dot(edge3, edge2);
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
+    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
+
+
+    int texX = static_cast<int>(tx * material.getTexture().normalMap.width) % material.getTexture().normalMap.width;
+    int texY = static_cast<int>(ty * material.getTexture().normalMap.height) % material.getTexture().normalMap.height;
+    int ind = (texY * material.getTexture().normalMap.width + texX) * material.getTexture().normalMap.channels;
+    Vector3f res = {
+            material.getTexture().normalMap.data[ind    ] / 255.0f * 2 - 1,
+            material.getTexture().normalMap.data[ind + 1] / 255.0f * 2 - 1,
+            material.getTexture().normalMap.data[ind + 2] / 255.0f * 2 - 1
+    };
+
+
+    Vector3f up = (std::abs(N.z) < 0.999f) ? Vector3f{0.0f, 0.0f, 1.0f} : Vector3f{1.0f, 0.0f, 0.0f};
+
+    // Вычисляем касательный вектор (Tangent)
+    Vector3f tangent = up.cross(N);
+
+
+    // Вычисляем битангента (Bitangent)
+    Vector3f bitangent = N.cross(tangent);
+
+
+    Mat3f rot = {
+            tangent.normalize(),
+            bitangent.normalize(),
+            N
+    };
+    res = rot * res;
+    return res.normalize();
+}
+
+Vector3f Triangle::getBarycentric( const Vector3f& P ) const {
+    Vector3f edge3 = P - v1;
+    float d00 = dot(edge1, edge1);
+    float d01 = dot(edge1, edge2);
+    float d11 = dot(edge2, edge2);
+    float d20 = dot(edge3, edge1);
+    float d21 = dot(edge3, edge2);
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+    return { u, v, w };
+}
+
+RGB Triangle::getColor( const Vector3f& P ) const {
+    Material material = owner->getMaterial();
+    if ( !material.getTexture().colorMap.data ) return material.getColor();
+
+    Vector3f edge3 = P - v1;
+    float d00 = dot(edge1, edge1);
+    float d01 = dot(edge1, edge2);
+    float d11 = dot(edge2, edge2);
+    float d20 = dot(edge3, edge1);
+    float d21 = dot(edge3, edge2);
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
+    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
+
+
+    int texX = static_cast<int>(tx * material.getTexture().colorMap.width) % material.getTexture().colorMap.width;
+    int texY = static_cast<int>(ty * material.getTexture().colorMap.height) % material.getTexture().colorMap.height;
+    int ind = (texY * material.getTexture().colorMap.width + texX) * material.getTexture().colorMap.channels;
+
+    return {
+            material.getTexture().colorMap.data[ind    ] / 1.0f,
+            material.getTexture().colorMap.data[ind + 1] / 1.0f,
+            material.getTexture().colorMap.data[ind + 2] / 1.0f
+    };
+}
+
+RGB Triangle::getAmbient( const Vector3f& P ) const {
+    Material material = owner->getMaterial();
+    if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
+
+    Vector3f edge3 = P - v1;
+    float d00 = dot(edge1, edge1);
+    float d01 = dot(edge1, edge2);
+    float d11 = dot(edge2, edge2);
+    float d20 = dot(edge3, edge1);
+    float d21 = dot(edge3, edge2);
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
+    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
+
+
+    int texX = static_cast<int>(tx * material.getTexture().ambientMap.width) % material.getTexture().ambientMap.width;
+    int texY = static_cast<int>(ty * material.getTexture().ambientMap.height) % material.getTexture().ambientMap.height;
+    int ind = (texY * material.getTexture().ambientMap.width + texX) * material.getTexture().ambientMap.channels;
+
+    return {
+            material.getTexture().ambientMap.data[ind    ] / 255.0f,
+            material.getTexture().ambientMap.data[ind + 1] / 255.0f,
+            material.getTexture().ambientMap.data[ind + 2] / 255.0f
+    };
+}
+
+float Triangle::getRoughness( const Vector3f& P ) const {
+    Material material = owner->getMaterial();
+    if ( !material.getTexture().roughnessMap.data ) return 0.5;
+
+    Vector3f edge3 = P - v1;
+    float d00 = dot(edge1, edge1);
+    float d01 = dot(edge1, edge2);
+    float d11 = dot(edge2, edge2);
+    float d20 = dot(edge3, edge1);
+    float d21 = dot(edge3, edge2);
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
+    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
+
+
+    int texX = static_cast<int>(tx * material.getTexture().roughnessMap.width) % material.getTexture().roughnessMap.width;
+    int texY = static_cast<int>(ty * material.getTexture().roughnessMap.height) % material.getTexture().roughnessMap.height;
+    int ind = (texY * material.getTexture().roughnessMap.width + texX) * material.getTexture().roughnessMap.channels;
+
+    return material.getTexture().roughnessMap.data[ind] / 255.0f;
+
 }

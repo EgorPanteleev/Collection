@@ -36,6 +36,12 @@ void RGB::scaleTo( float value ) {
     b = ( b / max ) * value;
 }
 
+[[nodiscard]] Vector3f RGB::toNormal() const {
+    Vector3f res = { r, g, b };
+    res = res / 255 * 2 - Vector3f( 1, 1, 1 );
+    return res.normalize();
+}
+
 RGB::~RGB() {
     r = 0;
     g = 0;

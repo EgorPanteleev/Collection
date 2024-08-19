@@ -41,6 +41,7 @@ RayTracer::~RayTracer() {
 IntersectionData RayTracer::closestIntersection( Ray& ray ) {
     return bvh->IntersectBVH( ray, 0 );
 }
+
 template <typename Type>
 float getIntensity( Type* light ) {
     return light->getIntensity();
@@ -53,6 +54,12 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
     float d = 0.8;
     float s = 1 - d;
     float constexpr del = 1.0f / 255;
+    float roughness;
+    if ( iData.triangle != nullptr ) {
+        roughness = iData.triangle->getRoughness( P );
+    } else {
+        roughness = iData.sphere->getRoughness( P );
+    }
     for ( auto light: scene(0).getLights() ) {
         RGB i1;
         for ( size_t j = 0; j < numLightSamples; j++ ) {
@@ -72,7 +79,6 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
             //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
 
             Vector3f H = (L + V ).normalize();
-            float roughness = 0.5;
             //float power = 1 / roughness;
             //float power = 2.0f / pow( roughness, 4 ) - 2; //better
             auto a2 = (float) pow( roughness, 4 );
@@ -224,51 +230,57 @@ Vector3f generateSamplePoint( Vector3f N ) {
     return res;
 }
 
-RGB RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
+CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     IntersectionData cIData = closestIntersection( ray );
-    if ( cIData.t == __FLT_MAX__ ) return BACKGROUND_COLOR * throughput;
-    if ( cIData.triangle != nullptr ) {
-        if ( cIData.triangle->owner->getMaterial().getIntensity() != 0 ) return  cIData.triangle->owner->getMaterial().getColor();
-    } else {
-        if ( cIData.sphere->material.getIntensity() != 0 ) return cIData.sphere->material.getColor();
-    }
+    if ( cIData.t == __FLT_MAX__ ) return { BACKGROUND_COLOR * throughput, { 0, 0, 0 }, BACKGROUND_COLOR * throughput };
     Vector3f P = ray.origin + ray.direction * cIData.t;
+    RGB materialColor;
+    Material material;
+    float ambientOcclusion;
+    if ( cIData.triangle != nullptr ) {
+        cIData.N = cIData.triangle->getNormal( P );
+        materialColor = cIData.triangle->getColor( P );
+        material = cIData.triangle->owner->getMaterial();
+        ambientOcclusion = cIData.triangle->getAmbient( P ).r;
+    } else {
+        cIData.N = cIData.sphere->getNormal( P );
+        materialColor = cIData.sphere->getColor( P );
+        material = cIData.sphere->material;
+        ambientOcclusion = cIData.sphere->getAmbient( P ).r;
+    }
+    Vector3f vectorColor = ( cIData.N + Vector3f( 1, 1, 1 ) ) * 255 / 2;
+    RGB normalColor = { vectorColor.x, vectorColor.y, vectorColor.z };
+    if ( material.getIntensity() != 0 ) return { materialColor, normalColor, materialColor };
     RGB i = computeDiffuseLight( P, ray.direction * (-1), cIData );
     //if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
     RGB diffuse = {};
     float reflection;
-    if ( cIData.triangle == nullptr ) {
-        RGB materialColor = cIData.sphere->material.getColor();
-        diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
-        reflection = cIData.sphere->material.getReflection();// -> shining
-    } else {
-        RGB materialColor = cIData.triangle->owner->getMaterial().getColor();
-        diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
-        reflection = cIData.triangle->owner->getMaterial().getReflection();// -> shining
-    }
-    if ( nextDepth == 0 ) return diffuse;
+    diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
+    reflection = material.getReflection();// -> shining
+
+    if ( nextDepth == 0 ) return { diffuse, normalColor, materialColor };
     //REFLECTION
     if ( reflection == 0 ) {
         //Global illumination
         RGB ambient = {};
-        throughput *= 0.6;
+        throughput *= 0.8;
         for (int j = 0; j < numAmbientSamples; j++ ) {
             Vector3f samplePoint = generateSamplePoint( cIData.N );
             Ray sampleRay = { P + samplePoint * 1e-3, samplePoint };
-            ambient = ambient + traceRay( sampleRay, nextDepth - 1, throughput ) * dot( samplePoint, cIData.N );
+            ambient = ambient + traceRay( sampleRay, nextDepth - 1, throughput ).color * dot( samplePoint, cIData.N );
         }
         //default
         //ambient = ambient * 2 / numSamples;
         //cosine
-        ambient = ambient * 1 / (float) numAmbientSamples;
-        return diffuse + ambient;
+        ambient = ambient * ambientOcclusion / (float) numAmbientSamples;
+        return { diffuse + ambient, normalColor, materialColor };
     }
     else {
         Vector3f N = cIData.N;
         Vector3f reflectedDir = ( ray.direction - N * 2 * dot(N, ray.direction ) );
         Ray reflectedRay( P + reflectedDir * 1e-3, reflectedDir );
-        RGB reflectedColor = traceRay( reflectedRay, nextDepth - 1, throughput );
-        return diffuse * ( 1 - reflection ) + reflectedColor * reflection;
+        CanvasData reflectedData = traceRay( reflectedRay, nextDepth - 1, throughput );
+        return { diffuse * ( 1 - reflection ) + reflectedData.color * reflection, reflectedData.normal, materialColor };
     }
 
     //r = ambient + sum(light_color * dot(N,L) * ( d * diffuse + s * specular ) )
@@ -339,24 +351,32 @@ void RayTracer::traceAllRaysSerial() {
         for ( int y = 0; y < canvas(0).getH(); ++y ) {
             Vector3f dir = { -Vx2 + uX2 + x * uX, -Vy2 + uY2 + y * uY, camera(0).dV  };
             Ray ray( from, dir);
+            if ( x != 1600 ) continue;
+            if ( y != 1000 ) continue;
             //diffuse = { 0, 0, 0 };
             //ambient = { 0, 0, 0 };
             //specular = { 0, 0, 0 };
-            RGB color = traceRay( ray, depth, 1 );
-            color.scaleTo( 255 );
-            canvas(0).setPixel( x, y, color );
+            CanvasData colorData = traceRay( ray, depth, 1 );
+            colorData.color.scaleTo( 255 );
+            canvas(0).setColor( x, y, colorData.color );
+            canvas(0).setNormal( x, y, colorData.normal );
+            canvas(0).setAlbedo( x, y, colorData.albedo );
         }
     }
 }
 void RayTracer::traceAllRaysParallel() {
-    Kokkos::View<RGB**> result = Kokkos::View<RGB**>("colors", canvas(0).getW(), canvas(0).getH() );
-    RenderFunctor renderFunctor( this, result );
+    Kokkos::View<RGB**> colors = Kokkos::View<RGB**>("colors", canvas(0).getW(), canvas(0).getH() );
+    Kokkos::View<RGB**> normals = Kokkos::View<RGB**>("normals", canvas(0).getW(), canvas(0).getH() );
+    Kokkos::View<RGB**> albedos = Kokkos::View<RGB**>("albedos", canvas(0).getW(), canvas(0).getH() );
+    RenderFunctor renderFunctor( this, colors, normals, albedos );
     typedef Kokkos::MDRangePolicy<Kokkos::Rank<2>> range_policy_2d;
     range_policy_2d policy({0, 0}, {canvas(0).getW(), canvas(0).getH()});
     Kokkos::parallel_for("parallel2D", policy, renderFunctor);
     for ( int i = 0; i < canvas(0).getW(); i++ ) {
         for ( int j = 0; j < canvas(0).getH(); j++ ) {
-            canvas(0).setPixel( i, j, result(i, j) );
+            canvas(0).setColor( i, j, colors(i, j) );
+            canvas(0).setNormal( i, j, normals(i, j) );
+            canvas(0).setAlbedo( i, j, albedos(i, j) );
         }
     }
 }
@@ -377,22 +397,25 @@ int RayTracer::getDepth() const {
 }
 
 
-RenderFunctor::RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& result )
-        :rayTracer( _rayTracer ), colors( result ) {
-    Canvas* canvas = rayTracer->getCanvas();
-    Camera* camera = rayTracer->getCamera();
-    uX = camera->Vx / canvas->getW();
-    uY = camera->Vy / canvas->getH();
-    uX2 = uX * 0.5f;
-    uY2 = uY * 0.5f;
-    from = camera->origin;
-    Vx2 = camera->Vx * 0.5f;
-    Vy2 = camera->Vy * 0.5f;
+RenderFunctor::RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& _colors, Kokkos::View<RGB**>& _normals, Kokkos::View<RGB**>& _albedos )
+        :rayTracer( _rayTracer ), colors( _colors ), normals( _normals ), albedos( _albedos ) {
 }
 
 void RenderFunctor::operator()(const int i, const int j) const {
-    Vector3f dir = { -Vx2 + uX2 + i * uX, -Vy2 + uY2 + j * uY, rayTracer->getCamera()->dV  };
-    Ray ray( from, dir);
-    colors(i, j) = rayTracer->traceRay( ray, rayTracer->getDepth(), 1 );
+//    int numSamples = 3;
+//    for ( int sample = 0; sample < numSamples; sample++ ) {
+//        Ray ray;
+//        if ( sample == 0 ) {
+//            ray = rayTracer->getCamera()->getPrimaryRay(i, j);
+//        } else {
+//            ray = rayTracer->getCamera()->getSecondaryRay(i, j);
+//        }
+//        colors(i, j) = colors(i, j) + rayTracer->traceRay(ray, rayTracer->getDepth(), 1) / (float) numSamples;
+//    }
     //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
+    Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);
+    CanvasData data = rayTracer->traceRay(ray, rayTracer->getDepth(), 1);
+    colors(i, j) = data.color;
+    normals(i, j) = data.normal;
+    albedos(i, j) = data.albedo;
 }

@@ -13,7 +13,7 @@
 #define PINK RGB( 255,105,180 )
 #define DARK_BLUE RGB(65,105,225)
 #define CYAN RGB( 0, 255, 255)
-
+#include "Vector3f.h"
 
 class RGB {
 public:
@@ -23,6 +23,7 @@ public:
     RGB operator/( float a) const;
     bool operator==( const RGB& color ) const;
     void scaleTo( float value );
+    [[nodiscard]] Vector3f toNormal() const;
     RGB();
     RGB( float _r, float _g, float _b);
     ~RGB();

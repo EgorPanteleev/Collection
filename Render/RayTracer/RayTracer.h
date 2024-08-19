@@ -10,6 +10,12 @@
 #include "BVH.h"
 #include <Kokkos_Core.hpp>
 
+struct CanvasData {
+    RGB color;
+    RGB normal;
+    RGB albedo;
+};
+
 class RayTracer {
 public:
     enum Type {
@@ -21,7 +27,7 @@ public:
     KOKKOS_INLINE_FUNCTION IntersectionData closestIntersection( Ray& ray );
     KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
     KOKKOS_INLINE_FUNCTION float computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
-    KOKKOS_INLINE_FUNCTION RGB traceRay( Ray& ray, int nextDepth, float throughput );
+    KOKKOS_INLINE_FUNCTION CanvasData traceRay( Ray& ray, int nextDepth, float throughput );
     void render( Type type );
     [[nodiscard]] Canvas* getCanvas() const;
     [[nodiscard]] Scene* getScene() const;
@@ -46,15 +52,15 @@ private:
 
 struct RenderFunctor {
 
-    RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& result );
+    RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& _colors, Kokkos::View<RGB**>& _normals, Kokkos::View<RGB**>& _albedos );
 
 
     KOKKOS_INLINE_FUNCTION void operator()(const int i, const int j) const;
 
     Kokkos::View<RGB**> colors;
+    Kokkos::View<RGB**> normals;
+    Kokkos::View<RGB**> albedos;
     RayTracer* rayTracer;
-    Vector3f from;
-    float uX, uY, uX2, uY2, Vx2, Vy2;
 };
 
 

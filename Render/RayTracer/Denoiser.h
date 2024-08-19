@@ -10,7 +10,7 @@
 class Denoiser {
 public:
 
-    static void denoise( RGB** data, int w, int h );
+    static void denoise( RGB** colorData, RGB** normalData, RGB** albedoData, int w, int h );
 
 };
 

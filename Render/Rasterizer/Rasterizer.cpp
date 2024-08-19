@@ -38,7 +38,7 @@ void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
         if ( v1.getX() - v2.getX() > 0 ) std::swap( v1, v2 );
         int cf = v1.getY() - v2.getY() < 0 ? 1 : -1;
         for ( int x = (int) v1.getX(); x <= (int) v2.getX(); x++ ) {
-            canvas(0).setPixel( x, v1.getY() + k * ( x - v1.getX() ) * cf, color );
+            canvas(0).setColor( x, v1.getY() + k * ( x - v1.getX() ) * cf, color );
         }
     } else {
         if ( k == __FLT_MAX__ ) k = 0;
@@ -46,7 +46,7 @@ void Rasterizer::drawLine( Vector2f v1, Vector2f v2, RGB color) {
         if ( v1.getY() - v2.getY() > 0 ) std::swap( v1, v2 );
         int cf = v1.getX() - v2.getX() < 0 ? 1 : -1;
         for ( int y = (int) v1.getY(); y <= (int) v2.getY(); y++ ) {
-            canvas(0).setPixel( v1.getX() + k * ( y - v1.getY() ) * cf, y, color );
+            canvas(0).setColor( v1.getX() + k * ( y - v1.getY() ) * cf, y, color );
         }
     }
 }
@@ -134,7 +134,7 @@ void Rasterizer::drawFilledTriangle( Triangle tri, RGB color) {
             if ( z <= 0 ) continue;
             if ( z <= zBuffer[x][y]) {
                 zBuffer[x][y] = z;
-                canvas(0).setPixel( x, y, color );
+                canvas(0).setColor( x, y, color );
             }
         }
     }

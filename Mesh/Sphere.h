@@ -32,6 +32,9 @@ public:
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
     [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const;
     [[nodiscard]] float intersectsWithRay( const Ray& ray ) const;
+    [[nodiscard]] RGB getColor( const Vector3f& P ) const;
+    [[nodiscard]] RGB getAmbient( const Vector3f& P ) const;
+    [[nodiscard]] float getRoughness( const Vector3f& P ) const;
 
 public:
     Material material;

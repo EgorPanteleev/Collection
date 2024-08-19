@@ -2,11 +2,14 @@
 #define COLLECTION_CAMERA_H
 #include "Vector3f.h"
 #include "Mat4f.h"
+#include "Ray.h"
 class Camera {
 public:
     Camera();
     Camera( const Vector3f& pos, const Vector3f& dir, float dv, float vx, float vy );
     Mat4f LookAt( const Vector3f& target, const Vector3f& up );
+    Ray getPrimaryRay( float x, float y ) const;
+    Ray getSecondaryRay( float x, float y ) const;
     [[nodiscard]] Vector3f worldToCameraCoordinates( Vector3f& coords ) const;
     [[nodiscard]] Vector3f cameraToWorldCoordinates( Vector3f& coords ) const;
 public:
@@ -18,6 +21,8 @@ public:
     float dV;
     float Vx;
     float Vy;
+    float focalLenght = 225;
+    float aperture = 0;
 };
 
 

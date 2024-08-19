@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3f.h"
+#include "Vector2f.h"
 #include "Ray.h"
 #include "Mesh.h"
 #include "Material.h"
@@ -22,9 +23,15 @@ public:
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
     [[nodiscard]] float intersectsWithRay( const Ray& ray ) const;
     [[nodiscard]] Vector3f getNormal() const;
+    [[nodiscard]] Vector3f getNormal( const Vector3f& P ) const;
+    [[nodiscard]] RGB getColor( const Vector3f& P ) const;
+    [[nodiscard]] RGB getAmbient( const Vector3f& P ) const;
+    [[nodiscard]] float getRoughness( const Vector3f& P ) const;
+    [[nodiscard]] Vector3f getBarycentric( const Vector3f& P ) const;
     Vector3f v1, v2, v3;
     Mesh* owner;
 private:
+    Vector2f v1Tex, v2Tex, v3Tex;
     Vector3f edge1, edge2;
     Vector3f origin;
     Vector3f N;
