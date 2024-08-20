@@ -10,9 +10,7 @@
 #include "Ray.h"
 #include "Material.h"
 #include "BBox.h"
-#include "IntersectionData.h"
 
-class Material;
 class Sphere {
 public:
     Sphere();
@@ -25,7 +23,8 @@ public:
     void scale( const Vector3f& scaleVec );
     void scaleTo( float scaleValue );
     void scaleTo( const Vector3f& scaleVec );
-    [[nodiscard]] Vector3f getSamplePoint();
+    void setMaterial( const Material& mat );
+    [[nodiscard]] Vector3f getSamplePoint() const;
     [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Material getMaterial() const;
     [[nodiscard]] Vector3f getOrigin() const;

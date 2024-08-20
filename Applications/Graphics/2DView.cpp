@@ -6,46 +6,10 @@
 #include "cstdlib"
 #include "Denoiser.h"
 
-extern "C" {
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
 
 //162.786 2 2 5 - 3200
 // 3 sec - 960 2 2 2
 
-
-Mesh* getCubeMesh( const Vector3f& p1, const Vector3f& p2, const Material& _material ) {
-    Mesh* newMesh = new Mesh();
-    Vector3f f1 = p1;
-    Vector3f f2 = { p2.getX(), p1.getY(), p1.getZ() };
-    Vector3f f3 = { p2.getX(), p1.getY(), p2.getZ() };
-    Vector3f f4 = { p1.getX(), p1.getY(), p2.getZ() };
-
-    Vector3f b1 = { p1.getX(), p2.getY(), p1.getZ() };
-    Vector3f b2 = { p2.getX(), p2.getY(), p1.getZ() };
-    Vector3f b3 = p2;
-    Vector3f b4 = { p1.getX(), p2.getY(), p2.getZ() };
-    // down
-    newMesh->addTriangle( { f1, f2, f3 } );
-    newMesh->addTriangle( { f1, f3, f4 } );
-    //up
-    newMesh->addTriangle( { b1, b3, b2 } );
-    newMesh->addTriangle( { b1, b4, b3 } );
-    //left
-    newMesh->addTriangle( { b1, f1, f4 } );
-    newMesh->addTriangle( { b1, f4, b4 } );
-    //right
-    newMesh->addTriangle( { f2, b2, f3 } );
-    newMesh->addTriangle( { f3, b2, b3 } );
-    //front
-    newMesh->addTriangle( { f2, f1, b1 } );
-    newMesh->addTriangle( { f2, b1, b2 } );
-    //back
-    newMesh->addTriangle( { f4, f3, b4 } );
-    newMesh->addTriangle( { f3, b3, b4 } );
-}
 
 void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto mesh: meshes ) {
@@ -974,16 +938,16 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    int w = 960 ; int h = 600; //3 sec
+    //int w = 960 ; int h = 600; //3 sec
     //int w = 1920 ; int h = 1200;
-    //int w = 3200; int h = 2000;
+    int w = 3200; int h = 2000;
 
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
     int depth = 2;
     int ambientSamples = 5;
-    int lightSamples = 5;
+    int lightSamples = 2;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /

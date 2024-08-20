@@ -5,7 +5,9 @@
 #ifndef COLLECTION_LUALOADER_H
 #define COLLECTION_LUALOADER_H
 #include <iostream>
-#include "RayTracer.h"
+#include "Camera.h"
+#include "Canvas.h"
+#include "Scene.h"
 #include "CubeMesh.h"
 #include "PointLight.h"
 #include "SpotLight.h"
@@ -42,7 +44,5 @@ bool loadSpheres( lua_State* L, Scene* scene );
 Camera* loadCamera( lua_State* L, int w, int h  );
 
 Vector<float> loadSettings( lua_State* L );
-
-RayTracer* loadRayTracer( lua_State* L );
 
 #endif //COLLECTION_LUALOADER_H

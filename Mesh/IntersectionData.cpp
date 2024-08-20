@@ -6,7 +6,7 @@
 #include <limits>
 
 IntersectionData::IntersectionData():
-t( __FLT_MAX__ ), N(), triangle( nullptr ), sphere( nullptr ) {};
+        t( __FLT_MAX__ ), N(), triangle( nullptr ), sphere( nullptr ) {};
 
 IntersectionData::IntersectionData( float t, const Vector3f& N, Triangle* tr, Sphere* sp ):
-                                    t( t ), N( N ), triangle( tr ), sphere( sp ) {};
+        t( t ), N( N ), triangle( tr ), sphere( sp ) {};

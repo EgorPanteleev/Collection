@@ -20,7 +20,8 @@ int main( int argc, char* argv[] ) {
     }
    // scene->add( new PointLight( Vector3f(-3500,0,0 ), 9999999 ) );
     Kokkos::initialize(argc, argv); {
-        RayTracer* rayTracer = loadRayTracer( L );
+        RayTracer* rayTracer = new RayTracer();
+        rayTracer->loadFromLua( L );
         auto start = std::chrono::high_resolution_clock::now();;
         rayTracer->render( RayTracer::PARALLEL );
         auto end = std::chrono::high_resolution_clock::now();

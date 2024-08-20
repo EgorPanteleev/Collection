@@ -53,7 +53,11 @@ void Sphere::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
-Vector3f Sphere::getSamplePoint() {
+void Sphere::setMaterial( const Material& mat ) {
+    material = mat;
+}
+
+Vector3f Sphere::getSamplePoint() const {
     float theta = rand() / (float) RAND_MAX * M_PI;  // Угол от 0 до π
     float phi = rand() / (float) RAND_MAX * 2 * M_PI;  // Угол от 0 до 2π
 

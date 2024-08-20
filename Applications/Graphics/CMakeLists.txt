@@ -14,7 +14,7 @@ add_executable( GUI GUI.cpp )
 
 add_executable( 2DViewLua 2DViewLua.cpp)
 
-target_link_libraries(2DView ${Libs} Kokkos::kokkos )
+target_link_libraries(2DView ${Libs} Kokkos::kokkos ${LUA_LIBRARIES} )
 
 target_link_libraries(2DViewLua ${Libs} Kokkos::kokkos ${LUA_LIBRARIES} )
 

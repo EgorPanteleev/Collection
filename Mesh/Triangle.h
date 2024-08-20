@@ -2,10 +2,9 @@
 #include "Vector3f.h"
 #include "Vector2f.h"
 #include "Ray.h"
-#include "Mesh.h"
 #include "Material.h"
-class BBox;
-class Mesh;
+#include "BBox.h"
+
 class Triangle {
 public:
     Triangle();
@@ -17,6 +16,7 @@ public:
     void scale( const Vector3f& scaleVec );
     void scaleTo( float scaleValue );
     void scaleTo( const Vector3f& scaleVec );
+    void setMaterial( const Material& mat );
     [[nodiscard]] Vector3f getSamplePoint() const;
     [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Vector3f getOrigin() const;
@@ -26,9 +26,10 @@ public:
     [[nodiscard]] RGB getColor( const Vector3f& P ) const;
     [[nodiscard]] RGB getAmbient( const Vector3f& P ) const;
     [[nodiscard]] float getRoughness( const Vector3f& P ) const;
+    [[nodiscard]] Material getMaterial() const;
     Vector3f v1, v2, v3;
-    Mesh* owner;
 private:
+    Material material;
     int getIndex( const Vector3f& P, const ImageData& imageData ) const;
     Vector2f v1Tex, v2Tex, v3Tex;
     Vector3f edge1, edge2;

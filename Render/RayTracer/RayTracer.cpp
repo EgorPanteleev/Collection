@@ -1,22 +1,17 @@
 #include "RayTracer.h"
 #include <cmath>
 #include "Utils.h"
+#include "LuaLoader.h"
 //#include "Sheduler.h"
 #define BACKGROUND_COLOR RGB(0, 0, 0)
 //#define BACKGROUND_COLOR RGB(255, 0, 0)
 //#define BACKGROUND_COLOR RGB(255, 255, 255)
 
-RayTracer::RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples  ):
-depth( _depth ), numAmbientSamples( _numAmbientSamples ), numLightSamples( _numLightSamples ) {
-    camera = Kokkos::View<Camera*>("camera");
-    Kokkos::deep_copy(camera, *c);
-    scene = Kokkos::View<Scene*>("scene");
-    Kokkos::deep_copy(scene, *s);
-    canvas = Kokkos::View<Canvas*>("canvas");
-    Kokkos::deep_copy(canvas, *_canvas);
-    bvh = new BVH( s->getTriangles(), s->getSpheres() );
-//    bvh = Kokkos::View<BVH*>("BVH");
-//    Kokkos::deep_copy(bvh, *_bvh);
+RayTracer::RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples  ){
+    load( c, s, _canvas, _depth, _numAmbientSamples, _numAmbientSamples );
+}
+
+RayTracer::RayTracer(): camera(), scene(), canvas(), depth(), numLightSamples(), numAmbientSamples(){
 }
 RayTracer::~RayTracer() {
     //delete canvas;
@@ -208,7 +203,7 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     if ( cIData.triangle != nullptr ) {
         cIData.N = cIData.triangle->getNormal( P );
         materialColor = cIData.triangle->getColor( P );
-        material = cIData.triangle->owner->getMaterial();
+        material = cIData.triangle->getMaterial();
         ambientOcclusion = cIData.triangle->getAmbient( P ).r;
     } else {
         cIData.N = cIData.sphere->getNormal( P );
@@ -310,6 +305,29 @@ int RayTracer::getDepth() const {
     return depth;
 }
 
+void RayTracer::loadFromLua( lua_State* L ) {
+    Scene* scene = new Scene();
+    loadScene( L, scene );
+    Canvas* canvas = loadCanvas( L );
+    Camera* camera = loadCamera( L, canvas->getW(), canvas->getH() );
+    auto settings = loadSettings( L );
+    load( camera, scene, canvas, settings[0], settings[1], settings[2] );
+}
+
+void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples ) {
+    depth = _depth;
+    numAmbientSamples = _numAmbientSamples;
+    numLightSamples = _numLightSamples;
+    camera = Kokkos::View<Camera*>("camera");
+    Kokkos::deep_copy(camera, *c);
+    scene = Kokkos::View<Scene*>("scene");
+    Kokkos::deep_copy(scene, *s);
+    canvas = Kokkos::View<Canvas*>("canvas");
+    Kokkos::deep_copy(canvas, *_canvas);
+    bvh = new BVH( s->getTriangles(), s->getSpheres() );
+//    bvh = Kokkos::View<BVH*>("BVH");
+//    Kokkos::deep_copy(bvh, *_bvh);
+}
 
 RenderFunctor::RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& _colors, Kokkos::View<RGB**>& _normals, Kokkos::View<RGB**>& _albedos )
         :rayTracer( _rayTracer ), colors( _colors ), normals( _normals ), albedos( _albedos ) {

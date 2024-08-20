@@ -1,6 +1,5 @@
 #include "Triangle.h"
 #include "Utils.h"
-#include <iostream>
 #include <algorithm>
 #include <cmath>
 //Triangle::
@@ -96,6 +95,10 @@ void Triangle::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
+void Triangle::setMaterial( const Material& mat ) {
+    material = mat;
+}
+
 Vector3f Triangle::getSamplePoint() const {
         float u = rand() / (float) RAND_MAX;
         float v = rand() / (float) RAND_MAX;
@@ -181,7 +184,6 @@ int Triangle::getIndex( const Vector3f& P, const ImageData& imageData ) const {
 }
 
 Vector3f Triangle::getNormal( const Vector3f& P ) const {
-    Material material = owner->getMaterial();
     if ( !material.getTexture().normalMap.data ) return N;
     constexpr float F2_255 = 2 / 255.0f;
     int ind = getIndex( P, material.getTexture().normalMap );
@@ -201,7 +203,6 @@ Vector3f Triangle::getNormal( const Vector3f& P ) const {
 
 
 RGB Triangle::getColor( const Vector3f& P ) const {
-    Material material = owner->getMaterial();
     if ( !material.getTexture().colorMap.data ) return material.getColor();
 
     int ind = getIndex( P, material.getTexture().colorMap );
@@ -213,7 +214,6 @@ RGB Triangle::getColor( const Vector3f& P ) const {
 }
 
 RGB Triangle::getAmbient( const Vector3f& P ) const {
-    Material material = owner->getMaterial();
     if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
     constexpr float F1_255 = 1 / 255.0f;
     int ind = getIndex( P, material.getTexture().ambientMap );
@@ -225,11 +225,14 @@ RGB Triangle::getAmbient( const Vector3f& P ) const {
 }
 
 float Triangle::getRoughness( const Vector3f& P ) const {
-    Material material = owner->getMaterial();
     if ( !material.getTexture().roughnessMap.data ) return 0.5;
     constexpr float F1_255 = 1 / 255.0f;
     int ind = getIndex( P, material.getTexture().roughnessMap );
 
     return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
 
+}
+
+Material Triangle::getMaterial() const {
+    return material;
 }

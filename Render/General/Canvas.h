@@ -2,7 +2,7 @@
 #ifndef COLLECTION_CANVAS_H
 #define COLLECTION_CANVAS_H
 #include "Color.h"
-#include <Kokkos_Core.hpp>
+#include <string>
 class Canvas {
 public:
     Canvas( int _w, int _h );

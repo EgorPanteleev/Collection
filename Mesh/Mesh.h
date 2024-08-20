@@ -1,3 +1,4 @@
+
 //
 // Created by auser on 5/12/24.
 //
@@ -6,14 +7,12 @@
 #define COLLECTION_MESH_H
 #include <iostream>
 #include "Ray.h"
+#include "Primitive.h"
 #include <limits>
-#include "Triangle.h"
 #include "Vector.h"
 #include "IntersectionData.h"
 #include "Material.h"
 #include "BBox.h"
-class Triangle;
-class IntersectionData;
 class Mesh {
 public:
     Mesh();

@@ -3,6 +3,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(Collection)
 
+find_package(OpenMP REQUIRED)
+
+#find_package(Lua REQUIRED)
+
 find_package(Kokkos REQUIRED)
 
 enable_testing()
@@ -20,8 +24,6 @@ add_subdirectory(OBJReader)
 add_subdirectory(Math)
 
 add_subdirectory(Mesh)
-
-#add_subdirectory(Shapes)
 
 add_subdirectory(Render/General)
 

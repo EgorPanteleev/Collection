@@ -143,9 +143,9 @@ IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
 void Mesh::setTriangles(Vector<Triangle>& _triangles ) {
     triangles = _triangles;
     for ( auto& triangle: triangles )
-        triangle.owner = this;
+        triangle.setMaterial( material );
 }
 void Mesh::addTriangle(const Triangle& triangle ) {
     triangles.push_back( triangle );
-    triangles[ triangles.size() - 1 ].owner = this;
+    triangles[ triangles.size() - 1 ].setMaterial( material );
 }

@@ -227,9 +227,9 @@ bool loadSpheres( lua_State* L, Scene* scene ) {
             Vector3f origin = loadVector3f(L, "origin");
             float radius = loadNumber( L, "radius" );
             Material material = loadMaterial( L );
-            Sphere sphere = Sphere( radius, origin, material );
+            Sphere* sphere = new Sphere( radius, origin, material );
             //processMovement( L, &sphere );
-            scene->add( sphere );
+            scene->add( *sphere );
         }
         lua_pop(L, 1);
     }
@@ -271,12 +271,4 @@ Vector<float> loadSettings( lua_State* L ) {
     return res;
 }
 
-RayTracer* loadRayTracer( lua_State* L ) {
-    Scene* scene = new Scene();
-    loadScene( L, scene );
-    Canvas* canvas = loadCanvas( L );
-    Camera* camera = loadCamera( L, canvas->getW(), canvas->getH() );
-    auto settings = loadSettings( L );
-    return new RayTracer( camera, scene, canvas, settings[0], settings[1], settings[2] );
-}
 

@@ -10,6 +10,12 @@
 #include "BVH.h"
 #include <Kokkos_Core.hpp>
 
+extern "C" {
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
+
 struct CanvasData {
     RGB color;
     RGB normal;
@@ -23,6 +29,7 @@ public:
        PARALLEL
     };
     RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
+    RayTracer();
     ~RayTracer();
     KOKKOS_INLINE_FUNCTION IntersectionData closestIntersection( Ray& ray );
     KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
@@ -33,6 +40,8 @@ public:
     [[nodiscard]] Scene* getScene() const;
     [[nodiscard]] Camera* getCamera() const;
     [[nodiscard]] int getDepth() const;
+    void loadFromLua( lua_State* L );
+    void load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
 private:
     void printProgress( int x ) const;
     void traceAllRaysSerial();

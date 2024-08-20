@@ -54,18 +54,3 @@ Vector<Triangle> Scene::getTriangles() const {
 Vector<LightInstance*> Scene::getLights() const {
     return lights;
 }
-
-
-//Vector<Shape*>::const_iterator Scene::begin() const {
-//    return shapes.begin();
-//}
-//Vector<Shape*>::const_iterator Scene::end() const {
-//    return shapes.end();
-//}
-//
-//Vector<Light*>::const_iterator Scene::begin() const {
-//    return lights.begin();
-//}
-//Vector<Light*>::const_iterator Scene::end() const {
-//    return lights.end();
-//}

@@ -6,5 +6,5 @@ file(GLOB HEADERS "*.h")
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(Libs RayTracer Math OBJReader)
+set(Libs Math stbImage OBJReader)
 target_link_libraries(${PROJECT_NAME} ${Libs})

@@ -11,6 +11,7 @@
 #include "Vector.h"
 #include "Utils.h"
 #include "Sphere.h"
+#include "IntersectionData.h"
 
 struct BVHNode
 {
