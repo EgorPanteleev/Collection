@@ -16,7 +16,7 @@ public:
     void scale( const Vector3f& scaleVec );
     void scaleTo( float scaleValue );
     void scaleTo( const Vector3f& scaleVec );
-    void setMaterial( const Material& mat );
+    void setMaterial( Material* mat );
     [[nodiscard]] Vector3f getSamplePoint() const;
     [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Vector3f getOrigin() const;
@@ -29,7 +29,7 @@ public:
     [[nodiscard]] Material getMaterial() const;
     Vector3f v1, v2, v3;
 private:
-    Material material;
+    Material* material;
     int getIndex( const Vector3f& P, const ImageData& imageData ) const;
     Vector2f v1Tex, v2Tex, v3Tex;
     Vector3f edge1, edge2;

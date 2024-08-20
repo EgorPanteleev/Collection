@@ -45,7 +45,7 @@ void CubeMesh::fillTriangles() {
     triangles.push_back( { f4, f3, b4 } );
     triangles.push_back( { f3, b3, b4 } );
     for ( auto& triangle: triangles )
-        triangle.setMaterial( material );
+        triangle.setMaterial( &material );
 }
 
 

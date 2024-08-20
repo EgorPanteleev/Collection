@@ -850,7 +850,7 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
                                    wall ) );
 ////down
     meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 320),
-                                   giraffe ) );
+                                   floor ) );
 ////up
     meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 320),
                                    ceil ) );
@@ -863,8 +863,9 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
 ////LIGHTS
 
 //    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
-//    int lightWidth = 20;
+    int lightWidth = 20;
 //    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.4));
+  //  meshes.push_back( new CubeMesh( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,68,180 + lightWidth), {WHITE, 0.7 } ) );
     spheres.push_back( new Sphere( 10, Vector3f(0, 60, 200), {WHITE, 0.7 } ) );
 ////LOADING...
     for ( auto sphere: spheres ) {
@@ -938,16 +939,16 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600; //3 sec
+    int w = 960 ; int h = 600; //3 sec
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
     int depth = 2;
     int ambientSamples = 5;
-    int lightSamples = 2;
+    int lightSamples = 5;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
