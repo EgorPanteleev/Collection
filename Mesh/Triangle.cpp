@@ -84,13 +84,13 @@ void Triangle::scale( const Vector3f& scaleVec ) {
 }
 
 void Triangle::scaleTo( float scaleValue ) {
-    BBoxData bbox = getBBox();
+    BBox bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleValue / len[0], scaleValue / len[1], scaleValue / len[2] };
     scale( cff );
 }
 void Triangle::scaleTo( const Vector3f& scaleVec ) {
-    BBoxData bbox = getBBox();
+    BBox bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
@@ -107,7 +107,7 @@ Vector3f Triangle::getSamplePoint() const {
         return P;
 }
 
-BBoxData Triangle::getBBox() const {
+BBox Triangle::getBBox() const {
     float minX = std::min( std::min( v1[0], v2[0] ), v3[0] );
     float maxX = std::max( std::max( v1[0], v2[0] ), v3[0] );
     float minY = std::min( std::min( v1[1], v2[1] ), v3[1] );
@@ -159,155 +159,77 @@ float Triangle::intersectsWithRay( const Ray& ray ) const {
     return t;
 }
 
-Vector3f Triangle::getNormal() const {
-    return N;
+int Triangle::getIndex( const Vector3f& P, const ImageData& imageData ) const {
+    Vector3f edge3 = P - v1;
+    float d00 = dot(edge1, edge1);
+    float d01 = dot(edge1, edge2);
+    float d11 = dot(edge2, edge2);
+    float d20 = dot(edge3, edge1);
+    float d21 = dot(edge3, edge2);
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
+    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
+
+    int texX = (int) (tx * imageData.width) % imageData.width;
+    int texY = (int) (ty * imageData.height) % imageData.height;
+
+    return (texY * imageData.width + texX) * imageData.channels;
 }
 
 Vector3f Triangle::getNormal( const Vector3f& P ) const {
     Material material = owner->getMaterial();
     if ( !material.getTexture().normalMap.data ) return N;
-
-    Vector3f edge3 = P - v1;
-    float d00 = dot(edge1, edge1);
-    float d01 = dot(edge1, edge2);
-    float d11 = dot(edge2, edge2);
-    float d20 = dot(edge3, edge1);
-    float d21 = dot(edge3, edge2);
-    float denom = d00 * d11 - d01 * d01;
-    float v = (d11 * d20 - d01 * d21) / denom;
-    float w = (d00 * d21 - d01 * d20) / denom;
-    float u = 1.0f - v - w;
-
-    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
-    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
-
-
-    int texX = static_cast<int>(tx * material.getTexture().normalMap.width) % material.getTexture().normalMap.width;
-    int texY = static_cast<int>(ty * material.getTexture().normalMap.height) % material.getTexture().normalMap.height;
-    int ind = (texY * material.getTexture().normalMap.width + texX) * material.getTexture().normalMap.channels;
+    constexpr float F2_255 = 2 / 255.0f;
+    int ind = getIndex( P, material.getTexture().normalMap );
     Vector3f res = {
-            material.getTexture().normalMap.data[ind    ] / 255.0f * 2 - 1,
-            material.getTexture().normalMap.data[ind + 1] / 255.0f * 2 - 1,
-            material.getTexture().normalMap.data[ind + 2] / 255.0f * 2 - 1
+            (float) material.getTexture().normalMap.data[ind    ] * F2_255 - 1,
+            (float) material.getTexture().normalMap.data[ind + 1] * F2_255 - 1,
+            (float) material.getTexture().normalMap.data[ind + 2] * F2_255 - 1
     };
-
 
     Vector3f up = (std::abs(N.z) < 0.999f) ? Vector3f{0.0f, 0.0f, 1.0f} : Vector3f{1.0f, 0.0f, 0.0f};
-
-    // Вычисляем касательный вектор (Tangent)
     Vector3f tangent = up.cross(N);
-
-
-    // Вычисляем битангента (Bitangent)
     Vector3f bitangent = N.cross(tangent);
-
-
-    Mat3f rot = {
-            tangent.normalize(),
-            bitangent.normalize(),
-            N
-    };
+    Mat3f rot = { tangent.normalize(), bitangent.normalize(), N };
     res = rot * res;
     return res.normalize();
 }
 
-Vector3f Triangle::getBarycentric( const Vector3f& P ) const {
-    Vector3f edge3 = P - v1;
-    float d00 = dot(edge1, edge1);
-    float d01 = dot(edge1, edge2);
-    float d11 = dot(edge2, edge2);
-    float d20 = dot(edge3, edge1);
-    float d21 = dot(edge3, edge2);
-    float denom = d00 * d11 - d01 * d01;
-    float v = (d11 * d20 - d01 * d21) / denom;
-    float w = (d00 * d21 - d01 * d20) / denom;
-    float u = 1.0f - v - w;
-    return { u, v, w };
-}
 
 RGB Triangle::getColor( const Vector3f& P ) const {
     Material material = owner->getMaterial();
     if ( !material.getTexture().colorMap.data ) return material.getColor();
 
-    Vector3f edge3 = P - v1;
-    float d00 = dot(edge1, edge1);
-    float d01 = dot(edge1, edge2);
-    float d11 = dot(edge2, edge2);
-    float d20 = dot(edge3, edge1);
-    float d21 = dot(edge3, edge2);
-    float denom = d00 * d11 - d01 * d01;
-    float v = (d11 * d20 - d01 * d21) / denom;
-    float w = (d00 * d21 - d01 * d20) / denom;
-    float u = 1.0f - v - w;
-
-    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
-    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
-
-
-    int texX = static_cast<int>(tx * material.getTexture().colorMap.width) % material.getTexture().colorMap.width;
-    int texY = static_cast<int>(ty * material.getTexture().colorMap.height) % material.getTexture().colorMap.height;
-    int ind = (texY * material.getTexture().colorMap.width + texX) * material.getTexture().colorMap.channels;
-
+    int ind = getIndex( P, material.getTexture().colorMap );
     return {
-            material.getTexture().colorMap.data[ind    ] / 1.0f,
-            material.getTexture().colorMap.data[ind + 1] / 1.0f,
-            material.getTexture().colorMap.data[ind + 2] / 1.0f
+            (float) material.getTexture().colorMap.data[ind    ] * 1.0f,
+            (float) material.getTexture().colorMap.data[ind + 1] * 1.0f,
+            (float) material.getTexture().colorMap.data[ind + 2] * 1.0f
     };
 }
 
 RGB Triangle::getAmbient( const Vector3f& P ) const {
     Material material = owner->getMaterial();
     if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
-
-    Vector3f edge3 = P - v1;
-    float d00 = dot(edge1, edge1);
-    float d01 = dot(edge1, edge2);
-    float d11 = dot(edge2, edge2);
-    float d20 = dot(edge3, edge1);
-    float d21 = dot(edge3, edge2);
-    float denom = d00 * d11 - d01 * d01;
-    float v = (d11 * d20 - d01 * d21) / denom;
-    float w = (d00 * d21 - d01 * d20) / denom;
-    float u = 1.0f - v - w;
-
-    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
-    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
-
-
-    int texX = static_cast<int>(tx * material.getTexture().ambientMap.width) % material.getTexture().ambientMap.width;
-    int texY = static_cast<int>(ty * material.getTexture().ambientMap.height) % material.getTexture().ambientMap.height;
-    int ind = (texY * material.getTexture().ambientMap.width + texX) * material.getTexture().ambientMap.channels;
-
+    constexpr float F1_255 = 1 / 255.0f;
+    int ind = getIndex( P, material.getTexture().ambientMap );
     return {
-            material.getTexture().ambientMap.data[ind    ] / 255.0f,
-            material.getTexture().ambientMap.data[ind + 1] / 255.0f,
-            material.getTexture().ambientMap.data[ind + 2] / 255.0f
+            (float) material.getTexture().ambientMap.data[ind    ] * F1_255,
+            (float) material.getTexture().ambientMap.data[ind + 1] * F1_255,
+            (float) material.getTexture().ambientMap.data[ind + 2] * F1_255
     };
 }
 
 float Triangle::getRoughness( const Vector3f& P ) const {
     Material material = owner->getMaterial();
     if ( !material.getTexture().roughnessMap.data ) return 0.5;
+    constexpr float F1_255 = 1 / 255.0f;
+    int ind = getIndex( P, material.getTexture().roughnessMap );
 
-    Vector3f edge3 = P - v1;
-    float d00 = dot(edge1, edge1);
-    float d01 = dot(edge1, edge2);
-    float d11 = dot(edge2, edge2);
-    float d20 = dot(edge3, edge1);
-    float d21 = dot(edge3, edge2);
-    float denom = d00 * d11 - d01 * d01;
-    float v = (d11 * d20 - d01 * d21) / denom;
-    float w = (d00 * d21 - d01 * d20) / denom;
-    float u = 1.0f - v - w;
-
-    float tx = u * v1Tex.getX() + v * v2Tex.getX() + w * v3Tex.getX();
-    float ty = u * v1Tex.getY() + v * v2Tex.getY() + w * v3Tex.getY();
-
-
-    int texX = static_cast<int>(tx * material.getTexture().roughnessMap.width) % material.getTexture().roughnessMap.width;
-    int texY = static_cast<int>(ty * material.getTexture().roughnessMap.height) % material.getTexture().roughnessMap.height;
-    int ind = (texY * material.getTexture().roughnessMap.width + texX) * material.getTexture().roughnessMap.channels;
-
-    return material.getTexture().roughnessMap.data[ind] / 255.0f;
+    return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
 
 }

@@ -25,9 +25,15 @@ public:
 
     Vector2f operator-( const Vector2f& p ) const;
 
+    Vector2f operator-( float a ) const;
+
     Vector2f operator*( float a ) const;
 
+    Vector2f operator*( const Vector2f& p ) const;
+
     Vector2f operator/( float a ) const;
+
+    Vector2f operator/( const Vector2f& p ) const;
 
     bool operator==( const Vector2f& p ) const;
 
@@ -36,8 +42,8 @@ public:
     Vector2f(float _x, float _y );
     ~Vector2f();
     Vector2f( const Vector2f& p );
-private:
     float x{};
     float y{};
+private:
 };
 

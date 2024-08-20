@@ -64,6 +64,10 @@ Vector2f Vector2f::operator-( const Vector2f& p ) const {
     return ret;
 }
 
+Vector2f Vector2f::operator-( float a ) const {
+    return { x - a, y - a };
+}
+
 Vector2f Vector2f::operator*( float a ) const {
     Vector2f ret;
     ret.setX( x * a );
@@ -71,11 +75,19 @@ Vector2f Vector2f::operator*( float a ) const {
     return ret;
 }
 
+Vector2f Vector2f::operator*( const Vector2f& p ) const {
+    return { x * p.x, y * p.y };
+}
+
 Vector2f Vector2f::operator/( float a ) const {
     Vector2f ret;
     ret.setX( x / a );
     ret.setY( y / a );
     return ret;
+}
+
+Vector2f Vector2f::operator/( const Vector2f& p ) const {
+    return { x / p.x, y / p.y };
 }
 
 bool Vector2f::operator==( const Vector2f& p ) const {
@@ -95,6 +107,6 @@ Vector2f::Vector2f(): x( 0 ), y( 0 ) { }
 Vector2f::Vector2f(float _x, float _y ): x( _x ), y( _y ){ }
 
 Vector2f::~Vector2f() {
-    x = 0;
-    y = 0;
+//    x = 0;
+//    y = 0;
 }

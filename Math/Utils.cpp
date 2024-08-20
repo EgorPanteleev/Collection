@@ -10,8 +10,8 @@ float dot( const Vector4f& p1, const Vector4f& p2 ) {
 
 float getDistance( const Vector3f& p1, const Vector3f& p2 ) {
     return ( float ) sqrt(pow((p2.getX() - p1.getX()), 2)
-                           + pow((p2.getY() - p1.getY()), 2)
-                           + pow((p2.getZ() - p1.getZ()), 2) );
+                          + pow((p2.getY() - p1.getY()), 2)
+                          + pow((p2.getZ() - p1.getZ()), 2) );
 }
 
 
@@ -138,4 +138,20 @@ Vector3f min( const Vector3f& v1, const Vector3f& v2 ) {
 
 Vector3f max( const Vector3f& v1, const Vector3f& v2 ) {
     return { std::max( v1.x, v2.x), std::max( v1.y, v2.y), std::max( v1.z, v2.z) };
+}
+
+Vector2f min( const Vector2f& v1, const Vector2f& v2 ) {
+    return { std::min( v1.x, v2.x), std::min( v1.y, v2.y) };
+}
+
+Vector2f max( const Vector2f& v1, const Vector2f& v2 ) {
+    return { std::max( v1.x, v2.x), std::max( v1.y, v2.y) };
+}
+
+Vector2f floor( const Vector2f& v1 ) {
+    return { std::floor( v1.x ), std::floor( v1.y ) };
+}
+
+Vector2f ceil( const Vector2f& v1 ) {
+    return { std::ceil( v1.x ), std::ceil( v1.y ) };
 }

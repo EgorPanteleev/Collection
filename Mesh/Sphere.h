@@ -9,7 +9,7 @@
 #include "Vector3f.h"
 #include "Ray.h"
 #include "Material.h"
-#include "BBoxData.h"
+#include "BBox.h"
 #include "IntersectionData.h"
 
 class Material;
@@ -26,12 +26,13 @@ public:
     void scaleTo( float scaleValue );
     void scaleTo( const Vector3f& scaleVec );
     [[nodiscard]] Vector3f getSamplePoint();
-    [[nodiscard]] BBoxData getBBox() const;
+    [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Material getMaterial() const;
     [[nodiscard]] Vector3f getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
-    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const;
     [[nodiscard]] float intersectsWithRay( const Ray& ray ) const;
+    [[nodiscard]] int getIndex( const Vector3f& P, const ImageData& imageData ) const;
+    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const;
     [[nodiscard]] RGB getColor( const Vector3f& P ) const;
     [[nodiscard]] RGB getAmbient( const Vector3f& P ) const;
     [[nodiscard]] float getRoughness( const Vector3f& P ) const;

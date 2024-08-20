@@ -11,7 +11,7 @@
 #include "Vector.h"
 #include "IntersectionData.h"
 #include "Material.h"
-#include "BBoxData.h"
+#include "BBox.h"
 class Triangle;
 class IntersectionData;
 class Mesh {
@@ -32,7 +32,7 @@ public:
 
     [[nodiscard]] Vector <Triangle> getTriangles();
     [[nodiscard]] Vector3f getSamplePoint();
-    [[nodiscard]] BBoxData getBBox() const;
+    [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Vector3f getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
     [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;

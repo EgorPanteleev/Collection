@@ -20,7 +20,7 @@ struct BVHNode
     [[nodiscard]] bool isLeaf() const {
         return ( trianglesCount > 0 );
     }
-    float CalculateNodeCost()
+    [[nodiscard]] float calculateNodeCost() const
     {
         Vector3f e = aabbMax - aabbMin; // extent of the node
         return (e.x * e.y + e.y * e.z + e.z * e.x) * trianglesCount;
@@ -31,23 +31,21 @@ struct BVHNode
 class BVH {
 public:
 
-    BVH( Vector <Triangle> _triangles, Vector <Sphere> _spheres );
+    BVH( const Vector <Triangle>& _triangles, const Vector <Sphere>& _spheres );
 
     BVH();
 
-    void BuildBVH();
+    void build();
 
-    void UpdateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax );
+    void updateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax );
 
-    float EvaluateSAH( BVHNode& node, int axis, float pos );
+    void subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroidMin, Vector3f& centroidMax );
 
-    void Subdivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroidMin, Vector3f& centroidMax );
+    float findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f& centroidMin, Vector3f& centroidMax );
 
-    float FindBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f& centroidMin, Vector3f& centroidMax );
+    bool intersectBBox( const Ray& ray, const Vector3f& bmin, const Vector3f& bmax );
 
-    bool IntersectAABB( const Ray& ray, const Vector3f bmin, const Vector3f bmax );
-
-    IntersectionData IntersectBVH( Ray& ray, const uint nodeIdx );
+    IntersectionData intersectBVH( Ray& ray, const uint nodeIdx );
 private:
     Vector <Triangle> triangles;
     Vector <Sphere> spheres;

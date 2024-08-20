@@ -12,13 +12,46 @@ extern "C" {
 #include "lauxlib.h"
 }
 
+//162.786 2 2 5 - 3200
+// 3 sec - 960 2 2 2
 
+
+Mesh* getCubeMesh( const Vector3f& p1, const Vector3f& p2, const Material& _material ) {
+    Mesh* newMesh = new Mesh();
+    Vector3f f1 = p1;
+    Vector3f f2 = { p2.getX(), p1.getY(), p1.getZ() };
+    Vector3f f3 = { p2.getX(), p1.getY(), p2.getZ() };
+    Vector3f f4 = { p1.getX(), p1.getY(), p2.getZ() };
+
+    Vector3f b1 = { p1.getX(), p2.getY(), p1.getZ() };
+    Vector3f b2 = { p2.getX(), p2.getY(), p1.getZ() };
+    Vector3f b3 = p2;
+    Vector3f b4 = { p1.getX(), p2.getY(), p2.getZ() };
+    // down
+    newMesh->addTriangle( { f1, f2, f3 } );
+    newMesh->addTriangle( { f1, f3, f4 } );
+    //up
+    newMesh->addTriangle( { b1, b3, b2 } );
+    newMesh->addTriangle( { b1, b4, b3 } );
+    //left
+    newMesh->addTriangle( { b1, f1, f4 } );
+    newMesh->addTriangle( { b1, f4, b4 } );
+    //right
+    newMesh->addTriangle( { f2, b2, f3 } );
+    newMesh->addTriangle( { f3, b2, b3 } );
+    //front
+    newMesh->addTriangle( { f2, f1, b1 } );
+    newMesh->addTriangle( { f2, b1, b2 } );
+    //back
+    newMesh->addTriangle( { f4, f3, b4 } );
+    newMesh->addTriangle( { f3, b3, b4 } );
+}
 
 void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
-    for ( const auto& mesh: meshes ) {
+    for ( const auto mesh: meshes ) {
         scene->add( mesh );
     }
-    for ( const auto& light: lights ) {
+    for ( const auto light: lights ) {
         scene->add( light );
     }
 }
@@ -28,18 +61,19 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     Canvas* canvas = new Canvas(w, h );
 
     Vector<Mesh*> meshes;
-    Vector<Sphere> spheres;
+    Vector<Sphere*> spheres;
     Vector<Light*> lights;
 
-    spheres.push_back(Sphere(1500, Vector3f(0, 0, 3000), {YELLOW, -1, 0 }));
 
-    spheres.push_back(Sphere(300, Vector3f(2121, 0, 2250), {RED, -1 , 0 }));
+    spheres.push_back(new Sphere(1500, Vector3f(0, 0, 3000), {YELLOW, -1, 0 }));
 
-    spheres.push_back(Sphere(300, Vector3f(1030, 0, 1000),{GREEN, -1 , 0 }));
+    spheres.push_back(new Sphere(300, Vector3f(2121, 0, 2250), {RED, -1 , 0 }));
 
-    spheres.push_back(Sphere(300, Vector3f(-2121, 0, 2250),{PINK, -1, 0 }));
+    spheres.push_back(new Sphere(300, Vector3f(1030, 0, 1000),{GREEN, -1 , 0 }));
 
-    spheres.push_back(Sphere(300, Vector3f(-1030, 0, 1000),{CYAN, 500 }));
+    spheres.push_back(new Sphere(300, Vector3f(-2121, 0, 2250),{PINK, -1, 0 }));
+
+    spheres.push_back(new Sphere(300, Vector3f(-1030, 0, 1000),{CYAN, 500 }));
 
 
 //    lights.push_back( new PointLight( Vector3f(2000,0,2900 ), 1200 ));
@@ -47,7 +81,7 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
 //    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 500 ));
     loadScene( scene, meshes, lights );
     for ( auto& sphere: spheres ) {
-        scene->add( sphere );
+        scene->add( *sphere );
     }
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -58,7 +92,7 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     Canvas* canvas = new Canvas(w, h );
 
     Vector<Mesh*> meshes;
-    Vector<Sphere> spheres;
+    Vector<Sphere*> spheres;
     Vector<Light*> lights;
     float roomRefl = 0;
 ////right
@@ -81,20 +115,17 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
                                    { GRAY, -1 , 0 } ) );
 
 ////RAND SPHERE
-    Sphere sphere = Sphere(25, Vector3f(0, -10, 150), {BLUE, -1, 0 });
-    spheres.push_back( sphere );
+    spheres.push_back( new Sphere(25, Vector3f(0, -10, 150), {BLUE, -1, 0 }) );
 ////LIGHTS
-
-    Sphere sphere1 = Sphere(10, Vector3f(0, 55, 150), {BLUE, 0.7});
-    spheres.push_back( sphere1 );
+    spheres.push_back( new Sphere(10, Vector3f(0, 55, 150), {BLUE, 0.7}) );
     //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
     int lightWidth = 20;
     //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
     //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,-45,180 - lightWidth), Vector3f(0 + lightWidth,-45,180 + lightWidth), 0.7));
 
 
-    for ( auto& sph: spheres ) {
-        scene->add( sph );
+    for ( auto sphere: spheres ) {
+        scene->add( *sphere );
     }
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
@@ -602,21 +633,9 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     sks->move( Vector3f( -25,19,1080) );
     sks->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
 
-//    meshes.push_back( table );
-//    meshes.push_back( sks );
+    meshes.push_back( table );
+    meshes.push_back( sks );
 
-    auto tr1 = table->getTriangles();
-    auto tr2 = sks->getTriangles();
-    for ( const auto& a: tr1 ) {
-        tr2.push_back( a );
-    }
-    auto asd = new Mesh();
-    asd->setTriangles( tr2 );
-    asd->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    asd->rotate( Vector3f( 0, 0, 1), 0 );
-    asd->rotate( Vector3f( 1,0,0),-40);
-    asd->rotate( Vector3f( 0,1,0),0);
-    meshes.push_back( asd );
 
     lights.push_back( new PointLight( Vector3f(20 ,0,0), 0.5));
     loadScene( scene, meshes, lights );
@@ -624,7 +643,9 @@ void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 }
 
 void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    float FOV = 67.38;
+    float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), dV,w,h );
     //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
@@ -656,14 +677,14 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     int roomHeight = 140;
     auto* audi = new Mesh();
     audi->loadMesh( "/home/auser/dev/src/Collection/Models/audi/audi.obj" );
-//    audi->scaleTo( 500 );
-//    audi->moveTo(Vector3f( 0,0, roomLength / 2 + 160 ) );
+    audi->scaleTo( 100 );
+    audi->moveTo(Vector3f( 0,0, roomLength / 2  ) );
 ////    //rat->rotate( Vector3f( 0, 0, 1), 45 );
-//    audi->rotate( Vector3f( 1,0,0),270);
-//    audi->rotate( Vector3f( 0,1,0), 145);
-//    audi->move( Vector3f( -4,0,3) );
-//    audi->setMinPoint( Vector3f( 0,-roomHeight / 2,0), 1 );
-//    audi->setMaterial( { WHITE, -1 , 0 } );
+    audi->rotate( Vector3f( 1,0,0),270);
+    audi->rotate( Vector3f( 0,1,0), 145);
+    audi->move( Vector3f( -4,0,3) );
+    audi->setMinPoint( Vector3f( 0,-50,0), 1 );
+    audi->setMaterial( { BLUE, -1 , 0 } );
 
     ////Grill
    // Material grill = { BLACK, 0.8, 0.3/*0.3*/, 0.1 };
@@ -813,10 +834,12 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 
 ////LIGHTS
 
-    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
-    int lightWidth = 20;
-    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
-
+//    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    Vector<Sphere*> spheres;
+    spheres.push_back( new Sphere( 10, Vector3f(0, 50, 200), {WHITE, 1 } ) );
+    for ( auto sphere: spheres ){
+        scene->add( *sphere );
+    }
 ////LOADING...
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
@@ -868,21 +891,72 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 320),
                                    ceil ) );
 ////Spheres
-    Vector<Sphere> spheres;
-    spheres.push_back( { 20, Vector3f(-40, -30, 180), carpet } );
-    spheres.push_back( { 20, Vector3f(40, -30, 220), carpet } );
-    spheres.push_back( { 20, Vector3f(0, -30, 200), carpet } );
+    Vector<Sphere* > spheres;
+    spheres.push_back( new Sphere( 20, Vector3f(-40, -30, 180), carpet ) );
+    spheres.push_back( new Sphere( 20, Vector3f(40, -30, 220), carpet ) );
+    spheres.push_back( new Sphere( 20, Vector3f(0, -30, 200), carpet ) );
 
 ////LIGHTS
 
-//    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+//    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
 //    int lightWidth = 20;
 //    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.4));
-    spheres.push_back( { 10, Vector3f(0, 60, 200), {WHITE, 0.7 } } );
+    spheres.push_back( new Sphere( 10, Vector3f(0, 60, 200), {WHITE, 0.7 } ) );
 ////LOADING...
     for ( auto sphere: spheres ) {
-        scene->add( sphere );
+        scene->add( *sphere );
     }
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
+
+
+void dragonScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    float FOV = 67.38;
+    float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), dV,w,h );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+
+    Vector<Mesh*> meshes;
+    Vector<Light*> lights;
+    float roomRefl = 0;
+////right
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+                                    { GREEN, -1 , roomRefl } ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+                                   { RED, -1 , roomRefl } ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+                                   { GRAY, -1, roomRefl } ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+                                   { GRAY, -1 , roomRefl } ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+                                   { GRAY, -1 , roomRefl } ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
+                                   { GRAY, -1 , roomRefl } ) );
+
+////RAND BLOCK
+    auto* dragon = new Mesh();
+    dragon->loadMesh( "/home/auser/dev/src/Collection/Models/dragon/armadillo.obj" );
+    dragon->setMaterial(  { GRAY, -1 , roomRefl } );
+    dragon->scaleTo(100 );
+    dragon->moveTo( {0,0,150} );
+    dragon->rotate( Vector3f( 1,0,0),-30);
+    dragon->setMinPoint( {0,-50,0}, 1 );
+    meshes.push_back( dragon );
+////LIGHTS
+
+    lights.push_back( new PointLight( Vector3f(0,65,150), 0.6));
+    int lightWidth = 20;
+    //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+
+////LOADING...
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -900,14 +974,16 @@ int main( int argc, char* argv[] ) {
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600; //3 sec
+    int w = 960 ; int h = 600; //3 sec
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
+    // 160 sec 2 5 2 - 3200
+    // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
     int depth = 2;
-    int ambientSamples = 2;
-    int lightSamples = 2;
+    int ambientSamples = 5;
+    int lightSamples = 5;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
@@ -932,6 +1008,7 @@ int main( int argc, char* argv[] ) {
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //dragonScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;

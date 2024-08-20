@@ -46,3 +46,11 @@ RGB operator+( const RGB& col, const Vector3f& vec );
 Vector3f min( const Vector3f& v1, const Vector3f& v2 );
 
 Vector3f max( const Vector3f& v1, const Vector3f& v2 );
+
+Vector2f min( const Vector2f& v1, const Vector2f& v2 );
+
+Vector2f max( const Vector2f& v1, const Vector2f& v2 );
+
+Vector2f floor( const Vector2f& v1 );
+
+Vector2f ceil( const Vector2f& v1 );

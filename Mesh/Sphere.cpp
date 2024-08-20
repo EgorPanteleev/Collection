@@ -39,7 +39,7 @@ void Sphere::scale( const Vector3f& scaleVec ) {
 }
 
 void Sphere::scaleTo( float scaleValue ) {
-    BBoxData bbox = getBBox();
+    BBox bbox = getBBox();
     float len = bbox.pMax[0] - bbox.pMin[0];
     float cff = scaleValue / len;
     scale( cff );
@@ -47,7 +47,7 @@ void Sphere::scaleTo( float scaleValue ) {
 
 void Sphere::scaleTo( const Vector3f& scaleVec ) {
     if ( scaleVec[0] != scaleVec[1] || scaleVec[0] != scaleVec[2] ) return; //not sphere! nothing to do
-    BBoxData bbox = getBBox();
+    BBox bbox = getBBox();
     float len = bbox.pMax[0] - bbox.pMin[0];
     float cff = scaleVec[0] / len;
     scale( cff );
@@ -65,7 +65,7 @@ Vector3f Sphere::getSamplePoint() {
     return P + origin;
 }
 
-BBoxData Sphere::getBBox() const {
+BBox Sphere::getBBox() const {
     Vector3f r = { radius, radius, radius };
     return { origin - r, origin + r };
 }
@@ -94,40 +94,6 @@ float Sphere::intersectsWithRay( const Ray& ray ) const {
     return t2;
 }
 
-Vector3f Sphere::getNormal( const Vector3f& p ) const {
-    Vector3f N = ( p - origin ).normalize();
-    if ( !material.getTexture().normalMap.data ) return N;
-    Vector3f pointOnSphere = N;
-    float u = 0.5f + atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
-    float v = 0.5f - asin( pointOnSphere.y ) / M_PI;
-
-    int x = static_cast<int>(u * material.getTexture().normalMap.width) % material.getTexture().normalMap.width;
-    int y = static_cast<int>(v * material.getTexture().normalMap.height) % material.getTexture().normalMap.height;
-    int ind = (y * material.getTexture().normalMap.width + x) * material.getTexture().normalMap.channels;
-
-
-    Vector3f T = { N.y, N.z, N.x };
-    T = T.cross(N).normalize();
-
-    Vector3f B = N.cross(T).normalize(); // Битангенс
-
-    Vector3f res = {
-            material.getTexture().normalMap.data[ind    ] / 255.0f * 2 - 1,
-            material.getTexture().normalMap.data[ind + 1] / 255.0f * 2 - 1,
-            material.getTexture().normalMap.data[ind + 2] / 255.0f * 2 - 1
-    };
-
-
-    Mat3f rot = {
-            T,
-            B,
-            N
-    };
-    res = rot * res;
-
-    return res;
-}
-
 Material Sphere::getMaterial() const {
     return material;
 }
@@ -136,50 +102,62 @@ Vector3f Sphere::getOrigin() const {
     return origin;
 }
 
+int Sphere::getIndex( const Vector3f& P, const ImageData& imageData ) const {
+    Vector3f N = ( P - origin ).normalize();
+    Vector3f pointOnSphere = N;
+    float u = 0.5f + std::atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
+    float v = 0.5f - std::asin( pointOnSphere.y ) / M_PI;
+    int x = (int) (u * material.getTexture().normalMap.width) % material.getTexture().normalMap.width;
+    int y = (int) (v * material.getTexture().normalMap.height) % material.getTexture().normalMap.height;
+    return (y * material.getTexture().normalMap.width + x) * material.getTexture().normalMap.channels;
+}
+
+Vector3f Sphere::getNormal( const Vector3f& p ) const {
+    Vector3f N = ( p - origin ).normalize();
+    if ( !material.getTexture().normalMap.data ) return N;
+    constexpr float F2_255 = 2 / 255.0f;
+    int ind = getIndex( p, material.getTexture().normalMap );
+    Vector3f T = { N.y, N.z, N.x };
+    T = T.cross(N).normalize();
+    Vector3f B = N.cross(T).normalize();
+    Vector3f res = {
+            (float) material.getTexture().normalMap.data[ind    ] * F2_255 - 1,
+            (float) material.getTexture().normalMap.data[ind + 1] * F2_255 - 1,
+            (float) material.getTexture().normalMap.data[ind + 2] * F2_255 - 1
+    };
+    Mat3f rot = {
+            T,
+            B,
+            N
+    };
+    res = rot * res;
+    return res;
+}
+
 RGB Sphere::getColor( const Vector3f& P ) const {
     if ( !material.getTexture().colorMap.data ) return material.getColor();
-    Vector3f pointOnSphere = (P - origin).normalize();
-    float u = 0.5f + atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
-    float v = 0.5f - asin( pointOnSphere.y ) / M_PI;
-
-    int x = static_cast<int>(u * material.getTexture().colorMap.width) % material.getTexture().colorMap.width;
-    int y = static_cast<int>(v * material.getTexture().colorMap.height) % material.getTexture().colorMap.height;
-    int ind = (y * material.getTexture().colorMap.width + x) * material.getTexture().colorMap.channels;
-
+    int ind = getIndex( P, material.getTexture().colorMap );
     return {
-            material.getTexture().colorMap.data[ind    ] / 1.0f,
-            material.getTexture().colorMap.data[ind + 1] / 1.0f,
-            material.getTexture().colorMap.data[ind + 2] / 1.0f
+            (float) material.getTexture().colorMap.data[ind    ] * 1.0f,
+            (float)  material.getTexture().colorMap.data[ind + 1] * 1.0f,
+            (float) material.getTexture().colorMap.data[ind + 2] * 1.0f
     };
 }
 
 RGB Sphere::getAmbient( const Vector3f& P ) const {
     if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
-    Vector3f pointOnSphere = (P - origin).normalize();
-    float u = 0.5f + atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
-    float v = 0.5f - asin( pointOnSphere.y ) / M_PI;
-
-    int x = static_cast<int>(u * material.getTexture().ambientMap.width) % material.getTexture().ambientMap.width;
-    int y = static_cast<int>(v * material.getTexture().ambientMap.height) % material.getTexture().ambientMap.height;
-    int ind = (y * material.getTexture().ambientMap.width + x) * material.getTexture().ambientMap.channels;
-
+    constexpr float F1_255 = 1 / 255.0f;
+    int ind = getIndex( P, material.getTexture().ambientMap );
     return {
-            material.getTexture().ambientMap.data[ind    ] / 255.0f,
-            material.getTexture().ambientMap.data[ind + 1] / 255.0f,
-            material.getTexture().ambientMap.data[ind + 2] / 255.0f
+            (float) material.getTexture().ambientMap.data[ind    ] * F1_255,
+            (float) material.getTexture().ambientMap.data[ind + 1] * F1_255,
+            (float) material.getTexture().ambientMap.data[ind + 2] * F1_255
     };
 }
 
 float Sphere::getRoughness( const Vector3f& P ) const {
     if ( !material.getTexture().roughnessMap.data ) return 0.5;
-    Vector3f pointOnSphere = (P - origin).normalize();
-    float u = 0.5f + atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
-    float v = 0.5f - asin( pointOnSphere.y ) / M_PI;
-
-    int x = static_cast<int>(u * material.getTexture().roughnessMap.width) % material.getTexture().roughnessMap.width;
-    int y = static_cast<int>(v * material.getTexture().roughnessMap.height) % material.getTexture().roughnessMap.height;
-    int ind = (y * material.getTexture().roughnessMap.width + x) * material.getTexture().roughnessMap.channels;
-
-    return material.getTexture().roughnessMap.data[ind] / 255.0f;
-
+    constexpr float F1_255 = 1 / 255.0f;
+    int ind = getIndex( P, material.getTexture().roughnessMap );
+    return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
 }

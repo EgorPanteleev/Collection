@@ -62,7 +62,7 @@ void Mesh::scale(const Vector3f& scaleVec ) {
 }
 
 void Mesh::scaleTo(float scaleValue ) {
-    BBoxData bbox = getBBox();
+    BBox bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     float maxLen = std::max ( std::max( len.getX(), len.getY() ), len.getZ());
     float cff = scaleValue / maxLen;
@@ -70,7 +70,7 @@ void Mesh::scaleTo(float scaleValue ) {
 }
 
 void Mesh::scaleTo(const Vector3f& scaleVec ) {
-    BBoxData bbox = getBBox();
+    BBox bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
@@ -98,11 +98,11 @@ Vector<Triangle> Mesh::getTriangles() {
     return triangles;
 }
 
-BBoxData Mesh::getBBox() const {
+BBox Mesh::getBBox() const {
     Vector3f min = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
     Vector3f max = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
     for ( auto& triangle: triangles ) {
-        BBoxData bbox = triangle.getBBox();
+        BBox bbox = triangle.getBBox();
         if ( bbox.pMin[0] < min[0] ) min[0] = bbox.pMin[0];
         if ( bbox.pMin[1] < min[1] ) min[1] = bbox.pMin[1];
         if ( bbox.pMin[2] < min[2] ) min[2] = bbox.pMin[2];
@@ -136,7 +136,6 @@ IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
         float t = triangle.intersectsWithRay( ray );
         if ( t >= min ) continue;
         min = t;
-        N = triangle.getNormal();
     }
     return { min, N , nullptr, nullptr };
 }

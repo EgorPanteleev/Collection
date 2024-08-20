@@ -15,7 +15,6 @@ depth( _depth ), numAmbientSamples( _numAmbientSamples ), numLightSamples( _numL
     canvas = Kokkos::View<Canvas*>("canvas");
     Kokkos::deep_copy(canvas, *_canvas);
     bvh = new BVH( s->getTriangles(), s->getSpheres() );
-    bvh->BuildBVH();
 //    bvh = Kokkos::View<BVH*>("BVH");
 //    Kokkos::deep_copy(bvh, *_bvh);
 }
@@ -23,23 +22,8 @@ RayTracer::~RayTracer() {
     //delete canvas;
 }
 
-//closestIntersectionData RayTracer::closestIntersection( Ray& ray ) {
-//    closestIntersectionData cIData;
-//    for ( const auto& object: scene->objects ) {
-//        IntersectionData iData = object->intersectsWithRay(ray);
-//        if ( iData.t == __FLT_MAX__) continue;
-//        if ( iData.t <= 0.05 ) continue;
-//        if ( cIData.t < iData.t ) continue;
-//        cIData.t = iData.t;
-//        cIData.N = iData.N;
-//        cIData.object = object;
-//    }
-//    return cIData;
-//}
-
-
 IntersectionData RayTracer::closestIntersection( Ray& ray ) {
-    return bvh->IntersectBVH( ray, 0 );
+    return bvh->intersectBVH( ray, 0 );
 }
 
 template <typename Type>
@@ -196,22 +180,6 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
     //if ( i > 1 ) i = 1;
     return i;
 }
-//default
-//Vector3f generateSamplePoint( Vector3f N ) {
-//    const float u = rand() / (float) RAND_MAX;
-//    const float v = rand() / (float) RAND_MAX;
-//    float r = sqrt( 1 - u * u );
-//    float theta = 2.0 * M_PI * v;
-//    Vector3f up = { 0, 0, 1 };
-//    float angle = acos(dot(up, N)) * 180 * M_1_PI;
-//    Vector3f axis = up.cross( N );
-//    Vector3f res = { r * (float) cos(theta), r * (float) sin(theta), u };
-//    if ( up == N ) return res;
-//    else if ( up == N * ( -1 ) ) return res * ( -1 );
-//    res = Mat3f::getRotationMatrix( axis, angle ) * res;
-//    return res;
-//}
-////cosine
 Vector3f generateSamplePoint( Vector3f N ) {
     const float u = rand() / (float) RAND_MAX;
     const float v = rand() / (float) RAND_MAX;
@@ -252,7 +220,6 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     RGB normalColor = { vectorColor.x, vectorColor.y, vectorColor.z };
     if ( material.getIntensity() != 0 ) return { materialColor, normalColor, materialColor };
     RGB i = computeDiffuseLight( P, ray.direction * (-1), cIData );
-    //if ( i < 0 ) return RGB( 255, 255, 255 ) * (-i);
     RGB diffuse = {};
     float reflection;
     diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
@@ -269,9 +236,6 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
             Ray sampleRay = { P + samplePoint * 1e-3, samplePoint };
             ambient = ambient + traceRay( sampleRay, nextDepth - 1, throughput ).color * dot( samplePoint, cIData.N );
         }
-        //default
-        //ambient = ambient * 2 / numSamples;
-        //cosine
         ambient = ambient * ambientOcclusion / (float) numAmbientSamples;
         return { diffuse + ambient, normalColor, materialColor };
     }
@@ -282,43 +246,6 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
         CanvasData reflectedData = traceRay( reflectedRay, nextDepth - 1, throughput );
         return { diffuse * ( 1 - reflection ) + reflectedData.color * reflection, reflectedData.normal, materialColor };
     }
-
-    //r = ambient + sum(light_color * dot(N,L) * ( d * diffuse + s * specular ) )
-    // ambient - the same
-    // diffuse - the same
-    // specular -
-    //
-
-
-
-//    float3 wi = material->Sample(wo, normal, sampler);
-//    float pdf = material->Pdf(wi, normal);
-//
-//    // Accumulate the brdf attenuation
-//    throughput = throughput * material->Eval(wi, wo, normal) / pdf;
-
-//    void LambertBRDF::Sample(float3 outputDirection, float3 normal, UniformSampler *sampler) {
-//        float rand = sampler->NextFloat();
-//        float r = std::sqrtf(rand);
-//        float theta = sampler->NextFloat() * 2.0f * M_PI;
-//
-//        float x = r * std::cosf(theta);
-//        float y = r * std::sinf(theta);
-//
-//        // Project z up to the unit hemisphere
-//        float z = std::sqrtf(1.0f - x * x - y * y);
-//
-//        return normalize(TransformToWorld(x, y, z, normal));
-//    }
-
-//    float LambertBRDF::Pdf(float3 inputDirection, float3 normal) {
-//        return dot(inputDirection, normal) * M_1_PI;
-//    }
-
-//    float3 LambertBRDF::Eval(float3 inputDirection, float3 outputDirection, float3 normal) const override {
-//        return m_albedo * M_1_PI * dot(inputDirection, normal);
-//    }
-
 }
 
 void RayTracer::printProgress( int x ) const {
@@ -339,23 +266,10 @@ void RayTracer::render( Type type ) {
 }
 
 void RayTracer::traceAllRaysSerial() {
-    float uX = camera(0).Vx / canvas(0).getW();
-    float uY = camera(0).Vy / canvas(0).getH();
-    float uX2 = uX / 2.0f;
-    float uY2 = uY / 2.0f;
-    Vector3f from = camera(0).origin;
-    float Vx2 = camera(0).Vx / 2;
-    float Vy2 = camera(0).Vy / 2;
     for ( int x = 0; x < canvas(0).getW(); ++x ) {
         printProgress( x );
         for ( int y = 0; y < canvas(0).getH(); ++y ) {
-            Vector3f dir = { -Vx2 + uX2 + x * uX, -Vy2 + uY2 + y * uY, camera(0).dV  };
-            Ray ray( from, dir);
-            if ( x != 1600 ) continue;
-            if ( y != 1000 ) continue;
-            //diffuse = { 0, 0, 0 };
-            //ambient = { 0, 0, 0 };
-            //specular = { 0, 0, 0 };
+            Ray ray = getCamera()->getPrimaryRay( x, y );
             CanvasData colorData = traceRay( ray, depth, 1 );
             colorData.color.scaleTo( 255 );
             canvas(0).setColor( x, y, colorData.color );

@@ -73,8 +73,20 @@ Vector3f Vector3f::operator-( const Vector3f& p ) const {
     return { x - p.x, y - p.y, z - p.z };
 }
 
+Vector3f Vector3f::operator-( float a ) const {
+    return { x - a, y - a, z - a };
+}
+
 Vector3f Vector3f::operator*( float a ) const {
     return {x * a, y * a, z * a };
+}
+
+Vector3f Vector3f::operator*( const Vector3f& p ) const {
+    return {x * p.x, y * p.y, z * p.z };
+}
+
+Vector3f Vector3f::operator/( const Vector3f& p ) const {
+    return {x / p.x, y / p.y, z / p.z };
 }
 
 Vector3f Vector3f::operator/( float a ) const {
