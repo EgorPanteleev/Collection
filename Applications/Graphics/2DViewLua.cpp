@@ -10,18 +10,9 @@
 int main( int argc, char* argv[] ) {
     setenv("OMP_PROC_BIND", "spread", 1 );
     setenv("OMP_PLACES", "threads", 1 );
-    lua_State* L = luaL_newstate();
-    luaL_openlibs(L);
-
-    if (luaL_dofile(L, "/home/auser/dev/src/Collection/Applications/Graphics/spheres.lua") != LUA_OK) {
-        std::cerr << lua_tostring(L, -1) << std::endl;
-        lua_close(L);
-        return 1;
-    }
    // scene->add( new PointLight( Vector3f(-3500,0,0 ), 9999999 ) );
     Kokkos::initialize(argc, argv); {
-        RayTracer* rayTracer = new RayTracer();
-        rayTracer->loadFromLua( L );
+        RayTracer* rayTracer = new RayTracer( "/home/auser/dev/src/Coll/Applications/Graphics/spheres.lua" );
         auto start = std::chrono::high_resolution_clock::now();;
         rayTracer->render( RayTracer::PARALLEL );
         auto end = std::chrono::high_resolution_clock::now();
@@ -34,6 +25,5 @@ int main( int argc, char* argv[] ) {
             rayTracer->getCanvas()->saveToPNG( "outDenoised.png" );
         }
     } Kokkos::finalize();
-    lua_close(L);
     return 0;
 }

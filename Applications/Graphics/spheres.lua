@@ -26,29 +26,29 @@ Canvas = {
 Objects = {
     Spheres = {
         {
-            origin = { -1500, 600, 3000 },
-            radius = 1800,
-            material = { Colors.CYAN, 100 }
+            origin = { 0, 0, 3000 },
+            radius = 1500,
+            material = { Colors.ORANGE, -1, 0.5 }
         },
         {
-            origin = { 2400, 700, 2000 },
-            radius = 400,
-            material = { Colors.RED, -1, 0.5  }
+            origin = { 2121, 0, 2250 },
+            radius = 300,
+            material = { Colors.RED, 500  }
         },
         {
-            origin = { 1700, 0, 1300 },
-            radius = 500,
+            origin = { 1030, 0, 1000 },
+            radius = 300,
             material = { Colors.BLUE, -1, 0 }
         },
         {
-            origin = { -2000, -200, 1000 },
+            origin = { -2121, 0, 2250 },
             radius = 300,
-            material = { Colors.GREEN, -1, 0 }
+            material = { Colors.CYAN, 500 }
         },
         {
-            origin = { 100, -700, 800 },
-            radius = 1000,
-            material = { Colors.DARK_BLUE, 70 }
+            origin = { -1030, 0, 1000 },
+            radius = 300,
+            material = { Colors.PINK, -1, 0 }
         },
     },
 --     Meshes = {
@@ -69,14 +69,14 @@ Objects = {
 Lights = {
     Spheres = {
 --         {
---             origin = { 100, -700, 800 },
---             radius = 1000,
---             material = { Colors.DARK_BLUE, 300 }
+--             origin = { -1030, 0, 1000 },
+--             radius = 300,
+--             material = { Colors.PINK, 500 }
 --         },
 --         {
---             origin = { -1500, 600, 3000 },
---             radius = 1800,
---             material = { Colors.CYAN, 300 }
+--             origin = { 0, 0, 3000 },
+--             radius = 1500,
+--             material = { Colors.ORANGE, 500 }
 --         },
     },
 --    Meshes = {

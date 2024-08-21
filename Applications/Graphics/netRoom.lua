@@ -9,8 +9,7 @@ Colors = {
     BROWN     = { 150, 75 , 0   },
     PINK      = { 255, 105, 180 },
     DARK_BLUE = { 65 , 105, 225 },
-    CYAN      = { 0  , 255, 255 },
-    LIGHTBLUE  = { 173, 216, 230 }
+    CYAN      = { 0  , 255, 255 }
 }
 
 Camera = {
@@ -20,8 +19,8 @@ Camera = {
 }
 
 Canvas = {
-	w = 3200,
-	h = 2000,
+	w = 800,
+	h = 500,
 }
 
 Objects = {
@@ -31,21 +30,21 @@ Objects = {
             Type = "CubeMesh",
             min = { 70, -50, 0 },
             max = { 80, 70, 600 },
-            material = { Colors.PINK, -1, 0 }
+            material = { Colors.GREEN, -1, 0 }
         },
         --left
         {
             Type = "CubeMesh",
             min = { -80, -50, 0 },
             max = { -70, 70, 600 },
-            material = { Colors.PINK, -1, 0 }
+            material = { Colors.RED, -1, 0 }
         },
         --front
         {
             Type = "CubeMesh",
             min = { -100, -50, 290 },
             max = { 100, 70, 300 },
-            material = { Colors.LIGHTBLUE, 5 }
+            material = { Colors.GRAY, -1, 0 }
         },
         --back
         {
@@ -73,7 +72,7 @@ Objects = {
             Type = "CubeMesh",
             min = { -15, -50, 310 },
             max = { 15, -30, 340 },
-            material = { Colors.DARK_BLUE, -1, 0.7 },
+            material = { Colors.DARK_BLUE, 0.5 },
             moveTo = { 0, -40, 325 },
             scaleTo = { 30, 100, 30 },
             rotate = { 0, 25, 0 },
@@ -84,7 +83,7 @@ Objects = {
             Type = "CubeMesh",
             min = { -15, -50, 310 },
             max = { 15, -30, 340 },
-            material = { Colors.PINK, -1, 1 },
+            material = { Colors.PINK, 0.5 },
             moveTo = { 0, -40, 325 },
             scaleTo = { 30, 260, 30 },
             rotate = { 0, -25, 0 },
@@ -94,13 +93,13 @@ Objects = {
 }
 
 Lights = {
-    Spheres = {
+--     Spheres = {
 --         {
 --             origin = { 0, 55, 150 },
 --             radius = 5,
---             material = { Colors.PINK, 0.5 }
+--             material = { Colors.ORANGE, 0.7 }
 --         },
-    },
+--     },
 --    Meshes = {
 --        -- Define mesh lights here
 --    }
@@ -108,7 +107,7 @@ Lights = {
 
 RenderSettings = {
     depth = 1,
-    ambientSamples = 2,
-    lightSamples = 2,
+    ambientSamples = 5,
+    lightSamples = 5,
     denoise = 1,
 }

@@ -2,16 +2,37 @@
 #include <cmath>
 #include "Utils.h"
 #include "LuaLoader.h"
+extern "C" {
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
+
 //#include "Sheduler.h"
 #define BACKGROUND_COLOR RGB(0, 0, 0)
 //#define BACKGROUND_COLOR RGB(255, 0, 0)
 //#define BACKGROUND_COLOR RGB(255, 255, 255)
 
-RayTracer::RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples  ){
-    load( c, s, _canvas, _depth, _numAmbientSamples, _numAmbientSamples );
+RayTracer::RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples  ) {
+    load( c, s, _canvas, _depth, _numAmbientSamples, _numLightSamples );
 }
+RayTracer::RayTracer( const std::string& path  ) {
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
 
-RayTracer::RayTracer(): camera(), scene(), canvas(), depth(), numLightSamples(), numAmbientSamples(){
+    if (luaL_dofile(L, path.c_str() ) != LUA_OK) {
+        std::cerr << lua_tostring(L, -1) << std::endl;
+        lua_close(L);
+        return;
+    }
+    Scene* s = new Scene();
+    loadScene( L, s );
+    Canvas* can = loadCanvas( L );
+    Camera* cam = loadCamera( L, can->getW(), can->getH() );
+    auto settings = loadSettings( L );
+    lua_close(L);
+    load( cam, s, can, settings[0], settings[1], settings[2] );
+
 }
 RayTracer::~RayTracer() {
     //delete canvas;
@@ -243,6 +264,19 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     }
 }
 
+void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples ) {
+    camera = Kokkos::View<Camera*>("camera");
+    Kokkos::deep_copy(camera, *c);
+    scene = Kokkos::View<Scene*>("scene");
+    Kokkos::deep_copy(scene, *s);
+    canvas = Kokkos::View<Canvas*>("canvas");
+    Kokkos::deep_copy(canvas, *_canvas);
+    bvh = new BVH( s->getTriangles(), s->getSpheres() );
+    depth = _depth;
+    numAmbientSamples = _numAmbientSamples;
+    numLightSamples = _numLightSamples;
+}
+
 void RayTracer::printProgress( int x ) const {
     std::cout << "Progress: " << ( (float) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
 }
@@ -305,29 +339,6 @@ int RayTracer::getDepth() const {
     return depth;
 }
 
-void RayTracer::loadFromLua( lua_State* L ) {
-    Scene* scene = new Scene();
-    loadScene( L, scene );
-    Canvas* canvas = loadCanvas( L );
-    Camera* camera = loadCamera( L, canvas->getW(), canvas->getH() );
-    auto settings = loadSettings( L );
-    load( camera, scene, canvas, settings[0], settings[1], settings[2] );
-}
-
-void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples ) {
-    depth = _depth;
-    numAmbientSamples = _numAmbientSamples;
-    numLightSamples = _numLightSamples;
-    camera = Kokkos::View<Camera*>("camera");
-    Kokkos::deep_copy(camera, *c);
-    scene = Kokkos::View<Scene*>("scene");
-    Kokkos::deep_copy(scene, *s);
-    canvas = Kokkos::View<Canvas*>("canvas");
-    Kokkos::deep_copy(canvas, *_canvas);
-    bvh = new BVH( s->getTriangles(), s->getSpheres() );
-//    bvh = Kokkos::View<BVH*>("BVH");
-//    Kokkos::deep_copy(bvh, *_bvh);
-}
 
 RenderFunctor::RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& _colors, Kokkos::View<RGB**>& _normals, Kokkos::View<RGB**>& _albedos )
         :rayTracer( _rayTracer ), colors( _colors ), normals( _normals ), albedos( _albedos ) {

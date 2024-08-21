@@ -1,4 +1,3 @@
-
 //
 // Created by auser on 5/12/24.
 //
@@ -7,7 +6,8 @@
 #define COLLECTION_MESH_H
 #include <iostream>
 #include "Ray.h"
-#include "Primitive.h"
+//#include "Primitive.h"
+#include "Triangle.h"
 #include <limits>
 #include "Vector.h"
 #include "IntersectionData.h"

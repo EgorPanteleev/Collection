@@ -50,7 +50,7 @@ GLuint getTexture( Canvas* canvas ) {
     // Fill the rasterized data with a simple gradient for demonstration
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
-            RGB color = canvas->getPixel( x, h - y );
+            RGB color = canvas->getColor( x, h - y );
             data[(y * w + x) * 3 + 0] = color.r;
             data[(y * w + x) * 3 + 1] = color.g;
             data[(y * w + x) * 3 + 2] = color.b;

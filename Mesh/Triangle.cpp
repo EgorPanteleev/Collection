@@ -95,7 +95,7 @@ void Triangle::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
-void Triangle::setMaterial( Material* mat ) {
+void Triangle::setMaterial( const Material& mat ) {
     material = mat;
 }
 
@@ -184,13 +184,13 @@ int Triangle::getIndex( const Vector3f& P, const ImageData& imageData ) const {
 }
 
 Vector3f Triangle::getNormal( const Vector3f& P ) const {
-    if ( !material->getTexture().normalMap.data ) return N;
+    if ( !material.getTexture().normalMap.data ) return N;
     constexpr float F2_255 = 2 / 255.0f;
-    int ind = getIndex( P, material->getTexture().normalMap );
+    int ind = getIndex( P, material.getTexture().normalMap );
     Vector3f res = {
-            (float) material->getTexture().normalMap.data[ind    ] * F2_255 - 1,
-            (float) material->getTexture().normalMap.data[ind + 1] * F2_255 - 1,
-            (float) material->getTexture().normalMap.data[ind + 2] * F2_255 - 1
+            (float) material.getTexture().normalMap.data[ind    ] * F2_255 - 1,
+            (float) material.getTexture().normalMap.data[ind + 1] * F2_255 - 1,
+            (float) material.getTexture().normalMap.data[ind + 2] * F2_255 - 1
     };
 
     Vector3f up = (std::abs(N.z) < 0.999f) ? Vector3f{0.0f, 0.0f, 1.0f} : Vector3f{1.0f, 0.0f, 0.0f};
@@ -203,36 +203,35 @@ Vector3f Triangle::getNormal( const Vector3f& P ) const {
 
 
 RGB Triangle::getColor( const Vector3f& P ) const {
-    if ( !material->getTexture().colorMap.data ) return material->getColor();
+    if ( !material.getTexture().colorMap.data ) return material.getColor();
 
-    int ind = getIndex( P, material->getTexture().colorMap );
+    int ind = getIndex( P, material.getTexture().colorMap );
     return {
-            (float) material->getTexture().colorMap.data[ind    ] * 1.0f,
-            (float) material->getTexture().colorMap.data[ind + 1] * 1.0f,
-            (float) material->getTexture().colorMap.data[ind + 2] * 1.0f
+            (float) material.getTexture().colorMap.data[ind    ] * 1.0f,
+            (float) material.getTexture().colorMap.data[ind + 1] * 1.0f,
+            (float) material.getTexture().colorMap.data[ind + 2] * 1.0f
     };
 }
 
 RGB Triangle::getAmbient( const Vector3f& P ) const {
-    if ( !material->getTexture().ambientMap.data ) return { 1, 1, 1 };
+    if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
     constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material->getTexture().ambientMap );
+    int ind = getIndex( P, material.getTexture().ambientMap );
     return {
-            (float) material->getTexture().ambientMap.data[ind    ] * F1_255,
-            (float) material->getTexture().ambientMap.data[ind + 1] * F1_255,
-            (float) material->getTexture().ambientMap.data[ind + 2] * F1_255
+            (float) material.getTexture().ambientMap.data[ind    ] * F1_255,
+            (float) material.getTexture().ambientMap.data[ind + 1] * F1_255,
+            (float) material.getTexture().ambientMap.data[ind + 2] * F1_255
     };
 }
 
 float Triangle::getRoughness( const Vector3f& P ) const {
-    if ( !material->getTexture().roughnessMap.data ) return 0.5;
+    if ( !material.getTexture().roughnessMap.data ) return 0.5;
     constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material->getTexture().roughnessMap );
+    int ind = getIndex( P, material.getTexture().roughnessMap );
 
-    return (float) material->getTexture().roughnessMap.data[ind] * F1_255;
-
+    return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
 }
 
 Material Triangle::getMaterial() const {
-    return *material;
+    return material;
 }
