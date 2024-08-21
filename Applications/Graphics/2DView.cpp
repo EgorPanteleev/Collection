@@ -833,6 +833,8 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     giraffe.setTexture( "/home/auser/dev/src/Collection/Textures/GiraffeFur/");
     Material mink = {GRAY, -1, 0 };
     mink.setTexture( "/home/auser/dev/src/Collection/Textures/MinkFur/");
+    Material marble = {GRAY, -1, 0 };
+    marble.setTexture( "/home/auser/dev/src/Collection/Textures/Marble/");
 
 ////right
     meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 300),
@@ -848,22 +850,22 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
                                    wall ) );
 ////down
     meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 320),
-                                   giraffe ) );
+                                   floor ) );
 ////up
     meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 320),
                                    ceil ) );
 ////Spheres
     Vector<Sphere* > spheres;
-    spheres.push_back( new Sphere( 20, Vector3f(-40, -30, 180), carpet ) );
-    spheres.push_back( new Sphere( 20, Vector3f(40, -30, 220), carpet ) );
-    spheres.push_back( new Sphere( 20, Vector3f(0, -30, 200), carpet ) );
+    spheres.push_back( new Sphere( 20, Vector3f(-40, -30, 180), ceil ) );
+    spheres.push_back( new Sphere( 20, Vector3f(40, -30, 220), marble ) );
+    spheres.push_back( new Sphere( 20, Vector3f(0, -30, 200), giraffe ) );
 
 ////LIGHTS
 
 //    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
 //    int lightWidth = 20;
-//    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.4));
-    spheres.push_back( new Sphere( 10, Vector3f(0, 60, 200), {WHITE, 0.7 } ) );
+//    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,58,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+    spheres.push_back( new Sphere( 5, Vector3f(0, 60, 200), {WHITE, 0.8 } ) );
 ////LOADING...
     for ( auto sphere: spheres ) {
         scene->add( *sphere );
@@ -937,14 +939,14 @@ int main( int argc, char* argv[] ) {
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600; //3 sec
-    //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    int w = 1920 ; int h = 1200;
+    //int w = 3200; int h = 2000;
 
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
-    int depth = 2;
-    int ambientSamples = 5;
+    int depth = 3;
+    int ambientSamples = 2;
     int lightSamples = 2;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3

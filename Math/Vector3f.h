@@ -1,6 +1,6 @@
 #pragma once
 #include <limits>
-
+#include <iostream>
 class Vector3f {
 public:
     void setX( float _x );
@@ -54,3 +54,6 @@ public:
     float y;
     float z;
 };
+
+
+std::ostream& operator << (std::ostream &os, const Vector3f &v );

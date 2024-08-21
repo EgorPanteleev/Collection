@@ -19,8 +19,8 @@ Camera = {
 }
 
 Canvas = {
-	w = 800,
-	h = 500,
+	w = 1920,
+	h = 1200,
 }
 
 Objects = {
@@ -72,7 +72,7 @@ Objects = {
             Type = "CubeMesh",
             min = { -15, -50, 310 },
             max = { 15, -30, 340 },
-            material = { Colors.DARK_BLUE, 0.5 },
+            material = { Colors.DARK_BLUE, 1 },
             moveTo = { 0, -40, 325 },
             scaleTo = { 30, 100, 30 },
             rotate = { 0, 25, 0 },
@@ -83,7 +83,7 @@ Objects = {
             Type = "CubeMesh",
             min = { -15, -50, 310 },
             max = { 15, -30, 340 },
-            material = { Colors.PINK, 0.5 },
+            material = { Colors.PINK, -1, 1 },
             moveTo = { 0, -40, 325 },
             scaleTo = { 30, 260, 30 },
             rotate = { 0, -25, 0 },
@@ -106,8 +106,8 @@ Lights = {
 }
 
 RenderSettings = {
-    depth = 1,
+    depth = 2,
     ambientSamples = 5,
-    lightSamples = 5,
+    lightSamples = 2,
     denoise = 1,
 }

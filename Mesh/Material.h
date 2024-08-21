@@ -41,15 +41,15 @@ class Material {
 public:
     Material();
     Material( const RGB& color, float intensity );
-    Material( const RGB& color, float diffuse, float reflection );
+    Material( const RGB& color, float diffuse, float roughness );
     [[nodiscard]] RGB getColor() const;
     void setColor( const RGB& c );
     [[nodiscard]] float getIntensity() const;
     void setIntensity( float i );
     [[nodiscard]] float getDiffuse() const;
     void setDiffuse( float d );
-    [[nodiscard]] float getReflection() const;
-    void setReflection( float r );
+    [[nodiscard]] float getRoughness() const;
+    void setRoughness( float r );
     void setTexture( const std::string& path );
     [[nodiscard]] Texture getTexture() const;
 private:
@@ -57,6 +57,6 @@ private:
     Texture texture;
     float intensity;
     float diffuse;
-    float reflection;
+    float roughness;
 };
 

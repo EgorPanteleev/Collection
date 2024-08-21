@@ -111,9 +111,9 @@ int Sphere::getIndex( const Vector3f& P, const ImageData& imageData ) const {
     Vector3f pointOnSphere = N;
     float u = 0.5f + std::atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
     float v = 0.5f - std::asin( pointOnSphere.y ) / M_PI;
-    int x = (int) (u * material.getTexture().normalMap.width) % material.getTexture().normalMap.width;
-    int y = (int) (v * material.getTexture().normalMap.height) % material.getTexture().normalMap.height;
-    return (y * material.getTexture().normalMap.width + x) * material.getTexture().normalMap.channels;
+    int x = (int) (u * imageData.width) % imageData.width;
+    int y = (int) (v * imageData.height) % imageData.height;
+    return (y * imageData.width + x) * imageData.channels;
 }
 
 Vector3f Sphere::getNormal( const Vector3f& p ) const {
@@ -160,7 +160,7 @@ RGB Sphere::getAmbient( const Vector3f& P ) const {
 }
 
 float Sphere::getRoughness( const Vector3f& P ) const {
-    if ( !material.getTexture().roughnessMap.data ) return 0.5;
+    if ( !material.getTexture().roughnessMap.data ) return material.getRoughness();
     constexpr float F1_255 = 1 / 255.0f;
     int ind = getIndex( P, material.getTexture().roughnessMap );
     return (float) material.getTexture().roughnessMap.data[ind] * F1_255;

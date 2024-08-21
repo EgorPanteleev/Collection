@@ -28,12 +28,12 @@ Objects = {
         {
             origin = { 0, 0, 3000 },
             radius = 1500,
-            material = { Colors.ORANGE, -1, 0.5 }
+            material = { Colors.ORANGE, 500 }
         },
         {
             origin = { 2121, 0, 2250 },
             radius = 300,
-            material = { Colors.RED, 500  }
+            material = { Colors.RED, -1, 0  }
         },
         {
             origin = { 1030, 0, 1000 },
@@ -43,7 +43,7 @@ Objects = {
         {
             origin = { -2121, 0, 2250 },
             radius = 300,
-            material = { Colors.CYAN, 500 }
+            material = { Colors.CYAN, -1, 0.1 }
         },
         {
             origin = { -1030, 0, 1000 },

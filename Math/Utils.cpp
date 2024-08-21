@@ -96,7 +96,7 @@ Vector3f operator*( float a, const Vector3f& v ) {
     return { v[0] * a, v[1] * a, v[2] * a };
 }
 
-Vector3f operator*( float a, const RGB& col ) {
+RGB operator*( float a, const RGB& col ) {
     return { col.r * a, col.g * a, col.b * a };
 }
 
@@ -154,4 +154,8 @@ Vector2f floor( const Vector2f& v1 ) {
 
 Vector2f ceil( const Vector2f& v1 ) {
     return { std::ceil( v1.x ), std::ceil( v1.y ) };
+}
+
+float randomFloat() {
+    return (float) rand() / (float) RAND_MAX;
 }

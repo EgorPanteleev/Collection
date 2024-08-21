@@ -225,7 +225,7 @@ RGB Triangle::getAmbient( const Vector3f& P ) const {
 }
 
 float Triangle::getRoughness( const Vector3f& P ) const {
-    if ( !material.getTexture().roughnessMap.data ) return 0.5;
+    if ( !material.getTexture().roughnessMap.data ) return material.getRoughness();
     constexpr float F1_255 = 1 / 255.0f;
     int ind = getIndex( P, material.getTexture().roughnessMap );
 

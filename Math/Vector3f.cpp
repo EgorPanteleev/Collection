@@ -114,3 +114,7 @@ Vector3f::~Vector3f() {
     y = 0;
     z = 0;
 }
+
+std::ostream& operator << (std::ostream &os, const Vector3f &v ) {
+    return os << "( " << v.x << ", " << v.y << ", " << v.z << " )";
+}

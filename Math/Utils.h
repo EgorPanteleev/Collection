@@ -31,7 +31,7 @@ Vector3f operator*( const Mat3f& m, const Vector3f& v );
 
 Vector3f operator*( float a, const Vector3f& v );
 
-Vector3f operator*( float a, const RGB& col );
+RGB operator*( float a, const RGB& col );
 
 Mat3f operator*( const Mat3f& m1, const Mat3f& m2 );
 
@@ -54,3 +54,5 @@ Vector2f max( const Vector2f& v1, const Vector2f& v2 );
 Vector2f floor( const Vector2f& v1 );
 
 Vector2f ceil( const Vector2f& v1 );
+
+float randomFloat();

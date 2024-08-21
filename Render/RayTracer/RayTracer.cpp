@@ -146,59 +146,59 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
             if ( dNL < 0 ) continue;
             float distance = cIData.t * 0.01;
             i1 += d * light->getIntensity() * dNL / ( distance * distance );
-            //specular
-            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
-
-            Vector3f H = (L + V ).normalize();
-            float roughness = 0.5;
-            //float power = 1 / roughness;
-            float power = 2.0f / pow( roughness, 4 ) - 2; //better
-            float a2 = pow( roughness, 4 );
-            float dNH = dot( N, H );
-
-            auto X = []( float val ) {
-                return ( val > 0 ) ? 1 : 0;
-            };
-
-
-            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
-
-            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
-            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
-
-            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
-
-            float dNV = dot( N, V );
-
-            float dVH = dot( V, H ); // really H, ost M
-
-            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
-
-            auto G1 = [=]( const Vector3f& x ) {
-                float dNX = dot(x,N);
-                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
-            };
-
-            float G = G1( V ) * G1( L ); //GGX
-            float refraction = 0.5;
-            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
-            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
-
-            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
-            //TODO idk about dist
-            i1 += s * rs * light->getIntensity() * dNL / ( distance * distance );
-//            Vector3f R = (N * 2 * dNL - L).normalize();
-//            float dRV = dot(R, V.normalize());
-//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
+//            //specular
+//            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
+//
+//            Vector3f H = (L + V ).normalize();
+//            float roughness = 0.5;
+//            //float power = 1 / roughness;
+//            float power = 2.0f / pow( roughness, 4 ) - 2; //better
+//            float a2 = pow( roughness, 4 );
+//            float dNH = dot( N, H );
+//
+//            auto X = []( float val ) {
+//                return ( val > 0 ) ? 1 : 0;
+//            };
+//
+//
+//            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
+//
+//            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
+//            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
+//
+//            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
+//
+//            float dNV = dot( N, V );
+//
+//            float dVH = dot( V, H ); // really H, ost M
+//
+//            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
+//
+//            auto G1 = [=]( const Vector3f& x ) {
+//                float dNX = dot(x,N);
+//                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
+//            };
+//
+//            float G = G1( V ) * G1( L ); //GGX
+//            float refraction = 0.5;
+//            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
+//            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
+//
+//            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
+//            //TODO idk about dist
+//            i1 += s * rs * light->getIntensity() * dNL / ( distance * distance );
+////            Vector3f R = (N * 2 * dNL - L).normalize();
+////            float dRV = dot(R, V.normalize());
+////            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
         }
         i += i1 / (float) numLightSamples;
     }
     //if ( i > 1 ) i = 1;
     return i;
 }
-Vector3f generateSamplePoint( Vector3f N ) {
-    const float u = rand() / (float) RAND_MAX;
-    const float v = rand() / (float) RAND_MAX;
+Vector3f generateSamplePoint( const Vector3f& N ) {
+    const float u = randomFloat();
+    const float v = randomFloat();
     float r = sqrt( u );
     float theta = 2.0 * M_PI * v;
     Vector3f up = { 0, 0, 1 };
@@ -214,6 +214,38 @@ Vector3f generateSamplePoint( Vector3f N ) {
     return res;
 }
 
+Vector3f GGXVNDFSample(const Vector3f& N, float roughness ) {
+    // Generate random floats
+    float u1 = randomFloat();
+    float u2 = randomFloat();
+    // Азимутальный угол (от 0 до 2π)
+    float theta = 2.0f * M_PI * u1;
+
+    // Зенитный угол (от 0 до π/2 для полусферы)
+    float cos_phi = std::pow(u2, roughness);
+    float sin_phi = std::sqrt(1.0f - cos_phi * cos_phi);
+
+    float x = sin_phi * std::cos(theta);
+    float y = sin_phi * std::sin(theta);
+    float z = cos_phi;
+
+    // Построение ортонормированного базиса
+    Vector3f tangent, bitangent;
+
+    if (std::fabs(N.x) > std::fabs(N.z)) {
+        tangent = Vector3f(-N.y, N.x, 0.0f).normalize();
+    } else {
+        tangent = Vector3f(0.0f, -N.z, N.y).normalize();
+    }
+
+    bitangent = N.cross(tangent);
+
+    // Преобразование локального вектора в мировое пространство
+    Vector3f worldPoint = x * tangent + y * bitangent + z * N;
+
+    return worldPoint.normalize();
+}
+
 CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     IntersectionData cIData = closestIntersection( ray );
     if ( cIData.t == __FLT_MAX__ ) return { BACKGROUND_COLOR * throughput, { 0, 0, 0 }, BACKGROUND_COLOR * throughput };
@@ -221,47 +253,45 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     RGB materialColor;
     Material material;
     float ambientOcclusion;
+    float roughness;
     if ( cIData.triangle != nullptr ) {
         cIData.N = cIData.triangle->getNormal( P );
         materialColor = cIData.triangle->getColor( P );
         material = cIData.triangle->getMaterial();
         ambientOcclusion = cIData.triangle->getAmbient( P ).r;
+        roughness = cIData.triangle->getRoughness( P );
     } else {
         cIData.N = cIData.sphere->getNormal( P );
         materialColor = cIData.sphere->getColor( P );
         material = cIData.sphere->material;
         ambientOcclusion = cIData.sphere->getAmbient( P ).r;
+        roughness = cIData.sphere->getRoughness( P );
     }
     Vector3f vectorColor = ( cIData.N + Vector3f( 1, 1, 1 ) ) * 255 / 2;
     RGB normalColor = { vectorColor.x, vectorColor.y, vectorColor.z };
     if ( material.getIntensity() != 0 ) return { materialColor, normalColor, materialColor };
     RGB i = computeDiffuseLight( P, ray.direction * (-1), cIData );
     RGB diffuse = {};
-    float reflection;
     diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
-    reflection = material.getReflection();// -> shining
 
     if ( nextDepth == 0 ) return { diffuse, normalColor, materialColor };
     //REFLECTION
-    if ( reflection == 0 ) {
-        //Global illumination
-        RGB ambient = {};
-        throughput *= 0.8;
-        for (int j = 0; j < numAmbientSamples; j++ ) {
-            Vector3f samplePoint = generateSamplePoint( cIData.N );
-            Ray sampleRay = { P + samplePoint * 1e-3, samplePoint };
-            ambient = ambient + traceRay( sampleRay, nextDepth - 1, throughput ).color * dot( samplePoint, cIData.N );
-        }
-        ambient = ambient * ambientOcclusion / (float) numAmbientSamples;
-        return { diffuse + ambient, normalColor, materialColor };
+
+    //Global illumination
+    RGB ambient = {};
+    throughput *= 0.8;
+    int numSamples = ( roughness == 0 ) ? 1 : numAmbientSamples;
+    for (int j = 0; j < numSamples; j++ ) {
+        //std::cout << generateSamplePoint( cIData.N ) << std::endl;
+        //std::cout << GGXVNDFSample( {0,0,1}, 0.1, 0.1 ) << std::endl;
+        //Vector3f samplePoint = generateSamplePoint( cIData.N );
+        Vector3f samplePoint = GGXVNDFSample( ray.direction - cIData.N * 2 * dot(cIData.N, ray.direction ), roughness );
+        Ray sampleRay = { P + samplePoint * 1e-3, samplePoint };
+        ambient = ambient + traceRay( sampleRay, nextDepth - 1, throughput ).color * dot( samplePoint, cIData.N );
     }
-    else {
-        Vector3f N = cIData.N;
-        Vector3f reflectedDir = ( ray.direction - N * 2 * dot(N, ray.direction ) );
-        Ray reflectedRay( P + reflectedDir * 1e-3, reflectedDir );
-        CanvasData reflectedData = traceRay( reflectedRay, nextDepth - 1, throughput );
-        return { diffuse * ( 1 - reflection ) + reflectedData.color * reflection, reflectedData.normal, materialColor };
-    }
+    ambient = ambient * ambientOcclusion / (float) numSamples;
+    return {  diffuse + materialColor / 255 * ambient, normalColor, materialColor };
+
 }
 
 void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples ) {

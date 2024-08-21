@@ -21,6 +21,8 @@ public:
     RGB operator+( const RGB& color ) const;
     RGB operator*( float a) const;
     RGB operator/( float a) const;
+    RGB operator*( const RGB& p ) const;
+    RGB operator/( const RGB& p ) const;
     bool operator==( const RGB& color ) const;
     void scaleTo( float value );
     [[nodiscard]] Vector3f toNormal() const;

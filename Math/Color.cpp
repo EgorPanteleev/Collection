@@ -42,6 +42,15 @@ void RGB::scaleTo( float value ) {
     return res.normalize();
 }
 
+RGB RGB::operator*( const RGB& p ) const {
+    return { r * p.r, g * p.g, b * p.b };
+}
+
+RGB RGB::operator/( const RGB& p ) const {
+    return { r / p.r, g / p.g, b / p.b };
+}
+
+
 RGB::~RGB() {
     r = 0;
     g = 0;

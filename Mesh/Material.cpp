@@ -1,9 +1,9 @@
 #include "Material.h"
-Material::Material(): color(), texture(), intensity( 0 ), diffuse( 0 ), reflection( 0 ) {
+Material::Material(): color(), texture(), intensity( 0 ), diffuse( 0 ), roughness( 1 ) {
 }
 
 Material::Material( const RGB& color, float intensity ): color( color ), texture(), intensity( intensity ) {}
-Material::Material( const RGB& color, float diffuse, float reflection ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), reflection( reflection ) {
+Material::Material( const RGB& color, float diffuse, float roughness ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ) {
 }
 
 RGB Material::getColor() const {
@@ -29,11 +29,11 @@ void Material::setDiffuse( float d ) {
     diffuse = d;
 }
 
-float Material::getReflection() const {
-    return reflection;
+float Material::getRoughness() const {
+    return roughness;
 }
-void Material::setReflection( float r ) {
-    reflection = r;
+void Material::setRoughness( float r ) {
+    roughness = r;
 }
 
 void Material::setTexture( const std::string& path ) {

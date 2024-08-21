@@ -114,7 +114,7 @@ Material loadMaterial( lua_State* L ) {
     }
     if ( props.size() == 2 ) {
         res.setDiffuse( props[0] );
-        res.setReflection( props[1] );
+        res.setRoughness( props[1] );
     } else if ( props.size() == 1 ) {
         res.setIntensity( props[0] );
     }
