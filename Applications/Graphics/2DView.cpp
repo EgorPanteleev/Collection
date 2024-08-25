@@ -94,32 +94,34 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
 }
 
 void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
+    float FOV = 67.38;
+    float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), dV,w,h );
     //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
     Vector<Mesh*> meshes;
     Vector<Light*> lights;
-    float roomRefl = 0;
+    float roomRoughness = 1;
 ////right
     meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
-                                    { GREEN, -1 , roomRefl } ) );
+                                    { GREEN, -1 , roomRoughness } ) );
 ////left
     meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
-                                   { RED, -1 , roomRefl } ) );
+                                   { RED, -1 , roomRoughness } ) );
 ////front
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
-                                   { GRAY, -1, roomRefl } ) );
+                                   { GRAY, -1, roomRoughness } ) );
 ////back
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
-                                   { GRAY, -1 , roomRefl } ) );
+                                   { GRAY, -1 , roomRoughness } ) );
 ////down
     meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
-                                   { GRAY, -1 , roomRefl } ) );
+                                   { GRAY, -1 , roomRoughness } ) );
 ////up
     meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
-                                   { GRAY, -1 , roomRefl } ) );
+                                   { GRAY, -1 , roomRoughness } ) );
 
 ////RAND BLOCK
     auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
@@ -128,7 +130,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     randBlockForward->rotate( Vector3f( 0,1,0), 25);
     randBlockForward->move( Vector3f(30,0,0));
 //    randBlockForward->setMaterial({GRAY, 1});
-    randBlockForward->setMaterial({GRAY, -1 , 0});
+    randBlockForward->setMaterial({GRAY, -1 , 1});
     randBlockForward->move( Vector3f(-10,0,-150));
     //randBlockForward->scaleTo( 200 );
     meshes.push_back(randBlockForward );
@@ -138,7 +140,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
     randBlockForward2->scaleTo( Vector3f(30,260,30) );
     randBlockForward2->rotate( Vector3f( 0,1,0), -25);
     randBlockForward2->move( Vector3f(35,0,0));
-    randBlockForward2->setMaterial({DARK_BLUE, 1});
+    randBlockForward2->setMaterial({DARK_BLUE, -1, 0.1});
     randBlockForward2->move( Vector3f(-50,0,-100));
     //randBlockForward2->scaleTo( 200 );
     meshes.push_back(randBlockForward2 );
@@ -147,7 +149,7 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
 
     //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
     int lightWidth = 20;
-    //lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.8));
 
 ////LOADING...
     loadScene( scene, meshes, lights );
@@ -817,7 +819,7 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
 
     Vector<Mesh*> meshes;
     Vector<Light*> lights;
-    float roomRefl = 0;
+    float roomRefl = 1;
 
     Material floor = {GRAY, -1, 0 };
     floor.setTexture( "/home/auser/dev/src/Collection/Textures/WoodFloorBright/");
@@ -837,10 +839,10 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     marble.setTexture( "/home/auser/dev/src/Collection/Textures/Marble/");
 
 ////right
-    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 300),
-                                    wall ) );
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+                                   wall ) );
 ////left
-    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 300),
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
                                    wall ) );
 ////front
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
@@ -848,24 +850,40 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
 ////back
     meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
                                    wall ) );
-////down
-    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 320),
+////floor
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
                                    floor ) );
-////up
-    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 320),
+////ceil
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
                                    ceil ) );
+
+
+    ////RAND BLOCK
+    auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward->moveTo( Vector3f(20, -40, 175) );
+    randBlockForward->scaleTo( Vector3f(30,100,30) );
+    randBlockForward->rotate( Vector3f( 0,1,0), 25);
+    randBlockForward->setMaterial( carpet );
+    meshes.push_back(randBlockForward );
+
+    auto* randBlockForward2 = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
+    randBlockForward2->moveTo( Vector3f(-35, -40, 205) );
+    randBlockForward2->scaleTo( Vector3f(30,260,30) );
+    randBlockForward2->rotate( Vector3f( 0,1,0), 45);
+    randBlockForward2->setMaterial( ceil );
+    meshes.push_back(randBlockForward2 );
+
 ////Spheres
     Vector<Sphere* > spheres;
-    spheres.push_back( new Sphere( 20, Vector3f(-40, -30, 180), ceil ) );
-    spheres.push_back( new Sphere( 20, Vector3f(40, -30, 220), marble ) );
-    spheres.push_back( new Sphere( 20, Vector3f(0, -30, 200), giraffe ) );
+    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), marble ) );
+
 
 ////LIGHTS
 
 //    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
-//    int lightWidth = 20;
-//    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,58,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
-    spheres.push_back( new Sphere( 5, Vector3f(0, 60, 200), {WHITE, 0.8 } ) );
+    int lightWidth = 20;
+    meshes.push_back( new CubeMesh( Vector3f(0 - lightWidth,64,150 - lightWidth), Vector3f(0 + lightWidth,65,150 + lightWidth), { WHITE, 1.2 }));
+
 ////LOADING...
     for ( auto sphere: spheres ) {
         scene->add( *sphere );
@@ -945,7 +963,7 @@ int main( int argc, char* argv[] ) {
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
-    int depth = 3;
+    int depth = 2;
     int ambientSamples = 2;
     int lightSamples = 2;
 

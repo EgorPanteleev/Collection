@@ -10,6 +10,8 @@ Mesh::Mesh(): material(), triangles() {}
 
 void Mesh::setMaterial(const Material& _material ) {
     material = _material;
+    for ( auto& triangle : triangles )
+        triangle.setMaterial( material );
 }
 
 Material Mesh::getMaterial() const {

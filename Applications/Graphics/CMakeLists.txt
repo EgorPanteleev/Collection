@@ -18,7 +18,7 @@ target_link_libraries(2DView ${Libs} )
 
 target_link_libraries(2DViewLua ${Libs} )
 
-target_link_libraries(3DView Kokkos::kokkos)
+target_link_libraries(3DView ${Libs} Kokkos::kokkos)
 
 target_link_libraries(GUI glfw Imgui ${GLEW_LIB} ${Libs} )
 

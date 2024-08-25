@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Utils.h"
 #include "LuaLoader.h"
+#include "Sampler.h"
 extern "C" {
 #include "lua.h"
 #include "lualib.h"
@@ -47,12 +48,14 @@ float getIntensity( Type* light ) {
     return light->getIntensity();
 }
 
-
+//TODO READ THIS
+//есть диффузная составляющая, есть specular, думаю это все зависит от roughness, но почитать, я не уверен
+// все остальное считается как ambient light ( specular - reflection, diffuse - diffuse )
+// nado разбить все по пальчикам так сказать, реализовать диффузное рассеивание при помощи cosineweighted( было реализовано)
+//добавить specular рассеивание и НОРМ БУДЕТ)
 RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
     RGB i;
     Vector3f N = iData.N;
-    float d = 0.8;
-    float s = 1 - d;
     float constexpr del = 1.0f / 255;
     float roughness;
     if ( iData.triangle != nullptr ) {
@@ -74,86 +77,20 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
             if (cIData.sphere != iData.sphere ) continue;
             float distance = cIData.t * 0.01f;
             float inverseDistance2 = 1 / ( distance * distance );
-            i1 = i1 + d * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+
+            //lambert
+
+
+            i1 = i1 + Lambertian::BRDF() * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+            //i1 = i1 + OrenNayar::BRDF( iData.N, L, V, roughness * roughness ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+
             //specular
             //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
-
-            Vector3f H = (L + V ).normalize();
-            //float power = 1 / roughness;
-            //float power = 2.0f / pow( roughness, 4 ) - 2; //better
-            auto a2 = (float) pow( roughness, 4 );
-            float dNH = dot( N, H );
-
-            auto X = []( float val ) {
-                return ( val > 0 ) ? 1 : 0;
-            };
-
-
-            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
-
-            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
-            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
-
-            float D = ( a2 * (float) X( dNH ) ) / (float) ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
-
-            float dNV = dot( N, V );
-
-            float dVH = dot( V, H ); // really H, ost M
-
-            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
-
-            auto G1 = [=]( const Vector3f& x ) {
-                float dNX = dot(x,N);
-                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
-            };
-
-            float G = G1( V ) * G1( L ); //GGX
-            float refraction = 0.5;
-            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
-            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
-
-            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
-            //TODO idk about dist
-            i1 = i1 + s * rs * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
-//            Vector3f R = (N * 2 * dNL - L).normalize();
-//            float dRV = dot(R, V.normalize());
-//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
-        }
-        i = i + i1 / (float) numLightSamples;
-    }
-    //if ( i > 1 ) i = 1;
-    return i;
-}
-
-
-float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
-    float i = 0;
-    Vector3f N = iData.N;
-    float d = 0.8;
-    float s = 1 - d;
-    for ( auto light: scene(0).getLights() ) {
-        //int numLS = ( light->getType() == Light::Type::POINT ) ? 1 : numLightSamples;
-        float i1 = 0;
-        for ( size_t j = 0; j < numLightSamples; j++ ) {
-            Vector3f origin = light->getSamplePoint();
-            Vector3f L = (origin - P).normalize();
-            Ray ray = Ray(origin, L * ( -1 ) );
-            IntersectionData cIData = closestIntersection( ray );
-            if (cIData.triangle == nullptr && cIData.sphere == nullptr ) continue;
-            if (cIData.triangle != iData.triangle ) continue;
-            if (cIData.sphere != iData.sphere ) continue;
-            float dNL = dot( iData.N, L);
-            if ( dNL < 0 ) continue;
-            float distance = cIData.t * 0.01;
-            i1 += d * light->getIntensity() * dNL / ( distance * distance );
-//            //specular
-//            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
 //
 //            Vector3f H = (L + V ).normalize();
-//            float roughness = 0.5;
 //            //float power = 1 / roughness;
-//            float power = 2.0f / pow( roughness, 4 ) - 2; //better
-//            float a2 = pow( roughness, 4 );
+//            //float power = 2.0f / pow( roughness, 4 ) - 2; //better
+//            auto a2 = (float) pow( roughness, 4 );
 //            float dNH = dot( N, H );
 //
 //            auto X = []( float val ) {
@@ -166,7 +103,7 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
 //            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
 //            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
 //
-//            float D = ( a2 * X( dNH ) ) / ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
+//            float D = ( a2 * (float) X( dNH ) ) / (float) ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
 //
 //            float dNV = dot( N, V );
 //
@@ -186,64 +123,88 @@ float RayTracer::computeLight( const Vector3f& P, const Vector3f& V, const Inter
 //
 //            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
 //            //TODO idk about dist
-//            i1 += s * rs * light->getIntensity() * dNL / ( distance * distance );
-////            Vector3f R = (N * 2 * dNL - L).normalize();
-////            float dRV = dot(R, V.normalize());
-////            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
+//            i1 = i1 + s * rs * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+//            Vector3f R = (N * 2 * dNL - L).normalize();
+//            float dRV = dot(R, V.normalize());
+//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
         }
-        i += i1 / (float) numLightSamples;
+        i = i + i1 / (float) numLightSamples;
     }
     //if ( i > 1 ) i = 1;
     return i;
 }
-Vector3f generateSamplePoint( const Vector3f& N ) {
-    const float u = randomFloat();
-    const float v = randomFloat();
-    float r = sqrt( u );
-    float theta = 2.0 * M_PI * v;
-    Vector3f up = { 0, 0, 1 };
-    float angle = acos(dot(up, N)) * 180 * M_1_PI;
-    Vector3f axis = up.cross( N );
-    float x = r * (float) cos(theta);
-    float y = r * (float) sin(theta);
-    float z = std::sqrt( 1.0f - x * x - y * y );
-    Vector3f res = { x, y, z };
-    if ( up == N ) return res;
-    else if ( up == N * ( -1 ) ) return res * ( -1 );
-    res = Mat3f::getRotationMatrix( axis, angle ) * res;
-    return res;
+
+float saturate(float z) {
+    if (z < 0.0f) return 0.0f;
+    if (z > 1.0f) return 1.0f;
+    return z;
 }
 
-Vector3f GGXVNDFSample(const Vector3f& N, float roughness ) {
-    // Generate random floats
-    float u1 = randomFloat();
-    float u2 = randomFloat();
-    // Азимутальный угол (от 0 до 2π)
-    float theta = 2.0f * M_PI * u1;
 
-    // Зенитный угол (от 0 до π/2 для полусферы)
-    float cos_phi = std::pow(u2, roughness);
-    float sin_phi = std::sqrt(1.0f - cos_phi * cos_phi);
+RGB RayTracer::computeAmbientLight( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+    RGB ambient = {};
+    if ( roughness < 0.6 ) ambient = ambient + computeReflectanceGGX( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    if ( roughness >= 0.6 && roughness != 1 ) ambient = ambient + computeDiffuseOrenNayar( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    if ( roughness == 1 ) ambient = ambient + computeDiffuseLambertian( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    return ambient;
+}
 
-    float x = sin_phi * std::cos(theta);
-    float y = sin_phi * std::sin(theta);
-    float z = cos_phi;
 
-    // Построение ортонормированного базиса
-    Vector3f tangent, bitangent;
-
-    if (std::fabs(N.x) > std::fabs(N.z)) {
-        tangent = Vector3f(-N.y, N.x, 0.0f).normalize();
-    } else {
-        tangent = Vector3f(0.0f, -N.z, N.y).normalize();
+KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+    RGB ambient = {};
+    Vector3f P = ray.origin + iData.t * ray.direction;
+    Vector3f N = iData.N;
+    Vector3f wo = ray.direction;
+    Mat3f TBN = getTBN( wo, N );
+    Vector3f wo_T = (-1) * wo * TBN;
+    Vector2f alpha = { roughness * roughness, roughness * roughness};
+    for (int j = 0; j < numAmbientSamples; j++ ) {
+        if ( roughness == 1 ) continue;
+        alpha = { roughness * roughness, roughness * roughness};
+        Vector3f H_T = GGX::getNormal( wo_T, alpha );
+        Vector3f wi_T = reflect( wo_T, H_T ) * ( -1 );
+        float Nwi = saturate(wi_T.z);
+        if ( Nwi < 0 ) continue;
+        float PDF;
+        float BRDF = GGX::BRDF( wi_T, wo_T, alpha, PDF );
+        Vector3f wi = TBN * wi_T;
+        Ray newRay = { P + wi * 1e-3, wi };
+        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1, throughput * 0.8f ).color * Nwi;
     }
+    return ambient * ambientOcclusion / (float) numAmbientSamples;
+}
+KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+    RGB ambient = {};
+    Vector3f P = ray.origin + iData.t * ray.direction;
+    Vector3f N = iData.N;
+    Vector3f wo = ray.direction * (-1);
+    for (int j = 0; j < numAmbientSamples; j++ ) {
+        Vector3f wi = OrenNayar::getIncidentDir( N );
+        float Nwi = dot( wi, N );
+        if ( Nwi < 0 ) continue;
+        float PDF = OrenNayar::PDF( Nwi );
+        float BRDF = OrenNayar::BRDF( N, wi, wo, roughness );
+        Ray newRay = { P + wi * 1e-3, wi };
+        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1, throughput * 0.8f ).color * Nwi;
+    }
+    return ambient * ambientOcclusion / (float) numAmbientSamples;
+}
 
-    bitangent = N.cross(tangent);
-
-    // Преобразование локального вектора в мировое пространство
-    Vector3f worldPoint = x * tangent + y * bitangent + z * N;
-
-    return worldPoint.normalize();
+KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+    RGB ambient = {};
+    Vector3f P = ray.origin + iData.t * ray.direction;
+    Vector3f N = iData.N;
+    Vector3f wo = ray.direction * (-1);
+    for (int j = 0; j < numAmbientSamples; j++ ) {
+        Vector3f wi = Lambertian::getIncidentDir( N );
+        float Nwi = dot( wi, N );
+        if ( Nwi < 0 ) continue;
+        float PDF = Lambertian::PDF( Nwi );
+        float BRDF = Lambertian::BRDF();
+        Ray newRay = { P + wi * 1e-3, wi };
+        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1, throughput * 0.8f ).color * Nwi;
+    }
+    return ambient * ambientOcclusion / (float) numAmbientSamples;
 }
 
 CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
@@ -273,25 +234,10 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
     RGB i = computeDiffuseLight( P, ray.direction * (-1), cIData );
     RGB diffuse = {};
     diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
-
     if ( nextDepth == 0 ) return { diffuse, normalColor, materialColor };
-    //REFLECTION
-
     //Global illumination
-    RGB ambient = {};
-    throughput *= 0.8;
-    int numSamples = ( roughness == 0 ) ? 1 : numAmbientSamples;
-    for (int j = 0; j < numSamples; j++ ) {
-        //std::cout << generateSamplePoint( cIData.N ) << std::endl;
-        //std::cout << GGXVNDFSample( {0,0,1}, 0.1, 0.1 ) << std::endl;
-        //Vector3f samplePoint = generateSamplePoint( cIData.N );
-        Vector3f samplePoint = GGXVNDFSample( ray.direction - cIData.N * 2 * dot(cIData.N, ray.direction ), roughness );
-        Ray sampleRay = { P + samplePoint * 1e-3, samplePoint };
-        ambient = ambient + traceRay( sampleRay, nextDepth - 1, throughput ).color * dot( samplePoint, cIData.N );
-    }
-    ambient = ambient * ambientOcclusion / (float) numSamples;
-    return {  diffuse + materialColor / 255 * ambient, normalColor, materialColor };
-
+    RGB ambient = computeAmbientLight( ray, cIData, roughness, ambientOcclusion, throughput, nextDepth );
+    return { diffuse +  materialColor / 255 * ambient, normalColor, materialColor };
 }
 
 void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples ) {

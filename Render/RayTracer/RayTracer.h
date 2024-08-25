@@ -27,7 +27,7 @@ public:
     ~RayTracer();
     KOKKOS_INLINE_FUNCTION IntersectionData closestIntersection( Ray& ray );
     KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
-    KOKKOS_INLINE_FUNCTION float computeLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData );
+    KOKKOS_INLINE_FUNCTION RGB computeAmbientLight( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth );
     KOKKOS_INLINE_FUNCTION CanvasData traceRay( Ray& ray, int nextDepth, float throughput );
     void render( Type type );
     [[nodiscard]] Canvas* getCanvas() const;
@@ -35,6 +35,9 @@ public:
     [[nodiscard]] Camera* getCamera() const;
     [[nodiscard]] int getDepth() const;
 private:
+    KOKKOS_INLINE_FUNCTION RGB computeReflectanceGGX( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth );
+    KOKKOS_INLINE_FUNCTION RGB computeDiffuseOrenNayar( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth );
+    KOKKOS_INLINE_FUNCTION RGB computeDiffuseLambertian( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth );
     void load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
     void printProgress( int x ) const;
     void traceAllRaysSerial();

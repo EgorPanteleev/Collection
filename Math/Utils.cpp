@@ -1,5 +1,13 @@
 #include "Utils.h"
 #include <cmath>
+Vector3f reflect( const Vector3f& wo, const Vector3f& N ) {
+    return  ( wo - N * 2 * dot(N, wo ) ).normalize();
+}
+
+float pow2( float f ) {
+    return (float) pow( f, 2 );
+}
+
 float dot( const Vector3f& p1, const Vector3f& p2 ) {
     return ( p1.x * p2.x + p1.y * p2.y + p1.z * p2.z );
 }
@@ -89,6 +97,14 @@ Vector3f operator*( const Mat3f& m, const Vector3f& v ) {
             m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2],
             m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2],
             m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2]
+    };
+}
+
+Vector3f operator*( const Vector3f& v, const Mat3f& m ) {
+    return {
+            m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+            m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+            m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2]
     };
 }
 
