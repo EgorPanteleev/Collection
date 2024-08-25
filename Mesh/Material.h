@@ -18,7 +18,7 @@ public:
 
 class Texture {
 public:
-    Texture (): colorMap(), normalMap(), ambientMap(), roughnessMap() {}
+    Texture (): colorMap(), normalMap(), ambientMap(), roughnessMap(), metalnessMap() {}
     Texture ( const std::string& path ) {
         colorMap = ImageData( path + "Color.jpg" );
         if ( !colorMap.data ) colorMap = ImageData( path + "Color.png" );
@@ -28,11 +28,14 @@ public:
         if ( !ambientMap.data ) ambientMap = ImageData( path + "AmbientOcclusion.png" );
         roughnessMap = ImageData( path + "Roughness.jpg" );
         if ( !roughnessMap.data ) roughnessMap = ImageData( path + "Roughness.png" );
+        metalnessMap = ImageData( path + "Metalness.jpg" );
+        if ( !metalnessMap.data ) metalnessMap = ImageData( path + "Metalness.png" );
     }
     ImageData colorMap;
     ImageData normalMap;
     ImageData ambientMap;
     ImageData roughnessMap;
+    ImageData metalnessMap;
 };
 
 
@@ -50,6 +53,8 @@ public:
     void setDiffuse( float d );
     [[nodiscard]] float getRoughness() const;
     void setRoughness( float r );
+    float getMetalness() const;
+    void setMetalness( float m );
     void setTexture( const std::string& path );
     [[nodiscard]] Texture getTexture() const;
 private:
@@ -58,5 +63,6 @@ private:
     float intensity;
     float diffuse;
     float roughness;
+    float metalness;
 };
 

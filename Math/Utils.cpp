@@ -1,5 +1,11 @@
 #include "Utils.h"
 #include <cmath>
+float saturate(float z) {
+    if (z < 0.0f) return 0.0f;
+    if (z > 1.0f) return 1.0f;
+    return z;
+}
+
 Vector3f reflect( const Vector3f& wo, const Vector3f& N ) {
     return  ( wo - N * 2 * dot(N, wo ) ).normalize();
 }

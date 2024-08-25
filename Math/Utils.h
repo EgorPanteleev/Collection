@@ -5,6 +5,8 @@
 #include "Mat3f.h"
 #include "Mat2f.h"
 #include "Color.h"
+float saturate(float z);
+
 Vector3f reflect( const Vector3f& wo, const Vector3f& N );
 
 float pow2( float f );

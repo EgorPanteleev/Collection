@@ -111,8 +111,8 @@ int Sphere::getIndex( const Vector3f& P, const ImageData& imageData ) const {
     Vector3f pointOnSphere = N;
     float u = 0.5f + std::atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
     float v = 0.5f - std::asin( pointOnSphere.y ) / M_PI;
-    int x = (int) (u * radius * 0.1 * imageData.width) % imageData.width;
-    int y = (int) (v * radius * 0.1 * imageData.height) % imageData.height;
+    int x = (int) (u * radius * 0.15 * imageData.width) % imageData.width;
+    int y = (int) (v * radius * 0.15 * imageData.height) % imageData.height;
     return (y * imageData.width + x) * imageData.channels;
 }
 
@@ -164,4 +164,11 @@ float Sphere::getRoughness( const Vector3f& P ) const {
     constexpr float F1_255 = 1 / 255.0f;
     int ind = getIndex( P, material.getTexture().roughnessMap );
     return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
+}
+
+float Sphere::getMetalness( const Vector3f& P ) const {
+    if ( !material.getTexture().metalnessMap.data ) return material.getMetalness();
+    constexpr float F1_255 = 1 / 255.0f;
+    int ind = getIndex( P, material.getTexture().metalnessMap );
+    return (float) material.getTexture().metalnessMap.data[ind] * F1_255;
 }

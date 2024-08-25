@@ -26,6 +26,7 @@ public:
     [[nodiscard]] RGB getColor( const Vector3f& P ) const;
     [[nodiscard]] RGB getAmbient( const Vector3f& P ) const;
     [[nodiscard]] float getRoughness( const Vector3f& P ) const;
+    float getMetalness( const Vector3f& P ) const;
     [[nodiscard]] Material getMaterial() const;
     Vector3f v1, v2, v3;
 private:

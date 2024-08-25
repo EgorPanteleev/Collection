@@ -837,6 +837,8 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     mink.setTexture( "/home/auser/dev/src/Collection/Textures/MinkFur/");
     Material marble = {GRAY, -1, 0 };
     marble.setTexture( "/home/auser/dev/src/Collection/Textures/Marble/");
+    Material damagedGold = {GRAY, -1, 0 };
+    damagedGold.setTexture( "/home/auser/dev/src/Collection/Textures/DamagedGold/");
 
 ////right
     meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
@@ -870,19 +872,19 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     randBlockForward2->moveTo( Vector3f(-35, -40, 205) );
     randBlockForward2->scaleTo( Vector3f(30,260,30) );
     randBlockForward2->rotate( Vector3f( 0,1,0), 45);
-    randBlockForward2->setMaterial( ceil );
+    randBlockForward2->setMaterial( damagedGold );
     meshes.push_back(randBlockForward2 );
 
 ////Spheres
     Vector<Sphere* > spheres;
-    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), marble ) );
+    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), ceil ) );
 
 
 ////LIGHTS
 
 //    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
     int lightWidth = 20;
-    meshes.push_back( new CubeMesh( Vector3f(0 - lightWidth,64,150 - lightWidth), Vector3f(0 + lightWidth,65,150 + lightWidth), { WHITE, 1.2 }));
+    meshes.push_back( new CubeMesh( Vector3f(0 - lightWidth,64,150 - lightWidth), Vector3f(0 + lightWidth,65,150 + lightWidth), { WHITE, 1.6 }));
 
 ////LOADING...
     for ( auto sphere: spheres ) {
@@ -1022,9 +1024,9 @@ int main( int argc, char* argv[] ) {
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
-    int depth = 3;
-    int ambientSamples = 5;
-    int lightSamples = 2;
+    int depth = 1;
+    int ambientSamples = 1;
+    int lightSamples = 1;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /

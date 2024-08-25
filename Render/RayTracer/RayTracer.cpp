@@ -48,19 +48,18 @@ float getIntensity( Type* light ) {
     return light->getIntensity();
 }
 
-//TODO READ THIS
-//есть диффузная составляющая, есть specular, думаю это все зависит от roughness, но почитать, я не уверен
-// все остальное считается как ambient light ( specular - reflection, diffuse - diffuse )
-// nado разбить все по пальчикам так сказать, реализовать диффузное рассеивание при помощи cosineweighted( было реализовано)
-//добавить specular рассеивание и НОРМ БУДЕТ)
+
 RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const IntersectionData& iData ) {
     RGB i;
     Vector3f N = iData.N;
     float constexpr del = 1.0f / 255;
     float roughness;
+    float metalness;
     if ( iData.triangle != nullptr ) {
+        metalness = iData.triangle->getMetalness( P );
         roughness = iData.triangle->getRoughness( P );
     } else {
+        metalness = iData.sphere->getMetalness( P );
         roughness = iData.sphere->getRoughness( P );
     }
     for ( auto light: scene(0).getLights() ) {
@@ -77,56 +76,23 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
             if (cIData.sphere != iData.sphere ) continue;
             float distance = cIData.t * 0.01f;
             float inverseDistance2 = 1 / ( distance * distance );
-
-            //lambert
-
-
-            i1 = i1 + Lambertian::BRDF() * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
-            //i1 = i1 + OrenNayar::BRDF( iData.N, L, V, roughness * roughness ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
-
-            //specular
-            //if (iData.triangle->owner->getMaterial().getDiffuse() == -1) continue;
-//
-//            Vector3f H = (L + V ).normalize();
-//            //float power = 1 / roughness;
-//            //float power = 2.0f / pow( roughness, 4 ) - 2; //better
-//            auto a2 = (float) pow( roughness, 4 );
-//            float dNH = dot( N, H );
-//
-//            auto X = []( float val ) {
-//                return ( val > 0 ) ? 1 : 0;
-//            };
-//
-//
-//            //float D = 1.0f / ( M_PI * a2 ) * pow( dNH, power ); //BLINN
-//
-//            float tan = ( dNH * dNH - 1 ) / ( dNH * dNH );
-//            //float D = 1.0f / ( M_PI * a2 ) * exp( tan / a2 ) / pow( dNH, 4 ); //BECKMANN
-//
-//            float D = ( a2 * (float) X( dNH ) ) / (float) ( M_PI * pow( ( dNH * dNH * ( a2 - tan ) ), 2 ) ); //GGX
-//
-//            float dNV = dot( N, V );
-//
-//            float dVH = dot( V, H ); // really H, ost M
-//
-//            //float G = std::min( 1.0f, std::min(  2 * dNH * dNV / dVH, 2 * dNH * dNL / dVH  ) );  //cook-torrance
-//
-//            auto G1 = [=]( const Vector3f& x ) {
-//                float dNX = dot(x,N);
-//                return X(dot(x,H)/dNX) * 2 / ( 1 + sqrt( 1 - a2 * ( dNX * dNX - 1 ) / ( dNX * dNX ) ) );
-//            };
-//
-//            float G = G1( V ) * G1( L ); //GGX
-//            float refraction = 0.5;
-//            float F0 = pow( refraction - 1, 2 ) / pow( refraction + 1, 2 );
-//            float F = F0 + ( 1 - F0 ) * pow( 1 - dVH, 5 );
-//
-//            float rs = ( D * G * F ) / ( 4 * dNL * dNV );
-//            //TODO idk about dist
-//            i1 = i1 + s * rs * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
-//            Vector3f R = (N * 2 * dNL - L).normalize();
-//            float dRV = dot(R, V.normalize());
-//            if (dRV > 0) i1 += light->intensity * pow(dRV, iData.triangle->owner->getMaterial().getDiffuse());
+            Vector2f alpha = { pow2( roughness ), pow2( roughness ) };
+            if ( roughness == 1 && metalness < 0.5 )  {
+                i1 = i1 + Lambertian::BRDF() * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+            }
+            if ( roughness != 1 && metalness < 0.5 ) {
+                i1 = i1 + OrenNayar::BRDF( N, L, V, alpha[0] ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+            }
+            if ( metalness >= 0.5 ) {
+                Vector3f wo = V * ( -1 );
+                Mat3f TBN = getTBN( wo, N );
+                Vector3f wo_T = (-1) * wo * TBN;
+                Vector3f wi_T = (1) * L * TBN;;
+                float Nwi = saturate(wi_T.z);
+                if ( Nwi < 0 ) continue;
+                float PDF;
+                i1 = i1 + GGX::BRDF( wi_T, wo_T, alpha, PDF ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+            }
         }
         i = i + i1 / (float) numLightSamples;
     }
@@ -134,18 +100,18 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
     return i;
 }
 
-float saturate(float z) {
-    if (z < 0.0f) return 0.0f;
-    if (z > 1.0f) return 1.0f;
-    return z;
-}
-
-
 RGB RayTracer::computeAmbientLight( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
     RGB ambient = {};
-    if ( roughness < 0.6 ) ambient = ambient + computeReflectanceGGX( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
-    if ( roughness >= 0.6 && roughness != 1 ) ambient = ambient + computeDiffuseOrenNayar( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
-    if ( roughness == 1 ) ambient = ambient + computeDiffuseLambertian( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    Vector3f P = ray.origin + ray.direction * iData.t;
+    float metalness;
+    if ( iData.triangle != nullptr ) {
+        metalness = iData.triangle->getMetalness( P );
+    } else {
+        metalness = iData.sphere->getMetalness( P );
+    }
+    if ( roughness == 1 && metalness < 0.5 ) ambient = ambient + computeDiffuseLambertian( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    if ( roughness != 1 && metalness < 0.5 ) ambient = ambient + computeDiffuseOrenNayar( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    if ( metalness >= 0.5 ) ambient = ambient + computeReflectanceGGX( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
     return ambient;
 }
 

@@ -240,6 +240,13 @@ float Triangle::getRoughness( const Vector3f& P ) const {
 
     return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
 }
+float Triangle::getMetalness( const Vector3f& P ) const {
+    if ( !material.getTexture().metalnessMap.data ) return material.getRoughness();
+    constexpr float F1_255 = 1 / 255.0f;
+    int ind = getIndex( P, material.getTexture().metalnessMap );
+
+    return (float) material.getTexture().metalnessMap.data[ind] * F1_255;
+}
 
 Material Triangle::getMaterial() const {
     return material;
