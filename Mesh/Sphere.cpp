@@ -111,8 +111,8 @@ int Sphere::getIndex( const Vector3f& P, const ImageData& imageData ) const {
     Vector3f pointOnSphere = N;
     float u = 0.5f + std::atan2( pointOnSphere.z, pointOnSphere.x) / (2 * M_PI);
     float v = 0.5f - std::asin( pointOnSphere.y ) / M_PI;
-    int x = (int) (u * imageData.width) % imageData.width;
-    int y = (int) (v * imageData.height) % imageData.height;
+    int x = (int) (u * radius * 0.1 * imageData.width) % imageData.width;
+    int y = (int) (v * radius * 0.1 * imageData.height) % imageData.height;
     return (y * imageData.width + x) * imageData.channels;
 }
 

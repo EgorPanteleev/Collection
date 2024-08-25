@@ -23,22 +23,31 @@ Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 )
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
-    Vector3f targetNormal(0, 0, 1);
+    Vector3f targetNormal(0, 0, -1);
 
     Vector3f axis = targetNormal.cross(N);
-    float angle = acos( dot( targetNormal, N ) );
+    float angle = acos( dot( targetNormal, N ) ) * 180 * M_1_PI;
 
     Mat3f rotationMatrix = Mat3f::getRotationMatrix( axis, angle );
 
-    Vector3f rv1 = rotationMatrix * v1;
-    Vector3f rv2 = rotationMatrix * v2;
-    Vector3f rv3 = rotationMatrix * v3;
+    Vector3f rv1 = v1 * rotationMatrix;
+    Vector3f rv2 = v2 * rotationMatrix;
+    Vector3f rv3 = v3 * rotationMatrix;
     float xMax = std::max( std::max( rv1.x, rv2.x ), rv3.x );
     float yMax = std::max( std::max( rv1.y, rv2.y ), rv3.y );
 
-    v1Tex = { rv1.x == xMax ? 1.0f : 0.0f, rv1.y == yMax ? 1.0f : 0.0f };
-    v2Tex = { rv2.x == xMax ? 1.0f : 0.0f, rv2.y == yMax ? 1.0f : 0.0f };
-    v3Tex = { rv3.x == xMax ? 1.0f : 0.0f, rv3.y == yMax ? 1.0f : 0.0f };
+    float xMin = std::min( std::min( rv1.x, rv2.x ), rv3.x );
+    float yMin = std::min( std::min( rv1.y, rv2.y ), rv3.y );
+    //TODO remove hardcode
+    float xTex = ( xMax - xMin ) / 150.0f;
+    float yTex = ( yMax - yMin ) / 93.75f;
+
+//    xTex = std::min( xTex, 1.0f );
+//    yTex = std::min( yTex, 1.0f );
+
+    v1Tex = { rv1.x == xMax ? xTex : 0.0f, rv1.y == yMax ? yTex : 0.0f };
+    v2Tex = { rv2.x == xMax ? xTex : 0.0f, rv2.y == yMax ? yTex : 0.0f };
+    v3Tex = { rv3.x == xMax ? xTex : 0.0f, rv3.y == yMax ? yTex : 0.0f };
 }
 
 void Triangle::rotate( const Vector3f& axis, float angle ) {

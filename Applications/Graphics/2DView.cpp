@@ -855,7 +855,7 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
                                    floor ) );
 ////ceil
     meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
-                                   ceil ) );
+                                   wall ) );
 
 
     ////RAND BLOCK
@@ -943,6 +943,65 @@ void dragonScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
 
+
+void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+    float FOV = 67.38;
+    float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
+    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), dV,w,h );
+    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Scene* scene = new Scene();
+    Canvas* canvas = new Canvas( w, h );
+
+    Vector<Mesh*> meshes;
+    Vector<Light*> lights;
+    float roomRefl = 1;
+
+    Material floor = {GRAY, -1, 0 };
+    floor.setTexture( "/home/auser/dev/src/Collection/Textures/WoodFloorBright/");
+
+////right
+    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
+                                    floor ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
+                                   floor ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+                                   floor ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+                                   floor ) );
+////floor
+    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
+                                   floor ) );
+////ceil
+    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
+                                   floor ) );
+
+
+    ////RAND BLOCK
+    auto* randBlockForward = new CubeMesh( Vector3f(0, 0, 0), Vector3f(30, 30, 30) );
+    randBlockForward->moveTo( Vector3f(15, -10, 210 - 60) );
+    randBlockForward->setMaterial( floor );
+    meshes.push_back(randBlockForward );
+
+    auto* randBlockForward1 = new CubeMesh( Vector3f(0, 0, 0), Vector3f(60, 60, 60) );
+    randBlockForward1->moveTo( Vector3f(-30, -10, 225 - 60) );
+    randBlockForward1->setMaterial( floor );
+    meshes.push_back(randBlockForward1 );
+
+////LIGHTS
+
+    lights.push_back( new PointLight( Vector3f(0,0,0), 3));
+    lights.push_back( new PointLight( Vector3f(0,0,290), 3));
+    lights.push_back( new PointLight( Vector3f(0,65,250), 3));
+//    int lightWidth = 20;
+//    meshes.push_back( new CubeMesh( Vector3f(0 - lightWidth,64,150 - lightWidth), Vector3f(0 + lightWidth,65,150 + lightWidth), { WHITE, 1.2 }));
+
+    loadScene( scene, meshes, lights );
+    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+}
+
 int main( int argc, char* argv[] ) {
     setenv("OMP_PROC_BIND", "spread", 1);
     setenv("OMP_PLACES", "threads", 1);
@@ -957,14 +1016,14 @@ int main( int argc, char* argv[] ) {
     //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600; //3 sec
-    int w = 1920 ; int h = 1200;
-    //int w = 3200; int h = 2000;
+    //int w = 1920 ; int h = 1200;
+    int w = 3200; int h = 2000;
 
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
-    int depth = 2;
-    int ambientSamples = 2;
+    int depth = 3;
+    int ambientSamples = 5;
     int lightSamples = 2;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
@@ -991,6 +1050,7 @@ int main( int argc, char* argv[] ) {
     //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
     sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //dragonScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
