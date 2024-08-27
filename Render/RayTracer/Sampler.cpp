@@ -82,6 +82,12 @@ float OrenNayar::PDF( const Vector3f& N, const Vector3f& wi ) {
     return Lambertian::PDF( N, wi );
 }
 
+float GGX::F( float dmwo ) {
+    //for dielectric F0 << 0.9
+    float F0 = 0.9;
+    return F0 + (1.0f - F0) * (float) pow(1.0f - dmwo, 5.0f);
+}
+
 float GGX::D( const Vector3f& m, const Vector2f& a ) {
     return 1.0f / (float) ( M_PI * a.x * a.y * pow2( pow2( m.x / a.x ) + pow2( m.y / a.y ) + pow2( m.z ) ) );
 }
@@ -105,7 +111,7 @@ float GGX::SmithG2( const Vector3f& wi, const Vector3f& wo, const Vector2f& a ) 
 float GGX::BRDF( const Vector3f& wi, const Vector3f& wo, const Vector2f& a, float& PDF ) {
     Vector3f m = (wo + wi).normalize();
     PDF = DV(m, wo, a) / ( 4.0f * dot(m, wo));
-    return D(m, a) * SmithG2(wi, wo, a) / ( 4.0f * wo.z * wi.z);
+    return F( dot( m, wo ) ) * D(m, a) * SmithG2(wi, wo, a) / ( 4.0f * wo.z * wi.z);
 }
 
 Vector3f GGX::getNormal( const Vector3f& wo, const Vector2f& a ) {

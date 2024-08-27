@@ -45,6 +45,8 @@ namespace OrenNayar {
 namespace GGX {
     float D( const Vector3f& m, const Vector2f& a );
 
+    float F( float dmwo );
+
     float Lambda( const Vector3f& wo, const Vector2f& a );
 
     float SmithG1( const Vector3f& wo, const Vector2f& a );
