@@ -33,7 +33,7 @@ namespace Lambertian {
 //we can avoid trigonometric functions for better perfomance ( but not now )
 
 namespace OrenNayar {
-    float BRDF( const Vector3f& N, const Vector3f& wi, const Vector3f& wo, float alpha );
+    float BRDF( const Vector3f& wi, const Vector3f& wo, float alpha );
 
     Vector3f getIncidentDir( const Vector3f& N );
 

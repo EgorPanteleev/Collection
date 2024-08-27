@@ -118,6 +118,10 @@ Vector3f operator*( float a, const Vector3f& v ) {
     return { v[0] * a, v[1] * a, v[2] * a };
 }
 
+Vector3f operator/( float a, const Vector3f& v ) {
+    return { a / v[0], a / v[1], a / v[2] };
+}
+
 RGB operator*( float a, const RGB& col ) {
     return { col.r * a, col.g * a, col.b * a };
 }

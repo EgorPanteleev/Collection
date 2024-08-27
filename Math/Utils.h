@@ -39,6 +39,8 @@ Vector3f operator*( const Vector3f& v, const Mat3f& m );
 
 Vector3f operator*( float a, const Vector3f& v );
 
+Vector3f operator/( float a, const Vector3f& v );
+
 RGB operator*( float a, const RGB& col );
 
 Mat3f operator*( const Mat3f& m1, const Mat3f& m2 );

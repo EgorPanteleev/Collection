@@ -24,7 +24,7 @@ struct BVHNode
     [[nodiscard]] float calculateNodeCost() const
     {
         Vector3f e = aabbMax - aabbMin; // extent of the node
-        return (e.x * e.y + e.y * e.z + e.z * e.x) * trianglesCount;
+        return (e.x * e.y + e.y * e.z + e.z * e.x) * (float) trianglesCount;
     }
 };
 

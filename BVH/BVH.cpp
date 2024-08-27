@@ -128,12 +128,14 @@ float BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f
 
 
 bool BVH::intersectBBox( const Ray& ray, const Vector3f& bmin, const Vector3f& bmax ) {
-    float tx1 = (bmin.x - ray.origin.x) / ray.direction.x, tx2 = (bmax.x - ray.origin.x) / ray.direction.x;
-    float tmin = std::min( tx1, tx2 ), tmax = std::max( tx1, tx2 );
-    float ty1 = (bmin.y - ray.origin.y) / ray.direction.y, ty2 = (bmax.y - ray.origin.y) / ray.direction.y;
-    tmin = std::max( tmin, std::min( ty1, ty2 ) ), tmax = std::min( tmax, std::max( ty1, ty2 ) );
-    float tz1 = (bmin.z - ray.origin.z) / ray.direction.z, tz2 = (bmax.z - ray.origin.z) / ray.direction.z;
-    tmin = std::max( tmin, std::min( tz1, tz2 ) ), tmax = std::min( tmax, std::max( tz1, tz2 ) );
+    Vector3f t1 = ( bmin - ray.origin ) * ray.invDirection;
+    Vector3f t2 = ( bmax - ray.origin ) * ray.invDirection;
+    float tmin = std::min( t1.x, t2.x );
+    tmin = std::max( tmin, std::min( t1.y, t2.y ) );
+    tmin = std::max( tmin, std::min( t1.z, t2.z ) );
+    float tmax = std::max( t1.x, t2.x );
+    tmax = std::min( tmax, std::max( t1.y, t2.y ) );
+    tmax = std::min( tmax, std::max( t1.z, t2.z ) );
     return tmax >= tmin && tmin < 1e30f && tmax > 0;
 }
 

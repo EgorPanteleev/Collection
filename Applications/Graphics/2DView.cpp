@@ -743,7 +743,6 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 
 ////LIGHTS
 
-    //todo load as group
     float lightWidth = 80;
     float lightLenght = 20;
     float par = roomLength / 6;
@@ -967,14 +966,16 @@ int main( int argc, char* argv[] ) {
 
     ////RESOLUTION
     //int w = 8 ; int h = 5;
-    //int w = 240 ; int h = 150;
+    int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600; //3 sec
+    //int w = 960 ; int h = 600; // 42 sec
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 
-    // 160 sec 2 5 2 - 3200
-    // 29.5 sec 2 5 5 - 960
+    
+    // 22 sec /
+    // ( 960x600 (2,5,2) audi scene) - 42 sec / 47 sec /
+
     ////NUM SAMPLES
     int depth = 2;
     int ambientSamples = 5;
@@ -1009,7 +1010,7 @@ int main( int argc, char* argv[] ) {
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();;
-    rayTracer->render( RayTracer::PARALLEL );
+    rayTracer->render( RayTracer::SERIAL );
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> renderTime = end - start;
     std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;

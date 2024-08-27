@@ -2,31 +2,15 @@
 // Created by auser on 8/23/24.
 //
 
+#include <algorithm>
 #include "Sampler.h"
 
-Mat3f getTBN( const Vector3f& wo, const Vector3f& N ) {
-    Vector3f TBN0 = ( wo - N * dot( N, wo ) ).normalize();
-    return { TBN0           ,
-             N.cross( TBN0 ),
-             N              };
-}
-
 Vector3f CosineWeighted::getSample( const Vector3f& N ) {
-    const float u = randomFloat();
-    const float v = randomFloat();
-    float r = sqrt( u );
-    float theta = 2.0 * M_PI * v;
-    Vector3f up = { 0, 0, 1 };
-    float angle = acos(dot(up, N)) * 180 * M_1_PI;
-    Vector3f axis = up.cross( N );
-    float x = r * (float) cos(theta);
-    float y = r * (float) sin(theta);
-    float z = std::sqrt( 1.0f - x * x - y * y );
-    Vector3f res = { x, y, z };
-    if ( up == N ) return res;
-    else if ( up == N * ( -1 ) ) return res * ( -1 );
-    res = Mat3f::getRotationMatrix( axis, angle ) * res;
-    return res;
+    float u = randomFloat();
+    float v = randomFloat();
+    float r = std::sqrt(u);
+    float azimuth = v * 2 * M_PI;
+    return { r * std::cos(azimuth), r * std::sin(azimuth), std::sqrt(1 - u) };
 }
 
 float CosineWeighted::PDF( float Nwi ) {
@@ -53,21 +37,19 @@ float Lambertian::PDF( const Vector3f& N, const Vector3f& wi ) {
     return CosineWeighted::PDF( N, wi );
 }
 
-float OrenNayar::BRDF( const Vector3f& N, const Vector3f& wi, const Vector3f& wo, float alpha ) {
-    float A = 1 - ( alpha / ( 2 * ( alpha + 0.33 ) ) ); // A and B precomputed
+float OrenNayar::BRDF( const Vector3f& wi, const Vector3f& wo, float alpha ) {
+    float A = 1 - ( alpha / ( 2 * ( alpha + 0.33f ) ) ); // A and B precomputed
     float B = ( 0.45f * alpha ) / ( alpha + 0.09f );
-    float theta_i = std::acos(dot(N, wi));
-    float theta_o = std::acos(dot(N, wo));
 
-    float angleAlpha = std::max(theta_i, theta_o);
-    float angleBeta = std::min(theta_i, theta_o);
+    float cos_delta_phi = std::clamp((wi.x*wo.x + wi.y*wo.y) /
+                                      std::sqrt((pow2(wi.x) + pow2(wi.y)) *
+                                                (pow2(wo.x) + pow2(wo.y))), 0.0f, 1.0f);
 
-    float phi_i = std::atan2(wi.y, wi.x);
-    float phi_o = std::atan2(wo.y, wo.x);
+    // D = sin(alpha) * tan(beta), i.z = dot(i, (0,0,1))
+    float D = std::sqrt((1.0f - pow2(wi.z)) * (1.0f - pow2(wo.z))) / std::max(wi.z, wo.z);
 
-    float cosDeltaPhi = std::max( 0.0f, (float) cos( phi_i - phi_o ) );
-
-    return Lambertian::BRDF() * (float) ( A + B * cosDeltaPhi * std::sin( angleAlpha ) * std::tan( angleBeta ) );
+    // A and B are pre-computed in constructor.
+    return Lambertian::BRDF() * (A + B * cos_delta_phi * D);
 }
 
 Vector3f OrenNayar::getIncidentDir( const Vector3f& N ) {

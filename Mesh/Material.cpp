@@ -3,7 +3,7 @@ Material::Material(): color(), texture(), intensity( 0 ), diffuse( 0 ), roughnes
 }
 
 Material::Material( const RGB& color, float intensity ): color( color ), texture(), intensity( intensity ) {}
-Material::Material( const RGB& color, float diffuse, float roughness ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ) {
+Material::Material( const RGB& color, float diffuse, float roughness ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ), metalness( 0 ) {
 }
 
 RGB Material::getColor() const {

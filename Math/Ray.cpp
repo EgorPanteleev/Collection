@@ -4,8 +4,10 @@
 
 #include "Ray.h"
 #include <cmath>
-Ray::Ray():origin(), direction(){}
-Ray::Ray(const Vector3f& from, const Vector3f& dir):origin(from), direction( dir.normalize() ) {
+#include "Utils.h"
+Ray::Ray():origin(), direction(), invDirection() {}
+Ray::Ray(const Vector3f& from, const Vector3f& dir): origin(from), direction( dir.normalize() ) {
+    invDirection = 1.0f / dir.normalize();
 }
 
 Ray::~Ray() {
