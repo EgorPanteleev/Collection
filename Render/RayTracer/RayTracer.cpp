@@ -77,13 +77,13 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
             float distance = cIData.t * 0.01f;
             float inverseDistance2 = 1 / ( distance * distance );
             Vector2f alpha = { pow2( roughness ), pow2( roughness ) };
-            if ( roughness == 1 && metalness < 0.5 )  {
+            if ( roughness == 1 && metalness == 0 )  {
                 i1 = i1 + Lambertian::BRDF() * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
             }
-            if ( roughness != 1 && metalness < 0.5 ) {
-                i1 = i1 + OrenNayar::BRDF( N, L, V, alpha[0] ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+            if ( roughness != 1 && metalness != 1 ) {
+                i1 = i1 + ( 1 - metalness ) * OrenNayar::BRDF( N, L, V, alpha[0] ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
             }
-            if ( metalness >= 0.5 ) {
+            if ( roughness != 1 && metalness != 0 ) {
                 Vector3f wo = V * ( -1 );
                 Mat3f TBN = getTBN( wo, N );
                 Vector3f wo_T = (-1) * wo * TBN;
@@ -91,7 +91,7 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
                 float Nwi = saturate(wi_T.z);
                 if ( Nwi < 0 ) continue;
                 float PDF;
-                i1 = i1 + GGX::BRDF( wi_T, wo_T, alpha, PDF ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
+                i1 = i1 + metalness * GGX::BRDF( wi_T, wo_T, alpha, PDF ) * light->getIntensity() * ( light->getColor() * del ) * dNL * inverseDistance2;
             }
         }
         i = i + i1 / (float) numLightSamples;
@@ -100,7 +100,7 @@ RGB RayTracer::computeDiffuseLight( const Vector3f& P, const Vector3f& V, const 
     return i;
 }
 
-RGB RayTracer::computeAmbientLight( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+RGB RayTracer::computeAmbientLight( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, int nextDepth ) {
     RGB ambient = {};
     Vector3f P = ray.origin + ray.direction * iData.t;
     float metalness;
@@ -109,14 +109,14 @@ RGB RayTracer::computeAmbientLight( const Ray& ray, const IntersectionData& iDat
     } else {
         metalness = iData.sphere->getMetalness( P );
     }
-    if ( roughness == 1 && metalness < 0.5 ) ambient = ambient + computeDiffuseLambertian( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
-    if ( roughness != 1 && metalness < 0.5 ) ambient = ambient + computeDiffuseOrenNayar( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
-    if ( metalness >= 0.5 ) ambient = ambient + computeReflectanceGGX( ray, iData, roughness, ambientOcclusion, throughput, nextDepth );
+    if ( roughness == 1 ) ambient = ambient + computeDiffuseLambertian( ray, iData, roughness, ambientOcclusion, nextDepth );
+    if ( roughness != 1 && metalness != 1 ) ambient = ambient + ( 1 - metalness ) * computeDiffuseOrenNayar( ray, iData, roughness, ambientOcclusion, nextDepth );
+    if ( roughness != 1 && metalness != 0 ) ambient = ambient + ( metalness ) * computeReflectanceGGX( ray, iData, roughness, ambientOcclusion, nextDepth );
     return ambient;
 }
 
 
-KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, int nextDepth ) {
     RGB ambient = {};
     Vector3f P = ray.origin + iData.t * ray.direction;
     Vector3f N = iData.N;
@@ -135,11 +135,11 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, con
         float BRDF = GGX::BRDF( wi_T, wo_T, alpha, PDF );
         Vector3f wi = TBN * wi_T;
         Ray newRay = { P + wi * 1e-3, wi };
-        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1, throughput * 0.8f ).color * Nwi;
+        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1 ).color * Nwi;
     }
     return ambient * ambientOcclusion / (float) numAmbientSamples;
 }
-KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, int nextDepth ) {
     RGB ambient = {};
     Vector3f P = ray.origin + iData.t * ray.direction;
     Vector3f N = iData.N;
@@ -151,12 +151,12 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, c
         float PDF = OrenNayar::PDF( Nwi );
         float BRDF = OrenNayar::BRDF( N, wi, wo, roughness );
         Ray newRay = { P + wi * 1e-3, wi };
-        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1, throughput * 0.8f ).color * Nwi;
+        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1 ).color * Nwi;
     }
     return ambient * ambientOcclusion / (float) numAmbientSamples;
 }
 
-KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, float throughput, int nextDepth ) {
+KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, const IntersectionData& iData, float roughness, float ambientOcclusion, int nextDepth ) {
     RGB ambient = {};
     Vector3f P = ray.origin + iData.t * ray.direction;
     Vector3f N = iData.N;
@@ -168,42 +168,45 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, 
         float PDF = Lambertian::PDF( Nwi );
         float BRDF = Lambertian::BRDF();
         Ray newRay = { P + wi * 1e-3, wi };
-        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1, throughput * 0.8f ).color * Nwi;
+        ambient = ambient + BRDF / PDF * traceRay( newRay, nextDepth - 1 ).color * Nwi;
     }
     return ambient * ambientOcclusion / (float) numAmbientSamples;
 }
 
-CanvasData RayTracer::traceRay( Ray& ray, int nextDepth, float throughput ) {
+CanvasData RayTracer::traceRay( Ray& ray, int nextDepth ) {
     IntersectionData cIData = closestIntersection( ray );
-    if ( cIData.t == __FLT_MAX__ ) return { BACKGROUND_COLOR * throughput, { 0, 0, 0 }, BACKGROUND_COLOR * throughput };
+    if ( cIData.t == __FLT_MAX__ ) return { BACKGROUND_COLOR, { 0, 0, 0 }, BACKGROUND_COLOR };
     Vector3f P = ray.origin + ray.direction * cIData.t;
     RGB materialColor;
     Material material;
     float ambientOcclusion;
     float roughness;
+    float metalness;
     if ( cIData.triangle != nullptr ) {
         cIData.N = cIData.triangle->getNormal( P );
         materialColor = cIData.triangle->getColor( P );
         material = cIData.triangle->getMaterial();
         ambientOcclusion = cIData.triangle->getAmbient( P ).r;
         roughness = cIData.triangle->getRoughness( P );
+        metalness = cIData.triangle->getMetalness( P );
     } else {
         cIData.N = cIData.sphere->getNormal( P );
         materialColor = cIData.sphere->getColor( P );
         material = cIData.sphere->material;
         ambientOcclusion = cIData.sphere->getAmbient( P ).r;
         roughness = cIData.sphere->getRoughness( P );
+        metalness = cIData.sphere->getMetalness( P );
     }
     Vector3f vectorColor = ( cIData.N + Vector3f( 1, 1, 1 ) ) * 255 / 2;
     RGB normalColor = { vectorColor.x, vectorColor.y, vectorColor.z };
     if ( material.getIntensity() != 0 ) return { materialColor, normalColor, materialColor };
     RGB i = computeDiffuseLight( P, ray.direction * (-1), cIData );
     RGB diffuse = {};
-    diffuse = { materialColor.r * i.r * throughput, materialColor.g * i.g * throughput, materialColor.b * i.b * throughput } ;
+    diffuse = { materialColor.r * i.r, materialColor.g * i.g, materialColor.b * i.b } ;
     if ( nextDepth == 0 ) return { diffuse, normalColor, materialColor };
     //Global illumination
-    RGB ambient = computeAmbientLight( ray, cIData, roughness, ambientOcclusion, throughput, nextDepth );
-    return { diffuse +  materialColor / 255 * ambient, normalColor, materialColor };
+    RGB ambient = computeAmbientLight( ray, cIData, roughness, ambientOcclusion, nextDepth );
+    return { diffuse + materialColor / 255 * ambient, normalColor, materialColor };
 }
 
 void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples ) {
@@ -241,7 +244,7 @@ void RayTracer::traceAllRaysSerial() {
         printProgress( x );
         for ( int y = 0; y < canvas(0).getH(); ++y ) {
             Ray ray = getCamera()->getPrimaryRay( x, y );
-            CanvasData colorData = traceRay( ray, depth, 1 );
+            CanvasData colorData = traceRay( ray, depth );
             colorData.color.scaleTo( 255 );
             canvas(0).setColor( x, y, colorData.color );
             canvas(0).setNormal( x, y, colorData.normal );
@@ -299,7 +302,7 @@ void RenderFunctor::operator()(const int i, const int j) const {
 //    }
     //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
     Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);
-    CanvasData data = rayTracer->traceRay(ray, rayTracer->getDepth(), 1);
+    CanvasData data = rayTracer->traceRay(ray, rayTracer->getDepth() );
     colors(i, j) = data.color;
     normals(i, j) = data.normal;
     albedos(i, j) = data.albedo;

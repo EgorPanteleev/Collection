@@ -5,6 +5,7 @@
 #include "SpotLight.h"
 #include "cstdlib"
 #include "Denoiser.h"
+#include "GroupOfMeshes.h"
 //162.786 2 2 5 - 3200
 // 3 sec - 960 2 2 2
 
@@ -617,193 +618,147 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     Vector<Mesh*> meshes;
     Vector<Light*> lights;
     float roomRefl = 0;
-//////right
-//    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 600),
-//                                    { GREEN, -1 , roomRefl } ) );
-//////left
-//    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 600),
-//                                   { RED, -1 , roomRefl } ) );
-//////front
-//    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
-//                                   { GRAY, -1, roomRefl } ) );
-//////back
-//    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
-//                                   { GRAY, -1 , roomRefl } ) );
-//////down
-//    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 620),
-//                                   { GRAY, -1 , roomRefl } ) );
-//////up
-//    meshes.push_back(new CubeMesh( Vector3f(-100, 70, 0), Vector3f(100, 90, 620),
-//                                   { GRAY, -1 , roomRefl } ) );
+    float roomHeight = 150;
+    float roomWidth = 300;
+    float roomLength = 600;
+    float du = 10;
+    float du2 = du / 2;
+
+    float roomHeight2 = roomHeight / 2;
+    float roomWidth2 = roomWidth / 2;
+    float roomLength2 = roomLength / 2;
+
+
+    Material whiteBrick;
+    whiteBrick.setTexture( "/home/auser/dev/src/Collection/Textures/WhiteBrick/" );
+    Material whiteFloor;
+    whiteFloor.setTexture( "/home/auser/dev/src/Collection/Textures/StoneWhiteFloor/" );
+////right
+    meshes.push_back( new CubeMesh( Vector3f(roomWidth2, -roomHeight2, 0), Vector3f(roomWidth2 + du, roomHeight2, roomLength),
+                                    whiteBrick ) );
+////left
+    meshes.push_back(new CubeMesh( Vector3f(-roomWidth2 - du, -roomHeight2, 0), Vector3f(-roomWidth2, roomHeight2, roomLength),
+                                   whiteBrick ) );
+////front
+    meshes.push_back(new CubeMesh( Vector3f(-roomWidth2, -roomHeight2, roomLength), Vector3f(roomWidth2, roomHeight2, roomLength + du),
+                                   whiteBrick ) );
+////back
+    meshes.push_back(new CubeMesh( Vector3f(-roomWidth2, -roomHeight2, -du), Vector3f(roomWidth2, roomHeight2, 0),
+                                   whiteBrick ) );
+////down
+    meshes.push_back(new CubeMesh( Vector3f(-roomWidth2, -roomHeight2 - du, 0), Vector3f(roomWidth2, -roomHeight2, roomLength),
+                                   whiteFloor ) );
+////up
+    meshes.push_back(new CubeMesh( Vector3f(-roomWidth2, roomHeight2, 0), Vector3f(roomWidth2, roomHeight2 + du, roomLength),
+                                   { GRAY, -1 , roomRefl } ) );
 
 ////AUDI
-    int roomLength = 300;
-    int roomHeight = 140;
-    auto* audi = new Mesh();
+    auto* audi = new GroupOfMeshes();
     audi->loadMesh( "/home/auser/dev/src/Collection/Models/audi/audi.obj" );
-    audi->scaleTo( 100 );
-    audi->moveTo(Vector3f( 0,0, roomLength / 2  ) );
-////    //rat->rotate( Vector3f( 0, 0, 1), 45 );
-    audi->rotate( Vector3f( 1,0,0),270);
+    audi->scaleTo( 250 );
     audi->rotate( Vector3f( 0,1,0), 145);
-    audi->move( Vector3f( -4,0,3) );
-    audi->setMinPoint( Vector3f( 0,-50,0), 1 );
-    audi->setMaterial( { BLUE, -1 , 0 } );
+    audi->moveTo(Vector3f( 0,0, roomLength / 2 + 40  ) );
+    audi->setMinPoint( Vector3f( 0,-roomHeight2,0), 1 );
+    audi->setMaterial( { GRAY, -1 , 1 } );
+    auto bbox = audi->getBBox();
+    std::cout << " bbox - " << bbox.pMin << " " << bbox.pMax << std::endl;
+    // mb 75 is light
+    std::vector< std::pair< std::vector<int>, Material > > drawing;
+    Material steel;
+    steel.setTexture( "/home/auser/dev/src/Collection/Textures/Steel/" );
+    Material blackMetal;
+    blackMetal.setTexture( "/home/auser/dev/src/Collection/Textures/BlackMetal/" );
+    Material damagedGold;
+    damagedGold.setTexture( "/home/auser/dev/src/Collection/Textures/DamagedGold/" );
+    Material blueMetal;
+    blueMetal.setTexture( "/home/auser/dev/src/Collection/Textures/BlueMetal/" );
 
-    ////Grill
-   // Material grill = { BLACK, 0.8, 0.3/*0.3*/, 0.1 };
-    Material grill = { BLACK, -1, 0.3 };
-    //Front
-    //Top of grill
-//    audi->setMaterial( grill, 47 );
-//    audi->setMaterial( grill, 38 );
-//    audi->setMaterial( grill, 25 );
-//    //Left/Right grill
-//    audi->setMaterial( grill, 34 );
-//    //Bottom of grill
-//    audi->setMaterial( grill, 31 );
-//    audi->setMaterial( grill, 58 );
-//    //Boxes
-//    audi->setMaterial( grill, 27 ); //front boxes( grill )
-//    audi->setMaterial( grill, 30 ); //front boxes( grill )
-//    //Radiator
-//    Material radiator = { { 100, 100, 100 }, 1, 0, 1 };
-//    audi->setMaterial( radiator, 59 ); //radiator bottom
-//    audi->setMaterial( radiator, 57 ); //l/r radiator
-//    audi->setMaterial( radiator, 60 ); //radiator front
-//    //Back
-//    audi->setMaterial( grill, 33 );
-//    audi->setMaterial( radiator, 73 );
-//
-//
-//    ////Signs
-//    Material signs = { { 220, 220, 220 }, 1, 0.7, 1 };
-//    //Front
-//    audi->setMaterial( signs, 1 );
-//    //Back
-//    audi->setMaterial( signs, 23 ); // audi
-//    audi->setMaterial( signs, 39 );
-//
-//    ////Wheels
-//    ////Tires
-//    Material tires = { BLACK, 1 , 0, 1 };
-//    //Front
-//    audi->setMaterial( tires, 5 ); //front tire
-//    //Back
-//    audi->setMaterial( tires, 20 ); //back tires
-//    ////Rims
-//    Material rims = { { 220, 220, 220 }, 1, 0.4, 1 };
-//    //Front
-//    audi->setMaterial( rims, 15 );
-//    audi->setMaterial( rims, 13 );
-//    audi->setMaterial( rims, 14 );
-//    //Back
-//    audi->setMaterial( rims, 22 );
-//    audi->setMaterial( rims, 21 );
-//    ////Brakes
-//    Material mainBreaks = { RED, 1 , 0, 1 };
-//    audi->setMaterial( mainBreaks, 134 ); //main tormoza(red) back
-//    audi->setMaterial( mainBreaks, 130 ); //main tormoza(red) front
-//    audi->setMaterial( mainBreaks, 41 ); //hueta na tormoze
-//    audi->setMaterial( mainBreaks, 42 ); //hueta na tormoze
-//    Material secondBreaks = { GRAY, 1 , 0, 1 };
-//    audi->setMaterial( secondBreaks, 132 ); //tormoz disk big back
-//    audi->setMaterial( secondBreaks, 82 ); //tormoz disk big
-//    audi->setMaterial( secondBreaks, 12 ); //tormoz disk
-//    audi->setMaterial( secondBreaks, 18 ); //tormoz disk
-//
-//    ////Bolts
-//    Material bolts = { YELLOW, 1, 0.2, 1 };
-//    audi->setMaterial( bolts, 9 );
-//    audi->setMaterial( bolts, 10 );
-//    audi->setMaterial( bolts, 8 ); //big bolt
-//    audi->setMaterial( bolts, 16 ); //BOLTI back
-//    //Sign
-//    Material bSign = signs;
-//    audi->setMaterial( bSign, 6 ); //SIGN
-//    audi->setMaterial( { BLACK, 1 , 0, 1 }, 2 ); //sign back wheel
-//    //Obodok
-//    Material obod = { YELLOW, 1, 0.2, 1 };
-//    audi->setMaterial( obod, 7 ); //obodok
-//    audi->setMaterial( obod, 4 ); //obodok back wheel
-//
-//
-//    ////BODY
-//    Material body = { DARK_BLUE, 1 , 0/*0.15*/, 1 };
-//    audi->setMaterial( body, 0 ); //sign podstavka
-//    audi->setMaterial( body, 44 ); //back bagajnik
-//    audi->setMaterial( body, 146 ); //l/r door front
-//    audi->setMaterial( body, 145 ); //back bumper
-//    audi->setMaterial( body, 144 ); //front krilo
-//    audi->setMaterial( body, 138 ); //hueta mezhdu l/r windows
-//    audi->setMaterial( body, 139 );//l/r porogi
-//    audi->setMaterial( body, 136 ); //l/r porogi
-//    audi->setMaterial( body, 80 ); //back door
-//    audi->setMaterial( body, 66 ); //capot
-//    audi->setMaterial( body, 46 ); //roof and back
-//    audi->setMaterial( body, 49 ); // front bumper
-//    audi->setMaterial( body, 24 ); //side mirrors
-//    audi->setMaterial( body, 157 ); // back mid hz
-//    audi->setMaterial( body, 29 ); //side mirrors mid
-//    audi->setMaterial( body, 35 ); //side mirrors mid
-//    audi->setMaterial( body, 53 ); // spoiler
-//    audi->setMaterial( body, 50 ); //FRONT
-//    audi->setMaterial( body, 56 ); //FRONT
-//    audi->setMaterial( body, 128 );//okolo grill
-//    audi->setMaterial( body, 51 );//obvodka u grill
-//    audi->setMaterial( body, 54 );// top grill obvodka
-//    audi->setMaterial( body, 52 ); //obvodka u kapota
-//    audi->setMaterial( body, 103 ); // okolo tires
-//    audi->setMaterial( body, 61 ); //l/r grill obdodka
-//    audi->setMaterial( body, 79 ); // to kosmos pimpo4ka
-//    audi->setMaterial( body, 78 ); // roof hueta
-//    audi->setMaterial( body, 76 ); // roof hueta
-//    audi->setMaterial( body, 63 ); // obvodka back mirror
-//    audi->setMaterial( body, 72 ); //back bumper obvodka
-//    audi->setMaterial( body, 75 ); //back bumper obvodka
-//    audi->setMaterial( body, 74 ); //back bumper obvodka( ele vidno)
-//    audi->setMaterial( body, 28 ); //obodok right mirror
-//    audi->setMaterial( body, 83 ); //back
-//    audi->setMaterial( body, 55 ); //front obodot snuzu
-//    ////Obvodka
-//    Material obvodka = { BLACK, 0.7 , 0, 0.5 };
-//    audi->setMaterial( obvodka, 150 ); //l/r windows obvodka
-//    audi->setMaterial( obvodka, 70 ); //front window obvodka l/r
-//    audi->setMaterial( obvodka, 68 ); //front window obvodka bottom
-//    audi->setMaterial( obvodka, 65 ); // obvodka side mirrors (doors)
-//    audi->setMaterial( obvodka, 148 ); //obvodka door front side
-//
-//    ////Handles
-//    Material handles = body;
-//    audi->setMaterial( handles, 37 );
-//    audi->setMaterial( handles, 36 );
-//
-//    ////Lights
-//    //Front
-//    Material mLights = {BLACK, 1 , 0.2, 0 };
-//    audi->setMaterial( mLights, 153 );
-//    //Back
-//    audi->setMaterial( mLights, 114 );
-//    audi->setMaterial( mLights, 112 );
-//
-//    ////Windows
-//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 32 ); //l/r mirror
-//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 71 ); //back mirror
-//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 67 ); //front mirror
-//    audi->setMaterial( { BLACK, 1 , 0.2, 1 }, 45 ); //side mirrors ( doors )
-//
-//    ////Other
-//    audi->setMaterial( {{200,200,200}, 1 , 0.6, 1 }, 3 ); //vihlop
-    meshes.push_back( audi );
+
+    std::vector<int> bodyIndexes =
+            { 0, 1, 2, 3, 4, 5, 6, 7, 8, 14, 15, 18, 21, 24, 28, 29, 30, 54, 55, 56, 69, 70, 71, 75, 83, 84, 88, 89, 106, 107, 110, 111, 114, 127, 168 };
+    Material body = blackMetal;
+    drawing.push_back( { bodyIndexes, body } );
+
+    std::vector<int> tireIndexes = { 74, 103 };
+    Material tire = { BLACK, -1, 1 };
+    drawing.push_back( { tireIndexes, tire } );
+
+    std::vector<int> diskIndexes = { 76, 77, 104, 105 };
+    Material disk = steel;
+    drawing.push_back( { diskIndexes, disk } );
+
+    std::vector<int> boltIndexes = { 61, 62, 94, 95, 96 };
+    Material bolt = damagedGold;
+    drawing.push_back( { boltIndexes, bolt } );
+    //BREAKS
+
+    //
+    std::vector<int> backGridIndexes = { 9, 11, 12, 27, 85, 86 };
+    Material backGrid = { BLACK, -1, 1 };
+    drawing.push_back( { backGridIndexes, backGrid } );
+
+    std::vector<int> gridIndexes = { 10, 13, 23, 26, 57, 113 };
+    Material grid = blackMetal;
+    drawing.push_back( { gridIndexes, grid } );
+
+    std::vector<int> handlerIndexes = { 115, 116 };
+    Material handler = body;
+    drawing.push_back( { handlerIndexes, handler } );
+
+    std::vector<int> lightIndexes = { 92, 137 };
+    Material light = { WHITE, -1, 1 };
+    drawing.push_back( { lightIndexes, light } );
+
+    std::vector<int> mirrorIndexes = { 112 };
+    Material mirror = { WHITE, -1, 0.001 };
+    mirror.setMetalness( 1 );
+    drawing.push_back( { mirrorIndexes, mirror } );
+
+    std::vector<int> windowIndexes = { 17, 19, 22 };
+    Material window = { BLACK, -1, 0.1 };
+    window.setMetalness( 1 );
+    drawing.push_back( { windowIndexes, window } );
+
+    std::vector<int> edgingIndexes = { 16, 20, 73, 82, 90, 91 };
+    Material edging = { BLACK, -1, 1 };
+    drawing.push_back( { edgingIndexes, edging } );
+
+    std::vector<int> signIndexes = { 58, 87, 93, 117, 118, 120, 121, 122, 123, 125 };
+    Material sign = steel;
+    drawing.push_back( { signIndexes, sign } );
+
+    std::vector<int> exhaustIndexes = { 25 };
+    Material exhaust = steel;
+    drawing.push_back( { exhaustIndexes, exhaust } );
+
+    for ( const auto& [ vecInd, mat ]: drawing ) {
+        for ( auto ind: vecInd ) {
+            audi->setMaterial( mat, ind );
+        }
+    }
+
+    for ( auto mesh: audi->getMeshes() ) {
+        meshes.push_back( mesh );
+    }
 
 ////LIGHTS
 
-//    lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
-    Vector<Sphere*> spheres;
-    spheres.push_back( new Sphere( 10, Vector3f(0, 50, 200), {WHITE, 1 } ) );
-    for ( auto sphere: spheres ){
-        scene->add( *sphere );
-    }
+    //todo load as group
+    float lightWidth = 80;
+    float lightLenght = 20;
+    float par = roomLength / 6;
+    float intensity = 2;
+    meshes.push_back( new CubeMesh( Vector3f( -lightWidth, roomHeight2 - du2, par - lightLenght),
+                                    Vector3f( lightWidth, roomHeight2 - du2, par + lightLenght),
+                                    { WHITE, intensity }));
+
+    meshes.push_back( new CubeMesh( Vector3f( -lightWidth, roomHeight2 - du2, 3 * par - lightLenght),
+                                    Vector3f( lightWidth, roomHeight2 - du2, 3 * par + lightLenght),
+                                    { WHITE, intensity }));
+
+    meshes.push_back( new CubeMesh( Vector3f( -lightWidth, roomHeight2 - du2, 5 * par - lightLenght),
+                                    Vector3f( lightWidth, roomHeight2 - du2, 5 * par + lightLenght),
+                                    { WHITE, intensity }));
 ////LOADING...
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
@@ -872,12 +827,12 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     randBlockForward2->moveTo( Vector3f(-35, -40, 205) );
     randBlockForward2->scaleTo( Vector3f(30,260,30) );
     randBlockForward2->rotate( Vector3f( 0,1,0), 45);
-    randBlockForward2->setMaterial( damagedGold );
+    randBlockForward2->setMaterial( marble );
     meshes.push_back(randBlockForward2 );
 
 ////Spheres
     Vector<Sphere* > spheres;
-    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), ceil ) );
+    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), damagedGold ) );
 
 
 ////LIGHTS
@@ -982,15 +937,12 @@ void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 
 
     ////RAND BLOCK
-    auto* randBlockForward = new CubeMesh( Vector3f(0, 0, 0), Vector3f(30, 30, 30) );
-    randBlockForward->moveTo( Vector3f(15, -10, 210 - 60) );
-    randBlockForward->setMaterial( floor );
-    meshes.push_back(randBlockForward );
-
-    auto* randBlockForward1 = new CubeMesh( Vector3f(0, 0, 0), Vector3f(60, 60, 60) );
-    randBlockForward1->moveTo( Vector3f(-30, -10, 225 - 60) );
-    randBlockForward1->setMaterial( floor );
-    meshes.push_back(randBlockForward1 );
+    auto* m = new Mesh();
+    m->loadMesh( "/home/auser/dev/src/Collection/Models/torus.obj" );
+    m->setMaterial( { GRAY, -1, 1 } );
+    m->scaleTo( 50 );
+    m->moveTo( { 0, 0, 150 } );
+    meshes.push_back( m );
 
 ////LIGHTS
 
@@ -1024,9 +976,9 @@ int main( int argc, char* argv[] ) {
     // 160 sec 2 5 2 - 3200
     // 29.5 sec 2 5 5 - 960
     ////NUM SAMPLES
-    int depth = 1;
-    int ambientSamples = 1;
-    int lightSamples = 1;
+    int depth = 2;
+    int ambientSamples = 5;
+    int lightSamples = 2;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /
@@ -1049,8 +1001,8 @@ int main( int argc, char* argv[] ) {
     //carScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
+    //sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //dragonScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     auto end = std::chrono::high_resolution_clock::now();

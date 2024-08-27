@@ -5,6 +5,7 @@
 #include <cmath>
 #include "Mesh.h"
 #include "OBJLoader.h"
+#include "Utils.h"
 
 Mesh::Mesh(): material(), triangles() {}
 
@@ -21,7 +22,7 @@ Material Mesh::getMaterial() const {
 Vector3f Mesh::getSamplePoint() {
     int size = (int) triangles.size();
     if ( size == 0 ) return {};
-    int ind = std::floor( rand() / (float) RAND_MAX * ( (float) size - 1 ) );
+    int ind = std::floor( randomFloat() * ( (float) size - 1 ) );
     return triangles[ind].getSamplePoint();
 }
 
@@ -29,13 +30,13 @@ void Mesh::loadMesh(const std::string& path ) {
     OBJLoader::load( path, this );
 }
 
-void Mesh::rotate(const Vector3f& axis, float angle ) {
+void Mesh::rotate(const Vector3f& axis, float angle, bool group ) {
     Vector3f origin = getOrigin();
-    move( origin * ( -1 ) );
+    if ( !group ) move( origin * ( -1 ) );
     for ( auto& triangle: triangles ) {
         triangle.rotate( axis, angle );
     }
-    move( origin );
+    if ( !group ) move( origin );
 }
 
 void Mesh::move(const Vector3f& p ) {
@@ -48,34 +49,34 @@ void Mesh::moveTo(const Vector3f& point ) {
     move( point - getOrigin() );
 }
 
-void Mesh::scale(float scaleValue ) {
+void Mesh::scale(float scaleValue, bool group ) {
     Vector3f oldOrigin = getOrigin();
     for ( auto& triangle: triangles ) {
         triangle.scale( scaleValue );
     }
-    moveTo( oldOrigin );
+    if ( !group ) moveTo( oldOrigin );
 }
-void Mesh::scale(const Vector3f& scaleVec ) {
+void Mesh::scale(const Vector3f& scaleVec, bool group ) {
     Vector3f oldOrigin = getOrigin();
     for ( auto& triangle: triangles ) {
         triangle.scale( scaleVec );
     }
-    moveTo( oldOrigin );
+    if ( !group ) moveTo( oldOrigin );
 }
 
-void Mesh::scaleTo(float scaleValue ) {
+void Mesh::scaleTo(float scaleValue, bool group ) {
     BBox bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     float maxLen = std::max ( std::max( len.getX(), len.getY() ), len.getZ());
     float cff = scaleValue / maxLen;
-    scale( cff );
+    scale( cff, group );
 }
 
-void Mesh::scaleTo(const Vector3f& scaleVec ) {
+void Mesh::scaleTo(const Vector3f& scaleVec, bool group ) {
     BBox bbox = getBBox();
     Vector3f len = bbox.pMax - bbox.pMin;
     Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
-    scale( cff );
+    scale( cff, group );
 }
 
 void Mesh::setMinPoint(const Vector3f& vec, int ind ) {
@@ -101,18 +102,14 @@ Vector<Triangle> Mesh::getTriangles() {
 }
 
 BBox Mesh::getBBox() const {
-    Vector3f min = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
-    Vector3f max = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
+    Vector3f vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
+    Vector3f vMax = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
     for ( auto& triangle: triangles ) {
         BBox bbox = triangle.getBBox();
-        if ( bbox.pMin[0] < min[0] ) min[0] = bbox.pMin[0];
-        if ( bbox.pMin[1] < min[1] ) min[1] = bbox.pMin[1];
-        if ( bbox.pMin[2] < min[2] ) min[2] = bbox.pMin[2];
-        if ( bbox.pMax[0] > max[0] ) max[0] = bbox.pMax[0];
-        if ( bbox.pMax[1] > max[1] ) max[1] = bbox.pMax[1];
-        if ( bbox.pMax[2] > max[2] ) max[2] = bbox.pMax[2];
+        vMin = min( bbox.pMin, vMin );
+        vMax = max( bbox.pMax, vMax );
     }
-    return { min, max };
+    return { vMin, vMax };
 }
 
 

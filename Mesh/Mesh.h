@@ -17,13 +17,13 @@ class Mesh {
 public:
     Mesh();
     void loadMesh( const std::string& path );
-    void rotate( const Vector3f& axis, float angle );
+    void rotate( const Vector3f& axis, float angle, bool group = false );
     void move( const Vector3f& p );
     void moveTo( const Vector3f& point );
-    void scale( float scaleValue );
-    void scale( const Vector3f& scaleVec );
-    void scaleTo( float scaleValue );
-    void scaleTo( const Vector3f& scaleVec );
+    void scale( float scaleValue, bool group = false );
+    void scale( const Vector3f& scaleVec, bool group = false );
+    void scaleTo( float scaleValue, bool group = false );
+    void scaleTo( const Vector3f& scaleVec, bool group = false);
 
     void setMinPoint( const Vector3f& vec, int ind = -1 );
 
