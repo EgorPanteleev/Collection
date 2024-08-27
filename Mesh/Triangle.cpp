@@ -109,8 +109,8 @@ void Triangle::setMaterial( const Material& mat ) {
 }
 
 Vector3f Triangle::getSamplePoint() const {
-        float u = rand() / (float) RAND_MAX;
-        float v = rand() / (float) RAND_MAX;
+        float u = randomFloat();
+        float v = randomFloat();
         if (u + v > 1.0f) {
             u = 1.0f - u;
             v = 1.0f - v;
@@ -241,7 +241,7 @@ float Triangle::getRoughness( const Vector3f& P ) const {
     return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
 }
 float Triangle::getMetalness( const Vector3f& P ) const {
-    if ( !material.getTexture().metalnessMap.data ) return material.getRoughness();
+    if ( !material.getTexture().metalnessMap.data ) return material.getMetalness();
     constexpr float F1_255 = 1 / 255.0f;
     int ind = getIndex( P, material.getTexture().metalnessMap );
 
