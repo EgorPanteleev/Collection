@@ -148,13 +148,8 @@ CanvasData RayTracer::traceRay( Ray& ray, int nextDepth ) {
     IntersectionData cIData = closestIntersection( ray );
     if ( cIData.t == __FLT_MAX__ ) return { BACKGROUND_COLOR, { 0, 0, 0 }, BACKGROUND_COLOR };
     Vector3f P = ray.origin + ray.direction * cIData.t;
-    TraceData traceData;
-    if ( cIData.triangle != nullptr ) {
-        traceData = TraceData( cIData.triangle, P );
-    } else {
-        traceData = TraceData( cIData.sphere, P );
-    }
-    Vector3f vectorColor = ( cIData.N + Vector3f( 1, 1, 1 ) ) * 255 * 0.5f;
+    TraceData traceData = TraceData( cIData.primitive, P );;
+    Vector3f vectorColor = ( traceData.cs.getNormal() + Vector3f( 1, 1, 1 ) ) * 255 * 0.5f;
     RGB normalColor = { vectorColor.x, vectorColor.y, vectorColor.z };
     if ( traceData.material.getIntensity() != 0 ) return { traceData.getColor(), normalColor, traceData.getColor() };
     RGB i = computeDiffuseLight( ray.direction * (-1), traceData );
@@ -173,7 +168,7 @@ void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _num
     Kokkos::deep_copy(scene, *s);
     canvas = Kokkos::View<Canvas*>("canvas");
     Kokkos::deep_copy(canvas, *_canvas);
-    bvh = new BVH( s->getTriangles(), s->getSpheres() );
+    bvh = new BVH( s->getPrimitives() );
     depth = _depth;
     numAmbientSamples = _numAmbientSamples;
     numLightSamples = _numLightSamples;

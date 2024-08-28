@@ -43,8 +43,8 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
 //    lights.push_back( new PointLight( Vector3f(-3500,0,0 ), 9999999 ));
 //    lights.push_back( new PointLight( Vector3f(-1000,0,0 ), 500 ));
     loadScene( scene, meshes, lights );
-    for ( auto& sphere: spheres ) {
-        scene->add( *sphere );
+    for ( auto sphere: spheres ) {
+        scene->add( sphere );
     }
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -88,7 +88,7 @@ void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
 
 
     for ( auto sphere: spheres ) {
-        scene->add( *sphere );
+        scene->add( sphere );
     }
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
@@ -829,9 +829,10 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     randBlockForward2->setMaterial( marble );
     meshes.push_back(randBlockForward2 );
 
+
 ////Spheres
-    Vector<Sphere* > spheres;
-    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), damagedGold ) );
+//    Vector<Sphere* > spheres;
+//    spheres.push_back( new Sphere( 20, Vector3f(20, 0, 175), damagedGold ) );
 
 
 ////LIGHTS
@@ -841,9 +842,9 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
     meshes.push_back( new CubeMesh( Vector3f(0 - lightWidth,64,150 - lightWidth), Vector3f(0 + lightWidth,65,150 + lightWidth), { WHITE, 1.6 }));
 
 ////LOADING...
-    for ( auto sphere: spheres ) {
-        scene->add( *sphere );
-    }
+//    for ( auto sphere: spheres ) {
+//        scene->add( sphere );
+//    }
     loadScene( scene, meshes, lights );
     rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
 }
@@ -966,9 +967,9 @@ int main( int argc, char* argv[] ) {
 
     ////RESOLUTION
     //int w = 8 ; int h = 5;
-    int w = 240 ; int h = 150;
+    //int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600; // 42 sec
+    int w = 960 ; int h = 600; // 42 sec
     //int w = 1920 ; int h = 1200;
     //int w = 3200; int h = 2000;
 
@@ -1010,7 +1011,7 @@ int main( int argc, char* argv[] ) {
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();;
-    rayTracer->render( RayTracer::SERIAL );
+    rayTracer->render( RayTracer::PARALLEL );
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> renderTime = end - start;
     std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;

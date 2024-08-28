@@ -7,12 +7,12 @@
 #include "OBJLoader.h"
 #include "Utils.h"
 
-Mesh::Mesh(): material(), triangles() {}
+Mesh::Mesh(): material(), primitives() {}
 
 void Mesh::setMaterial(const Material& _material ) {
     material = _material;
-    for ( auto& triangle : triangles )
-        triangle.setMaterial( material );
+    for ( auto primitive : primitives )
+        primitive->setMaterial( material );
 }
 
 Material Mesh::getMaterial() const {
@@ -20,10 +20,10 @@ Material Mesh::getMaterial() const {
 }
 
 Vector3f Mesh::getSamplePoint() {
-    int size = (int) triangles.size();
+    int size = (int) primitives.size();
     if ( size == 0 ) return {};
     int ind = std::floor( randomFloat() * ( (float) size - 1 ) );
-    return triangles[ind].getSamplePoint();
+    return primitives[ind]->getSamplePoint();
 }
 
 void Mesh::loadMesh(const std::string& path ) {
@@ -33,15 +33,15 @@ void Mesh::loadMesh(const std::string& path ) {
 void Mesh::rotate(const Vector3f& axis, float angle, bool group ) {
     Vector3f origin = getOrigin();
     if ( !group ) move( origin * ( -1 ) );
-    for ( auto& triangle: triangles ) {
-        triangle.rotate( axis, angle );
+    for ( auto primitive: primitives ) {
+        primitive->rotate( axis, angle );
     }
     if ( !group ) move( origin );
 }
 
 void Mesh::move(const Vector3f& p ) {
-    for ( auto& triangle: triangles ) {
-        triangle.move( p );
+    for ( auto primitive: primitives ) {
+        primitive->move( p );
     }
 }
 
@@ -51,15 +51,15 @@ void Mesh::moveTo(const Vector3f& point ) {
 
 void Mesh::scale(float scaleValue, bool group ) {
     Vector3f oldOrigin = getOrigin();
-    for ( auto& triangle: triangles ) {
-        triangle.scale( scaleValue );
+    for ( auto primitive: primitives ) {
+        primitive->scale( scaleValue );
     }
     if ( !group ) moveTo( oldOrigin );
 }
 void Mesh::scale(const Vector3f& scaleVec, bool group ) {
     Vector3f oldOrigin = getOrigin();
-    for ( auto& triangle: triangles ) {
-        triangle.scale( scaleVec );
+    for ( auto primitive: primitives ) {
+        primitive->scale( scaleVec );
     }
     if ( !group ) moveTo( oldOrigin );
 }
@@ -97,15 +97,15 @@ void Mesh::setMaxPoint(const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-Vector<Triangle> Mesh::getTriangles() {
-    return triangles;
+Vector<Primitive*> Mesh::getPrimitives() {
+    return primitives;
 }
 
 BBox Mesh::getBBox() const {
     Vector3f vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
     Vector3f vMax = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
-    for ( auto& triangle: triangles ) {
-        BBox bbox = triangle.getBBox();
+    for ( auto primitive: primitives ) {
+        BBox bbox = primitive->getBBox();
         vMin = min( bbox.pMin, vMin );
         vMax = max( bbox.pMax, vMax );
     }
@@ -115,15 +115,15 @@ BBox Mesh::getBBox() const {
 
 Vector3f Mesh::getOrigin() const {
     Vector3f origin = {0,0,0};
-    for ( auto& triangle: triangles ) {
-        origin = origin + triangle.getOrigin();
+    for ( auto primitive: primitives ) {
+        origin = origin + primitive->getOrigin();
     }
-    return origin / (float) triangles.size();
+    return origin / (float) primitives.size();
 }
 
 bool Mesh::isContainPoint(const Vector3f& p ) const {
-    for ( const auto& triangle: triangles ) {
-        if ( triangle.isContainPoint( p ) ) return true;
+    for ( const auto primitive: primitives ) {
+        if ( primitive->isContainPoint( p ) ) return true;
     }
     return false;
 }
@@ -131,20 +131,20 @@ bool Mesh::isContainPoint(const Vector3f& p ) const {
 IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
     float min = __FLT_MAX__;
     Vector3f N = {};
-    for ( const auto& triangle: triangles ) {
-        float t = triangle.intersectsWithRay( ray );
+    for ( const auto primitive: primitives ) {
+        float t = primitive->intersectsWithRay( ray );
         if ( t >= min ) continue;
         min = t;
     }
-    return { min, N , nullptr, nullptr };
+    return { min, nullptr };
 }
 
-void Mesh::setTriangles(Vector<Triangle>& _triangles ) {
-    triangles = _triangles;
-    for ( auto& triangle: triangles )
-        triangle.setMaterial( material );
+void Mesh::setPrimitives(Vector<Primitive*>& _primitives ) {
+    primitives = _primitives;
+    for ( auto primitive: primitives )
+        primitive->setMaterial( material );
 }
-void Mesh::addTriangle(const Triangle& triangle ) {
-    triangles.push_back( triangle );
-    triangles[ triangles.size() - 1 ].setMaterial( material );
+void Mesh::addPrimitive( Primitive* primitive ) {
+    primitives.push_back( primitive );
+    primitives[ primitives.size() - 1 ]->setMaterial( material );
 }

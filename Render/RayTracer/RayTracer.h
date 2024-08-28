@@ -13,23 +13,14 @@
 
 struct TraceData {
     TraceData(): cs(), material(), intersection(), ambientOcclusion() {}
-    TraceData( const Triangle* tri, const Vector3f& P ) {
+    TraceData( const Primitive* prim, const Vector3f& P ) {
         intersection = P;
-        cs = { tri->getNormal( P ) };
-        material.setColor( tri->getColor( P ) );
-        material.setIntensity( tri->getMaterial().getIntensity() );
-        material.setRoughness( tri->getRoughness( P ) );
-        material.setMetalness( tri->getMetalness( P ) );
-        ambientOcclusion = tri->getAmbient( P ).r;
-    }
-    TraceData( const Sphere* sph, const Vector3f& P ) {
-        intersection = P;
-        cs = { sph->getNormal( P ) };
-        material.setColor( sph->getColor( P ) );
-        material.setIntensity( sph->getMaterial().getIntensity() );
-        material.setRoughness( sph->getRoughness( P ) );
-        material.setMetalness( sph->getMetalness( P ) );
-        ambientOcclusion = sph->getAmbient( P ).r;
+        cs = { prim->getNormal( P ) };
+        material.setColor( prim->getColor( P ) );
+        material.setIntensity( prim->getMaterial().getIntensity() );
+        material.setRoughness( prim->getRoughness( P ) );
+        material.setMetalness( prim->getMetalness( P ) );
+        ambientOcclusion = prim->getAmbient( P ).r;
     }
     [[nodiscard]] RGB getColor() const {
         return material.getColor();

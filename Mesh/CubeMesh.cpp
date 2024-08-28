@@ -27,25 +27,25 @@ void CubeMesh::fillTriangles() {
     Vector3f b3 = p2;
     Vector3f b4 = { p1.getX(), p2.getY(), p2.getZ() };
     // down
-    triangles.push_back( { f1, f2, f3 } );
-    triangles.push_back( { f1, f3, f4 } );
+    primitives.push_back( new Triangle{ f1, f2, f3 } );
+    primitives.push_back( new Triangle{ f1, f3, f4 } );
     //up
-    triangles.push_back( { b1, b3, b2 } );
-    triangles.push_back( { b1, b4, b3 } );
+    primitives.push_back( new Triangle{ b1, b3, b2 } );
+    primitives.push_back( new Triangle{ b1, b4, b3 } );
     //left
-    triangles.push_back( { b1, f1, f4 } );
-    triangles.push_back( { b1, f4, b4 } );
+    primitives.push_back( new Triangle{ b1, f1, f4 } );
+    primitives.push_back( new Triangle{ b1, f4, b4 } );
     //right
-    triangles.push_back( { f2, b2, f3 } );
-    triangles.push_back( { f3, b2, b3 } );
+    primitives.push_back( new Triangle{ f2, b2, f3 } );
+    primitives.push_back( new Triangle{ f3, b2, b3 } );
     //front
-    triangles.push_back( { f2, f1, b1 } );
-    triangles.push_back( { f2, b1, b2 } );
+    primitives.push_back( new Triangle{ f2, f1, b1 } );
+    primitives.push_back( new Triangle{ f2, b1, b2 } );
     //back
-    triangles.push_back( { f4, f3, b4 } );
-    triangles.push_back( { f3, b3, b4 } );
-    for ( auto& triangle: triangles )
-        triangle.setMaterial( material );
+    primitives.push_back( new Triangle{ f4, f3, b4 } );
+    primitives.push_back( new Triangle{ f3, b3, b4 } );
+    for ( auto primitive: primitives )
+        primitive->setMaterial( material );
 }
 
 

@@ -227,7 +227,7 @@ bool loadSpheres( lua_State* L, Scene* scene ) {
             Vector3f origin = loadVector3f(L, "origin");
             float radius = loadNumber( L, "radius" );
             Material material = loadMaterial( L );
-            Sphere sphere = Sphere( radius, origin, material );
+            auto sphere = new Sphere( radius, origin, material );
             //processMovement( L, &sphere );
             scene->add( sphere );
         }

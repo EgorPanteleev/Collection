@@ -268,8 +268,8 @@ RenderFunctor1::RenderFunctor1( Rasterizer* _rasterizer ): rasterizer( _rasteriz
 
 void RenderFunctor1::operator()(const int i ) const {
     auto mesh = rasterizer->getScene()->getMeshes()[i];
-    for ( const auto& triangle:mesh->getTriangles() ) {
-        rasterizer->drawFilledTriangle( triangle, mesh->getMaterial().getColor() );
+    for ( const auto& triangle:mesh->getPrimitives() ) {
+        rasterizer->drawFilledTriangle( *(Triangle*)triangle, mesh->getMaterial().getColor() );
     }
 }
 

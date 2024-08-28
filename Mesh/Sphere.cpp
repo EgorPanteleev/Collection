@@ -5,13 +5,18 @@
 #include "Sphere.h"
 #include <cmath>
 #include "Utils.h"
-Sphere::Sphere(): radius(0), origin() {
+Sphere::Sphere(): radius(0) {
+    bbox = { origin - radius, origin + radius };
 }
-Sphere::Sphere( float r, const Vector3f& pos ): radius(r), origin(pos) {
+Sphere::Sphere( float r, const Vector3f& pos ): radius(r) {
+    origin = pos;
+    bbox = { origin - r, origin + r };
 }
 
-Sphere::Sphere( float r, const Vector3f& pos, const Material& m ): radius(r), origin(pos) {
+Sphere::Sphere( float r, const Vector3f& pos, const Material& m ): radius(r) {
+    origin = pos;
     material = m;
+    bbox = { origin - r, origin + r };
 }
 
 void Sphere::rotate( const Vector3f& axis, float angle ) {
@@ -53,10 +58,6 @@ void Sphere::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
-void Sphere::setMaterial( const Material& mat ) {
-    material = mat;
-}
-
 Vector3f Sphere::getSamplePoint() const {
     float theta = rand() / (float) RAND_MAX * M_PI;  // Угол от 0 до π
     float phi = rand() / (float) RAND_MAX * 2 * M_PI;  // Угол от 0 до 2π
@@ -67,11 +68,6 @@ Vector3f Sphere::getSamplePoint() const {
     P.z = radius * cos(theta);
 
     return P + origin;
-}
-
-BBox Sphere::getBBox() const {
-    Vector3f r = { radius, radius, radius };
-    return { origin - r, origin + r };
 }
 
 bool Sphere::isContainPoint( const Vector3f& p ) const {
@@ -96,14 +92,6 @@ float Sphere::intersectsWithRay( const Ray& ray ) const {
     float t2 = k2 - disc;
     if ( t1 < t2 ) t2 = t1;
     return t2;
-}
-
-Material Sphere::getMaterial() const {
-    return material;
-}
-
-Vector3f Sphere::getOrigin() const {
-    return origin;
 }
 
 int Sphere::getIndex( const Vector3f& P, const ImageData& imageData ) const {
@@ -136,39 +124,4 @@ Vector3f Sphere::getNormal( const Vector3f& p ) const {
     };
     res = rot * res;
     return res;
-}
-
-RGB Sphere::getColor( const Vector3f& P ) const {
-    if ( !material.getTexture().colorMap.data ) return material.getColor();
-    int ind = getIndex( P, material.getTexture().colorMap );
-    return {
-            (float) material.getTexture().colorMap.data[ind    ] * 1.0f,
-            (float)  material.getTexture().colorMap.data[ind + 1] * 1.0f,
-            (float) material.getTexture().colorMap.data[ind + 2] * 1.0f
-    };
-}
-
-RGB Sphere::getAmbient( const Vector3f& P ) const {
-    if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
-    constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material.getTexture().ambientMap );
-    return {
-            (float) material.getTexture().ambientMap.data[ind    ] * F1_255,
-            (float) material.getTexture().ambientMap.data[ind + 1] * F1_255,
-            (float) material.getTexture().ambientMap.data[ind + 2] * F1_255
-    };
-}
-
-float Sphere::getRoughness( const Vector3f& P ) const {
-    if ( !material.getTexture().roughnessMap.data ) return material.getRoughness();
-    constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material.getTexture().roughnessMap );
-    return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
-}
-
-float Sphere::getMetalness( const Vector3f& P ) const {
-    if ( !material.getTexture().metalnessMap.data ) return material.getMetalness();
-    constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material.getTexture().metalnessMap );
-    return (float) material.getTexture().metalnessMap.data[ind] * F1_255;
 }

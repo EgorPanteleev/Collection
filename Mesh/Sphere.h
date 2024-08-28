@@ -10,37 +10,28 @@
 #include "Ray.h"
 #include "Material.h"
 #include "BBox.h"
+#include "Primitive.h"
 
-class Sphere {
+class Sphere: public Primitive {
 public:
     Sphere();
     Sphere( float r, const Vector3f& pos );
     Sphere( float r, const Vector3f& pos, const Material& m );
-    void rotate( const Vector3f& axis, float angle );
-    void move( const Vector3f& p );
-    void moveTo( const Vector3f& point );
-    void scale( float scaleValue );
-    void scale( const Vector3f& scaleVec );
-    void scaleTo( float scaleValue );
-    void scaleTo( const Vector3f& scaleVec );
-    void setMaterial( const Material& mat );
-    [[nodiscard]] Vector3f getSamplePoint() const;
-    [[nodiscard]] BBox getBBox() const;
-    [[nodiscard]] Material getMaterial() const;
-    [[nodiscard]] Vector3f getOrigin() const;
-    [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
-    [[nodiscard]] float intersectsWithRay( const Ray& ray ) const;
-    [[nodiscard]] int getIndex( const Vector3f& P, const ImageData& imageData ) const;
-    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const;
-    [[nodiscard]] RGB getColor( const Vector3f& P ) const;
-    [[nodiscard]] RGB getAmbient( const Vector3f& P ) const;
-    [[nodiscard]] float getRoughness( const Vector3f& P ) const;
-    [[nodiscard]] float getMetalness( const Vector3f& P ) const;
+    void rotate( const Vector3f& axis, float angle ) override;
+    void move( const Vector3f& p ) override;
+    void moveTo( const Vector3f& point ) override;
+    void scale( float scaleValue ) override;
+    void scale( const Vector3f& scaleVec ) override;
+    void scaleTo( float scaleValue ) override;
+    void scaleTo( const Vector3f& scaleVec ) override;
+    [[nodiscard]] Vector3f getSamplePoint() const override;
+    [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
+    [[nodiscard]] float intersectsWithRay( const Ray& ray ) const override;
+    [[nodiscard]] int getIndex( const Vector3f& P, const ImageData& imageData ) const override;
+    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
 
 public:
-    Material material;
     float radius;
-    Vector3f origin;
 };
 
 

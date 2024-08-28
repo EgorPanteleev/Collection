@@ -6,16 +6,13 @@
 #include "RayTracer.h"
 #include "Scene.h"
 #include "Camera.h"
-#include "Sphere.h"
 #include <ctime>
 #include "CubeMesh.h"
 #include "Mesh.h"
-#include "Material.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "cstdlib"
 #include "Rasterizer.h"
-//#include "GroupOfMeshes.h"
 #include "Denoiser.h"
 #define GRAY RGB( 210, 210, 210 )
 #define RED RGB( 255, 0, 0 )

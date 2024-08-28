@@ -77,6 +77,10 @@ Vector3f Vector3f::operator-( float a ) const {
     return { x - a, y - a, z - a };
 }
 
+Vector3f Vector3f::operator+( float a ) const {
+    return { x + a, y + a, z + a };
+}
+
 Vector3f Vector3f::operator*( float a ) const {
     return {x * a, y * a, z * a };
 }

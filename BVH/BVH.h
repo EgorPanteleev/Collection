@@ -7,10 +7,9 @@
 #define BINS 8
 #include <cmath>
 #include "Vector3f.h"
-#include "Triangle.h"
+#include "Primitive.h"
 #include "Vector.h"
 #include "Utils.h"
-#include "Sphere.h"
 #include "IntersectionData.h"
 
 struct BVHNode
@@ -32,7 +31,7 @@ struct BVHNode
 class BVH {
 public:
 
-    BVH( const Vector <Triangle>& _triangles, const Vector <Sphere>& _spheres );
+    BVH( const Vector <Primitive*>& _primitives );
 
     BVH();
 
@@ -48,8 +47,7 @@ public:
 
     IntersectionData intersectBVH( Ray& ray, const uint nodeIdx );
 private:
-    Vector <Triangle> triangles;
-    Vector <Sphere> spheres;
+    Vector <Primitive*> primitives;
     Vector <uint> indexes;
     Vector<BVHNode> bvhNode;
     uint rootNodeIdx = 0, nodesUsed = 1;

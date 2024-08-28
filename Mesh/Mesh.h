@@ -6,8 +6,9 @@
 #define COLLECTION_MESH_H
 #include <iostream>
 #include "Ray.h"
-//#include "Primitive.h"
+#include "Primitive.h"
 #include "Triangle.h"
+#include "Sphere.h"
 #include <limits>
 #include "Vector.h"
 #include "IntersectionData.h"
@@ -29,18 +30,18 @@ public:
 
     void setMaxPoint( const Vector3f& vec, int ind = -1 );
 
-    [[nodiscard]] Vector <Triangle> getTriangles();
+    [[nodiscard]] Vector <Primitive*> getPrimitives();
     [[nodiscard]] Vector3f getSamplePoint();
     [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Vector3f getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
     [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;
-    void setTriangles( Vector<Triangle>& _triangles );
-    void addTriangle( const Triangle& triangle );
+    void setPrimitives( Vector<Primitive*>& _triangles );
+    void addPrimitive( Primitive* primitive );
     void setMaterial( const Material& _material );
     [[nodiscard]] Material getMaterial() const;
 protected:
-    Vector<Triangle> triangles;
+    Vector<Primitive*> primitives;
     Material material;
 };
 

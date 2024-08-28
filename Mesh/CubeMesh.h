@@ -8,6 +8,7 @@
 #include "Vector.h"
 #include "Mesh.h"
 #include "Vector.h"
+#include "Triangle.h"
 
 class CubeMesh: public Mesh {
 public:

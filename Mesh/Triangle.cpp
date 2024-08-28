@@ -4,6 +4,17 @@
 #include <cmath>
 //Triangle::
 
+BBox calcBBox( Triangle* tri ) {
+    float minX = std::min( std::min( tri->v1[0], tri->v2[0] ), tri->v3[0] );
+    float maxX = std::max( std::max( tri->v1[0], tri->v2[0] ), tri->v3[0] );
+    float minY = std::min( std::min( tri->v1[1], tri->v2[1] ), tri->v3[1] );
+    float maxY = std::max( std::max( tri->v1[1], tri->v2[1] ), tri->v3[1] );
+    float minZ = std::min( std::min( tri->v1[2], tri->v2[2] ), tri->v3[2] );
+    float maxZ = std::max( std::max( tri->v1[2], tri->v2[2] ), tri->v3[2] );
+    return { Vector3f( minX, minY, minZ ), Vector3f( maxX, maxY, maxZ ) };
+}
+
+
 Triangle::Triangle(): v1(), v2(), v3() {
     edge1 = v2 - v1;
     edge2 = v3 - v1;
@@ -16,6 +27,7 @@ Triangle::Triangle(): v1(), v2(), v3() {
     v1Tex = { (v1.x - xMin) / (xMax - xMin), (v1.y - yMin) / (yMax - yMin) };
     v2Tex = { (v2.x - xMin) / (xMax - xMin), (v2.y - yMin) / (yMax - yMin) };
     v3Tex = { (v3.x - xMin) / (xMax - xMin), (v3.y - yMin) / (yMax - yMin) };
+    bbox = calcBBox( this );
 }
 
 Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 ): v1( v1 ), v2( v2 ), v3( v3 ) {
@@ -48,6 +60,7 @@ Triangle::Triangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 )
     v1Tex = { rv1.x == xMax ? xTex : 0.0f, rv1.y == yMax ? yTex : 0.0f };
     v2Tex = { rv2.x == xMax ? xTex : 0.0f, rv2.y == yMax ? yTex : 0.0f };
     v3Tex = { rv3.x == xMax ? xTex : 0.0f, rv3.y == yMax ? yTex : 0.0f };
+    bbox = calcBBox( this );
 }
 
 void Triangle::rotate( const Vector3f& axis, float angle ) {
@@ -59,6 +72,7 @@ void Triangle::rotate( const Vector3f& axis, float angle ) {
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
+    bbox = calcBBox( this );
 }
 
 void Triangle::move( const Vector3f& p ) {
@@ -66,6 +80,7 @@ void Triangle::move( const Vector3f& p ) {
     v2 = v2 + p;
     v3 = v3 + p;
     origin = (v1 + v2 + v3) / 3;
+    bbox = calcBBox( this );
 }
 
 void Triangle::moveTo( const Vector3f& point ) {
@@ -80,6 +95,7 @@ void Triangle::scale( float scaleValue ) {
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
+    bbox = calcBBox( this );
 }
 void Triangle::scale( const Vector3f& scaleVec ) {
     v1 = { v1[0] * scaleVec[0], v1[1] * scaleVec[1], v1[2] * scaleVec[2] };
@@ -89,6 +105,7 @@ void Triangle::scale( const Vector3f& scaleVec ) {
     edge2 = v3 - v1;
     N = edge1.cross( edge2 ).normalize();
     origin = (v1 + v2 + v3) / 3;
+    bbox = calcBBox( this );
 }
 
 void Triangle::scaleTo( float scaleValue ) {
@@ -104,10 +121,6 @@ void Triangle::scaleTo( const Vector3f& scaleVec ) {
     scale( cff );
 }
 
-void Triangle::setMaterial( const Material& mat ) {
-    material = mat;
-}
-
 Vector3f Triangle::getSamplePoint() const {
         float u = randomFloat();
         float v = randomFloat();
@@ -117,20 +130,6 @@ Vector3f Triangle::getSamplePoint() const {
         }
         Vector3f P = v1 + edge1 * u + edge2 * v;
         return P;
-}
-
-BBox Triangle::getBBox() const {
-    float minX = std::min( std::min( v1[0], v2[0] ), v3[0] );
-    float maxX = std::max( std::max( v1[0], v2[0] ), v3[0] );
-    float minY = std::min( std::min( v1[1], v2[1] ), v3[1] );
-    float maxY = std::max( std::max( v1[1], v2[1] ), v3[1] );
-    float minZ = std::min( std::min( v1[2], v2[2] ), v3[2] );
-    float maxZ = std::max( std::max( v1[2], v2[2] ), v3[2] );
-    return { Vector3f( minX, minY, minZ ), Vector3f( maxX, maxY, maxZ ) };
-}
-
-Vector3f Triangle::getOrigin() const {
-    return origin;
 }
 
 bool Triangle::isContainPoint( const Vector3f& p ) const {
@@ -208,46 +207,4 @@ Vector3f Triangle::getNormal( const Vector3f& P ) const {
     Mat3f rot = { tangent.normalize(), bitangent.normalize(), N };
     res = rot * res;
     return res.normalize();
-}
-
-
-RGB Triangle::getColor( const Vector3f& P ) const {
-    if ( !material.getTexture().colorMap.data ) return material.getColor();
-
-    int ind = getIndex( P, material.getTexture().colorMap );
-    return {
-            (float) material.getTexture().colorMap.data[ind    ] * 1.0f,
-            (float) material.getTexture().colorMap.data[ind + 1] * 1.0f,
-            (float) material.getTexture().colorMap.data[ind + 2] * 1.0f
-    };
-}
-
-RGB Triangle::getAmbient( const Vector3f& P ) const {
-    if ( !material.getTexture().ambientMap.data ) return { 1, 1, 1 };
-    constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material.getTexture().ambientMap );
-    return {
-            (float) material.getTexture().ambientMap.data[ind    ] * F1_255,
-            (float) material.getTexture().ambientMap.data[ind + 1] * F1_255,
-            (float) material.getTexture().ambientMap.data[ind + 2] * F1_255
-    };
-}
-
-float Triangle::getRoughness( const Vector3f& P ) const {
-    if ( !material.getTexture().roughnessMap.data ) return material.getRoughness();
-    constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material.getTexture().roughnessMap );
-
-    return (float) material.getTexture().roughnessMap.data[ind] * F1_255;
-}
-float Triangle::getMetalness( const Vector3f& P ) const {
-    if ( !material.getTexture().metalnessMap.data ) return material.getMetalness();
-    constexpr float F1_255 = 1 / 255.0f;
-    int ind = getIndex( P, material.getTexture().metalnessMap );
-
-    return (float) material.getTexture().metalnessMap.data[ind] * F1_255;
-}
-
-Material Triangle::getMaterial() const {
-    return material;
 }

@@ -5,6 +5,7 @@
 #include "Vector.h"
 #include "Mesh.h"
 #include "Light.h"
+#include "Primitive.h"
 #include "Triangle.h"
 #include "Sphere.h"
 
@@ -12,44 +13,37 @@ class LightInstance {
 public:
     enum Type {
         COMMON_LIGHT,
-        MESH_LIGHT,
-        SPHERE_LIGHT
+        MESH_LIGHT
     };
     ~LightInstance() {
         light = nullptr;
         meshLight = nullptr;
-        sphereLight = {};
     }
-    LightInstance( Light* _light ): light( _light ), type( COMMON_LIGHT ), meshLight( nullptr ), sphereLight() {}
-    LightInstance(Mesh* _light ): meshLight(_light ), type(MESH_LIGHT ), light(nullptr ), sphereLight() {}
-    LightInstance( Sphere* _light ): sphereLight( *_light ), type( SPHERE_LIGHT ), meshLight( nullptr ),light( nullptr ) {}
+    LightInstance( Light* _light ): light( _light ), type( COMMON_LIGHT ), meshLight( nullptr ) {}
+    LightInstance(Mesh* _light ): meshLight(_light ), type(MESH_LIGHT ), light(nullptr ) {}
     Type getType() { return type; }
     float getIntensity() {
         switch (type) {
             case COMMON_LIGHT: return light->intensity;
             case MESH_LIGHT: return meshLight->getMaterial().getIntensity();
-            case SPHERE_LIGHT: return sphereLight.getMaterial().getIntensity();
         }
     }
     Vector3f getSamplePoint() {
         switch (type) {
             case COMMON_LIGHT: return light->getSamplePoint();
             case MESH_LIGHT: return meshLight->getSamplePoint();
-            case SPHERE_LIGHT: return sphereLight.getSamplePoint();
         }
     }
     RGB getColor() {
         switch (type) {
             case COMMON_LIGHT: return light->lightColor;
             case MESH_LIGHT: return meshLight->getMaterial().getColor();
-            case SPHERE_LIGHT: return sphereLight.getMaterial().getColor();
         }
     }
 private:
     Type type;
     Light* light;
     Mesh* meshLight;
-    Sphere sphereLight;
 };
 
 
@@ -58,20 +52,17 @@ public:
     Scene(Vector<Mesh*> meshes, Vector<Sphere> spheres, Vector<Light*> lights );
     Scene();
     ~Scene();
-    Sphere add( Sphere sphere );
+    Sphere* add( Sphere* sph );
     Mesh* add(Mesh* mesh );
     Light* add( Light* light );
-    [[nodiscard]] Vector<Sphere> getSpheres() const;
     [[nodiscard]] Vector<Mesh*> getMeshes() const;
-    [[nodiscard]] Vector<Triangle> getTriangles() const;
+    [[nodiscard]] Vector<Primitive*> getPrimitives() const;
     [[nodiscard]] Vector<LightInstance*> getLights() const;
 
 private:
-    void fillTriangles();
     Vector<Mesh*> meshes;
-    Vector<Sphere> spheres;
     Vector<LightInstance*> lights;
-    Vector<Triangle> triangles;
+    Vector<Primitive*> primitives;
 };
 
 #endif //COLLECTION_SCENE_H

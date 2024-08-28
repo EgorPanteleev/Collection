@@ -1,19 +1,28 @@
 #include "BVH.h"
 
-BVH::BVH( const Vector <Triangle>& _triangles, const Vector <Sphere>& _spheres ) {
-    triangles = _triangles;
-    spheres = _spheres;
+BVH::BVH( const Vector <Primitive*>& _primitives ) {
+//    for ( auto prim: _primitives ){
+//        std::cout<< "Origin - "<<prim->getOrigin() << std::endl;
+//        std::cout<< "BBox - "<<prim->getBBox().pMin << " " << prim->getBBox().pMax << std::endl;
+//        Material mat = prim->getMaterial();
+//        std::cout<< "Metalness - "<< mat.getMetalness() << std::endl;
+//        std::cout<< "Roughness - "<< mat.getRoughness() << std::endl;
+//        std::cout<< "Color - "<< mat.getColor().r << " " << mat.getColor().g << " " << mat.getColor().b << std::endl;
+//        std::cout<< "Intensity - "<< mat.getIntensity() << std::endl;
+//        std::cout<< "Diffuse - "<< mat.getDiffuse() << std::endl;
+//    }
+    primitives = _primitives;
     build();
 }
 
-BVH::BVH(): triangles(), spheres() {
+BVH::BVH(): primitives() {
 }
 
 void BVH::build() {
-    for( int i = 0; i < triangles.size() + spheres.size(); i++ ) bvhNode.push_back({});
-    for (int i = 0; i < triangles.size() + spheres.size(); i++) indexes.push_back(i);
+    for( int i = 0; i < primitives.size(); i++ ) bvhNode.push_back({});
+    for (int i = 0; i < primitives.size(); i++) indexes.push_back(i);
     BVHNode& root = bvhNode[rootNodeIdx];
-    root.leftFirst = 0, root.trianglesCount = triangles.size() + spheres.size();
+    root.leftFirst = 0, root.trianglesCount = primitives.size();
     Vector3f centroidMin, centroidMax;
     updateNodeBounds( 0, centroidMin, centroidMax );
     subDivide( 0, 0, nodesUsed, centroidMin, centroidMax );
@@ -26,24 +35,12 @@ void BVH::updateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centr
     centroidMin = Vector3f( 1e30f, 1e30f, 1e30f );
     centroidMax = Vector3f( -1e30f, -1e30f, -1e30f );
     for (uint first = node.leftFirst, i = 0; i < node.trianglesCount; i++) {
-        uint leafTriIdx = indexes[first + i];
-        if ( leafTriIdx >= triangles.size() ) {
-            leafTriIdx -= triangles.size();
-            Sphere& leafSphe = spheres[leafTriIdx];
-            BBox bbox = leafSphe.getBBox();
-            node.aabbMin = min( node.aabbMin, bbox.pMin );
-            node.aabbMax = max( node.aabbMax, bbox.pMax );
-        } else {
-            Triangle& leafTri = triangles[leafTriIdx];
-            node.aabbMin = min( node.aabbMin, leafTri.v1 );
-            node.aabbMin = min( node.aabbMin, leafTri.v2 );
-            node.aabbMin = min( node.aabbMin, leafTri.v3 );
-            node.aabbMax = max( node.aabbMax, leafTri.v1 );
-            node.aabbMax = max( node.aabbMax, leafTri.v2 );
-            node.aabbMax = max( node.aabbMax, leafTri.v3 );
-            centroidMin = min( centroidMin, leafTri.getOrigin() );
-            centroidMax = max( centroidMax, leafTri.getOrigin() );
-        }
+        Primitive* prim = primitives[indexes[first + i]];
+        BBox bbox = prim->getBBox();
+        node.aabbMin = min( node.aabbMin, bbox.pMin );
+        node.aabbMax = max( node.aabbMax, bbox.pMax );
+        centroidMin = min( centroidMin, prim->getOrigin() );
+        centroidMax = max( centroidMax, prim->getOrigin() );
     }
 }
 
@@ -58,9 +55,7 @@ void BVH::subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroid
     int j = i + node.trianglesCount - 1;
     float scale = BINS / (centroidMax[axis] - centroidMin[axis]);
     while (i <= j) {
-        Vector3f origin;
-        if ( indexes[i] >= triangles.size() ) origin = spheres[ indexes[i] - triangles.size() ].getOrigin();
-        else origin = triangles[indexes[i]].getOrigin();
+        Vector3f origin = primitives[ indexes[i] ]->getOrigin();
         int binIdx = std::min( BINS - 1, (int)((origin[axis] - centroidMin[axis]) * scale) );
         if (binIdx < splitPos) i++; else std::swap( indexes[i], indexes[j--] );
     }
@@ -90,23 +85,12 @@ float BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f
         int leftSum = 0, rightSum = 0;
         struct Bin { BBox bounds; int trianglesCount = 0; } bin[BINS];
         for (uint i = 0; i < node.trianglesCount; i++) {
-            int leafTriIdx = indexes[node.leftFirst + i];
-            if ( leafTriIdx >= triangles.size() ) {
-                leafTriIdx -= triangles.size();
-                Sphere& sphere = spheres[leafTriIdx];
-                int binIdx =std:: min( BINS - 1, (int)((sphere.getOrigin()[a] - boundsMin) * scale) );
-                bin[binIdx].trianglesCount++;
-                BBox bbox = sphere.getBBox();
-                bin[binIdx].bounds.merge( bbox.pMin );
-                bin[binIdx].bounds.merge( bbox.pMax );
-            } else {
-                Triangle& triangle = triangles[leafTriIdx];
-                int binIdx =std:: min( BINS - 1, (int)((triangle.getOrigin()[a] - boundsMin) * scale) );
-                bin[binIdx].trianglesCount++;
-                bin[binIdx].bounds.merge( triangle.v1 );
-                bin[binIdx].bounds.merge( triangle.v2 );
-                bin[binIdx].bounds.merge( triangle.v3 );
-            }
+            Primitive* prim = primitives[indexes[node.leftFirst + i]];
+            int binIdx =std:: min( BINS - 1, (int)((prim->getOrigin()[a] - boundsMin) * scale) );
+            bin[binIdx].trianglesCount++;
+            BBox bbox = prim->getBBox();
+            bin[binIdx].bounds.merge( bbox.pMin );
+            bin[binIdx].bounds.merge( bbox.pMax );
         }
         BBox leftBox, rightBox;
         for (int i = 0; i < BINS - 1; i++) {
@@ -141,28 +125,15 @@ bool BVH::intersectBBox( const Ray& ray, const Vector3f& bmin, const Vector3f& b
 
 IntersectionData BVH::intersectBVH( Ray& ray, const uint nodeIdx ) {
     BVHNode& node = bvhNode[nodeIdx];
-    if (!intersectBBox( ray, node.aabbMin, node.aabbMax )) return { __FLT_MAX__, {} , nullptr, nullptr };
+    if (!intersectBBox( ray, node.aabbMin, node.aabbMax )) return { __FLT_MAX__, nullptr };
     if (node.isLeaf()) {
         IntersectionData iData;
         for (uint i = 0; i < node.trianglesCount; i++ ) {
-            int leafTriIdx = indexes[node.leftFirst + i];
-            size_t size = triangles.size();
-            if ( leafTriIdx >= size ) {
-                leafTriIdx -= size;
-                Sphere& sphere = spheres[leafTriIdx];
-                float t = sphere.intersectsWithRay( ray );
-                if ( t < 0.05 || t >= iData.t ) continue;
-                iData.t = t;
-                iData.sphere = &sphere;
-                iData.triangle = nullptr;
-            } else {
-                Triangle& triangle = triangles[leafTriIdx];
-                float t = triangle.intersectsWithRay( ray );
-                if ( t >= iData.t ) continue;
-                iData.t = t;
-                iData.triangle = &triangle;
-                iData.sphere = nullptr;
-            }
+            Primitive* prim = primitives[indexes[node.leftFirst + i]];
+            float t = prim->intersectsWithRay( ray );
+            if ( t >= iData.t ) continue;
+            iData.t = t;
+            iData.primitive = prim;
         }
         return iData;
     }

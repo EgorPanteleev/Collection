@@ -1,13 +1,12 @@
 #include "Scene.h"
-#include "Triangle.h"
+#include "Primitive.h"
 
 Scene::Scene(Vector<Mesh*> _meshes, Vector<Sphere> _spheres, Vector<Light*> _lights ) {
     for ( auto mesh: meshes ) add( mesh );
-    for ( auto& sphere: spheres ) add( sphere );
     for ( auto light: _lights ) add( light) ;
 }
 
-Scene::Scene(): meshes(), spheres(), lights(), triangles() {
+Scene::Scene(): meshes(), lights(), primitives() {
 
 }
 
@@ -16,16 +15,15 @@ Scene::~Scene() {
 //        delete light;
 //    }
 }
-Sphere Scene::add( Sphere sphere ) {
-    spheres.push_back( sphere );
-    if ( sphere.material.getIntensity() != 0 )
-        lights.push_back( new LightInstance( &sphere ) );
-    return sphere;
+
+Sphere* Scene::add( Sphere* sph ) {
+    primitives.push_back( sph );
+    return sph;
 }
 
 Mesh* Scene::add(Mesh* mesh ) {
     meshes.push_back( mesh );
-    for ( auto& triangle: mesh->getTriangles() ) triangles.push_back( triangle );
+    for ( auto primitive: mesh->getPrimitives() ) primitives.push_back( primitive );
     if ( mesh->getMaterial().getIntensity() != 0 )
         lights.push_back( new LightInstance( mesh ) );
     return mesh;
@@ -35,20 +33,12 @@ Light* Scene::add( Light* light ) {
     return light;
 }
 
-void Scene::fillTriangles() {
-    for ( auto mesh: meshes ) {
-        for ( auto& triangle : mesh->getTriangles() ) triangles.push_back( triangle );
-    }
-}
-
-[[nodiscard]] Vector<Sphere> Scene::getSpheres() const { return spheres; }
-
 Vector<Mesh*> Scene::getMeshes() const {
     return meshes;
 }
 
-Vector<Triangle> Scene::getTriangles() const {
-    return triangles;
+Vector<Primitive*> Scene::getPrimitives() const {
+    return primitives;
 }
 
 Vector<LightInstance*> Scene::getLights() const {
