@@ -11,35 +11,6 @@
 #include "BVH.h"
 #include <Kokkos_Core.hpp>
 
-struct TraceData {
-    TraceData(): cs(), material(), intersection(), ambientOcclusion() {}
-    TraceData( const Primitive* prim, const Vector3f& P ) {
-        intersection = P;
-        cs = { prim->getNormal( P ) };
-        material.setColor( prim->getColor( P ) );
-        material.setIntensity( prim->getMaterial().getIntensity() );
-        material.setRoughness( prim->getRoughness( P ) );
-        material.setMetalness( prim->getMetalness( P ) );
-        ambientOcclusion = prim->getAmbient( P ).r;
-    }
-    [[nodiscard]] RGB getColor() const {
-        return material.getColor();
-    }
-    [[nodiscard]] float getIntensity() const {
-        return material.getIntensity();
-    }
-    [[nodiscard]] float getRoughness() const {
-        return material.getRoughness();
-    }
-    [[nodiscard]] float getMetalness() const {
-        return material.getMetalness();
-    }
-    CoordinateSystem cs;
-    Material material;
-    Vector3f intersection;
-    float ambientOcclusion;
-};
-
 struct CanvasData {
     RGB color;
     RGB normal;
@@ -55,10 +26,10 @@ public:
     RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
     RayTracer( const std::string& path  );
     ~RayTracer();
-    KOKKOS_INLINE_FUNCTION IntersectionData closestIntersection( Ray& ray );
+    KOKKOS_INLINE_FUNCTION void closestIntersection( Ray& ray, IntersectionData& iData );
     KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vector3f& V, const TraceData& traceData );
     KOKKOS_INLINE_FUNCTION RGB computeAmbientLight( const Ray& ray, const TraceData& traceData, int nextDepth );
-    KOKKOS_INLINE_FUNCTION CanvasData traceRay( Ray& ray, int nextDepth );
+    KOKKOS_INLINE_FUNCTION void traceRay( Ray& ray, CanvasData& data, int nextDepth );
     void render( Type type );
     [[nodiscard]] Canvas* getCanvas() const;
     [[nodiscard]] Scene* getScene() const;

@@ -30,6 +30,9 @@ public:
     [[nodiscard]] virtual bool isContainPoint( const Vector3f& p ) const = 0;
     [[nodiscard]] virtual float intersectsWithRay( const Ray& ray ) const = 0;
     [[nodiscard]] virtual Vector3f getNormal( const Vector3f& P ) const = 0;
+    [[nodiscard]] virtual Vector3f getV1() const { return {}; }
+    [[nodiscard]] virtual Vector3f getV2() const { return {}; }
+    [[nodiscard]] virtual Vector3f getV3() const { return {}; }
 protected:
     [[nodiscard]] virtual int getIndex( const Vector3f& P, const ImageData& imageData ) const = 0;
     Material material;

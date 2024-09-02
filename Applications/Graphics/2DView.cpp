@@ -6,9 +6,28 @@
 #include "cstdlib"
 #include "Denoiser.h"
 #include "GroupOfMeshes.h"
+#include "Triangles.h"
 //162.786 2 2 5 - 3200
 // 3 sec - 960 2 2 2
 
+
+//void test() {
+//    Triangles triangles;
+//    Vector3f v1 = { 0, 0, 0 };
+//    Vector3f v2 = { 0, 0, 1 };
+//    Vector3f v3 = { 0, 1, 0 };
+//    Vector3f v4 = { 0, 1, 0 };
+//    Vector3f v5 = { 0, 1, 1 };
+//    Vector3f v6 = { 1, 0, 0 };
+//    triangles.addTriangle( v1, v2, v3 );
+//    triangles.addTriangle( v4, v5, v6 );
+//    std::cout << "Vertices size "<<triangles.vertices.size()<<std::endl;
+//    std::cout<< "Indices size "<< triangles.indices.size()<<std::endl;
+//    std::cout << "Indexes:" << std::endl;
+//    for ( auto ind: triangles.indices ) {
+//        std::cout << ind << std::endl;
+//    }
+//}
 
 void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto mesh: meshes ) {
@@ -670,13 +689,17 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     blackMetal.setTexture( "/home/auser/dev/src/Collection/Textures/BlackMetal/" );
     Material damagedGold;
     damagedGold.setTexture( "/home/auser/dev/src/Collection/Textures/DamagedGold/" );
+    Material lightBlueMetal;
+    lightBlueMetal.setTexture( "/home/auser/dev/src/Collection/Textures/LightBlueMetal/" );
     Material blueMetal;
     blueMetal.setTexture( "/home/auser/dev/src/Collection/Textures/BlueMetal/" );
+    Material pinkMetal;
+    pinkMetal.setTexture( "/home/auser/dev/src/Collection/Textures/PinkMetal/" );
 
 
     std::vector<int> bodyIndexes =
             { 0, 1, 2, 3, 4, 5, 6, 7, 8, 14, 15, 18, 21, 24, 28, 29, 30, 54, 55, 56, 69, 70, 71, 75, 83, 84, 88, 89, 106, 107, 110, 111, 114, 127, 168 };
-    Material body = blackMetal;
+    Material body = lightBlueMetal;
     drawing.push_back( { bodyIndexes, body } );
 
     std::vector<int> tireIndexes = { 74, 103 };
@@ -707,6 +730,7 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
 
     std::vector<int> lightIndexes = { 92, 137 };
     Material light = { WHITE, -1, 1 };
+    light.setMetalness( 1 );
     drawing.push_back( { lightIndexes, light } );
 
     std::vector<int> mirrorIndexes = { 112 };
@@ -715,7 +739,7 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
     drawing.push_back( { mirrorIndexes, mirror } );
 
     std::vector<int> windowIndexes = { 17, 19, 22 };
-    Material window = { BLACK, -1, 0.1 };
+    Material window = { BLACK, -1, 0.01 };
     window.setMetalness( 1 );
     drawing.push_back( { windowIndexes, window } );
 
@@ -972,15 +996,15 @@ int main( int argc, char* argv[] ) {
     int w = 960 ; int h = 600; // 42 sec
     //int w = 1920 ; int h = 1200;
     //int w = 3200; int h = 2000;
-
+////49 sec // 46 sec
     
     // 22 sec /
     // ( 960x600 (2,5,2) audi scene) - 42 sec / 47 sec /
 
     ////NUM SAMPLES
     int depth = 2;
-    int ambientSamples = 5;
-    int lightSamples = 2;
+    int ambientSamples = 2;
+    int lightSamples = 1;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
 // room scene ( 3200x2000 ) - idk / 95 /

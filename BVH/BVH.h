@@ -7,7 +7,7 @@
 #define BINS 8
 #include <cmath>
 #include "Vector3f.h"
-#include "Primitive.h"
+#include "Triangles.h"
 #include "Vector.h"
 #include "Utils.h"
 #include "IntersectionData.h"
@@ -45,11 +45,12 @@ public:
 
     bool intersectBBox( const Ray& ray, const Vector3f& bmin, const Vector3f& bmax );
 
-    IntersectionData intersectBVH( Ray& ray, const uint nodeIdx );
+    void intersectBVH( Ray& ray, IntersectionData& tData, const uint nodeIdx );
 private:
-    Vector <Primitive*> primitives;
+    Triangles triangles;
     Vector <uint> indexes;
     Vector<BVHNode> bvhNode;
+    Vector<Primitive*> primitives;
     uint rootNodeIdx = 0, nodesUsed = 1;
 };
 

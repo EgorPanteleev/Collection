@@ -44,6 +44,14 @@ public:
         mSize = 0;
     }
 
+    int find( Type toFind ) const {
+        for ( int i = 0; i < mSize; i++ ) {
+            if ( mData[i] != toFind ) continue;
+            return i;
+        }
+        return -1;
+    }
+
     Iterator<Type> begin() { return Iterator(mData); }
 
     Iterator<Type> end() { return Iterator(mData + mSize); }

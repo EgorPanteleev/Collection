@@ -41,6 +41,14 @@ struct BBox {
         return tmax >= tmin && tmin < 1e30f && tmax > 0;
     }
 
+    bool operator==( const BBox& bbox ) const {
+        return ( pMin == bbox.pMin && pMax == bbox.pMax );
+    }
+
+    bool operator!=( const BBox& bbox ) const {
+        return ( pMin != bbox.pMin || pMax != bbox.pMax );
+    }
+
     Vector3f pMin;
     Vector3f pMax;
 };

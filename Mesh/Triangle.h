@@ -21,6 +21,9 @@ public:
     [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
     [[nodiscard]] float intersectsWithRay( const Ray& ray ) const override;
     [[nodiscard]] Vector3f getNormal( const Vector3f& P ) const override;
+    [[nodiscard]] Vector3f getV1() const override { return v1; }
+    [[nodiscard]] Vector3f getV2() const override { return v2; }
+    [[nodiscard]] Vector3f getV3() const override { return v3; }
     Vector3f v1, v2, v3;
 private:
     [[nodiscard]] int getIndex( const Vector3f& P, const ImageData& imageData ) const override;
