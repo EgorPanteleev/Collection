@@ -21,9 +21,9 @@ bool OBJLoader::load( const std::string& path, Mesh* target ) {
             uint idx1 = (int) curMesh.Indices[j];
             uint idx2 = (int) curMesh.Indices[j + 1];
             uint idx3 = (int) curMesh.Indices[j + 2];
-            target->addPrimitive( new Triangle{ Vector3f(curMesh.Vertices[idx1].Position.X , curMesh.Vertices[idx1].Position.Y , curMesh.Vertices[idx1].Position.Z ),
-                                   Vector3f(curMesh.Vertices[idx2].Position.X , curMesh.Vertices[idx2].Position.Y , curMesh.Vertices[idx2].Position.Z ),
-                                   Vector3f(curMesh.Vertices[idx3].Position.X , curMesh.Vertices[idx3].Position.Y , curMesh.Vertices[idx3].Position.Z ) });
+            target->addPrimitive( new Triangle{ Vec3d(curMesh.Vertices[idx1].Position.X , curMesh.Vertices[idx1].Position.Y , curMesh.Vertices[idx1].Position.Z ),
+                                   Vec3d(curMesh.Vertices[idx2].Position.X , curMesh.Vertices[idx2].Position.Y , curMesh.Vertices[idx2].Position.Z ),
+                                   Vec3d(curMesh.Vertices[idx3].Position.X , curMesh.Vertices[idx3].Position.Y , curMesh.Vertices[idx3].Position.Z ) });
         }
     }
     std::cout << "Model Loaded with " << target->getPrimitives().size() << " primitives." << std::endl;
@@ -43,9 +43,9 @@ bool OBJLoader::load( const std::string& path, GroupOfMeshes* target ) {
             uint idx1 = (int) curMesh.Indices[j];
             uint idx2 = (int) curMesh.Indices[j + 1];
             uint idx3 = (int) curMesh.Indices[j + 2];
-            newMesh->addPrimitive( new Triangle{ Vector3f(curMesh.Vertices[idx1].Position.X , curMesh.Vertices[idx1].Position.Y , curMesh.Vertices[idx1].Position.Z ),
-                                   Vector3f(curMesh.Vertices[idx2].Position.X , curMesh.Vertices[idx2].Position.Y , curMesh.Vertices[idx2].Position.Z ),
-                                   Vector3f(curMesh.Vertices[idx3].Position.X , curMesh.Vertices[idx3].Position.Y , curMesh.Vertices[idx3].Position.Z ) });
+            newMesh->addPrimitive( new Triangle{ Vec3d(curMesh.Vertices[idx1].Position.X , curMesh.Vertices[idx1].Position.Y , curMesh.Vertices[idx1].Position.Z ),
+                                   Vec3d(curMesh.Vertices[idx2].Position.X , curMesh.Vertices[idx2].Position.Y , curMesh.Vertices[idx2].Position.Z ),
+                                   Vec3d(curMesh.Vertices[idx3].Position.X , curMesh.Vertices[idx3].Position.Y , curMesh.Vertices[idx3].Position.Z ) });
         }
         target->addMesh( newMesh );
     }

@@ -5,7 +5,7 @@
 #ifndef COLLECTION_INTERSECTIONDATA_H
 #define COLLECTION_INTERSECTIONDATA_H
 
-#include "Vector3f.h"
+#include "Vec3.h"
 #include "Primitive.h"
 #include "CoordinateSystem.h"
 class Triangle;
@@ -24,28 +24,28 @@ struct TraceData {
     [[nodiscard]] RGB getColor() const {
         return material.getColor();
     }
-    [[nodiscard]] float getIntensity() const {
+    [[nodiscard]] double getIntensity() const {
         return material.getIntensity();
     }
-    [[nodiscard]] float getRoughness() const {
+    [[nodiscard]] double getRoughness() const {
         return material.getRoughness();
     }
-    [[nodiscard]] float getMetalness() const {
+    [[nodiscard]] double getMetalness() const {
         return material.getMetalness();
     }
     Primitive* primitive;
-    Vector3f P;
-    float t;
+    Vec3d P;
+    double t;
     CoordinateSystem cs;
     Material material;
-    float ambientOcclusion;
+    double ambientOcclusion;
 };
 
 class IntersectionData {
 public:
     IntersectionData();
-    IntersectionData( float t, Primitive* prim );
-    float t;
+    IntersectionData( double t, Primitive* prim );
+    double t;
     Primitive* primitive;
 };
 

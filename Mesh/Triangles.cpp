@@ -3,11 +3,11 @@
 //
 
 #include "Triangles.h"
-#include "Utils.h"
+
 Triangles::Triangles(): vertices(), indices() {
 }
 
-int Triangles::addVertex( const Vector3f& v1 ) {
+int Triangles::addVertex( const Vec3d& v1 ) {
 //    int index = vertices.find( v1 );
 //    if ( index == -1 ) {
 //        index = vertices.size();
@@ -17,8 +17,8 @@ int Triangles::addVertex( const Vector3f& v1 ) {
     return vertices.size() - 1/*index*/;
 }
 
-void Triangles::addTriangle( const Vector3f& v1, const Vector3f& v2, const Vector3f& v3 ) {
-    indices.push_back( { (float) addVertex( v1 ), (float) addVertex( v2 ), (float) addVertex( v3 ) } );
+void Triangles::addTriangle( const Vec3d& v1, const Vec3d& v2, const Vec3d& v3 ) {
+    indices.push_back( { addVertex( v1 ), addVertex( v2 ), addVertex( v3 ) } );
 }
 
 size_t Triangles::size() const {
@@ -26,23 +26,23 @@ size_t Triangles::size() const {
 }
 
 BBox Triangles::getBBox() const {
-    Vector3f vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
-    Vector3f vMax = {-__FLT_MAX__,-__FLT_MAX__,-__FLT_MAX__};
+    Vec3d vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
+    Vec3d vMax = {-__FLT_MAX__,-__FLT_MAX__,-__FLT_MAX__};
     for ( const auto& ind: indices ) {
-        vMin = min( vMin, vertices[ (int) ind[0] ] );
-        vMin = min( vMin, vertices[ (int) ind[1] ] );
-        vMin = min( vMin, vertices[ (int) ind[2] ] );
-        vMax = max( vMax, vertices[ (int) ind[0] ] );
-        vMax = max( vMax, vertices[ (int) ind[1] ] );
-        vMax = max( vMax, vertices[ (int) ind[2] ] );
+        vMin = min( vMin, vertices[ ind[0] ] );
+        vMin = min( vMin, vertices[ ind[1] ] );
+        vMin = min( vMin, vertices[ ind[2] ] );
+        vMax = max( vMax, vertices[ ind[0] ] );
+        vMax = max( vMax, vertices[ ind[1] ] );
+        vMax = max( vMax, vertices[ ind[2] ] );
     }
     return { vMin, vMax };
 }
 
 BBox Triangles::getBBox( unsigned int index ) const {
-    Vector3f vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
-    Vector3f vMax = {-__FLT_MAX__,-__FLT_MAX__,-__FLT_MAX__};
-    Vector3f ind = indices[ index ];
+    Vec3d vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
+    Vec3d vMax = {-__FLT_MAX__,-__FLT_MAX__,-__FLT_MAX__};
+    Vec3i ind = indices[ index ];
 
     vMin = min( vMin, vertices[ (int) ind[0] ] );
     vMin = min( vMin, vertices[ (int) ind[1] ] );
@@ -54,32 +54,32 @@ BBox Triangles::getBBox( unsigned int index ) const {
     return { vMin, vMax };
 }
 
-Vector3f Triangles::getOrigin( unsigned int index ) const {
-    Vector3f ind = indices[ index ];
+Vec3d Triangles::getOrigin( unsigned int index ) const {
+    Vec3i ind = indices[ index ];
     return (  vertices[ (int) ind[0] ] +  vertices[ (int) ind[1] ] +  vertices[ (int) ind[2] ] ) / 3;
 }
 
-float Triangles::intersectsWithRay( const Ray& ray, unsigned int index ) const {
-    Vector3f ind = indices[ index ];
-    Vector3f edge1 = vertices[ (int) ind[1] ] - vertices[ (int) ind[0] ];
-    Vector3f edge2 = vertices[ (int) ind[2] ] - vertices[ (int) ind[0] ];
-    Vector3f h = ray.direction.cross( edge2 );
-    float a = dot(edge1, h);
+double Triangles::intersectsWithRay( const Ray& ray, unsigned int index ) const {
+    Vec3i ind = indices[ index ];
+    Vec3d edge1 = vertices[ (int) ind[1] ] - vertices[ (int) ind[0] ];
+    Vec3d edge2 = vertices[ (int) ind[2] ] - vertices[ (int) ind[0] ];
+    Vec3d h = cross( ray.direction, edge2 );
+    double a = dot(edge1, h);
 
     if ( a < __FLT_EPSILON__ ) return __FLT_MAX__;
 
-    float f = 1.0f / a;
-    Vector3f s = ray.origin - vertices[ (int) ind[0] ];
-    float u = f * dot(s, h);
+    double f = 1.0 / a;
+    Vec3d s = ray.origin - vertices[ (int) ind[0] ];
+    double u = f * dot(s, h);
 
-    if ( u < 0.0f || u > 1.0f ) return __FLT_MAX__;
+    if ( u < 0.0 || u > 1.0 ) return __FLT_MAX__;
 
-    Vector3f q = s.cross( edge1 );
-    float v = f * dot(ray.direction, q);
+    Vec3d q = cross( s, edge1 );
+    double v = f * dot(ray.direction, q);
 
-    if  ( v < 0.0f || u + v > 1.0f ) return __FLT_MAX__;
+    if  ( v < 0.0 || u + v > 1.0 ) return __FLT_MAX__;
 
-    float t = f * dot(edge2, q);
+    double t = f * dot(edge2, q);
 
     if ( t < __FLT_EPSILON__ ) return __FLT_MAX__;
 

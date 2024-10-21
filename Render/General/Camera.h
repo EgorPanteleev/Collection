@@ -1,28 +1,28 @@
 #ifndef COLLECTION_CAMERA_H
 #define COLLECTION_CAMERA_H
-#include "Vector3f.h"
-#include "Mat4f.h"
+#include "Vec3.h"
+#include "Mat4.h"
 #include "Ray.h"
 class Camera {
 public:
     Camera();
-    Camera( const Vector3f& pos, const Vector3f& dir, float dv, float vx, float vy );
-    Mat4f LookAt( const Vector3f& target, const Vector3f& up );
-    Ray getPrimaryRay( float x, float y ) const;
-    Ray getSecondaryRay( float x, float y ) const;
-    [[nodiscard]] Vector3f worldToCameraCoordinates( Vector3f& coords ) const;
-    [[nodiscard]] Vector3f cameraToWorldCoordinates( Vector3f& coords ) const;
+    Camera( const Vec3d& pos, const Vec3d& dir, double dv, double vx, double vy );
+    Mat4f LookAt( const Vec3d& target, const Vec3d& up );
+    Ray getPrimaryRay( double x, double y ) const;
+    Ray getSecondaryRay( double x, double y ) const;
+    [[nodiscard]] Vec3d worldToCameraCoordinates( Vec3d& coords ) const;
+    [[nodiscard]] Vec3d cameraToWorldCoordinates( Vec3d& coords ) const;
 public:
     Mat4f viewMatrix;
-    Vector3f origin;
-    Vector3f forward;
-    Vector3f up;
-    Vector3f right;
-    float dV;
-    float Vx;
-    float Vy;
-    float focalLenght = 225;
-    float aperture = 0;
+    Vec3d origin;
+    Vec3d forward;
+    Vec3d up;
+    Vec3d right;
+    double dV;
+    double Vx;
+    double Vy;
+    double focalLenght = 225;
+    double aperture = 0;
 };
 
 

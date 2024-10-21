@@ -19,17 +19,17 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-float loadNumber( lua_State* L, const std::string& fieldName );
+double loadNumber( lua_State* L, const std::string& fieldName );
 
-float loadNumber( lua_State* L );
+double loadNumber( lua_State* L );
 
-Vector<float> loadTable( lua_State* L, const std::string& fieldName );
+Vector<double> loadTable( lua_State* L, const std::string& fieldName );
 
-Vector<float> loadTable( lua_State* L );
+Vector<double> loadTable( lua_State* L );
 
-Vector3f loadVector3f( lua_State* L, const std::string& fieldName );
+Vec3d loadVec3d( lua_State* L, const std::string& fieldName );
 
-Vector3f loadVector3f( lua_State* L );
+Vec3d loadVec3d( lua_State* L );
 
 Canvas* loadCanvas( lua_State* L );
 
@@ -43,6 +43,6 @@ bool loadSpheres( lua_State* L, Scene* scene );
 
 Camera* loadCamera( lua_State* L, int w, int h  );
 
-Vector<float> loadSettings( lua_State* L );
+Vector<double> loadSettings( lua_State* L );
 
 #endif //COLLECTION_LUALOADER_H

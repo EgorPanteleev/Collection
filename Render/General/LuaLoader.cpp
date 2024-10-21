@@ -17,8 +17,8 @@ std::string loadString( lua_State* L, const std::string& fieldName ) {
     return res;
 }
 
-float loadNumber( lua_State* L, const std::string& fieldName ) {
-    float res;
+double loadNumber( lua_State* L, const std::string& fieldName ) {
+    double res;
     lua_getfield(L, -1, fieldName.c_str() );
     if (!lua_isnumber(L, -1)) {
         printf("Failed to load number in field %s.\n", fieldName.c_str() );
@@ -30,8 +30,8 @@ float loadNumber( lua_State* L, const std::string& fieldName ) {
     return res;
 }
 
-float loadNumber( lua_State* L ) {
-    float res;
+double loadNumber( lua_State* L ) {
+    double res;
     if (!lua_isnumber(L, -1)) {
         printf("Failed to load number.\n");
         lua_pop(L, 1);
@@ -42,8 +42,8 @@ float loadNumber( lua_State* L ) {
     return res;
 }
 
-Vector<float> loadTable( lua_State* L, const std::string& fieldName ) {
-    Vector<float> res;
+Vector<double> loadTable( lua_State* L, const std::string& fieldName ) {
+    Vector<double> res;
     lua_getfield(L, -1, fieldName.c_str() );
     if (!lua_istable(L, -1)) {
         printf("Failed to load table in field %s.\n", fieldName.c_str() );
@@ -58,8 +58,8 @@ Vector<float> loadTable( lua_State* L, const std::string& fieldName ) {
     return res;
 }
 
-Vector<float> loadTable( lua_State* L ) {
-    Vector<float> res;
+Vector<double> loadTable( lua_State* L ) {
+    Vector<double> res;
     for (int i = 0; i < lua_rawlen(L, -1); i++) {
         lua_rawgeti(L, -1, i + 1);
         res.push_back( loadNumber( L ) );
@@ -68,14 +68,14 @@ Vector<float> loadTable( lua_State* L ) {
     return res;
 }
 
-Vector3f loadVector3f( lua_State* L, const std::string& fieldName ) {
-    Vector<float> res = loadTable( L, fieldName );
+Vec3d loadVec3d( lua_State* L, const std::string& fieldName ) {
+    Vector<double> res = loadTable( L, fieldName );
     if ( res.size() < 3 ) return { __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ };
     return { res[0], res[1], res[2] };
 }
 
-Vector3f loadVector3f( lua_State* L ) {
-    Vector<float> res = loadTable( L );
+Vec3d loadVec3d( lua_State* L ) {
+    Vector<double> res = loadTable( L );
     if ( res.size() < 3 ) return {};
     return { res[0], res[1], res[2] };
 }
@@ -105,9 +105,9 @@ Material loadMaterial( lua_State* L ) {
         std::cerr << "No color given." << std::endl;
         lua_pop(L, 1);
     }
-    Vector3f color = loadVector3f( L );
+    Vec3d color = loadVec3d( L );
     res.setColor( { color[0], color[1], color[2] } );
-    Vector<float> props;
+    Vector<double> props;
     for ( int i = 2; i <= lua_rawlen(L, -1); i++ ) {
         lua_rawgeti( L, -1 , i );
         props.push_back( loadNumber( L ) );
@@ -144,36 +144,36 @@ bool loadScene( lua_State* L, Scene* scene ) {
 }
 
 void processMovement(lua_State* L, Mesh* mesh ) {
-    Vector3f moveTo = loadVector3f( L, "moveTo" );
-    if ( moveTo != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->moveTo( moveTo );
-    Vector3f move = loadVector3f( L, "move" );
-    if ( move != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->move( move );
-    Vector3f scaleTo = loadVector3f( L, "scaleTo" );
-    if ( scaleTo != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->scaleTo( scaleTo );
-    float scale = loadNumber( L, "scale" );
+    Vec3d moveTo = loadVec3d( L, "moveTo" );
+    if ( moveTo != Vec3d( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->moveTo( moveTo );
+    Vec3d move = loadVec3d( L, "move" );
+    if ( move != Vec3d( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->move( move );
+    Vec3d scaleTo = loadVec3d( L, "scaleTo" );
+    if ( scaleTo != Vec3d( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) mesh->scaleTo( scaleTo );
+    double scale = loadNumber( L, "scale" );
     if ( scale != __FLT_MAX__ ) mesh->scale( scale );
-    Vector3f rotate = loadVector3f( L, "rotate" );
-    if ( rotate != Vector3f( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) {
+    Vec3d rotate = loadVec3d( L, "rotate" );
+    if ( rotate != Vec3d( __FLT_MAX__, __FLT_MAX__, __FLT_MAX__ ) ) {
         mesh->rotate({ 1, 0, 0 }, rotate[0] );
         mesh->rotate({ 0, 1, 0 }, rotate[1] );
         mesh->rotate({ 0, 0, 1 }, rotate[2] );
     }
-    Vector<float> minPoint = loadTable( L, "minPoint" );
+    Vector<double> minPoint = loadTable( L, "minPoint" );
     if ( minPoint.size() < 2 ) return;
     mesh->setMinPoint( { minPoint[0], minPoint[0], minPoint[0] }, (int) minPoint[1] );
     mesh->setMinPoint( { minPoint[0], minPoint[0], minPoint[0] }, (int) minPoint[1] );
 }
 
 void processMovement( lua_State* L, Sphere* sphere ) {
-    Vector3f move = loadVector3f( L, "move" );
+    Vec3d move = loadVec3d( L, "move" );
     sphere->move( move );
-    Vector3f moveTo = loadVector3f( L, "moveTo" );
+    Vec3d moveTo = loadVec3d( L, "moveTo" );
     sphere->moveTo( move );
-    float scale = loadNumber( L, "scale" );
+    double scale = loadNumber( L, "scale" );
     sphere->scale( scale );
-    Vector3f scaleTo = loadVector3f( L, "scaleTo" );
+    Vec3d scaleTo = loadVec3d( L, "scaleTo" );
     sphere->scaleTo( scaleTo );
-    Vector3f rotate = loadVector3f( L, "rotate" );
+    Vec3d rotate = loadVec3d( L, "rotate" );
     sphere->rotate({ 1, 0, 0 }, rotate[0] );
     sphere->rotate({ 0, 1, 0 }, rotate[1] );
     sphere->rotate({ 0, 0, 1 }, rotate[2] );
@@ -193,8 +193,8 @@ bool loadMeshes( lua_State* L, Scene* scene ) {
             std::string type = loadString(L, "Type");
             Mesh* mesh = nullptr;
             if ( type == "CubeMesh" ) {
-                Vector3f min = loadVector3f( L, "min" );
-                Vector3f max = loadVector3f( L, "max" );
+                Vec3d min = loadVec3d( L, "min" );
+                Vec3d max = loadVec3d( L, "max" );
                 Material material = loadMaterial( L );
                 mesh = new CubeMesh( min, max, material );
             } else if ( type == "Mesh" ) {
@@ -224,8 +224,8 @@ bool loadSpheres( lua_State* L, Scene* scene ) {
     for (int i = 1; i <= numSpheres; i++) {
         lua_rawgeti(L, -1, i);
         if (lua_istable(L, -1)) {
-            Vector3f origin = loadVector3f(L, "origin");
-            float radius = loadNumber( L, "radius" );
+            Vec3d origin = loadVec3d(L, "origin");
+            double radius = loadNumber( L, "radius" );
             Material material = loadMaterial( L );
             auto sphere = new Sphere( radius, origin, material );
             //processMovement( L, &sphere );
@@ -244,26 +244,26 @@ Camera* loadCamera( lua_State* L, int w, int h ) {
         lua_pop(L, 1);
         return nullptr;
     }
-    Vector3f pos = loadVector3f( L, "pos" );
-    Vector3f lookAt = loadVector3f( L, "lookAt" );
-    float FOV = loadNumber( L, "FOV" );
-//    float aspectRatio = 1.6;
-    float dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
+    Vec3d pos = loadVec3d( L, "pos" );
+    Vec3d lookAt = loadVec3d( L, "lookAt" );
+    double FOV = loadNumber( L, "FOV" );
+//    double aspectRatio = 1.6;
+    double dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
     return new Camera( pos, lookAt, dV, w, h );
 }
 
-Vector<float> loadSettings( lua_State* L ) {
+Vector<double> loadSettings( lua_State* L ) {
     lua_getglobal(L, "RenderSettings");
     if (!lua_istable(L, -1)) {
         std::cerr << "Render settings not found." << std::endl;
         lua_pop(L, 1);
         return {};
     }
-    float depth = loadNumber( L, "depth" );
-    float ambientSamples = loadNumber( L, "ambientSamples" );
-    float lightSamples = loadNumber( L, "lightSamples" );
-    float denoise = loadNumber( L, "denoise" );
-    Vector<float> res;
+    double depth = loadNumber( L, "depth" );
+    double ambientSamples = loadNumber( L, "ambientSamples" );
+    double lightSamples = loadNumber( L, "lightSamples" );
+    double denoise = loadNumber( L, "denoise" );
+    Vector<double> res;
     res.push_back( depth );
     res.push_back( ambientSamples );
     res.push_back( lightSamples );

@@ -10,7 +10,7 @@
 int main( int argc, char* argv[] ) {
     setenv("OMP_PROC_BIND", "spread", 1 );
     setenv("OMP_PLACES", "threads", 1 );
-   // scene->add( new PointLight( Vector3f(-3500,0,0 ), 9999999 ) );
+   // scene->add( new PointLight( Vec3d(-3500,0,0 ), 9999999 ) );
     Kokkos::initialize(argc, argv); {
         RayTracer* rayTracer = new RayTracer( "/home/auser/dev/src/Collection/Applications/Graphics/spheres.lua" );
         auto start = std::chrono::high_resolution_clock::now();;

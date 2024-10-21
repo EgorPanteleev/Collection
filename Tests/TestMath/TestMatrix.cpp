@@ -2,7 +2,7 @@
 #include "Mat.h"
 #include <cmath>
 int testDet() {
-    Mat3f mat3 = {
+    Mat3d mat3 = {
             {1,2,3},
           {2,3,4},
           {4,5,6}};
@@ -17,11 +17,11 @@ int testDet() {
 }
 
 int testTranspose() {
-    Mat3f mat3 = {
+    Mat3d mat3 = {
             {1,2,3},
             {2,3,4},
             {4,5,6}};
-    Mat3f mat3Transposed = {
+    Mat3d mat3Transposed = {
             {1,2,4},
             {2,3,5},
             {3,4,6}};
@@ -39,11 +39,11 @@ int testTranspose() {
 }
 
 int testInverse() {
-    Mat3f mat3 = {
+    Mat3d mat3 = {
             {1,2,3},
             {2,3,4},
             {4,5,7}};
-    Mat3f mat3Inversed = {
+    Mat3d mat3Inversed = {
             {-1,-1,1},
             {-2,5,-2},
             {2,-3,1}};

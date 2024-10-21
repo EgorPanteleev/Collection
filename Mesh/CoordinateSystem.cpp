@@ -4,31 +4,30 @@
 
 #include "CoordinateSystem.h"
 #include <cmath>
-#include "Utils.h"
 
 CoordinateSystem::CoordinateSystem(): T() {
 }
 
-CoordinateSystem::CoordinateSystem( const Vector3f& N ): T( getOrthonormalBasis( N ) ) {
+CoordinateSystem::CoordinateSystem( const Vec3d& N ): T( getOrthonormalBasis( N ) ) {
 }
 
-Mat3f CoordinateSystem::getOrthonormalBasis( const Vector3f& N ) const {
-    float sign = std::copysign(1.0f, N.z);
-    float a = -1.0f / (sign + N.z);
-    float b = N.x * N.y * a;
-    return { { 1.0f + sign * N.x * N.x * a, sign * b, -sign * N.x },
-             { b, sign + N.y * N.y * a, -N.y                      },
-               N                                                  };
+Mat3d CoordinateSystem::getOrthonormalBasis( const Vec3d& N ) const {
+    double sign = std::copysign(1.0, N[2]);
+    double a = -1.0 / (sign + N[2]);
+    double b = N[0] * N[1] * a;
+    return { { 1.0 + sign * N[0] * N[0] * a, sign * b, -sign * N[0] },
+             { b, sign + N[1] * N[1] * a, -N[1]                      },
+               N                                                     };
 }
 
-Vector3f CoordinateSystem::getNormal() const {
+Vec3d CoordinateSystem::getNormal() const {
     return T[2];
 }
 
-Vector3f CoordinateSystem::from( const Vector3f& vec ) const {
+Vec3d CoordinateSystem::from( const Vec3d& vec ) const {
     return T * vec;
 }
 
-Vector3f CoordinateSystem::to( const Vector3f& vec ) const {
+Vec3d CoordinateSystem::to( const Vec3d& vec ) const {
     return T.transpose() * vec;
 }

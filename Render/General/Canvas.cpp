@@ -28,7 +28,20 @@ Canvas::Canvas() {
 }
 
 Canvas::~Canvas() {
-    //delete[] data;
+//    for ( int i = 0; i < numX; i++ ) {
+//        delete[] colorData[i];
+//    }
+//    delete[] colorData;
+//
+//    for ( int i = 0; i < numX; i++ ) {
+//        delete[] normalData[i];
+//    }
+//    delete[] normalData;
+//
+//    for ( int i = 0; i < numX; i++ ) {
+//        delete[] albedoData[i];
+//    }
+//    delete[] albedoData;
 }
 void Canvas::setColor( int x, int y, const RGB& color ) {
     colorData[x][y] = color;

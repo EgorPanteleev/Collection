@@ -67,59 +67,59 @@ void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
 }
 
 void testScene( RayTracer*& rayTracer, Rasterizer*& rasterizer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vector3f(0,10,0 ), Vector3f(0,0,1), 2400,3200,2000 );
-    //Camera* cam = new Camera( Vector3f(0,0,0 ), Vector3f(0,0,1), 6000,3200,2000 );
+    Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), 2400,3200,2000 );
+    //Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas( w, h );
 
     Vector<Mesh*> meshes;
     Vector<Light*> lights;
-    float roomRefl = 0;
+    double roomRefl = 0;
 ////right
-    meshes.push_back( new CubeMesh( Vector3f(70, -50, 0), Vector3f(80, 70, 290),
+    meshes.push_back( new CubeMesh( Vec3d(70, -50, 0), Vec3d(80, 70, 290),
                                     { GREEN, -1 , roomRefl } ) );
 ////left
-    meshes.push_back(new CubeMesh( Vector3f(-80, -50, 0), Vector3f(-70, 70, 290),
+    meshes.push_back(new CubeMesh( Vec3d(-80, -50, 0), Vec3d(-70, 70, 290),
                                    { RED, -1 , roomRefl } ) );
 ////front
-    meshes.push_back(new CubeMesh( Vector3f(-100, -50, 290), Vector3f(100, 70, 300),
+    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 290), Vec3d(100, 70, 300),
                                    { GRAY, -1 , roomRefl } ) );
 ////back
-    meshes.push_back(new CubeMesh( Vector3f(-100, -50, -10), Vector3f(100, 70, 0),
+    meshes.push_back(new CubeMesh( Vec3d(-100, -50, -10), Vec3d(100, 70, 0),
                                    { GRAY, -1 , roomRefl } ) );
 ////down
-    meshes.push_back(new CubeMesh( Vector3f(-100, -70, 0), Vector3f(100, -50, 300),
+    meshes.push_back(new CubeMesh( Vec3d(-100, -70, 0), Vec3d(100, -50, 300),
                                    { GRAY, -1 , roomRefl } ) );
 ////up
-    meshes.push_back(new CubeMesh( Vector3f(-100, 70, roomRefl), Vector3f(100, 90, 300),
+    meshes.push_back(new CubeMesh( Vec3d(-100, 70, roomRefl), Vec3d(100, 90, 300),
                                    { GRAY, -1 , 0 } ) );
 
 ////RAND BLOCK
-    auto* randBlockForward = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
-    randBlockForward->moveTo( Vector3f(0, -40, 325) );
-    randBlockForward->scaleTo( Vector3f(30,100,30) );
-    randBlockForward->rotate( Vector3f( 0,1,0), 25);
-    randBlockForward->move( Vector3f(30,0,0));
+    auto* randBlockForward = new CubeMesh( Vec3d(-15, -50, 310), Vec3d(15, -30, 340) );
+    randBlockForward->moveTo( Vec3d(0, -40, 325) );
+    randBlockForward->scaleTo( Vec3d(30,100,30) );
+    randBlockForward->rotate( Vec3d( 0,1,0), 25);
+    randBlockForward->move( Vec3d(30,0,0));
     randBlockForward->setMaterial({CYAN, -1 , 0});
-    randBlockForward->move( Vector3f(-10,0,-150));
+    randBlockForward->move( Vec3d(-10,0,-150));
     //randBlockForward->scaleTo( 200 );
     meshes.push_back(randBlockForward );
 
-    auto* randBlockForward2 = new CubeMesh( Vector3f(-15, -50, 310), Vector3f(15, -30, 340) );
-    randBlockForward2->moveTo( Vector3f(0, -40, 325) );
-    randBlockForward2->scaleTo( Vector3f(30,260,30) );
-    randBlockForward2->rotate( Vector3f( 0,1,0), -25);
-    randBlockForward2->move( Vector3f(35,0,0));
+    auto* randBlockForward2 = new CubeMesh( Vec3d(-15, -50, 310), Vec3d(15, -30, 340) );
+    randBlockForward2->moveTo( Vec3d(0, -40, 325) );
+    randBlockForward2->scaleTo( Vec3d(30,260,30) );
+    randBlockForward2->rotate( Vec3d( 0,1,0), -25);
+    randBlockForward2->move( Vec3d(35,0,0));
     randBlockForward2->setMaterial({PINK, -1 , 0.8});
-    randBlockForward2->move( Vector3f(-50,0,-100));
+    randBlockForward2->move( Vec3d(-50,0,-100));
     //randBlockForward2->scaleTo( 200 );
     meshes.push_back(randBlockForward2 );
 
 ////LIGHTS
 
-    //lights.push_back( new PointLight( Vector3f(0,65,150), 0.55));
+    //lights.push_back( new PointLight( Vec3d(0,65,150), 0.55));
     int lightWidth = 20;
-    lights.push_back( new SpotLight( Vector3f(0 - lightWidth,65,180 - lightWidth), Vector3f(0 + lightWidth,65,180 + lightWidth), 0.7));
+    lights.push_back( new SpotLight( Vec3d(0 - lightWidth,65,180 - lightWidth), Vec3d(0 + lightWidth,65,180 + lightWidth), 0.7));
 
 ////LOADING...
     loadScene( scene, meshes, lights );
@@ -234,7 +234,7 @@ int main(  int argc, char* argv[]  )
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClearColor(0.45, 0.55, 0.60, 1.00);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 //        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

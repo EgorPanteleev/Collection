@@ -6,21 +6,21 @@
 #define COLLECTION_SPOTLIGHT_H
 #include "Light.h"
 
-#include "Color.h"
+#include "RGB.h"
 
 class SpotLight: public Light {
 public:
-    SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity );
+    SpotLight( const Vec3d& _pMin, const Vec3d& _pMax, double _intensity );
 
-    SpotLight( const Vector3f& _pMin, const Vector3f& _pMax, float _intensity, const RGB& _lightColor );
+    SpotLight( const Vec3d& _pMin, const Vec3d& _pMax, double _intensity, const RGB& _lightColor );
 
     Type getType() const override;
 
     bool isIntersectsWithRay( const Ray& ray ) const override;
 
-    Vector3f getSamplePoint() const override;
+    Vec3d getSamplePoint() const override;
 private:
-    Vector3f pMin, pMax;
+    Vec3d pMin, pMax;
 };
 
 #endif //COLLECTION_SPOTLIGHT_H

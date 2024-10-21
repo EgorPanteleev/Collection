@@ -2,8 +2,8 @@
 Material::Material(): color(), texture(), intensity( 0 ), diffuse( 0 ), roughness( 1 ), metalness( 0 ) {
 }
 
-Material::Material( const RGB& color, float intensity ): color( color ), texture(), intensity( intensity ) {}
-Material::Material( const RGB& color, float diffuse, float roughness ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ), metalness( 0 ) {
+Material::Material( const RGB& color, double intensity ): color( color ), texture(), intensity( intensity ) {}
+Material::Material( const RGB& color, double diffuse, double roughness ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ), metalness( 0 ) {
 }
 
 RGB Material::getColor() const {
@@ -14,32 +14,32 @@ void Material::setColor( const RGB& c ) {
     color = c;
 }
 
-float Material::getIntensity() const {
+double Material::getIntensity() const {
     return intensity;
 }
 
-void Material::setIntensity( float i ) {
+void Material::setIntensity( double i ) {
     intensity = i;
 }
 
-float Material::getDiffuse() const {
+double Material::getDiffuse() const {
     return diffuse;
 }
-void Material::setDiffuse( float d ) {
+void Material::setDiffuse( double d ) {
     diffuse = d;
 }
 
-float Material::getRoughness() const {
+double Material::getRoughness() const {
     return roughness;
 }
-void Material::setRoughness( float r ) {
+void Material::setRoughness( double r ) {
     roughness = r;
 }
 
-float Material::getMetalness() const {
+double Material::getMetalness() const {
     return metalness;
 }
-void Material::setMetalness( float m ) {
+void Material::setMetalness( double m ) {
     metalness = m;
 }
 

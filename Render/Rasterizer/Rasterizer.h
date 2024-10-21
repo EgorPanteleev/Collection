@@ -4,9 +4,9 @@
 
 #ifndef COLLECTION_RASTERIZER_H
 #define COLLECTION_RASTERIZER_H
-#include "Vector3f.h"
-#include "Vector2f.h"
-#include "Color.h"
+#include "Vec3.h"
+#include "Vec2.h"
+#include "RGB.h"
 #include "Scene.h"
 #include "Canvas.h"
 #include "Camera.h"
@@ -18,7 +18,7 @@ public:
 
     ~Rasterizer();
 
-    void drawLine( Vector2f v1, Vector2f v2, RGB color);
+    void drawLine( Vec2d v1, Vec2d v2, RGB color);
 
     void drawFilledTriangle( Triangle tri, RGB color);
 
@@ -29,11 +29,11 @@ public:
     [[nodiscard]] Camera* getCamera() const;
 private:
 
-    Vector3f transform( Vector3f p );
+    Vec3d transform( Vec3d p );
 
     void clear();
 
-    float** zBuffer;
+    double** zBuffer;
     Kokkos::View<Camera*> camera;
     Kokkos::View<Scene*> scene;
     Kokkos::View<Canvas*> canvas;

@@ -4,19 +4,19 @@
 
 #ifndef COLLECTION_COORDINATESYSTEM_H
 #define COLLECTION_COORDINATESYSTEM_H
-#include "Vector3f.h"
-#include "Mat3f.h"
+#include "Vec3.h"
+#include "Mat3.h"
 
 class CoordinateSystem {
 public:
     CoordinateSystem();
-    CoordinateSystem( const Vector3f& N );
-    Mat3f getOrthonormalBasis( const Vector3f& N ) const;
-    Vector3f getNormal() const;
-    Vector3f from( const Vector3f& vec ) const;
-    Vector3f to( const Vector3f& vec ) const;
+    CoordinateSystem( const Vec3d& N );
+    Mat3d getOrthonormalBasis( const Vec3d& N ) const;
+    Vec3d getNormal() const;
+    Vec3d from( const Vec3d& vec ) const;
+    Vec3d to( const Vec3d& vec ) const;
 protected:
-    Mat3f T;
+    Mat3d T;
 };
 
 

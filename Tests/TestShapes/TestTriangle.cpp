@@ -2,7 +2,7 @@
 #include "Triangle.h"
 #include <cmath>
 Triangle createTriangle1() {
-    return { Vector3f(0,0,0), Vector3f(5,2,0), Vector3f(1, 7, 0) };
+    return { Vec3d(0,0,0), Vec3d(5,2,0), Vec3d(1, 7, 0) };
 }
 
 int testContainPoint() {
@@ -34,7 +34,7 @@ int testintersectsWithRay() {
 
 int testGetNormal() {
     Triangle tr1 = createTriangle1();
-    if ( tr1.getNormal() != Vector3f( 0,0,1 ) ) return 1;
+    if ( tr1.getNormal() != Vec3d( 0,0,1 ) ) return 1;
     return 0;
 }
 

@@ -4,60 +4,62 @@
 
 #ifndef COLLECTION_SAMPLER_H
 #define COLLECTION_SAMPLER_H
-#include "Vector3f.h"
-#include "Utils.h"
+#include "Vec3.h"
+#include "Vec2.h"
+#include "Mat3.h"
+
 #include <cmath>
 
-#define pd 1.0f // between 0 and 1, how much diffuse light be diffuse
+#define pd 1.0 // between 0 and 1, how much diffuse light be diffuse
 
-Mat3f getTBN( const Vector3f& wo, const Vector3f& N );
+Mat3d getTBN( const Vec3d& wo, const Vec3d& N );
 
 namespace CosineWeighted {
-    Vector3f getSample( const Vector3f& N );
+    Vec3d getSample( const Vec3d& N );
 
-    float PDF( float Nwi );
+    double PDF( double Nwi );
 
-    float PDF( const Vector3f& N, const Vector3f& wi );
+    double PDF( const Vec3d& N, const Vec3d& wi );
 }
 
 namespace Lambertian {
-    float BRDF();
+    double BRDF();
 
-    Vector3f getIncidentDir( const Vector3f& N );
+    Vec3d getIncidentDir( const Vec3d& N );
 
-    float PDF( float Nwi );
+    double PDF( double Nwi );
 
-    float PDF( const Vector3f& N, const Vector3f& wi );
+    double PDF( const Vec3d& N, const Vec3d& wi );
 }
 
 //we can avoid trigonometric functions for better perfomance ( but not now )
 
 namespace OrenNayar {
-    float BRDF( const Vector3f& wi, const Vector3f& wo, float alpha );
+    double BRDF( const Vec3d& wi, const Vec3d& wo, double alpha );
 
-    Vector3f getIncidentDir( const Vector3f& N );
+    Vec3d getIncidentDir( const Vec3d& N );
 
-    float PDF( float Nwi );
+    double PDF( double Nwi );
 
-    float PDF( const Vector3f& N, const Vector3f& wi );
+    double PDF( const Vec3d& N, const Vec3d& wi );
 }
 
 namespace GGX {
-    float D( const Vector3f& m, const Vector2f& a );
+    double D( const Vec3d& m, const Vec2d& a );
 
-    float F( float dmwo );
+    double F( double dmwo );
 
-    float Lambda( const Vector3f& wo, const Vector2f& a );
+    double Lambda( const Vec3d& wo, const Vec2d& a );
 
-    float SmithG1( const Vector3f& wo, const Vector2f& a );
+    double SmithG1( const Vec3d& wo, const Vec2d& a );
 
-    float DV( const Vector3f& m, const Vector3f& wo, const Vector2f& a );
+    double DV( const Vec3d& m, const Vec3d& wo, const Vec2d& a );
 
-    float SmithG2( const Vector3f& wi, const Vector3f& wo, const Vector2f& a );
+    double SmithG2( const Vec3d& wi, const Vec3d& wo, const Vec2d& a );
 
-    float BRDF( const Vector3f& wi, const Vector3f& wo, const Vector2f& a, float& PDF );
+    double BRDF( const Vec3d& wi, const Vec3d& wo, const Vec2d& a, double& PDF );
 
-    Vector3f getNormal( const Vector3f& wo, const Vector2f& a );
+    Vec3d getNormal( const Vec3d& wo, const Vec2d& a );
 }
 
 #endif //COLLECTION_SAMPLER_H

@@ -1,7 +1,7 @@
 #ifndef COLLECTION_LIGHT_H
 #define COLLECTION_LIGHT_H
 #include "Vector.h"
-#include "Color.h"
+#include "RGB.h"
 #include "Ray.h"
 
 class Light {
@@ -16,9 +16,9 @@ public:
 
     virtual bool isIntersectsWithRay( const Ray& ray ) const = 0;
 
-    virtual Vector3f getSamplePoint() const = 0;
+    virtual Vec3d getSamplePoint() const = 0;
 
-    float intensity;
+    double intensity;
 
     RGB lightColor;
 protected:

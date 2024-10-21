@@ -7,25 +7,25 @@
 CubeMesh::CubeMesh(): p1({0,0,0}), p2({1,1,1}) {
     fillTriangles();
 }
-CubeMesh::CubeMesh( const Vector3f& _p1, const Vector3f& _p2): p1(_p1), p2(_p2) {
+CubeMesh::CubeMesh( const Vec3d& _p1, const Vec3d& _p2): p1(_p1), p2(_p2) {
     fillTriangles();
 }
 
-CubeMesh::CubeMesh( const Vector3f& _p1, const Vector3f& _p2, const Material& _material ): p1(_p1), p2(_p2) {
+CubeMesh::CubeMesh( const Vec3d& _p1, const Vec3d& _p2, const Material& _material ): p1(_p1), p2(_p2) {
     material = _material;
     fillTriangles();
 }
 
 void CubeMesh::fillTriangles() {
-    Vector3f f1 = p1;
-    Vector3f f2 = { p2.getX(), p1.getY(), p1.getZ() };
-    Vector3f f3 = { p2.getX(), p1.getY(), p2.getZ() };
-    Vector3f f4 = { p1.getX(), p1.getY(), p2.getZ() };
+    Vec3d f1 = p1;
+    Vec3d f2 = { p2[0], p1[1], p1[2] };
+    Vec3d f3 = { p2[0], p1[1], p2[2] };
+    Vec3d f4 = { p1[0], p1[1], p2[2] };
 
-    Vector3f b1 = { p1.getX(), p2.getY(), p1.getZ() };
-    Vector3f b2 = { p2.getX(), p2.getY(), p1.getZ() };
-    Vector3f b3 = p2;
-    Vector3f b4 = { p1.getX(), p2.getY(), p2.getZ() };
+    Vec3d b1 = { p1[0], p2[1], p1[2] };
+    Vec3d b2 = { p2[0], p2[1], p1[2] };
+    Vec3d b3 = p2;
+    Vec3d b4 = { p1[0], p2[1], p2[2] };
     // down
     primitives.push_back( new Triangle{ f1, f2, f3 } );
     primitives.push_back( new Triangle{ f1, f3, f4 } );

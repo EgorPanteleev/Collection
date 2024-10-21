@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Mesh.h"
 #include "OBJLoader.h"
-#include "Utils.h"
+#include "Random.h"
 
 Mesh::Mesh(): material(), primitives() {}
 
@@ -19,10 +19,10 @@ Material Mesh::getMaterial() const {
     return material;
 }
 
-Vector3f Mesh::getSamplePoint() {
+Vec3d Mesh::getSamplePoint() {
     int size = (int) primitives.size();
     if ( size == 0 ) return {};
-    int ind = std::floor( randomFloat() * ( (float) size - 1 ) );
+    int ind = std::floor( randomDouble() * ( size - 1 ) );
     return primitives[ind]->getSamplePoint();
 }
 
@@ -30,8 +30,8 @@ void Mesh::loadMesh(const std::string& path ) {
     OBJLoader::load( path, this );
 }
 
-void Mesh::rotate(const Vector3f& axis, float angle, bool group ) {
-    Vector3f origin = getOrigin();
+void Mesh::rotate(const Vec3d& axis, double angle, bool group ) {
+    Vec3d origin = getOrigin();
     if ( !group ) move( origin * ( -1 ) );
     for ( auto primitive: primitives ) {
         primitive->rotate( axis, angle );
@@ -39,48 +39,48 @@ void Mesh::rotate(const Vector3f& axis, float angle, bool group ) {
     if ( !group ) move( origin );
 }
 
-void Mesh::move(const Vector3f& p ) {
+void Mesh::move(const Vec3d& p ) {
     for ( auto primitive: primitives ) {
         primitive->move( p );
     }
 }
 
-void Mesh::moveTo(const Vector3f& point ) {
+void Mesh::moveTo(const Vec3d& point ) {
     move( point - getOrigin() );
 }
 
-void Mesh::scale(float scaleValue, bool group ) {
-    Vector3f oldOrigin = getOrigin();
+void Mesh::scale(double scaleValue, bool group ) {
+    Vec3d oldOrigin = getOrigin();
     for ( auto primitive: primitives ) {
         primitive->scale( scaleValue );
     }
     if ( !group ) moveTo( oldOrigin );
 }
-void Mesh::scale(const Vector3f& scaleVec, bool group ) {
-    Vector3f oldOrigin = getOrigin();
+void Mesh::scale(const Vec3d& scaleVec, bool group ) {
+    Vec3d oldOrigin = getOrigin();
     for ( auto primitive: primitives ) {
         primitive->scale( scaleVec );
     }
     if ( !group ) moveTo( oldOrigin );
 }
 
-void Mesh::scaleTo(float scaleValue, bool group ) {
+void Mesh::scaleTo(double scaleValue, bool group ) {
     BBox bbox = getBBox();
-    Vector3f len = bbox.pMax - bbox.pMin;
-    float maxLen = std::max ( std::max( len.getX(), len.getY() ), len.getZ());
-    float cff = scaleValue / maxLen;
+    Vec3d len = bbox.pMax - bbox.pMin;
+    double maxLen = std::max ( std::max( len[0], len[1] ), len[2]);
+    double cff = scaleValue / maxLen;
     scale( cff, group );
 }
 
-void Mesh::scaleTo(const Vector3f& scaleVec, bool group ) {
+void Mesh::scaleTo(const Vec3d& scaleVec, bool group ) {
     BBox bbox = getBBox();
-    Vector3f len = bbox.pMax - bbox.pMin;
-    Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
+    Vec3d len = bbox.pMax - bbox.pMin;
+    Vec3d cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff, group );
 }
 
-void Mesh::setMinPoint(const Vector3f& vec, int ind ) {
-    Vector3f moveVec = vec - getBBox().pMin;
+void Mesh::setMinPoint(const Vec3d& vec, int ind ) {
+    Vec3d moveVec = vec - getBBox().pMin;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
         moveVec[i] = 0;
@@ -88,8 +88,8 @@ void Mesh::setMinPoint(const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-void Mesh::setMaxPoint(const Vector3f& vec, int ind ) {
-    Vector3f moveVec = vec - getBBox().pMax;
+void Mesh::setMaxPoint(const Vec3d& vec, int ind ) {
+    Vec3d moveVec = vec - getBBox().pMax;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
         moveVec[i] = 0;
@@ -102,8 +102,8 @@ Vector<Primitive*> Mesh::getPrimitives() {
 }
 
 BBox Mesh::getBBox() const {
-    Vector3f vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
-    Vector3f vMax = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
+    Vec3d vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
+    Vec3d vMax = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
     for ( auto primitive: primitives ) {
         BBox bbox = primitive->getBBox();
         vMin = min( bbox.pMin, vMin );
@@ -113,15 +113,15 @@ BBox Mesh::getBBox() const {
 }
 
 
-Vector3f Mesh::getOrigin() const {
-    Vector3f origin = {0,0,0};
+Vec3d Mesh::getOrigin() const {
+    Vec3d origin = {0,0,0};
     for ( auto primitive: primitives ) {
         origin = origin + primitive->getOrigin();
     }
-    return origin / (float) primitives.size();
+    return origin / primitives.size();
 }
 
-bool Mesh::isContainPoint(const Vector3f& p ) const {
+bool Mesh::isContainPoint(const Vec3d& p ) const {
     for ( const auto primitive: primitives ) {
         if ( primitive->isContainPoint( p ) ) return true;
     }
@@ -129,10 +129,10 @@ bool Mesh::isContainPoint(const Vector3f& p ) const {
 }
 
 IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
-    float min = __FLT_MAX__;
-    Vector3f N = {};
+    double min = __FLT_MAX__;
+    Vec3d N = {};
     for ( const auto primitive: primitives ) {
-        float t = primitive->intersectsWithRay( ray );
+        double t = primitive->intersectsWithRay( ray );
         if ( t >= min ) continue;
         min = t;
     }

@@ -4,5 +4,7 @@ add_subdirectory(TestMath)
 
 add_subdirectory(TestShapes)
 
+add_subdirectory(TestSamplers)
+
 #add_subdirectory(TestRayTracer)
 

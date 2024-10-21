@@ -4,7 +4,7 @@
 #include <cmath>
 #include "GroupOfMeshes.h"
 #include "OBJLoader.h"
-#include "Utils.h"
+
 
 GroupOfMeshes::GroupOfMeshes(): meshes() {}
 
@@ -12,8 +12,8 @@ void GroupOfMeshes::loadMesh(const std::string& path ) {
     OBJLoader::load( path, this );
 }
 
-void GroupOfMeshes::rotate(const Vector3f& axis, float angle ) {
-    Vector3f origin = getOrigin();
+void GroupOfMeshes::rotate(const Vec3d& axis, double angle ) {
+    Vec3d origin = getOrigin();
     move( origin * ( -1 ) );
     for ( auto mesh: meshes ) {
         mesh->rotate( axis, angle, true );
@@ -21,48 +21,48 @@ void GroupOfMeshes::rotate(const Vector3f& axis, float angle ) {
     move( origin );
 }
 
-void GroupOfMeshes::move(const Vector3f& p ) {
+void GroupOfMeshes::move(const Vec3d& p ) {
     for ( auto mesh: meshes ) {
         mesh->move( p );
     }
 }
 
-void GroupOfMeshes::moveTo(const Vector3f& point ) {
+void GroupOfMeshes::moveTo(const Vec3d& point ) {
     move( point - getOrigin() );
 }
 
-void GroupOfMeshes::scale(float scaleValue ) {
-    Vector3f oldOrigin = getOrigin();
+void GroupOfMeshes::scale(double scaleValue ) {
+    Vec3d oldOrigin = getOrigin();
     for ( auto mesh: meshes ) {
         mesh->scale( scaleValue, true );
     }
     moveTo( oldOrigin );
 }
-void GroupOfMeshes::scale(const Vector3f& scaleVec ) {
-    Vector3f oldOrigin = getOrigin();
+void GroupOfMeshes::scale(const Vec3d& scaleVec ) {
+    Vec3d oldOrigin = getOrigin();
     for ( auto mesh: meshes ) {
         mesh->scale( scaleVec, true );
     }
     moveTo( oldOrigin );
 }
 
-void GroupOfMeshes::scaleTo(float scaleValue ) {
+void GroupOfMeshes::scaleTo(double scaleValue ) {
     BBox bbox = getBBox();
-    Vector3f len = bbox.pMax - bbox.pMin;
-    float maxLen = std::max ( std::max( len.getX(), len.getY() ), len.getZ());
-    float cff = scaleValue / maxLen;
+    Vec3d len = bbox.pMax - bbox.pMin;
+    double maxLen = std::max ( std::max( len[0], len[1] ), len[2] );
+    double cff = scaleValue / maxLen;
     scale( cff );
 }
 
-void GroupOfMeshes::scaleTo(const Vector3f& scaleVec ) {
+void GroupOfMeshes::scaleTo(const Vec3d& scaleVec ) {
     BBox bbox = getBBox();
-    Vector3f len = bbox.pMax - bbox.pMin;
-    Vector3f cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
+    Vec3d len = bbox.pMax - bbox.pMin;
+    Vec3d cff = { scaleVec[0] / len[0], scaleVec[1] / len[1], scaleVec[2] / len[2] };
     scale( cff );
 }
 
-void GroupOfMeshes::setMinPoint(const Vector3f& vec, int ind ) {
-    Vector3f moveVec = vec - getBBox().pMin;
+void GroupOfMeshes::setMinPoint(const Vec3d& vec, int ind ) {
+    Vec3d moveVec = vec - getBBox().pMin;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
         moveVec[i] = 0;
@@ -70,8 +70,8 @@ void GroupOfMeshes::setMinPoint(const Vector3f& vec, int ind ) {
     move( moveVec );
 }
 
-void GroupOfMeshes::setMaxPoint(const Vector3f& vec, int ind ) {
-    Vector3f moveVec = vec - getBBox().pMax;
+void GroupOfMeshes::setMaxPoint(const Vec3d& vec, int ind ) {
+    Vec3d moveVec = vec - getBBox().pMax;
     for ( int i = 0; i < 3; ++i ) {
         if ( ind == -1 || ind == i ) continue;
         moveVec[i] = 0;
@@ -84,8 +84,8 @@ Vector<Mesh*> GroupOfMeshes::getMeshes() const {
 }
 
 BBox GroupOfMeshes::getBBox() const {
-    Vector3f vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
-    Vector3f vMax = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
+    Vec3d vMin = {__FLT_MAX__,__FLT_MAX__,__FLT_MAX__};
+    Vec3d vMax = {__FLT_MIN__,__FLT_MIN__,__FLT_MIN__};
     for ( auto mesh: meshes ) {
         BBox bbox = mesh->getBBox();
         vMin = min( bbox.pMin, vMin );
@@ -95,12 +95,12 @@ BBox GroupOfMeshes::getBBox() const {
 }
 
 
-Vector3f GroupOfMeshes::getOrigin() const {
-    Vector3f origin = {0,0,0};
+Vec3d GroupOfMeshes::getOrigin() const {
+    Vec3d origin = {0,0,0};
     for ( auto mesh: meshes ) {
         origin = origin + mesh->getOrigin();
     }
-    return origin / (float) meshes.size();
+    return origin / (double) meshes.size();
 }
 
 void GroupOfMeshes::setMaterial( Material material, int index ) {

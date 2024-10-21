@@ -1,16 +1,16 @@
 #ifndef COLLECTION_RAY_H
 #define COLLECTION_RAY_H
-#include "Vector3f.h"
+#include "Vec3.h"
 
 class Ray {
 public:
     Ray();
-    Ray(const Vector3f& from, const Vector3f& dir);
+    Ray(const Vec3d& from, const Vec3d& dir);
     ~Ray();
 
-    Vector3f origin;
-    Vector3f direction;
-    Vector3f invDirection;
+    Vec3d origin;
+    Vec3d direction;
+    Vec3d invDirection;
 private:
 };
 

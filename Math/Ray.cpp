@@ -4,13 +4,14 @@
 
 #include "Ray.h"
 #include <cmath>
-#include "Utils.h"
+
 Ray::Ray():origin(), direction(), invDirection() {}
-Ray::Ray(const Vector3f& from, const Vector3f& dir): origin(from), direction( dir.normalize() ) {
-    invDirection = 1.0f / dir.normalize();
+
+Ray::Ray(const Vec3d& from, const Vec3d& dir): origin(from), direction( dir.normalize() ) {
+    invDirection = 1.0 / dir.normalize();
 }
 
 Ray::~Ray() {
-    origin = Vector3f();
-    direction = Vector3f();
+    origin = Vec3d();
+    direction = Vec3d();
 }

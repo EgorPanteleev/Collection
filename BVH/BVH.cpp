@@ -27,17 +27,17 @@ void BVH::build() {
     for (int i = 0; i < triangles.size(); i++) indexes.push_back(i);
     BVHNode& root = bvhNode[rootNodeIdx];
     root.leftFirst = 0, root.trianglesCount = triangles.size();
-    Vector3f centroidMin, centroidMax;
+    Vec3d centroidMin, centroidMax;
     updateNodeBounds( 0, centroidMin, centroidMax );
     subDivide( 0, 0, nodesUsed, centroidMin, centroidMax );
 }
 
-void BVH::updateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax ) {
+void BVH::updateNodeBounds( uint nodeIdx, Vec3d& centroidMin, Vec3d& centroidMax ) {
     BVHNode& node = bvhNode[nodeIdx];
-    node.aabbMin = Vector3f( 1e30f, 1e30f, 1e30f );
-    node.aabbMax = Vector3f( -1e30f, -1e30f, -1e30f );
-    centroidMin = Vector3f( 1e30f, 1e30f, 1e30f );
-    centroidMax = Vector3f( -1e30f, -1e30f, -1e30f );
+    node.aabbMin = Vec3d( 1e30, 1e30, 1e30 );
+    node.aabbMax = Vec3d( -1e30, -1e30, -1e30 );
+    centroidMin = Vec3d( 1e30, 1e30, 1e30 );
+    centroidMax = Vec3d( -1e30, -1e30, -1e30 );
     for (uint first = node.leftFirst, i = 0; i < node.trianglesCount; i++) {
         BBox bbox = triangles.getBBox( indexes[first + i] );
         node.aabbMin = min( node.aabbMin, bbox.pMin );
@@ -49,18 +49,18 @@ void BVH::updateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centr
     }
 }
 
-void BVH::subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroidMin, Vector3f& centroidMax ) {
+void BVH::subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vec3d& centroidMin, Vec3d& centroidMax ) {
     BVHNode& node = bvhNode[nodeIdx];
     if (node.trianglesCount <= 2) return;
     int axis = 1, splitPos = 1;
-    float splitCost = findBestSplitPlane( node, axis, splitPos, centroidMin, centroidMax );
-    float nosplitCost = node.calculateNodeCost();
+    double splitCost = findBestSplitPlane( node, axis, splitPos, centroidMin, centroidMax );
+    double nosplitCost = node.calculateNodeCost();
     if (splitCost >= nosplitCost) return;
     int i = node.leftFirst;
     int j = i + node.trianglesCount - 1;
-    float scale = BINS / (centroidMax[axis] - centroidMin[axis]);
+    double scale = BINS / (centroidMax[axis] - centroidMin[axis]);
     while (i <= j) {
-        Vector3f origin = triangles.getOrigin( indexes[i] );
+        Vec3d origin = triangles.getOrigin( indexes[i] );
         int binIdx = std::min( BINS - 1, (int)((origin[axis] - centroidMin[axis]) * scale) );
         if (binIdx < splitPos) i++; else std::swap( indexes[i], indexes[j--] );
     }
@@ -80,13 +80,13 @@ void BVH::subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroid
     subDivide( rightChildIdx, depth + 1, nodePtr, centroidMin, centroidMax );
 }
 
-float BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f& centroidMin, Vector3f& centroidMax ) {
-    float bestCost = 1e30f;
+double BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vec3d& centroidMin, Vec3d& centroidMax ) {
+    double bestCost = 1e30;
     for (int a = 0; a < 3; a++) {
-        float boundsMin = centroidMin[a], boundsMax = centroidMax[a];
+        double boundsMin = centroidMin[a], boundsMax = centroidMax[a];
         if (boundsMin == boundsMax) continue;
-        float scale = BINS / (boundsMax - boundsMin);
-        float leftCountArea[BINS - 1], rightCountArea[BINS - 1];
+        double scale = BINS / (boundsMax - boundsMin);
+        double leftCountArea[BINS - 1], rightCountArea[BINS - 1];
         int leftSum = 0, rightSum = 0;
         struct Bin { BBox bounds; int trianglesCount = 0; } bin[BINS];
         for (uint i = 0; i < node.trianglesCount; i++) {
@@ -100,13 +100,13 @@ float BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f
         for (int i = 0; i < BINS - 1; i++) {
             leftSum += bin[i].trianglesCount;
             leftBox.merge( bin[i].bounds );
-            leftCountArea[i] = leftSum * leftBox.area();
+            leftCountArea[i] = leftSum * leftBox.getArea();
             rightSum += bin[BINS - 1 - i].trianglesCount;
             rightBox.merge( bin[BINS - 1 - i].bounds );
-            rightCountArea[BINS - 2 - i] = rightSum * rightBox.area();
+            rightCountArea[BINS - 2 - i] = rightSum * rightBox.getArea();
         }
         for (int i = 0; i < BINS - 1; i++) {
-            const float planeCost = leftCountArea[i] + rightCountArea[i];
+            const double planeCost = leftCountArea[i] + rightCountArea[i];
             if (planeCost < bestCost)
                 axis = a, splitPos = i + 1, bestCost = planeCost;
         }
@@ -115,16 +115,16 @@ float BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f
 }
 
 
-bool BVH::intersectBBox( const Ray& ray, const Vector3f& bmin, const Vector3f& bmax ) {
-    Vector3f t1 = ( bmin - ray.origin ) * ray.invDirection;
-    Vector3f t2 = ( bmax - ray.origin ) * ray.invDirection;
-    float tmin = std::min( t1.x, t2.x );
-    tmin = std::max( tmin, std::min( t1.y, t2.y ) );
-    tmin = std::max( tmin, std::min( t1.z, t2.z ) );
-    float tmax = std::max( t1.x, t2.x );
-    tmax = std::min( tmax, std::max( t1.y, t2.y ) );
-    tmax = std::min( tmax, std::max( t1.z, t2.z ) );
-    return tmax >= tmin && tmin < 1e30f && tmax > 0;
+bool BVH::intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax ) {
+    Vec3d t1 = ( bmin - ray.origin ) * ray.invDirection;
+    Vec3d t2 = ( bmax - ray.origin ) * ray.invDirection;
+    double tmin = std::min( t1[0], t2[0] );
+    tmin = std::max( tmin, std::min( t1[1], t2[1] ) );
+    tmin = std::max( tmin, std::min( t1[2], t2[2] ) );
+    double tmax = std::max( t1[0], t2[0] );
+    tmax = std::min( tmax, std::max( t1[1], t2[1] ) );
+    tmax = std::min( tmax, std::max( t1[2], t2[2] ) );
+    return tmax >= tmin && tmin < 1e30 && tmax > 0;
 }
 
 void BVH::intersectBVH( Ray& ray, IntersectionData& tData, const uint nodeIdx ) {
@@ -135,10 +135,10 @@ void BVH::intersectBVH( Ray& ray, IntersectionData& tData, const uint nodeIdx ) 
     }
     if (node.isLeaf()) {
         for (uint i = 0; i < node.trianglesCount; i++ ) {
-            float t = triangles.intersectsWithRay( ray, indexes[node.leftFirst + i] );
+            double t = triangles.intersectsWithRay( ray, indexes[node.leftFirst + i] );
             if ( t >= tData.t ) continue;
             tData.t = t;
-            Vector3f ind = triangles.indices[indexes[node.leftFirst + i]];
+            Vec3i ind = triangles.indices[indexes[node.leftFirst + i] ];
             tData.primitive = primitives[ indexes[node.leftFirst + i] ];
         }
         return;

@@ -6,7 +6,7 @@
 #define COLLECTION_SPHERE_H
 
 #include "Vector.h"
-#include "Vector3f.h"
+#include "Vec3.h"
 #include "Ray.h"
 #include "Material.h"
 #include "BBox.h"
@@ -15,23 +15,23 @@
 class Sphere: public Primitive {
 public:
     Sphere();
-    Sphere( float r, const Vector3f& pos );
-    Sphere( float r, const Vector3f& pos, const Material& m );
-    void rotate( const Vector3f& axis, float angle ) override;
-    void move( const Vector3f& p ) override;
-    void moveTo( const Vector3f& point ) override;
-    void scale( float scaleValue ) override;
-    void scale( const Vector3f& scaleVec ) override;
-    void scaleTo( float scaleValue ) override;
-    void scaleTo( const Vector3f& scaleVec ) override;
-    [[nodiscard]] Vector3f getSamplePoint() const override;
-    [[nodiscard]] bool isContainPoint( const Vector3f& p ) const override;
-    [[nodiscard]] float intersectsWithRay( const Ray& ray ) const override;
-    [[nodiscard]] int getIndex( const Vector3f& P, const ImageData& imageData ) const override;
-    [[nodiscard]] Vector3f getNormal( const Vector3f& p ) const override;
+    Sphere( double r, const Vec3d& pos );
+    Sphere( double r, const Vec3d& pos, const Material& m );
+    void rotate( const Vec3d& axis, double angle ) override;
+    void move( const Vec3d& p ) override;
+    void moveTo( const Vec3d& point ) override;
+    void scale( double scaleValue ) override;
+    void scale( const Vec3d& scaleVec ) override;
+    void scaleTo( double scaleValue ) override;
+    void scaleTo( const Vec3d& scaleVec ) override;
+    [[nodiscard]] Vec3d getSamplePoint() const override;
+    [[nodiscard]] bool isContainPoint( const Vec3d& p ) const override;
+    [[nodiscard]] double intersectsWithRay( const Ray& ray ) const override;
+    [[nodiscard]] int getIndex( const Vec3d& P, const ImageData& imageData ) const override;
+    [[nodiscard]] Vec3d getNormal( const Vec3d& p ) const override;
 
 public:
-    float radius;
+    double radius;
 };
 
 

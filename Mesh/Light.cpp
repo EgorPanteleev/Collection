@@ -3,7 +3,7 @@
 //
 
 #include "Light.h"
-#include "Color.h"
+#include "RGB.h"
 
 Light::Light():intensity( 0 ) {
     lightColor = RGB(255,255,255);

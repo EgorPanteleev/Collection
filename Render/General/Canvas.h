@@ -1,7 +1,7 @@
 
 #ifndef COLLECTION_CANVAS_H
 #define COLLECTION_CANVAS_H
-#include "Color.h"
+#include "RGB.h"
 #include <string>
 class Canvas {
 public:

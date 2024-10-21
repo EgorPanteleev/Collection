@@ -4,11 +4,11 @@
 
 #include "PointLight.h"
 
-PointLight::PointLight( const Vector3f& _origin, float _intensity ): origin( _origin ) {
+PointLight::PointLight( const Vec3d& _origin, double _intensity ): origin( _origin ) {
     intensity = _intensity;
 }
 
-PointLight::PointLight( const Vector3f& _origin, float _intensity, const RGB& _lightColor ): origin( _origin ) {
+PointLight::PointLight( const Vec3d& _origin, double _intensity, const RGB& _lightColor ): origin( _origin ) {
     intensity = _intensity;
     lightColor = _lightColor;
 }
@@ -21,6 +21,6 @@ bool PointLight::isIntersectsWithRay( const Ray& ray ) const {
     return false;
 }
 
-Vector3f PointLight::getSamplePoint() const {
+Vec3d PointLight::getSamplePoint() const {
     return origin;
 }

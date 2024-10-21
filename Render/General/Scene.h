@@ -22,13 +22,13 @@ public:
     LightInstance( Light* _light ): light( _light ), type( COMMON_LIGHT ), meshLight( nullptr ) {}
     LightInstance(Mesh* _light ): meshLight(_light ), type(MESH_LIGHT ), light(nullptr ) {}
     Type getType() { return type; }
-    float getIntensity() {
+    double getIntensity() {
         switch (type) {
             case COMMON_LIGHT: return light->intensity;
             case MESH_LIGHT: return meshLight->getMaterial().getIntensity();
         }
     }
-    Vector3f getSamplePoint() {
+    Vec3d getSamplePoint() {
         switch (type) {
             case COMMON_LIGHT: return light->getSamplePoint();
             case MESH_LIGHT: return meshLight->getSamplePoint();

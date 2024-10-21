@@ -1,68 +1,30 @@
-#pragma once
-#include "Vector.h"
-#include "Vector4f.h"
-#include "Mat4f.h"
-#include "Mat3f.h"
-#include "Mat2f.h"
-#include "Color.h"
-float saturate(float z);
+//
+// Created by auser on 10/20/24.
+//
 
-Vector3f reflect( const Vector3f& wo, const Vector3f& N );
+#ifndef COLLECTION_UTILS_H
+#define COLLECTION_UTILS_H
+#include "RGB.h"
+#include "Vec3.h"
 
-float pow2( float f );
+double saturate( double z );
 
-float dot( const Vector3f& p1, const Vector3f& p2 );
+double pow2( double a );
 
-float dot( const Vector4f& p1, const Vector4f& p2 );
+template <typename Type>
+Vec3<Type> toNormal( const RGB& col ) {
+    Vec3<Type> res = { col.r, col.g, col.b };
+    res = res / 255.0 * 2.0 - 1;
+    return res.normalize();
+}
 
-float getDistance( const Vector3f& p1, const Vector3f& p2 );
+template<typename Type>
+Vec3<Type> toVec3( const RGB& col ) {
+    return { (Type) col.r, (Type) col.g, (Type) col.b };
+}
+template<typename Type>
+RGB toRGB( const Vec3<Type>& vec ) {
+    return { (double) vec[0], (double) vec[1], (double) vec[2] };
+}
 
-Vector4f operator*( const Mat4f& m, const Vector4f& v );
-
-Mat4f operator*( float a, const Mat4f& m );
-
-Mat4f operator*( const Mat4f& m, float a );
-
-Mat4f operator/( const Mat4f& m, float a );
-
-Mat3f operator/( const Mat3f& m, float a );
-
-Mat2f operator/( const Mat2f& m, float a );
-
-Vector4f operator*( const Vector4f& v, const Mat4f& m );
-
-Mat4f operator*( const Mat4f& m1, const Mat4f& m2 );
-
-Vector3f operator*( const Mat3f& m, const Vector3f& v );
-
-Vector3f operator*( const Vector3f& v, const Mat3f& m );
-
-Vector3f operator*( float a, const Vector3f& v );
-
-Vector3f operator/( float a, const Vector3f& v );
-
-RGB operator*( float a, const RGB& col );
-
-Mat3f operator*( const Mat3f& m1, const Mat3f& m2 );
-
-Mat3f operator*( const Mat3f& m1, float a );
-
-Mat3f operator*( float a, const Mat3f& m1 );
-
-Mat3f operator+( const Mat3f& m1, const Mat3f& m2 );
-
-RGB operator+( const RGB& col, const Vector3f& vec );
-
-Vector3f min( const Vector3f& v1, const Vector3f& v2 );
-
-Vector3f max( const Vector3f& v1, const Vector3f& v2 );
-
-Vector2f min( const Vector2f& v1, const Vector2f& v2 );
-
-Vector2f max( const Vector2f& v1, const Vector2f& v2 );
-
-Vector2f floor( const Vector2f& v1 );
-
-Vector2f ceil( const Vector2f& v1 );
-
-float randomFloat();
+#endif //COLLECTION_UTILS_H

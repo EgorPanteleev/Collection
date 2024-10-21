@@ -6,24 +6,22 @@
 #define COLLECTION_BVH_H
 #define BINS 8
 #include <cmath>
-#include "Vector3f.h"
+#include "Vec3.h"
 #include "Triangles.h"
 #include "Vector.h"
-#include "Utils.h"
 #include "IntersectionData.h"
 
 struct BVHNode
 {
-    Vector3f aabbMin, aabbMax;
+    Vec3d aabbMin, aabbMax;
     uint leftFirst, trianglesCount;
 
     [[nodiscard]] bool isLeaf() const {
         return ( trianglesCount > 0 );
     }
-    [[nodiscard]] float calculateNodeCost() const
-    {
-        Vector3f e = aabbMax - aabbMin; // extent of the node
-        return (e.x * e.y + e.y * e.z + e.z * e.x) * (float) trianglesCount;
+    [[nodiscard]] double calculateNodeCost() const {
+        Vec3d e = aabbMax - aabbMin;
+        return (e[0] * e[1] + e[1] * e[2] + e[2] * e[0]) * trianglesCount;
     }
 };
 
@@ -37,13 +35,13 @@ public:
 
     void build();
 
-    void updateNodeBounds( uint nodeIdx, Vector3f& centroidMin, Vector3f& centroidMax );
+    void updateNodeBounds( uint nodeIdx, Vec3d& centroidMin, Vec3d& centroidMax );
 
-    void subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vector3f& centroidMin, Vector3f& centroidMax );
+    void subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vec3d& centroidMin, Vec3d& centroidMax );
 
-    float findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vector3f& centroidMin, Vector3f& centroidMax );
+    double findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vec3d& centroidMin, Vec3d& centroidMax );
 
-    bool intersectBBox( const Ray& ray, const Vector3f& bmin, const Vector3f& bmax );
+    bool intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax );
 
     void intersectBVH( Ray& ray, IntersectionData& tData, const uint nodeIdx );
 private:

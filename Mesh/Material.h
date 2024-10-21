@@ -1,5 +1,5 @@
 #pragma once
-#include "Color.h"
+#include "RGB.h"
 #include "string"
 #include "stb_image.h"
 #include "iostream"
@@ -43,26 +43,26 @@ public:
 class Material {
 public:
     Material();
-    Material( const RGB& color, float intensity );
-    Material( const RGB& color, float diffuse, float roughness );
+    Material( const RGB& color, double intensity );
+    Material( const RGB& color, double diffuse, double roughness );
     [[nodiscard]] RGB getColor() const;
     void setColor( const RGB& c );
-    [[nodiscard]] float getIntensity() const;
-    void setIntensity( float i );
-    [[nodiscard]] float getDiffuse() const;
-    void setDiffuse( float d );
-    [[nodiscard]] float getRoughness() const;
-    void setRoughness( float r );
-    float getMetalness() const;
-    void setMetalness( float m );
+    [[nodiscard]] double getIntensity() const;
+    void setIntensity( double i );
+    [[nodiscard]] double getDiffuse() const;
+    void setDiffuse( double d );
+    [[nodiscard]] double getRoughness() const;
+    void setRoughness( double r );
+    double getMetalness() const;
+    void setMetalness( double m );
     void setTexture( const std::string& path );
     [[nodiscard]] Texture getTexture() const;
 private:
     RGB color;
     Texture texture;
-    float intensity;
-    float diffuse;
-    float roughness;
-    float metalness;
+    double intensity;
+    double diffuse;
+    double roughness;
+    double metalness;
 };
 

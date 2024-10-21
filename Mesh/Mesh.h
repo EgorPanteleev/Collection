@@ -18,23 +18,23 @@ class Mesh {
 public:
     Mesh();
     void loadMesh( const std::string& path );
-    void rotate( const Vector3f& axis, float angle, bool group = false );
-    void move( const Vector3f& p );
-    void moveTo( const Vector3f& point );
-    void scale( float scaleValue, bool group = false );
-    void scale( const Vector3f& scaleVec, bool group = false );
-    void scaleTo( float scaleValue, bool group = false );
-    void scaleTo( const Vector3f& scaleVec, bool group = false);
+    void rotate( const Vec3d& axis, double angle, bool group = false );
+    void move( const Vec3d& p );
+    void moveTo( const Vec3d& point );
+    void scale( double scaleValue, bool group = false );
+    void scale( const Vec3d& scaleVec, bool group = false );
+    void scaleTo( double scaleValue, bool group = false );
+    void scaleTo( const Vec3d& scaleVec, bool group = false);
 
-    void setMinPoint( const Vector3f& vec, int ind = -1 );
+    void setMinPoint( const Vec3d& vec, int ind = -1 );
 
-    void setMaxPoint( const Vector3f& vec, int ind = -1 );
+    void setMaxPoint( const Vec3d& vec, int ind = -1 );
 
     [[nodiscard]] Vector <Primitive*> getPrimitives();
-    [[nodiscard]] Vector3f getSamplePoint();
+    [[nodiscard]] Vec3d getSamplePoint();
     [[nodiscard]] BBox getBBox() const;
-    [[nodiscard]] Vector3f getOrigin() const;
-    [[nodiscard]] bool isContainPoint( const Vector3f& p ) const;
+    [[nodiscard]] Vec3d getOrigin() const;
+    [[nodiscard]] bool isContainPoint( const Vec3d& p ) const;
     [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;
     void setPrimitives( Vector<Primitive*>& _triangles );
     void addPrimitive( Primitive* primitive );

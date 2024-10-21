@@ -4,6 +4,8 @@
 
 #include "Denoiser.h"
 #include "OpenImageDenoise/oidn.hpp"
+#include "Vec3.h"
+#include "Utils.h"
 
 void Denoiser::denoise( RGB** colorData, RGB** normalData, RGB** albedoData, int w, int h ) {
     //auto& out = mPathTracerBuffers;
@@ -15,14 +17,14 @@ void Denoiser::denoise( RGB** colorData, RGB** normalData, RGB** albedoData, int
     const int channels = 3; // ARGB
     // Create the denoising filter
     oidn::FilterRef filter = device.newFilter("RT"); // Use the 'RT' filter for path tracing
-    RGB* colorBuffer = new RGB[ w * h ];
-    Vector3f* normalBuffer = new Vector3f[ w * h ];
-    RGB* albedoBuffer = new RGB[ w * h ];
+    auto* colorBuffer = new Vec3f[ w * h ];
+    auto* normalBuffer = new Vec3f[ w * h ];
+    auto* albedoBuffer = new Vec3f[ w * h ];
     for ( int x = 0; x < w; x++ ) {
         for ( int y = 0; y < h; y++ ) {
-            colorBuffer[ y * w + x ] = colorData[x][y] / 255;
-            normalBuffer[ y * w + x ] = normalData[x][y].toNormal();
-            albedoBuffer[ y * w + x ] = albedoData[x][y] / 255;
+            colorBuffer[ y * w + x ] = toVec3<float>( colorData[x][y] / 255 );
+            normalBuffer[ y * w + x ] = toNormal<float>( normalData[x][y] );
+            albedoBuffer[ y * w + x ] = toVec3<float>( albedoData[x][y] / 255 );
         }
     }
 
@@ -41,7 +43,10 @@ void Denoiser::denoise( RGB** colorData, RGB** normalData, RGB** albedoData, int
 
     for ( int x = 0; x < w; x++ ) {
         for ( int y = 0; y < h; y++ ) {
-            colorData[x][y] = colorBuffer[y * w + x] * 255;
+            colorData[x][y] = toRGB( colorBuffer[y * w + x] * 255 );
         }
     }
+    delete[] colorBuffer;
+    delete[] normalBuffer;
+    delete[] albedoBuffer;
 }

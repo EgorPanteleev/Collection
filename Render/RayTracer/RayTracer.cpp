@@ -44,113 +44,113 @@ void RayTracer::closestIntersection( Ray& ray, IntersectionData& iData ) {
 }
 
 template <typename Type>
-float getIntensity( Type* light ) {
+double getIntensity( Type* light ) {
     return light->getIntensity();
 }
 
 
-RGB RayTracer::computeDiffuseLight( const Vector3f& V, const TraceData& traceData ) {
+RGB RayTracer::computeDiffuseLight( const Vec3d& V, const TraceData& traceData ) {
     RGB i;
-    float constexpr del = 1.0f / 255;
-    float roughness = traceData.getRoughness();
-    float metalness = traceData.getMetalness();
+    static double del = 1.0 / 255;
+    double roughness = traceData.getRoughness();
+    double metalness = traceData.getMetalness();
     IntersectionData cIData;
     for ( auto light: scene(0).getLights() ) {
         RGB i1;
         for ( size_t j = 0; j < numLightSamples; j++ ) {
-            Vector3f origin = light->getSamplePoint();
-            Vector3f L = (origin - traceData.P).normalize();
+            Vec3d origin = light->getSamplePoint();
+            Vec3d L = (origin - traceData.P).normalize();
             Ray ray = Ray(origin, L * ( -1 ) );
             closestIntersection( ray, cIData );
             if ( !cIData.primitive ) continue;
             //remove
-            Vector3f P1 = ray.origin + cIData.t * ray.direction;
+            Vec3d P1 = ray.origin + cIData.t * ray.direction;
             if ( getDistance( traceData.P, P1 ) > 1e-3 ) continue;
             //
-            float distance = cIData.t * 0.01f;
-            float inverseDistance2 = 1.0f / ( distance * distance );
-            Vector2f alpha = { pow2( roughness ), pow2( roughness ) };
-            Vector3f wo_T = traceData.cs.to( V );
-            Vector3f wi_T = traceData.cs.to( L );
-            float Nwi = saturate(wi_T.z);
+            double distance = cIData.t * 0.01;
+            double inverseDistance2 = 1.0 / ( distance * distance );
+            Vec2d alpha = { pow2( roughness ), pow2( roughness ) };
+            Vec3d wo_T = traceData.cs.to( V );
+            Vec3d wi_T = traceData.cs.to( L );
+            double Nwi = saturate(wi_T[2]);
             if ( Nwi < 0 ) continue;
             if ( roughness == 1 && metalness == 0 )  {
-                i1 = i1 + Lambertian::BRDF() * light->getIntensity() * ( light->getColor() * del ) * Nwi * inverseDistance2;
+                i1 += Lambertian::BRDF() * light->getIntensity() * ( light->getColor() * del ) * Nwi * inverseDistance2;
             }
             if ( roughness != 1 && metalness < 0.5 ) {
-                i1 = i1 + ( 1 - metalness ) * OrenNayar::BRDF( wi_T, wo_T, alpha[0] ) * light->getIntensity() * ( light->getColor() * del ) * Nwi * inverseDistance2;
+                i1 += ( 1 - metalness ) * OrenNayar::BRDF( wi_T, wo_T, alpha[0] ) * light->getIntensity() * ( light->getColor() * del ) * Nwi * inverseDistance2;
             }
             if ( roughness != 1 && metalness >= 0.5 ) {
-                float PDF;
-                i1 = i1 + metalness * GGX::BRDF( wi_T, wo_T, alpha, PDF ) * light->getIntensity() * ( light->getColor() * del ) * Nwi * inverseDistance2;
+                double PDF;
+                i1 += metalness * GGX::BRDF( wi_T, wo_T, alpha, PDF ) * light->getIntensity() * ( light->getColor() * del ) * Nwi * inverseDistance2;
             }
         }
-        i = i + i1 / (float) numLightSamples;
+        i += i1 / numLightSamples;
     }
-    //if ( i > 1 ) i = 1;
     return i;
 }
 
 RGB RayTracer::computeAmbientLight( const Ray& ray, const TraceData& traceData, int nextDepth ) {
     RGB ambient = {};
-    float roughness = traceData.getRoughness();
-    float metalness = traceData.getMetalness();
-    if ( roughness == 1 ) ambient = ambient + computeDiffuseLambertian( ray, traceData, nextDepth );
-    if ( roughness != 1 && metalness != 1 ) ambient = ambient + ( 1 - metalness ) * computeDiffuseOrenNayar( ray, traceData, nextDepth );
-    if ( roughness != 1 && metalness != 0 ) ambient = ambient + ( metalness ) * computeReflectanceGGX( ray, traceData, nextDepth );
+    double roughness = traceData.getRoughness();
+    double metalness = traceData.getMetalness();
+    if ( roughness == 1 ) ambient += computeDiffuseLambertian( ray, traceData, nextDepth );
+    if ( roughness != 1 && metalness != 1 ) ambient += ( 1 - metalness ) * computeDiffuseOrenNayar( ray, traceData, nextDepth );
+    if ( roughness != 1 && metalness != 0 ) ambient += ( metalness ) * computeReflectanceGGX( ray, traceData, nextDepth );
     return ambient;
 }
 
 KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, const TraceData& traceData, int nextDepth ) {
     RGB ambient = {};
-    Vector3f wo_T = traceData.cs.to( ray.direction * (-1) );
-    Vector2f alpha = { pow2( traceData.getRoughness() ), pow2( traceData.getRoughness() ) };
+    Vec3d wo_T = traceData.cs.to( ray.direction * (-1) );
+    Vec2d alpha = { pow2( traceData.getRoughness() ), pow2( traceData.getRoughness() ) };
     for (int j = 0; j < numAmbientSamples; j++ ) {
-        Vector3f H_T = GGX::getNormal( wo_T, alpha );
-        Vector3f wi_T = reflect( wo_T, H_T ) * ( -1 );
-        float Nwi = saturate(wi_T.z);
-        float PDF;
-        float BRDF = GGX::BRDF( wi_T, wo_T, alpha, PDF );
-        Vector3f wi = traceData.cs.from( wi_T );
+        Vec3d H_T = GGX::getNormal( wo_T, alpha );
+        Vec3d wi_T = reflect( wo_T, H_T ) * ( -1 );
+        double Nwi = saturate(wi_T[2]);
+        double PDF;
+        double BRDF = GGX::BRDF( wi_T, wo_T, alpha, PDF );
+        Vec3d wi = traceData.cs.from( wi_T );
         Ray newRay = { traceData.P + wi * 1e-3, wi };
         CanvasData data;
         traceRay( newRay, data, nextDepth - 1 );
-        ambient = ambient + BRDF / PDF * data.color * Nwi;
+        ambient += BRDF / PDF * data.color * Nwi;
     }
-    return ambient * traceData.ambientOcclusion / (float) numAmbientSamples;
+    return ambient * traceData.ambientOcclusion / numAmbientSamples;
 }
 KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, const TraceData& traceData, int nextDepth ) {
     RGB ambient = {};
-    Vector3f wo_T = traceData.cs.to( ray.direction * (-1) );
+    Vec3d wo_T = traceData.cs.to( ray.direction * (-1) );
     for (int j = 0; j < numAmbientSamples; j++ ) {
-        Vector3f wi_T = OrenNayar::getIncidentDir( traceData.cs.getNormal() );
-        Vector3f wi = traceData.cs.from( wi_T );
-        float Nwi = saturate(wi_T.z);
-        float PDF = OrenNayar::PDF( Nwi );
-        float BRDF = OrenNayar::BRDF( wi_T, wo_T, traceData.getRoughness() );
+        Vec3d wi_T = OrenNayar::getIncidentDir( traceData.cs.getNormal() );
+        Vec3d wi = traceData.cs.from( wi_T );
+        double Nwi = saturate(wi_T[2]);
+        double PDF = OrenNayar::PDF( Nwi );
+        double BRDF = OrenNayar::BRDF( wi_T, wo_T, traceData.getRoughness() );
         Ray newRay = { traceData.P + wi * 1e-3, wi };
         CanvasData data;
         traceRay( newRay, data, nextDepth - 1 );
-        ambient = ambient + BRDF / PDF * data.color * Nwi;
+        ambient += BRDF / PDF * data.color * Nwi;
     }
-    return ambient * traceData.ambientOcclusion / (float) numAmbientSamples;
+    return ambient * traceData.ambientOcclusion / numAmbientSamples;
 }
 
 KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, const TraceData& traceData, int nextDepth ) {
     RGB ambient = {};
     for (int j = 0; j < numAmbientSamples; j++ ) {
-        Vector3f wi_T = Lambertian::getIncidentDir( traceData.cs.getNormal() );
-        Vector3f wi = traceData.cs.from( wi_T );
-        float Nwi = saturate(wi_T.z);
-        float PDF = Lambertian::PDF( Nwi );
-        float BRDF = Lambertian::BRDF();
+        Vec3d wi_T = Lambertian::getIncidentDir( traceData.cs.getNormal() );
+        Vec3d wi = traceData.cs.from( wi_T );
+        double Nwi = saturate(wi_T[2]);
+        double PDF = Lambertian::PDF( Nwi );
+        double BRDF = Lambertian::BRDF();
         Ray newRay = { traceData.P + wi * 1e-3, wi };
         CanvasData data;
         traceRay( newRay, data, nextDepth - 1 );
-        ambient = ambient + BRDF / PDF * data.color * Nwi;
+        ambient += BRDF / PDF * data.color * Nwi;
     }
-    return ambient * traceData.ambientOcclusion / (float) numAmbientSamples;
+    return ambient * traceData.ambientOcclusion / numAmbientSamples;
 }
+
 //TODO нужна реорганизация для оптимизации
 void RayTracer::traceRay( Ray& ray, CanvasData& data, int nextDepth ) {
     IntersectionData iData;
@@ -164,15 +164,14 @@ void RayTracer::traceRay( Ray& ray, CanvasData& data, int nextDepth ) {
     tData.P = ray.origin + tData.t * ray.direction;
     tData.primitive = iData.primitive;
     tData.load();
-    Vector3f vectorColor = ( tData.cs.getNormal() + Vector3f( 1, 1, 1 ) ) * 255 * 0.5f;
-    RGB normalColor = { vectorColor.x, vectorColor.y, vectorColor.z };
+    Vec3d vectorColor = ( tData.cs.getNormal() + Vec3d( 1, 1, 1 ) ) * 255 * 0.5;
+    RGB normalColor = { vectorColor[0], vectorColor[1], vectorColor[2] };
     if ( tData.material.getIntensity() != 0 ) {
         data = { tData.getColor(), normalColor, tData.getColor() };
         return;
     }
     RGB i = computeDiffuseLight( ray.direction * (-1), tData );
-    RGB diffuse = {};
-    diffuse = tData.material.getColor() * i;
+    RGB diffuse = tData.material.getColor() * i;
     if ( nextDepth == 0 ) {
         data = { diffuse, normalColor, tData.getColor() };
         return;
@@ -196,7 +195,7 @@ void RayTracer::load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _num
 }
 
 void RayTracer::printProgress( int x ) const {
-    std::cout << "Progress: " << ( (float) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
+    std::cout << "Progress: " << ( (double) ( x + 1 ) / canvas(0).getW() ) * 100 << std::endl;
 }
 
 void RayTracer::render( Type type ) {
@@ -220,6 +219,9 @@ void RayTracer::traceAllRaysSerial() {
             CanvasData colorData;
             traceRay( ray, colorData, depth );
             colorData.color.scaleTo( 255 );
+//            if ( colorData.color.r > 240 && colorData.color.g > 240 && colorData.color.b > 240 ) {
+//                std::cout << x << " " << y << "\n";
+//            }
             canvas(0).setColor( x, y, colorData.color );
             canvas(0).setNormal( x, y, colorData.normal );
             canvas(0).setAlbedo( x, y, colorData.albedo );
@@ -273,9 +275,9 @@ void RenderFunctor::operator()(const int i, const int j) const {
 ////            ray = rayTracer->getCamera()->getSecondaryRay(i, j);
 ////        }
 //        CanvasData data = rayTracer->traceRay(ray, rayTracer->getDepth() );
-//        colors(i, j) = colors(i, j) +  data.color / (float) numSamples;
-//        normals(i, j) = normals(i, j) +  data.normal / (float) numSamples;
-//        albedos(i, j) = albedos(i, j) +  data.albedo / (float) numSamples;
+//        colors(i, j) = colors(i, j) +  data.color / (double) numSamples;
+//        normals(i, j) = normals(i, j) +  data.normal / (double) numSamples;
+//        albedos(i, j) = albedos(i, j) +  data.albedo / (double) numSamples;
 //    }
     //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
     Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);

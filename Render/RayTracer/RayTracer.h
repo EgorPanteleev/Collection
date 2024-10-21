@@ -2,7 +2,7 @@
 #define COLLECTION_RAYTRACER_H
 
 #include <utility>
-#include "Color.h"
+#include "RGB.h"
 #include "CoordinateSystem.h"
 #include "Ray.h"
 #include "Scene.h"
@@ -27,7 +27,7 @@ public:
     RayTracer( const std::string& path  );
     ~RayTracer();
     KOKKOS_INLINE_FUNCTION void closestIntersection( Ray& ray, IntersectionData& iData );
-    KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vector3f& V, const TraceData& traceData );
+    KOKKOS_INLINE_FUNCTION RGB computeDiffuseLight( const Vec3d& V, const TraceData& traceData );
     KOKKOS_INLINE_FUNCTION RGB computeAmbientLight( const Ray& ray, const TraceData& traceData, int nextDepth );
     KOKKOS_INLINE_FUNCTION void traceRay( Ray& ray, CanvasData& data, int nextDepth );
     void render( Type type );
