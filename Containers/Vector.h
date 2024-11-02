@@ -17,12 +17,7 @@ public:
 
     Vector(): mAlloc(), mData(nullptr), mSize(0), mCap(0)  {}
 
-
-    Vector( size_t n ): mAlloc(), mData(nullptr), mSize(0), mCap(0)  {
-        reserve( n );
-    }
-
-    Vector( size_t n, const Type& value ): mAlloc(), mData(nullptr), mSize(0), mCap(n)  {
+    Vector( size_t n, const Type& value = Type() ): mAlloc(), mData(nullptr), mSize(0), mCap(n)  {
         resize( n, value );
     }
 
@@ -30,20 +25,70 @@ public:
         resize( n, std::move( value ) );
     }
 
+    Vector( const Vector& other ): mSize(other.mSize), mCap(other.mCap), mAlloc(other.mAlloc)  {
+        mData = mAlloc.allocate( mCap );
+        for ( size_t i = 0; i < mSize; ++i ) {
+            mAlloc.construct( mData + i, other.mData[i] );
+        }
+    }
+
+    Vector& operator=( const Vector& other ) {
+        if ( this == &other ) return *this;
+        if ( mCap < other.mSize ) {
+            for ( size_t i = 0; i < mSize; ++i ) {
+                if ( mData ) mAlloc.destroy( mData + i );
+            }
+            mAlloc.deallocate( mData, mCap );
+            mData = mAlloc.allocate( other.mCap );
+            mCap = other.mCap;
+        }
+        mSize = other.mSize;
+        for ( size_t i = 0; i < mSize; ++i ) {
+            mAlloc.construct( mData + i, other.mData[i] );
+        }
+        return *this;
+    }
+
+    Vector( Vector&& other ): mData(other.mData), mSize(other.mSize), mCap(other.mCap), mAlloc(std::move(other.mAlloc)) {
+        other.mData = nullptr;
+        other.clear();
+    }
+
+    Vector& operator=( Vector&& other ) {
+        if ( this == &other ) return *this;
+
+        for ( size_t i = 0; i < mSize; ++i ) {
+            if ( mData ) mAlloc.destroy( mData + i );
+        }
+        mAlloc.deallocate( mData, mCap );
+
+        mCap = other.mCap;
+        mSize = other.mSize;
+
+        mData = other.mData;
+
+        mAlloc = std::move( other.mAlloc );
+
+        other.mData = nullptr;
+        other.clear();
+
+        return *this;
+    }
+
     ~Vector() {
-        for ( int i = 0; i < mSize; ++i ) {
-            mAlloc.destroy( mData + i );
+        for ( size_t i = 0; i < mSize; ++i ) {
+            if ( mData ) mAlloc.destroy( mData + i );
         }
         mAlloc.deallocate( mData, mCap );
     }
     void reserve( size_t newCap ) {
-        if ( newCap < mCap ) return;
+        if ( newCap <= mCap ) return;
         Type* newData = mAlloc.allocate( newCap );
-        for ( int i = 0; i < mSize; ++i ) {
-            mAlloc.construct( &newData[i], std::move( mData[i] ) );
+        for ( size_t i = 0; i < mSize; ++i ) {
+            mAlloc.construct( newData + i, std::move( mData[i] ) );
         }
-        for ( int i = 0; i < mSize; ++i ) {
-            mAlloc.destroy( mData + i );
+        for ( size_t i = 0; i < mSize; ++i ) {
+            if ( mData ) mAlloc.destroy( mData + i );
         }
         mAlloc.deallocate( mData, mCap );
         mData = newData;
@@ -60,8 +105,8 @@ public:
             reserve( newSize );
         }
 
-        for ( int i = mSize; i < newSize; ++i ) {
-            mAlloc.construct( &mData[i], value );
+        for ( size_t i = mSize; i < newSize; ++i ) {
+            mAlloc.construct( mData + i, value );
         }
         mSize = newSize;
     }
@@ -71,7 +116,7 @@ public:
             reserve( mCap == 0 ? 1 : mCap * 2 );
         }
 
-        mAlloc.construct( &mData[ mSize++ ], value );
+        mAlloc.construct( mData + mSize++, value );
     }
 
     void push_back( Type&& value ) {
@@ -79,7 +124,7 @@ public:
             reserve( mCap == 0 ? 1 : mCap * 2 );
         }
 
-        mAlloc.construct( &mData[ mSize++ ], std::move( value ) );
+        mAlloc.construct( mData + mSize++, std::move( value ) );
     }
 
     void pop_back() {
@@ -91,7 +136,7 @@ public:
         if ( mSize == mCap ) {
             reserve( mCap == 0 ? 1 : mCap * 2 );
         }
-        mAlloc.construct( &mData[ mSize++ ], std::forward<Args>( args )... );
+        mAlloc.construct( mData + mSize++, std::forward<Args>( args )... );
     }
 
     Reference operator[]( size_t ind ) {

@@ -19,6 +19,8 @@ add_subdirectory(OBJReader)
 
 add_subdirectory(Math)
 
+add_subdirectory(Containers)
+
 add_subdirectory(Mesh)
 
 #add_subdirectory(Shapes)
