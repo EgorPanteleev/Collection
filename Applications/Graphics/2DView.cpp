@@ -7,27 +7,6 @@
 #include "Denoiser.h"
 #include "GroupOfMeshes.h"
 #include "Triangles.h"
-//162.786 2 2 5 - 3200
-// 3 sec - 960 2 2 2
-
-
-//void test() {
-//    Triangles triangles;
-//    Vec3d v1 = { 0, 0, 0 };
-//    Vec3d v2 = { 0, 0, 1 };
-//    Vec3d v3 = { 0, 1, 0 };
-//    Vec3d v4 = { 0, 1, 0 };
-//    Vec3d v5 = { 0, 1, 1 };
-//    Vec3d v6 = { 1, 0, 0 };
-//    triangles.addTriangle( v1, v2, v3 );
-//    triangles.addTriangle( v4, v5, v6 );
-//    std::cout << "Vertices size "<<triangles.vertices.size()<<std::endl;
-//    std::cout<< "Indices size "<< triangles.indices.size()<<std::endl;
-//    std::cout << "Indexes:" << std::endl;
-//    for ( auto ind: triangles.indices ) {
-//        std::cout << ind << std::endl;
-//    }
-//}
 
 void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
     for ( const auto mesh: meshes ) {
@@ -37,7 +16,8 @@ void loadScene(Scene* scene, Vector <Mesh*>& meshes, Vector<Light*>& lights ) {
         scene->add( light );
     }
 }
-void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+
+void sphereScene( RayTracer*& rayTracer, int w, int h, const RayTracerParameters& params ) {
     Camera* cam = new Camera( Vec3d(0, 0,-10000 ), Vec3d(0,0,1), 6000,3200,2000 );
     Scene* scene = new Scene();
     Canvas* canvas = new Canvas(w, h );
@@ -65,55 +45,9 @@ void sphereScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int num
     for ( auto sphere: spheres ) {
         scene->add( sphere );
     }
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+    rayTracer = new RayTracer( cam, scene, canvas, params );
 }
-
-void sphereScene1( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), 2000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas(w, h );
-
-    Vector<Mesh*> meshes;
-    Vector<Sphere*> spheres;
-    Vector<Light*> lights;
-    double roomRefl = 0;
-////right
-    meshes.push_back( new CubeMesh( Vec3d(70, -50, 0), Vec3d(80, 70, 600),
-                                    { GREEN, -1 , roomRefl } ) );
-////left
-    meshes.push_back(new CubeMesh( Vec3d(-80, -50, 0), Vec3d(-70, 70, 600),
-                                   { RED, -1 , roomRefl } ) );
-////front
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 290), Vec3d(100, 70, 300),
-                                   { GRAY, -1 , roomRefl } ) );
-////back
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, -10), Vec3d(100, 70, 0),
-                                   { GRAY, -1 , roomRefl } ) );
-////down
-    meshes.push_back(new CubeMesh( Vec3d(-100, -70, 0), Vec3d(100, -50, 620),
-                                   { GRAY, -1 , roomRefl } ) );
-////up
-    meshes.push_back(new CubeMesh( Vec3d(-100, 70, roomRefl), Vec3d(100, 90, 620),
-                                   { GRAY, -1 , 0 } ) );
-
-////RAND SPHERE
-    spheres.push_back( new Sphere(25, Vec3d(0, -10, 150), {BLUE, -1, 0 }) );
-////LIGHTS
-    spheres.push_back( new Sphere(10, Vec3d(0, 55, 150), {BLUE, 0.7}) );
-    //lights.push_back( new PointLight( Vec3d(0,65,150), 0.55));
-    int lightWidth = 20;
-    //lights.push_back( new SpotLight( Vec3d(0 - lightWidth,65,180 - lightWidth), Vec3d(0 + lightWidth,65,180 + lightWidth), 0.7));
-    //lights.push_back( new SpotLight( Vec3d(0 - lightWidth,-45,180 - lightWidth), Vec3d(0 + lightWidth,-45,180 + lightWidth), 0.7));
-
-
-    for ( auto sphere: spheres ) {
-        scene->add( sphere );
-    }
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+void netRoomScene( RayTracer*& rayTracer, int w, int h, const RayTracerParameters& params ) {
     double FOV = 67.38;
     double dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
     Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), dV,w,h );
@@ -173,460 +107,10 @@ void netRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int nu
 
 ////LOADING...
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+    rayTracer = new RayTracer( cam, scene, canvas, params );
 }
 
-void simpleRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,300 ), Vec3d(0,0,1), 2400,3200,2000 );
-    //Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-////right
-    meshes.push_back( new CubeMesh( Vec3d(80, -50, 0), Vec3d(100, 50, 600),
-                                    { GRAY, -1 , 0 } ) );
-////left
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 0), Vec3d(-80, 50, 600),
-                                   { GRAY, -1 , 0 } ) );
-////front
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 600), Vec3d(100, 50, 610),
-                                   { GRAY, -1 , 0 } ) );
-////back
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, -10), Vec3d(100, 50, 0),
-                                   { GRAY, -1 , 0 } ) );
-////down
-    meshes.push_back(new CubeMesh( Vec3d(-100, -70, 0), Vec3d(100, -50, 620),
-                                   { GRAY, -1 , 0 } ) );
-////up
-    meshes.push_back(new CubeMesh( Vec3d(-100, 50, 0), Vec3d(100, 70, 620),
-                                   { GRAY, -1 , 0 } ) );
-
-////RAND BLOCK
-    auto* randBlockForward = new CubeMesh( Vec3d(-15, -50, 310), Vec3d(15, -30, 340) );
-    randBlockForward->moveTo( Vec3d(0, -40, 325) );
-    randBlockForward->scaleTo( Vec3d(20,90,20) );
-    randBlockForward->rotate( Vec3d( 0,1,0), 45);
-    randBlockForward->move( Vec3d(30,0,0));
-    randBlockForward->setMaterial({RED, 1 , 0});
-    randBlockForward->move( Vec3d(-50,0,180));
-    //randBlockForward->scaleTo( 200 );
-    meshes.push_back(randBlockForward );
-
-////LIGHTS
-
-    lights.push_back( new PointLight( Vec3d(0,25,450), 0.45));
-
-//    lights.push_back( new PointLight( Vec3d(-75,35,595), 0.15));
-//    lights.push_back( new PointLight( Vec3d(75,35,595), 0.15));
-//    lights.push_back( new PointLight( Vec3d(-75,35,5), 0.15));
-//    lights.push_back( new PointLight( Vec3d(75,35,5), 0.15));
-////LOADING...
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-
-void roomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,300 ), Vec3d(0,0,1), 3000,3200,2000 );
-    //Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-////right
-    meshes.push_back( new CubeMesh( Vec3d(80, -50, 0), Vec3d(100, 50, 600),
-                                    { GRAY, -1 , 0 } ) );
-////left
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 0), Vec3d(-80, 50, 600),
-                                   { GRAY, -1 , 0 } ) );
-////front
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 600), Vec3d(100, 50, 610),
-                                   { GRAY, -1 , 0 } ) );
-////back
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, -10), Vec3d(100, 50, 0),
-                                   { GRAY, -1 , 0 } ) );
-////down
-    meshes.push_back(new CubeMesh( Vec3d(-100, -70, 0), Vec3d(100, -50, 620),
-                                   { GRAY, -1 , 0 } ) );
-////up
-    meshes.push_back(new CubeMesh( Vec3d(-100, 50, 0), Vec3d(100, 70, 620),
-                                   { GRAY, -1 , 0 } ) );
-
-////RAND BLOCK
-    auto* randBlockForward = new CubeMesh( Vec3d(-15, -50, 310), Vec3d(15, -30, 340) );
-    randBlockForward->moveTo( Vec3d(0, -40, 325) );
-    randBlockForward->scaleTo( Vec3d(20,90,20) );
-    randBlockForward->rotate( Vec3d( 0,1,0), 45);
-    randBlockForward->move( Vec3d(30,0,0));
-    randBlockForward->setMaterial({RED, 1 , 0});
-    randBlockForward->move( Vec3d(-95,0,200));
-    //randBlockForward->scaleTo( 200 );
-    meshes.push_back(randBlockForward );
-
-////DOG
-    auto* dog = new Mesh();
-    dog->loadMesh( "/home/auser/dev/src/Collection/Models/dog/model.obj" );
-    //dog->rotate( Vec3d( 0, 0, 1), 45 );
-    dog->rotate( Vec3d( 1,0,0),-90);
-    dog->rotate( Vec3d( 0,1,0),-235);
-    dog->scaleTo( 50 );
-    dog->move( Vec3d( -10,0,520) );
-    dog->setMinPoint( { 0, -50, 0 }, 1 );
-    dog->setMaterial( { GRAY, 1 , 0 } );
-    meshes.push_back( dog );
-    ////SKS
-    auto* sks = new Mesh();
-    sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
-    sks->rotate( Vec3d( 0, 0, 1), 60 );
-    //sks->rotate( Vec3d( 1,0,0),100);
-    sks->rotate( Vec3d( 0,1,0), -120);
-    sks->scaleTo(45);
-    sks->setMinPoint( { 0, -50, 0 }, 1 );
-    sks->move( Vec3d( 39,0,305) );
-    sks->move( Vec3d(-95,0,200));
-    sks->setMaterial( { GRAY, 1 , 0 } );
-    meshes.push_back( sks );
-
-    ////TABLE
-    auto* table = new Mesh();
-    table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
-    //table->rotate( Vec3d( 0, 0, 1), 45 );
-    //table->rotate( Vec3d( 1,0,0),270);
-    table->rotate( Vec3d( 0,1,0),0);
-    table->scaleTo( 75 );
-    table->move( Vec3d( 40,40,500) );
-    table->setMinPoint({ 0, -50, 0 }, 1);
-    table->setMaxPoint({ 0, 0, 600 }, 2);
-    table->setMaxPoint({ 80, 0, 0 }, 0);
-    table->setMaterial( { GRAY, 1 , 0 } );
-    meshes.push_back( table );
-
-    // -80, 80 ; -50, 50; 0, 600
-    ////Mirror
-    Vec3d moveVec = { 35,-5,0};
-    RGB colorRam = GRAY;
-    auto* mirrorBottom = new CubeMesh( Vec3d(0, 0, 595), Vec3d(30, 2, 600) );
-    mirrorBottom->setMaterial( { colorRam, 1 , 0 } );
-    mirrorBottom->move(moveVec);
-    meshes.push_back( mirrorBottom );
-
-    auto* mirrorLeft = new CubeMesh( Vec3d(0, 2, 595), Vec3d(2, 37, 600) );
-    mirrorLeft->setMaterial( { colorRam, 1 , 0 } );
-    mirrorLeft->move(moveVec);
-    meshes.push_back( mirrorLeft );
-
-    auto* mirrorRight = new CubeMesh( Vec3d(28, 2, 595), Vec3d(30, 37, 600) );
-    mirrorRight->setMaterial( { colorRam, 1 , 0 } );
-    mirrorRight->move(moveVec);
-    meshes.push_back( mirrorRight );
-
-    auto* mirrorTop = new CubeMesh( Vec3d(2, 35, 595), Vec3d(28, 37, 600) );
-    mirrorTop->setMaterial( { colorRam, 1 , 0 } );
-    mirrorTop->move(moveVec);
-    meshes.push_back( mirrorTop );
-
-    auto* mirror = new CubeMesh( Vec3d(2, 2, 598), Vec3d(30, 35, 600) );
-    mirror->setMaterial( { GRAY, 1 , 1 } );
-    mirror->move(moveVec);
-    meshes.push_back( mirror );
-
-    //CUBE
-    auto* cube = new CubeMesh( Vec3d(2, 2, 592), Vec3d(12, 4, 602) );
-    cube->setMaterial( { GRAY, 1 , 0 } );
-    cube->move({14,-14,-20});
-    meshes.push_back( cube );
-
-    auto* plane = new Mesh();
-    plane->loadMesh( "/home/auser/dev/src/Collection/Models/plane/model.obj" );
-    //plane->rotate( Vec3d( 0, 0, 1), 10 );
-    plane->rotate( Vec3d( 1,0,0),-15);
-    plane->rotate( Vec3d( 0,1,0),-140);
-    plane->move( Vec3d( 20,0,576) );
-    plane->setMinPoint( Vec3d( 0,-63,0), 1 );
-    plane->scaleTo( 15 );
-    plane->setMaterial( { GRAY, 1 , 0 } );
-    meshes.push_back( plane );
-
-////LIGHTS
-
-    //lights.push_back( new PointLight( Vec3d(0,25,450), 0.55));
-    int lightWidth = 20;
-    lights.push_back( new SpotLight( Vec3d(0 - lightWidth,45,480 - lightWidth), Vec3d(0 + lightWidth,45,480 + lightWidth), 0.70));
-
-//    lights.push_back( new PointLight( Vec3d(-75,35,595), 0.15));
-//    lights.push_back( new PointLight( Vec3d(75,35,595), 0.15));
-//    lights.push_back( new PointLight( Vec3d(-75,35,5), 0.15));
-//    lights.push_back( new PointLight( Vec3d(75,35,5), 0.15));
-////LOADING...
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-
-void ratScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* rat = new Mesh();
-    rat->loadMesh( "/home/auser/dev/src/Collection/Models/rat/model.obj" );
-    //rat->rotate( Vec3d( 0, 0, 1), 45 );
-    rat->rotate( Vec3d( 1,0,0),270);
-    rat->rotate( Vec3d( 0,1,0),145);
-    rat->move( Vec3d( 0,0,500) );
-    rat->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( rat );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-
-void tableScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* table = new Mesh();
-    table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
-    //table->rotate( Vec3d( 0, 0, 1), 45 );
-    //table->rotate( Vec3d( 1,0,0),270);
-    table->rotate( Vec3d( 0,1,0),-120);
-    table->move( Vec3d( 40,40,1000) );
-    table->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( table );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void bookScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* book = new Mesh();
-    book->loadMesh( "/home/auser/dev/src/Collection/Models/book/model.obj" );
-    //book->rotate( Vec3d( 0, 0, 1), 45 );
-    book->rotate( Vec3d( 1,0,0),-30);
-    book->rotate( Vec3d( 0,1,0),-130);
-    book->move( Vec3d( 40,0,1000) );
-    book->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( book );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void sandwichScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* sandwich = new Mesh();
-    sandwich->loadMesh( "/home/auser/dev/src/Collection/Models/sandwich/model.obj" );
-    sandwich->rotate( Vec3d( 0, 0, 1), 180 );
-    sandwich->rotate( Vec3d( 1,0,0),-90);
-    sandwich->rotate( Vec3d( 0,1,0),-70);
-    sandwich->move( Vec3d( 40,0,1000) );
-    sandwich->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( sandwich );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void cartScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* cart = new Mesh();
-    cart->loadMesh( "/home/auser/dev/src/Collection/Models/telega/model.obj" );
-    //cart->rotate( Vec3d( 0, 0, 1), 45 );
-    cart->rotate( Vec3d( 1,0,0),-90);
-    cart->rotate( Vec3d( 0,1,0),60);
-    cart->move( Vec3d( 40,0,1000) );
-    cart->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( cart );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void sksScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* sks = new Mesh();
-    sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
-    //sks->rotate( Vec3d( 0, 0, 1), 45 );
-    sks->rotate( Vec3d( 1,0,0),-90);
-    sks->rotate( Vec3d( 0,1,0),-20);
-    sks->move( Vec3d( 0,0,600) );
-    sks->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( sks );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void dogScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* dog = new Mesh();
-    dog->loadMesh( "/home/auser/dev/src/Collection/Models/dog/model.obj" );
-    //dog->rotate( Vec3d( 0, 0, 1), 45 );
-    dog->rotate( Vec3d( 1,0,0),-90);
-    dog->rotate( Vec3d( 0,1,0),-235);
-    dog->move( Vec3d( 0,0,700) );
-    dog->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( dog );
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void planeScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* plane = new Mesh();
-    plane->loadMesh( "/home/auser/dev/src/Collection/Models/plane/model.obj" );
-    //dog->rotate( Vec3d( 0, 0, 1), 45 );
-    plane->rotate( Vec3d( 1,0,0),10);
-    plane->rotate( Vec3d( 0,1,0),-200);
-    plane->move( Vec3d( 0,0,600) );
-    plane->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( plane );
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void modelRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* room = new Mesh();
-    room->loadMesh( "/home/auser/dev/src/Collection/Models/cottage/Cottage_FREE.obj" );
-    //room->rotate( Vec3d( 0, 0, 1), 45 );
-    //room->rotate( Vec3d( 1,0,0),10);
-    //room->rotate( Vec3d( 0,1,0),-200);
-    room->move( Vec3d( 0,0,0) );
-    room->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( room );
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-void cottageScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* cottage = new Mesh();
-    cottage->loadMesh( "/home/auser/dev/src/Collection/Models/underground/underground.obj" );
-    //cottage->rotate( Vec3d( 0, 0, 1), 45 );
-    //cottage->rotate( Vec3d( 1,0,0),10);
-    cottage->rotate( Vec3d( 0,1,0),-260);
-    cottage->move( Vec3d( 0,0,800) );
-    cottage->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( cottage );
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void carScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-
-    auto* car = new Mesh();
-    car->loadMesh( "/home/auser/dev/src/Collection/Models/koenigsegg/model.obj" );
-    //car->rotate( Vec3d( 0, 0, 1), 45 );
-    //car->rotate( Vec3d( 1,0,0),10);
-    car->rotate( Vec3d( 0,1,0),-210);
-    car->move( Vec3d( 0,0,600) );
-    car->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-    meshes.push_back( car );
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void hardScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-    auto* table = new Mesh();
-    table->loadMesh( "/home/auser/dev/src/Collection/Models/table/model.obj" );
-    //table->rotate( Vec3d( 0, 0, 1), 20 );
-    //table->rotate( Vec3d( 1,0,0),20);
-    table->rotate( Vec3d( 0,1,0),-120);
-    table->move( Vec3d( 40,40,1200) );
-    table->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-
-
-
-    auto* sks = new Mesh();
-    sks->loadMesh( "/home/auser/dev/src/Collection/Models/sks/model.obj" );
-    sks->rotate( Vec3d( 0, 0, 1), 0 );
-    sks->rotate( Vec3d( 1,0,0),0);
-    sks->rotate( Vec3d( 0,1,0),0);
-    sks->move( Vec3d( -25,19,1080) );
-    sks->setMaterial( { RGB( 130, 130, 130 ), 1 , 0 } );
-
-    meshes.push_back( table );
-    meshes.push_back( sks );
-
-
-    lights.push_back( new PointLight( Vec3d(20 ,0,0), 0.5));
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+void audiScene( RayTracer*& rayTracer, int w, int h, const RayTracerParameters& params ) {
     double FOV = 67.38;
     double dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
     Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), dV,w,h );
@@ -784,10 +268,10 @@ void audiScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS
                                     { WHITE, intensity }));
 ////LOADING...
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+    rayTracer = new RayTracer( cam, scene, canvas, params );
 }
 
-void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
+void sphereRoomScene( RayTracer*& rayTracer, int w, int h, const RayTracerParameters& params ) {
     double FOV = 67.38;
     double dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
     Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), dV,w,h );
@@ -870,115 +354,9 @@ void sphereRoomScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int
 //        scene->add( sphere );
 //    }
     loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
+    rayTracer = new RayTracer( cam, scene, canvas, params );
 }
 
-
-void dragonScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    double FOV = 67.38;
-    double dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
-    Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), dV,w,h );
-    //Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-    double roomRefl = 0;
-////right
-    meshes.push_back( new CubeMesh( Vec3d(70, -50, 0), Vec3d(80, 70, 600),
-                                    { GREEN, -1 , roomRefl } ) );
-////left
-    meshes.push_back(new CubeMesh( Vec3d(-80, -50, 0), Vec3d(-70, 70, 600),
-                                   { RED, -1 , roomRefl } ) );
-////front
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 290), Vec3d(100, 70, 300),
-                                   { GRAY, -1, roomRefl } ) );
-////back
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, -10), Vec3d(100, 70, 0),
-                                   { GRAY, -1 , roomRefl } ) );
-////down
-    meshes.push_back(new CubeMesh( Vec3d(-100, -70, 0), Vec3d(100, -50, 620),
-                                   { GRAY, -1 , roomRefl } ) );
-////up
-    meshes.push_back(new CubeMesh( Vec3d(-100, 70, 0), Vec3d(100, 90, 620),
-                                   { GRAY, -1 , roomRefl } ) );
-
-////RAND BLOCK
-    auto* dragon = new Mesh();
-    dragon->loadMesh( "/home/auser/dev/src/Collection/Models/dragon/armadillo.obj" );
-    dragon->setMaterial(  { GRAY, -1 , roomRefl } );
-    dragon->scaleTo(100 );
-    dragon->moveTo( {0,0,150} );
-    dragon->rotate( Vec3d( 1,0,0),-30);
-    dragon->setMinPoint( {0,-50,0}, 1 );
-    meshes.push_back( dragon );
-////LIGHTS
-
-    lights.push_back( new PointLight( Vec3d(0,65,150), 0.6));
-    int lightWidth = 20;
-    //lights.push_back( new SpotLight( Vec3d(0 - lightWidth,65,180 - lightWidth), Vec3d(0 + lightWidth,65,180 + lightWidth), 0.7));
-
-////LOADING...
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
-
-
-void testScene( RayTracer*& rayTracer, int w, int h, int d, int numAS, int numLS ) {
-    double FOV = 67.38;
-    double dV = w / 2 / tan( FOV * M_PI / 180 / 2 );
-    Camera* cam = new Camera( Vec3d(0,10,0 ), Vec3d(0,0,1), dV,w,h );
-    //Camera* cam = new Camera( Vec3d(0,0,0 ), Vec3d(0,0,1), 6000,3200,2000 );
-    Scene* scene = new Scene();
-    Canvas* canvas = new Canvas( w, h );
-
-    Vector<Mesh*> meshes;
-    Vector<Light*> lights;
-    double roomRefl = 1;
-
-    Material floor = {GRAY, -1, 0 };
-    floor.setTexture( "/home/auser/dev/src/Collection/Textures/WoodFloorBright/");
-
-////right
-    meshes.push_back( new CubeMesh( Vec3d(70, -50, 0), Vec3d(80, 70, 600),
-                                    floor ) );
-////left
-    meshes.push_back(new CubeMesh( Vec3d(-80, -50, 0), Vec3d(-70, 70, 600),
-                                   floor ) );
-////front
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, 290), Vec3d(100, 70, 300),
-                                   floor ) );
-////back
-    meshes.push_back(new CubeMesh( Vec3d(-100, -50, -10), Vec3d(100, 70, 0),
-                                   floor ) );
-////floor
-    meshes.push_back(new CubeMesh( Vec3d(-100, -70, 0), Vec3d(100, -50, 620),
-                                   floor ) );
-////ceil
-    meshes.push_back(new CubeMesh( Vec3d(-100, 70, 0), Vec3d(100, 90, 620),
-                                   floor ) );
-
-
-    ////RAND BLOCK
-    auto* m = new Mesh();
-    m->loadMesh( "/home/auser/dev/src/Collection/Models/torus.obj" );
-    m->setMaterial( { GRAY, -1, 1 } );
-    m->scaleTo( 50 );
-    m->moveTo( { 0, 0, 150 } );
-    meshes.push_back( m );
-
-////LIGHTS
-
-    lights.push_back( new PointLight( Vec3d(0,0,0), 3));
-    lights.push_back( new PointLight( Vec3d(0,0,290), 3));
-    lights.push_back( new PointLight( Vec3d(0,65,250), 3));
-//    int lightWidth = 20;
-//    meshes.push_back( new CubeMesh( Vec3d(0 - lightWidth,64,150 - lightWidth), Vec3d(0 + lightWidth,65,150 + lightWidth), { WHITE, 1.2 }));
-
-    loadScene( scene, meshes, lights );
-    rayTracer = new RayTracer( cam, scene, canvas, d, numAS, numLS );
-}
 
 int main( int argc, char* argv[] ) {
     setenv("OMP_PROC_BIND", "spread", 1);
@@ -993,45 +371,25 @@ int main( int argc, char* argv[] ) {
     ////RESOLUTION
     //int w = 8 ; int h = 5;
     //int w = 240 ; int h = 150;
-    //int w = 640 ; int h = 400; //53 sec //
-    //int w = 960 ; int h = 600; // 42 sec
-    //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
-////49 sec // 46 sec
-    
-    // 22 sec /
-    // ( 960x600 (2,5,2) audi scene) - 42 sec / 47 sec /
+    //int w = 640 ; int h = 400;
+    //int w = 960 ; int h = 600;
+    int w = 1920 ; int h = 1200;
+    //int w = 3200; int h = 2000;
+
 
     ////NUM SAMPLES
-    int depth = 1;
-    int ambientSamples = 2;
+    int depth = 2;
+    int numSamples = 1;
+    int ambientSamples = 5;
     int lightSamples = 2;
 
-// room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
-// room scene ( 3200x2000 ) - idk / 95 /
-// rat scene ( 3200x2000 ) - 100 / 79 / 4.6
+    RayTracerParameters params( depth, numSamples, ambientSamples, lightSamples );
+
     auto start = std::chrono::high_resolution_clock::now();
-    //sphereScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    //sphereScene1( rayTracer, w, h, depth, ambientSamples, lightSamples );//
-    //netRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    //simpleRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    //roomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    //ratScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//2.3 sec // 1.7 sec // 8.67 sec
-    //tableScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//23 sec // 1.56 sec // 7,62 sec
-    //bookScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//130 sec // 31 sec //
-    //sandwichScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//3.29 sec //2 sec
-    //cartScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//118 sec // 1.96 sec
-    //sksScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//182 sec //1.6 sec
-    //dogScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//10 sec //9 sec
-    //planeScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
-    //modelRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
-    //carScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
-    //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
-    //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    //dragonScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
-    //testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    //sphereScene( rayTracer, w, h, params );//
+    netRoomScene( rayTracer, w, h, params );//57 sec // 13.6 sec
+    //audiScene( rayTracer, w, h, params ); //720 sec// 4 sec
+    //sphereRoomScene( rayTracer, w, h, params );//57 sec // 13.6 sec
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
@@ -1054,4 +412,4 @@ int main( int argc, char* argv[] ) {
     return 0;
 }
 
-//time - 47.94 /
+// +-62 sec

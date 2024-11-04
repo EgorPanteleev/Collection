@@ -17,13 +17,23 @@ struct CanvasData {
     RGB albedo;
 };
 
+struct RayTracerParameters {
+    RayTracerParameters(): depth(), numSamples(), numAmbientSamples(), numLightSamples() {}
+    RayTracerParameters( int depth, int numSamples, int numAmbientSamples, int numLightSamples ):
+            depth( depth ), numSamples( numSamples ), numAmbientSamples( numAmbientSamples ), numLightSamples( numLightSamples ) {}
+    int depth;
+    int numSamples;
+    int numAmbientSamples;
+    int numLightSamples;
+};
+
 class RayTracer {
 public:
     enum Type {
        SERIAL,
        PARALLEL
     };
-    RayTracer( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
+    RayTracer( Camera* c, Scene* s, Canvas* _canvas, const RayTracerParameters& params );
     RayTracer( const std::string& path  );
     ~RayTracer();
     KOKKOS_INLINE_FUNCTION void closestIntersection( Ray& ray, IntersectionData& iData );
@@ -34,12 +44,12 @@ public:
     [[nodiscard]] Canvas* getCanvas() const;
     [[nodiscard]] Scene* getScene() const;
     [[nodiscard]] Camera* getCamera() const;
-    [[nodiscard]] int getDepth() const;
+    [[nodiscard]] RayTracerParameters getParameters() const;
 private:
     KOKKOS_INLINE_FUNCTION RGB computeReflectanceGGX( const Ray& ray, const TraceData& traceData, int nextDepth );
     KOKKOS_INLINE_FUNCTION RGB computeDiffuseOrenNayar( const Ray& ray, const TraceData& traceData, int nextDepth );
     KOKKOS_INLINE_FUNCTION RGB computeDiffuseLambertian( const Ray& ray, const TraceData& traceData, int nextDepth );
-    void load( Camera* c, Scene* s, Canvas* _canvas, int _depth, int _numAmbientSamples, int _numLightSamples );
+    void load( Camera* c, Scene* s, Canvas* _canvas, const RayTracerParameters& params );
     void printProgress( int x ) const;
     void traceAllRaysSerial();
     void traceAllRaysParallel();
@@ -47,9 +57,7 @@ private:
     Kokkos::View<Scene*> scene;
     Kokkos::View<Canvas*> canvas;
     BVH* bvh;
-    int depth;
-    int numAmbientSamples;
-    int numLightSamples;
+    RayTracerParameters params;
     //RGB diffuse;
     //RGB ambient;
     //RGB specular;
