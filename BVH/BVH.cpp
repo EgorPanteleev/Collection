@@ -11,22 +11,20 @@ BVH::BVH( const Vector <Primitive*>& _primitives ) {
 //        std::cout<< "Intensity - "<< mat.getIntensity() << std::endl;
 //        std::cout<< "Diffuse - "<< mat.getDiffuse() << std::endl;
 //    }
-    primitives = _primitives;
     for ( auto primitive: _primitives ) {
-        triangles.addTriangle( primitive->getV1(), primitive->getV2(), primitive->getV3() );
+        triangleBuffer.addTriangle( primitive->getMaterial(), primitive->getV1(), primitive->getV2(), primitive->getV3() );
     }
     build();
 }
 
-BVH::BVH(): triangles() {
+BVH::BVH(): triangleBuffer() {
 }
 
 void BVH::build() {
-    if ( primitives.size() != triangles.size() ) { std::cerr << "size"<<std::endl;}
-    for( int i = 0; i < triangles.size(); i++ ) bvhNode.push_back({});
-    for (int i = 0; i < triangles.size(); i++) indexes.push_back(i);
+    bvhNode.resize( triangleBuffer.size() );
+    for ( size_t i = 0; i < triangleBuffer.size(); ++i) indexes.push_back(i);
     BVHNode& root = bvhNode[rootNodeIdx];
-    root.leftFirst = 0, root.trianglesCount = triangles.size();
+    root.leftFirst = 0, root.trianglesCount = triangleBuffer.size();
     Vec3d centroidMin, centroidMax;
     updateNodeBounds( 0, centroidMin, centroidMax );
     subDivide( 0, 0, nodesUsed, centroidMin, centroidMax );
@@ -39,13 +37,13 @@ void BVH::updateNodeBounds( uint nodeIdx, Vec3d& centroidMin, Vec3d& centroidMax
     centroidMin = Vec3d( 1e30, 1e30, 1e30 );
     centroidMax = Vec3d( -1e30, -1e30, -1e30 );
     for (uint first = node.leftFirst, i = 0; i < node.trianglesCount; i++) {
-        BBox bbox = triangles.getBBox( indexes[first + i] );
+        BBox bbox = triangleBuffer.getBBox( indexes[first + i] );
         node.aabbMin = min( node.aabbMin, bbox.pMin );
         node.aabbMax = max( node.aabbMax, bbox.pMax );
        // if ( primitives[ indexes[first + i] ]->getOrigin() != triangles.getOrigin( indexes[first + i] ) )
        // { std::cerr << "origin" << std::endl;}
-        centroidMin = min( centroidMin, triangles.getOrigin( indexes[first + i] ) );
-        centroidMax = max( centroidMax, triangles.getOrigin( indexes[first + i] ) );
+        centroidMin = min( centroidMin, triangleBuffer.getOrigin( indexes[first + i] ) );
+        centroidMax = max( centroidMax, triangleBuffer.getOrigin( indexes[first + i] ) );
     }
 }
 
@@ -60,7 +58,7 @@ void BVH::subDivide( uint nodeIdx, uint depth, uint& nodePtr, Vec3d& centroidMin
     int j = i + node.trianglesCount - 1;
     double scale = BINS / (centroidMax[axis] - centroidMin[axis]);
     while (i <= j) {
-        Vec3d origin = triangles.getOrigin( indexes[i] );
+        Vec3d origin = triangleBuffer.getOrigin( indexes[i] );
         int binIdx = std::min( BINS - 1, (int)((origin[axis] - centroidMin[axis]) * scale) );
         if (binIdx < splitPos) i++; else std::swap( indexes[i], indexes[j--] );
     }
@@ -90,9 +88,9 @@ double BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vec3d& 
         int leftSum = 0, rightSum = 0;
         struct Bin { BBox bounds; int trianglesCount = 0; } bin[BINS];
         for (uint i = 0; i < node.trianglesCount; i++) {
-            int binIdx =std:: min( BINS - 1, (int)((triangles.getOrigin( indexes[node.leftFirst + i] )[a] - boundsMin) * scale) );
+            int binIdx =std:: min( BINS - 1, (int)((triangleBuffer.getOrigin( indexes[node.leftFirst + i] )[a] - boundsMin) * scale) );
             bin[binIdx].trianglesCount++;
-            BBox bbox = triangles.getBBox( indexes[node.leftFirst + i] );
+            BBox bbox = triangleBuffer.getBBox( indexes[node.leftFirst + i] );
             bin[binIdx].bounds.merge( bbox.pMin );
             bin[binIdx].bounds.merge( bbox.pMax );
         }
@@ -115,7 +113,7 @@ double BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vec3d& 
 }
 
 
-bool BVH::intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax ) {
+bool BVH::intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax ) const {
     Vec3d t1 = ( bmin - ray.origin ) * ray.invDirection;
     Vec3d t2 = ( bmax - ray.origin ) * ray.invDirection;
     double tmin = std::min( t1[0], t2[0] );
@@ -127,19 +125,20 @@ bool BVH::intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax ) 
     return tmax >= tmin && tmin < 1e30 && tmax > 0;
 }
 
-void BVH::intersectBVH( Ray& ray, IntersectionData& tData, const uint nodeIdx ) {
-    BVHNode& node = bvhNode[nodeIdx];
+void BVH::intersectBVH( const Ray& ray, IntersectionData& tData, uint nodeIdx ) const  {
+    const BVHNode& node = bvhNode[nodeIdx];
     if (!intersectBBox( ray, node.aabbMin, node.aabbMax )) {
         tData = {};
         return;
     }
     if (node.isLeaf()) {
         for (uint i = 0; i < node.trianglesCount; i++ ) {
-            double t = triangles.intersectsWithRay( ray, indexes[node.leftFirst + i] );
+            double t = triangleBuffer.intersectsWithRay( ray, indexes[node.leftFirst + i] );
             if ( t >= tData.t ) continue;
             tData.t = t;
-            Vec3i ind = triangles.indices[indexes[node.leftFirst + i] ];
-            tData.primitive = primitives[ indexes[node.leftFirst + i] ];
+            Vec4i ind = triangleBuffer.indices[indexes[node.leftFirst + i] ];
+            tData.material = triangleBuffer.materials[ ind[3] ];
+            tData.N = triangleBuffer.getNormal( indexes[node.leftFirst + i] );
         }
         return;
     }

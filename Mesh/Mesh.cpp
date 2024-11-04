@@ -128,16 +128,16 @@ bool Mesh::isContainPoint(const Vec3d& p ) const {
     return false;
 }
 
-IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
-    double min = __FLT_MAX__;
-    Vec3d N = {};
-    for ( const auto primitive: primitives ) {
-        double t = primitive->intersectsWithRay( ray );
-        if ( t >= min ) continue;
-        min = t;
-    }
-    return { min, nullptr };
-}
+//IntersectionData Mesh::intersectsWithRay(const Ray& ray ) const {
+//    double min = __FLT_MAX__;
+//    Vec3d N = {};
+//    for ( const auto primitive: primitives ) {
+//        double t = primitive->intersectsWithRay( ray );
+//        if ( t >= min ) continue;
+//        min = t;
+//    }
+//    return { min ...};
+//}
 
 void Mesh::setPrimitives(Vector<Primitive*>& _primitives ) {
     primitives = _primitives;

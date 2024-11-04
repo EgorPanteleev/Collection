@@ -57,12 +57,12 @@ RGB RayTracer::computeDiffuseLight( const Vec3d& V, const TraceData& traceData )
     IntersectionData cIData;
     for ( auto light: scene(0).getLights() ) {
         RGB i1;
-        for ( size_t j = 0; j < numLightSamples; j++ ) {
+        for ( size_t j = 0; j < numLightSamples; ++j ) {
             Vec3d origin = light->getSamplePoint();
             Vec3d L = (origin - traceData.P).normalize();
             Ray ray = Ray(origin, L * ( -1 ) );
             closestIntersection( ray, cIData );
-            if ( !cIData.primitive ) continue;
+            if ( cIData.t == __FLT_MAX__ ) continue;
             //remove
             Vec3d P1 = ray.origin + cIData.t * ray.direction;
             if ( getDistance( traceData.P, P1 ) > 1e-3 ) continue;
@@ -104,7 +104,7 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, con
     RGB ambient = {};
     Vec3d wo_T = traceData.cs.to( ray.direction * (-1) );
     Vec2d alpha = { pow2( traceData.getRoughness() ), pow2( traceData.getRoughness() ) };
-    for (int j = 0; j < numAmbientSamples; j++ ) {
+    for (int j = 0; j < numAmbientSamples; ++j ) {
         Vec3d H_T = GGX::getNormal( wo_T, alpha );
         Vec3d wi_T = reflect( wo_T, H_T ) * ( -1 );
         double Nwi = saturate(wi_T[2]);
@@ -121,7 +121,7 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeReflectanceGGX( const Ray& ray, con
 KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, const TraceData& traceData, int nextDepth ) {
     RGB ambient = {};
     Vec3d wo_T = traceData.cs.to( ray.direction * (-1) );
-    for (int j = 0; j < numAmbientSamples; j++ ) {
+    for (int j = 0; j < numAmbientSamples; ++j ) {
         Vec3d wi_T = OrenNayar::getIncidentDir( traceData.cs.getNormal() );
         Vec3d wi = traceData.cs.from( wi_T );
         double Nwi = saturate(wi_T[2]);
@@ -137,7 +137,7 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseOrenNayar( const Ray& ray, c
 
 KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, const TraceData& traceData, int nextDepth ) {
     RGB ambient = {};
-    for (int j = 0; j < numAmbientSamples; j++ ) {
+    for (int j = 0; j < numAmbientSamples; ++j ) {
         Vec3d wi_T = Lambertian::getIncidentDir( traceData.cs.getNormal() );
         Vec3d wi = traceData.cs.from( wi_T );
         double Nwi = saturate(wi_T[2]);
@@ -155,14 +155,15 @@ KOKKOS_INLINE_FUNCTION RGB RayTracer::computeDiffuseLambertian( const Ray& ray, 
 void RayTracer::traceRay( Ray& ray, CanvasData& data, int nextDepth ) {
     IntersectionData iData;
     closestIntersection( ray, iData );
-    if ( !iData.primitive ) {
+    if ( iData.t == __FLT_MAX__ ) {
         data = { BACKGROUND_COLOR, { 0, 0, 0 }, BACKGROUND_COLOR };
         return;
     }
     TraceData tData;
     tData.t = iData.t;
     tData.P = ray.origin + tData.t * ray.direction;
-    tData.primitive = iData.primitive;
+    tData.material = iData.material;
+    tData.N = iData.N;
     tData.load();
     Vec3d vectorColor = ( tData.cs.getNormal() + Vec3d( 1, 1, 1 ) ) * 255 * 0.5;
     RGB normalColor = { vectorColor[0], vectorColor[1], vectorColor[2] };
@@ -236,8 +237,8 @@ void RayTracer::traceAllRaysParallel() {
     typedef Kokkos::MDRangePolicy<Kokkos::Rank<2>> range_policy_2d;
     range_policy_2d policy({0, 0}, {canvas(0).getW(), canvas(0).getH()});
     Kokkos::parallel_for("parallel2D", policy, renderFunctor);
-    for ( int i = 0; i < canvas(0).getW(); i++ ) {
-        for ( int j = 0; j < canvas(0).getH(); j++ ) {
+    for ( int i = 0; i < canvas(0).getW(); ++i ) {
+        for ( int j = 0; j < canvas(0).getH(); ++j ) {
             canvas(0).setColor( i, j, colors(i, j) );
             canvas(0).setNormal( i, j, normals(i, j) );
             canvas(0).setAlbedo( i, j, albedos(i, j) );
@@ -266,24 +267,26 @@ RenderFunctor::RenderFunctor( RayTracer* _rayTracer, Kokkos::View<RGB**>& _color
 }
 
 void RenderFunctor::operator()(const int i, const int j) const {
-//    int numSamples = 3;
-//    for ( int sample = 0; sample < numSamples; sample++ ) {
-//        Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);
-////        if ( sample == 0 ) {
-////            ray = rayTracer->getCamera()->getPrimaryRay(i, j);
-////        } else {
-////            ray = rayTracer->getCamera()->getSecondaryRay(i, j);
-////        }
-//        CanvasData data = rayTracer->traceRay(ray, rayTracer->getDepth() );
-//        colors(i, j) = colors(i, j) +  data.color / (double) numSamples;
-//        normals(i, j) = normals(i, j) +  data.normal / (double) numSamples;
-//        albedos(i, j) = albedos(i, j) +  data.albedo / (double) numSamples;
-//    }
+    const int numSamples = 1;
+    constexpr double invNumSamples = 1.0 / (double) numSamples;
+    for ( int sample = 0; sample < numSamples; sample++ ) {
+        Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);
+//        if ( sample == 0 ) {
+//            ray = rayTracer->getCamera()->getPrimaryRay(i, j);
+//        } else {
+//            ray = rayTracer->getCamera()->getSecondaryRay(i, j);
+//        }
+        CanvasData data;
+        rayTracer->traceRay(ray, data, rayTracer->getDepth() );
+        colors(i, j) += data.color * invNumSamples;
+        normals(i, j) += data.normal * invNumSamples;
+        albedos(i, j) += data.albedo * invNumSamples;
+    }
     //printf("array(%d, %d) = %f\n", i, j, colors(i,j).r);
-    Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);
-    CanvasData data;
-    rayTracer->traceRay(ray, data, rayTracer->getDepth() );
-    colors(i, j) = data.color;
-    normals(i, j) = data.normal;
-    albedos(i, j) = data.albedo;
+//    Ray ray = rayTracer->getCamera()->getPrimaryRay(i, j);
+//    CanvasData data;
+//    rayTracer->traceRay(ray, data, rayTracer->getDepth() );
+//    colors(i, j) = data.color;
+//    normals(i, j) = data.normal;
+//    albedos(i, j) = data.albedo;
 }

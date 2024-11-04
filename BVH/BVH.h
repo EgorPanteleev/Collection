@@ -7,7 +7,7 @@
 #define BINS 8
 #include <cmath>
 #include "Vec3.h"
-#include "Triangles.h"
+#include "TriangleBuffer.h"
 #include "Vector.h"
 #include "IntersectionData.h"
 
@@ -41,14 +41,13 @@ public:
 
     double findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vec3d& centroidMin, Vec3d& centroidMax );
 
-    bool intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax );
+    bool intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax ) const;
 
-    void intersectBVH( Ray& ray, IntersectionData& tData, const uint nodeIdx );
+    void intersectBVH( const Ray& ray, IntersectionData& tData, uint nodeIdx ) const;
 private:
-    Triangles triangles;
+    TriangleBuffer triangleBuffer;
     Vector <uint> indexes;
     Vector<BVHNode> bvhNode;
-    Vector<Primitive*> primitives;
     uint rootNodeIdx = 0, nodesUsed = 1;
 };
 

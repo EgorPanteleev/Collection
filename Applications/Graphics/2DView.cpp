@@ -992,19 +992,19 @@ int main( int argc, char* argv[] ) {
 
     ////RESOLUTION
     //int w = 8 ; int h = 5;
-    //int w = 240 ; int h = 150;
+    int w = 240 ; int h = 150;
     //int w = 640 ; int h = 400; //53 sec //
     //int w = 960 ; int h = 600; // 42 sec
     //int w = 1920 ; int h = 1200;
-    int w = 3200; int h = 2000;
+    //int w = 3200; int h = 2000;
 ////49 sec // 46 sec
     
     // 22 sec /
     // ( 960x600 (2,5,2) audi scene) - 42 sec / 47 sec /
 
     ////NUM SAMPLES
-    int depth = 1;
-    int ambientSamples = 2;
+    int depth = 2;
+    int ambientSamples = 5;
     int lightSamples = 2;
 
 // room scene ( 960x600 ) - 18.1 / 15.5 / 9.7 / 9.3 / 7.3
@@ -1028,15 +1028,15 @@ int main( int argc, char* argv[] ) {
     //carScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //cottageScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//357 sec// 8 sec
     //hardScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    //audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
-    sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
+    audiScene( rayTracer, w, h, depth, ambientSamples, lightSamples ); //720 sec// 4 sec
+    //sphereRoomScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //dragonScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     //testScene( rayTracer, w, h, depth, ambientSamples, lightSamples );//57 sec // 13.6 sec
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> loadTime = end - start;
     std::cout << "Model loads "<< loadTime.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();;
-    rayTracer->render( RayTracer::PARALLEL );
+    rayTracer->render( RayTracer::SERIAL );
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> renderTime = end - start;
     std::cout << "RayTracer works "<< renderTime.count() << " seconds" << std::endl;
@@ -1053,5 +1053,14 @@ int main( int argc, char* argv[] ) {
    //TODO think about camera, i think its bad right now
     return 0;
 }
+// net room scene
+// 2 5 2 parameters
+// 3200x2000
+//time - 168 sec
+// 1920x1200
+//time - 62.7
 
-//time - 47.94 /
+
+//audi scene
+// 2 5 2 parametersz
+//time - 502.625

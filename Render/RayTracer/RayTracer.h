@@ -12,6 +12,13 @@
 #include <Kokkos_Core.hpp>
 
 struct CanvasData {
+
+    CanvasData(): color(), normal(), albedo() {
+    }
+
+    CanvasData( const RGB& color, const RGB& normal, const RGB& albedo ): color( color ), normal( normal ), albedo( albedo ) {
+    }
+
     RGB color;
     RGB normal;
     RGB albedo;

@@ -35,7 +35,7 @@ public:
     [[nodiscard]] BBox getBBox() const;
     [[nodiscard]] Vec3d getOrigin() const;
     [[nodiscard]] bool isContainPoint( const Vec3d& p ) const;
-    [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;
+//    [[nodiscard]] IntersectionData intersectsWithRay( const Ray& ray ) const;
     void setPrimitives( Vector<Primitive*>& _triangles );
     void addPrimitive( Primitive* primitive );
     void setMaterial( const Material& _material );

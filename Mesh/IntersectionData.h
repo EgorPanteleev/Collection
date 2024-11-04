@@ -12,14 +12,16 @@ class Triangle;
 class Sphere;
 
 struct TraceData {
-    TraceData(): primitive( nullptr ), cs(), material(), P(), t( __FLT_MAX__ ), ambientOcclusion() {}
+    TraceData(): N(), cs(), material(), P(), t( __FLT_MAX__ ), ambientOcclusion() {}
     void load () {
-        cs = { primitive->getNormal( P ) };
-        material.setColor( primitive->getColor( P ) );
-        material.setIntensity( primitive->getMaterial().getIntensity() );
-        material.setRoughness( primitive->getRoughness( P ) );
-        material.setMetalness( primitive->getMetalness( P ) );
-        ambientOcclusion = primitive->getAmbient( P ).r;
+//        cs = { primitive->getNormal( P ) };
+//        material.setColor( primitive->getColor( P ) );
+//        material.setIntensity( primitive->getMaterial().getIntensity() );
+//        material.setRoughness( primitive->getRoughness( P ) );
+//        material.setMetalness( primitive->getMetalness( P ) );
+//        ambientOcclusion = primitive->getAmbient( P ).r;
+        cs = { N };
+        ambientOcclusion = 1;
     }
     [[nodiscard]] RGB getColor() const {
         return material.getColor();
@@ -33,7 +35,7 @@ struct TraceData {
     [[nodiscard]] double getMetalness() const {
         return material.getMetalness();
     }
-    Primitive* primitive;
+    Vec3d N;
     Vec3d P;
     double t;
     CoordinateSystem cs;
@@ -44,9 +46,10 @@ struct TraceData {
 class IntersectionData {
 public:
     IntersectionData();
-    IntersectionData( double t, Primitive* prim );
+    //IntersectionData( double t, Primitive* prim );
     double t;
-    Primitive* primitive;
+    Vec3d N;
+    Material material;
 };
 
 #endif //COLLECTION_INTERSECTIONDATA_H

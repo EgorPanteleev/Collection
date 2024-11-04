@@ -6,7 +6,7 @@
 #include <limits>
 
 IntersectionData::IntersectionData():
-        t( __FLT_MAX__ ), primitive( nullptr ) {}
+        t( __FLT_MAX__ ), material() {}
 
-IntersectionData::IntersectionData( double t, Primitive* prim ):
-        t( t ), primitive( prim ) {}
+//IntersectionData::IntersectionData( double t, Primitive* prim ):
+//        t( t ), primitive() {}
