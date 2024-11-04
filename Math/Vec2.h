@@ -132,37 +132,37 @@ public:
     Type data[2];
 };
 template<typename Type>
-std::ostream& operator << (std::ostream &os, const Vec2<Type> &vec ) {
+inline std::ostream& operator << (std::ostream &os, const Vec2<Type> &vec ) {
     return os << "( " << vec.data[0] << ", " << vec.data[1] << " )" << "\n";
 }
 
 template<typename Type>
-Vec2<Type> operator+(Type a, const Vec2<Type>& vec ) {
+inline Vec2<Type> operator+(Type a, const Vec2<Type>& vec ) {
     return { vec.data[0] + a, vec.data[1] + a };
 }
 
 template<typename Type>
-Vec2<Type> operator+(const Vec2<Type>& vec, Type a ) {
+inline Vec2<Type> operator+(const Vec2<Type>& vec, Type a ) {
     return { vec.data[0] + a, vec.data[1] + a };
 }
 
 template<typename Type>
-Vec2<Type> operator*(Type a, const Vec2<Type>& vec ) {
+inline Vec2<Type> operator*(Type a, const Vec2<Type>& vec ) {
     return { vec.data[0] * a, vec.data[1] * a };
 }
 
 template<typename Type>
-Vec2<Type> operator*(const Vec2<Type>& vec, Type a ) {
+inline Vec2<Type> operator*(const Vec2<Type>& vec, Type a ) {
     return { vec.data[0] * a, vec.data[1] * a };
 }
 
 template<typename Type>
-Vec2<Type> operator/(Type a, const Vec2<Type>& vec ) {
+inline Vec2<Type> operator/(Type a, const Vec2<Type>& vec ) {
     return { a / vec.data[0], a / vec.data[1] };
 }
 
 template<typename Type>
-Vec2<Type> operator/(const Vec2<Type>& vec, Type a ) {
+inline Vec2<Type> operator/(const Vec2<Type>& vec, Type a ) {
     return { vec.data[0] / a, vec.data[1] / a };
 }
 

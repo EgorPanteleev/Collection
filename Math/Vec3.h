@@ -139,12 +139,12 @@ public:
     Type data[3];
 };
 template<typename Type>
-std::ostream& operator << (std::ostream &os, const Vec3<Type> &vec ) {
+inline std::ostream& operator << (std::ostream &os, const Vec3<Type> &vec ) {
     return os << "( " << vec.data[0] << ", " << vec.data[1] << ", " << vec.data[2] << " )" << "\n";
 }
 
 template<typename Type>
-Vec3<Type> cross( const Vec3<Type>& first, const Vec3<Type>& second ) {
+inline Vec3<Type> cross( const Vec3<Type>& first, const Vec3<Type>& second ) {
     return {
             first.data[1] * second.data[2] - first.data[2] * second.data[1],
             first.data[2] * second.data[0] - first.data[0] * second.data[2],
@@ -153,60 +153,60 @@ Vec3<Type> cross( const Vec3<Type>& first, const Vec3<Type>& second ) {
 }
 
 template<typename Type>
-double getDistance( const Vec3<Type>& first, const Vec3<Type>& second ) {
+inline double getDistance( const Vec3<Type>& first, const Vec3<Type>& second ) {
     Vec3<Type> tmp = first - second;
     return sqrt( dot( tmp, tmp ) );
 }
 
 template<typename Type>
-Vec3<Type> reflect( const Vec3<Type>& wo, const Vec3<Type>& N ) {
+inline Vec3<Type> reflect( const Vec3<Type>& wo, const Vec3<Type>& N ) {
     return  ( wo - N * 2 * dot(N, wo ) ).normalize();
 }
 
 template<typename Type>
-double dot( const Vec3<Type>& first, const Vec3<Type>& second ) {
+inline double dot( const Vec3<Type>& first, const Vec3<Type>& second ) {
     return first[0] * second[0] + first[1] * second[1] + first[2] * second[2];
 }
 
 template<typename Type>
-Vec3<Type> operator+(Type a, const Vec3<Type>& vec ) {
+inline Vec3<Type> operator+(Type a, const Vec3<Type>& vec ) {
     return { vec.data[0] + a, vec.data[1] + a, vec.data[2] + a };
 }
 
 template<typename Type>
-Vec3<Type> operator+(const Vec3<Type>& vec, Type a ) {
+inline Vec3<Type> operator+(const Vec3<Type>& vec, Type a ) {
     return { vec.data[0] + a, vec.data[1] + a, vec.data[2] + a };
 }
 
 template<typename Type>
-Vec3<Type> operator*(Type a, const Vec3<Type>& vec ) {
+inline Vec3<Type> operator*(Type a, const Vec3<Type>& vec ) {
     return { vec.data[0] * a, vec.data[1] * a, vec.data[2] * a };
 }
 
 template<typename Type>
-Vec3<Type> operator*(const Vec3<Type>& vec, Type a ) {
+inline Vec3<Type> operator*(const Vec3<Type>& vec, Type a ) {
     return { vec.data[0] * a, vec.data[1] * a, vec.data[2] * a };
 }
 
 template<typename Type>
-Vec3<Type> operator/(Type a, const Vec3<Type>& vec ) {
+inline Vec3<Type> operator/(Type a, const Vec3<Type>& vec ) {
     return { a / vec.data[0], a / vec.data[1], a / vec.data[2] };
 }
 
 template<typename Type>
-Vec3<Type> operator/(const Vec3<Type>& vec, Type a ) {
+inline Vec3<Type> operator/(const Vec3<Type>& vec, Type a ) {
     return { vec.data[0] / a, vec.data[1] / a, vec.data[2] / a };
 }
 
 template<typename Type>
-Vec3<Type> min( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
+inline Vec3<Type> min( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
     return { std::min( vec1.data[0], vec2.data[0] ),
              std::min( vec1.data[1], vec2.data[1] ),
              std::min( vec1.data[2], vec2.data[2] ) };
 }
 
 template<typename Type>
-Vec3<Type> max( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
+inline Vec3<Type> max( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
     return { std::max( vec1.data[0], vec2.data[0] ),
              std::max( vec1.data[1], vec2.data[1] ),
              std::max( vec1.data[2], vec2.data[2] ) };

@@ -98,33 +98,33 @@ public:
 };
 
 template<typename Type>
-Mat2<Type> operator*( const Mat2<Type>& mat, const Type& a ) {
+inline Mat2<Type> operator*( const Mat2<Type>& mat, const Type& a ) {
     return { mat.columns[0] * a, mat.columns[1] * a };
 }
 
 template<typename Type>
-Mat2<Type> operator*( const Type& a, const Mat2<Type>& mat ) {
+inline Mat2<Type> operator*( const Type& a, const Mat2<Type>& mat ) {
     return { mat.columns[0] * a, mat.columns[1] * a };
 }
 
 template<typename Type>
-Mat2<Type> operator/( const Mat2<Type>& mat, const Type& a ) {
+inline Mat2<Type> operator/( const Mat2<Type>& mat, const Type& a ) {
     return { mat.columns[0] / a, mat.columns[1] / a };
 }
 
 template<typename Type>
-Mat2<Type> operator/( const Type& a, const Mat2<Type>& mat ) {
+inline Mat2<Type> operator/( const Type& a, const Mat2<Type>& mat ) {
     return { mat.columns[0] / a, mat.columns[1] / a };
 }
 
 template<typename Type>
-Vec2<Type> operator*( const Mat2<Type>& mat, const Vec2<Type>& vec ) {
+inline Vec2<Type> operator*( const Mat2<Type>& mat, const Vec2<Type>& vec ) {
     return { mat.columns[0][0] * vec[0] + mat.columns[1][0] * vec[1],
              mat.columns[0][1] * vec[0] + mat.columns[1][1] * vec[1] };
 }
 
 template<typename Type>
-Vec2<Type> operator*( const Vec2<Type>& vec, const Mat2<Type>& mat ) {
+inline Vec2<Type> operator*( const Vec2<Type>& vec, const Mat2<Type>& mat ) {
     return { mat.columns[0][0] * vec[0] + mat.columns[0][1] * vec[1],
              mat.columns[1][0] * vec[0] + mat.columns[1][1] * vec[1] };
 }

@@ -7,6 +7,8 @@
 
 #endif //COLLECTION_RANDOM_H
 #include <random>
-#include "limits"
+#include <limits>
 
-double randomDouble();
+inline double randomDouble() {
+    return (double) rand() / RAND_MAX;
+}

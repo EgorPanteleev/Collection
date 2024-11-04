@@ -114,27 +114,27 @@ public:
 };
 
 template<typename Type>
-Mat4<Type> operator*( const Mat4<Type>& mat, const Type& a ) {
+inline Mat4<Type> operator*( const Mat4<Type>& mat, const Type& a ) {
     return { mat.columns[0] * a, mat.columns[1] * a, mat.columns[2] * a, mat.columns[3] * a };
 }
 
 template<typename Type>
-Mat4<Type> operator*( const Type& a, const Mat4<Type>& mat ) {
+inline Mat4<Type> operator*( const Type& a, const Mat4<Type>& mat ) {
     return { mat.columns[0] * a, mat.columns[1] * a, mat.columns[2] * a, mat.columns[3] * a };
 }
 
 template<typename Type>
-Mat4<Type> operator/( const Mat4<Type>& mat, const Type& a ) {
+inline Mat4<Type> operator/( const Mat4<Type>& mat, const Type& a ) {
     return { mat.columns[0] / a, mat.columns[1] / a, mat.columns[2] / a, mat.columns[3] / a };
 }
 
 template<typename Type>
-Mat4<Type> operator/( const Type& a, const Mat4<Type>& mat ) {
+inline Mat4<Type> operator/( const Type& a, const Mat4<Type>& mat ) {
     return { mat.columns[0] / a, mat.columns[1] / a, mat.columns[2] / a, mat.columns[3] / a };
 }
 
 template<typename Type>
-Vec4<Type> operator*( const Mat4<Type>& mat, const Vec4<Type>& vec ) {
+inline Vec4<Type> operator*( const Mat4<Type>& mat, const Vec4<Type>& vec ) {
     return { mat.columns[0][0] * vec[0] + mat.columns[1][0] * vec[1] + mat.columns[2][0] * vec[2] + mat.columns[3][0] * vec[3],
              mat.columns[0][1] * vec[0] + mat.columns[1][1] * vec[1] + mat.columns[2][1] * vec[2] + mat.columns[3][1] * vec[3],
              mat.columns[0][2] * vec[0] + mat.columns[1][2] * vec[1] + mat.columns[2][2] * vec[2] + mat.columns[3][2] * vec[3],
@@ -142,7 +142,7 @@ Vec4<Type> operator*( const Mat4<Type>& mat, const Vec4<Type>& vec ) {
 }
 
 template<typename Type>
-Vec4<Type> operator*( const Vec4<Type>& vec, const Mat4<Type>& mat ) {
+inline Vec4<Type> operator*( const Vec4<Type>& vec, const Mat4<Type>& mat ) {
     return { mat.columns[0][0] * vec[0] + mat.columns[0][1] * vec[1] + mat.columns[0][2] * vec[2] + mat.columns[0][3] * vec[3],
              mat.columns[1][0] * vec[0] + mat.columns[1][1] * vec[1] + mat.columns[1][2] * vec[2] + mat.columns[1][3] * vec[3],
              mat.columns[2][0] * vec[0] + mat.columns[2][1] * vec[1] + mat.columns[2][2] * vec[2] + mat.columns[2][3] * vec[3],

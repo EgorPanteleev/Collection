@@ -73,27 +73,4 @@ void RGB::scaleTo( double value ) {
     b = ( b / max ) * value;
 }
 
-RGB operator+( const RGB& col, const double& d ) {
-    return { col.r + d, col.g + d, col.b + d };
-}
-
-RGB operator+( const double& d, const RGB& col ) {
-    return { col.r + d, col.g + d, col.b + d };
-}
-
-RGB operator*( const RGB& col, const double& d ) {
-    return { col.r * d, col.g * d, col.b * d };
-}
-
-RGB operator*( const double& d, const RGB& col ) {
-    return { col.r * d, col.g * d, col.b * d };
-}
-
-RGB operator/( const RGB& col, const double& d ) {
-    return { col.r / d, col.g / d, col.b / d };
-}
-
-RGB operator/( const double& d, const RGB& col ) {
-    return { col.r / d, col.g / d, col.b / d };
-}
 

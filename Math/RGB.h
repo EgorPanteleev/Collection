@@ -46,12 +46,29 @@ public:
     double b;
 };
 
-RGB operator+( const RGB& col, const double& d );
-RGB operator+( const double& d, const RGB& col );
-RGB operator*( const RGB& col, const double& d );
-RGB operator*( const double& d, const RGB& col );
-RGB operator/( const RGB& col, const double& d );
-RGB operator/( const double& d, const RGB& col );
+inline RGB operator+( const RGB& col, const double& d ) {
+    return { col.r + d, col.g + d, col.b + d };
+}
+
+inline RGB operator+( const double& d, const RGB& col ) {
+    return { col.r + d, col.g + d, col.b + d };
+}
+
+inline RGB operator*( const RGB& col, const double& d ) {
+    return { col.r * d, col.g * d, col.b * d };
+}
+
+inline RGB operator*( const double& d, const RGB& col ) {
+    return { col.r * d, col.g * d, col.b * d };
+}
+
+inline RGB operator/( const RGB& col, const double& d ) {
+    return { col.r / d, col.g / d, col.b / d };
+}
+
+inline RGB operator/( const double& d, const RGB& col ) {
+    return { col.r / d, col.g / d, col.b / d };
+}
 
 
 
