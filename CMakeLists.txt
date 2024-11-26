@@ -23,6 +23,10 @@ add_subdirectory(Containers)
 
 add_subdirectory(Mesh)
 
+add_subdirectory(Refactor)
+
+add_subdirectory(Refactor/Application)
+
 #add_subdirectory(Shapes)
 
 add_subdirectory(Render/General)

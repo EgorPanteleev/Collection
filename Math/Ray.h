@@ -8,9 +8,10 @@ public:
     Ray(const Vec3d& from, const Vec3d& dir);
     ~Ray();
 
+    Vec3d at( double t ) const;
+
     Vec3d origin;
     Vec3d direction;
-    Vec3d invDirection;
 private:
 };
 

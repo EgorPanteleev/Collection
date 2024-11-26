@@ -186,8 +186,11 @@ inline Vec4<Type> operator/(const Vec4<Type>& vec, Type a ) {
     return { vec.data[0] / a, vec.data[1] / a, vec.data[2] / a, vec.data[3] / a };
 }
 
-typedef Vec4<double> Vec4d;
-typedef Vec4<double> Vec4f;
-typedef Vec4<int> Vec4i;
+using Vec4d = Vec4<double>;
+using Vec4f = Vec4<double>;
+using Vec4i = Vec4<int>;
+using Point4d = Vec4<double>;
+using Point4f = Vec4<double>;
+using Point4i = Vec4<int>;
 
 #endif //MATH_VEC4_H

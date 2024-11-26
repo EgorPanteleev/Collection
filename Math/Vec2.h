@@ -166,8 +166,11 @@ inline Vec2<Type> operator/(const Vec2<Type>& vec, Type a ) {
     return { vec.data[0] / a, vec.data[1] / a };
 }
 
-typedef Vec2<double> Vec2d;
-typedef Vec2<double> Vec2f;
-typedef Vec2<int> Vec2i;
+using Vec2d = Vec2<double>;
+using Vec2f = Vec2<double>;
+using Vec2i = Vec2<int>;
+using Point2d = Vec2<double>;
+using Point2f = Vec2<double>;
+using Point2i = Vec2<int>;
 
 #endif //MATH_VEC2_H

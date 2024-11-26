@@ -5,13 +5,16 @@
 #include "Ray.h"
 #include <cmath>
 
-Ray::Ray():origin(), direction(), invDirection() {}
+Ray::Ray():origin(), direction() {}
 
 Ray::Ray(const Vec3d& from, const Vec3d& dir): origin(from), direction( dir.normalize() ) {
-    invDirection = 1.0 / dir.normalize();
 }
 
 Ray::~Ray() {
     origin = Vec3d();
     direction = Vec3d();
+}
+
+Vec3d Ray::at( double t ) const {
+    return origin + t * direction;
 }

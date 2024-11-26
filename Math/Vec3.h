@@ -77,6 +77,10 @@ public:
         return { data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2] };
     }
 
+    Vec3<Type> operator-() const {
+        return { -data[0], -data[1], -data[2] };
+    }
+
     Vec3<Type>& operator*=(const Vec3<Type>& other ) {
         data[0] *= other.data[0];
         data[1] *= other.data[1];
@@ -121,8 +125,16 @@ public:
         return !( *this == other );
     }
 
+    Type lengthSquared() const {
+        return pow( data[0], 2 ) +  pow( data[1], 2 ) + pow( data[2], 2 );
+    }
+
+    Type length() const {
+        return std::sqrt( lengthSquared() );
+    }
+
     Vec3<Type> normalize() const {
-        Type len = sqrt( pow( data[0], 2 ) +  pow( data[1], 2 ) + pow( data[2], 2 ));
+        Type len = length();
         if ( len == 0 ) return *this;
         return *this / len;
     }
@@ -144,6 +156,20 @@ inline std::ostream& operator << (std::ostream &os, const Vec3<Type> &vec ) {
 }
 
 template<typename Type>
+inline Vec3<Type> min( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
+    return { std::min( vec1.data[0], vec2.data[0] ),
+             std::min( vec1.data[1], vec2.data[1] ),
+             std::min( vec1.data[2], vec2.data[2] ) };
+}
+
+template<typename Type>
+inline Vec3<Type> max( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
+    return { std::max( vec1.data[0], vec2.data[0] ),
+             std::max( vec1.data[1], vec2.data[1] ),
+             std::max( vec1.data[2], vec2.data[2] ) };
+}
+
+template<typename Type>
 inline Vec3<Type> cross( const Vec3<Type>& first, const Vec3<Type>& second ) {
     return {
             first.data[1] * second.data[2] - first.data[2] * second.data[1],
@@ -160,7 +186,15 @@ inline double getDistance( const Vec3<Type>& first, const Vec3<Type>& second ) {
 
 template<typename Type>
 inline Vec3<Type> reflect( const Vec3<Type>& wo, const Vec3<Type>& N ) {
-    return  ( wo - N * 2 * dot(N, wo ) ).normalize();
+    return ( wo - N * 2 * dot(N, wo ) ).normalize();
+}
+
+template<typename Type>
+inline Vec3<Type> refract( const Vec3<Type>& uv, const Vec3<Type>& n, double etaiOverEtat ) {
+    auto cosTheta = std::min( dot( -uv, n ), 1.0 );
+    Vec3<Type> outPerpendicular = etaiOverEtat * ( uv + cosTheta * n );
+    Vec3<Type> outParallel = -std::sqrt( abs( 1.0 - outPerpendicular.lengthSquared() ) ) * n;
+    return outPerpendicular + outParallel;
 }
 
 template<typename Type>
@@ -168,52 +202,41 @@ inline double dot( const Vec3<Type>& first, const Vec3<Type>& second ) {
     return first[0] * second[0] + first[1] * second[1] + first[2] * second[2];
 }
 
-template<typename Type>
-inline Vec3<Type> operator+(Type a, const Vec3<Type>& vec ) {
+template<typename Type1, typename Type2>
+inline Vec3<Type1> operator+(Type2 a, const Vec3<Type1>& vec ) {
     return { vec.data[0] + a, vec.data[1] + a, vec.data[2] + a };
 }
 
-template<typename Type>
-inline Vec3<Type> operator+(const Vec3<Type>& vec, Type a ) {
+template<typename Type1, typename Type2>
+inline Vec3<Type1> operator+(const Vec3<Type2>& vec, Type1 a ) {
     return { vec.data[0] + a, vec.data[1] + a, vec.data[2] + a };
 }
 
-template<typename Type>
-inline Vec3<Type> operator*(Type a, const Vec3<Type>& vec ) {
+template<typename Type1, typename Type2>
+inline Vec3<Type1> operator*(Type2 a, const Vec3<Type1>& vec ) {
     return { vec.data[0] * a, vec.data[1] * a, vec.data[2] * a };
 }
 
-template<typename Type>
-inline Vec3<Type> operator*(const Vec3<Type>& vec, Type a ) {
+template<typename Type1, typename Type2>
+inline Vec3<Type1> operator*(const Vec3<Type1>& vec, Type2 a ) {
     return { vec.data[0] * a, vec.data[1] * a, vec.data[2] * a };
 }
 
-template<typename Type>
-inline Vec3<Type> operator/(Type a, const Vec3<Type>& vec ) {
+template<typename Type1, typename Type2>
+inline Vec3<Type1> operator/(Type2 a, const Vec3<Type1>& vec ) {
     return { a / vec.data[0], a / vec.data[1], a / vec.data[2] };
 }
 
-template<typename Type>
-inline Vec3<Type> operator/(const Vec3<Type>& vec, Type a ) {
+template<typename Type1, typename Type2>
+inline Vec3<Type1> operator/(const Vec3<Type1>& vec, Type2 a ) {
     return { vec.data[0] / a, vec.data[1] / a, vec.data[2] / a };
 }
 
-template<typename Type>
-inline Vec3<Type> min( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
-    return { std::min( vec1.data[0], vec2.data[0] ),
-             std::min( vec1.data[1], vec2.data[1] ),
-             std::min( vec1.data[2], vec2.data[2] ) };
-}
 
-template<typename Type>
-inline Vec3<Type> max( const Vec3<Type>& vec1, const Vec3<Type>& vec2 ) {
-    return { std::max( vec1.data[0], vec2.data[0] ),
-             std::max( vec1.data[1], vec2.data[1] ),
-             std::max( vec1.data[2], vec2.data[2] ) };
-}
-
-typedef Vec3<double> Vec3d;
-typedef Vec3<float> Vec3f;
-typedef Vec3<int> Vec3i;
-
+using Vec3d = Vec3<double>;
+using Vec3f = Vec3<double>;
+using Vec3i = Vec3<int>;
+using Point3d = Vec3<double>;
+using Point3f = Vec3<double>;
+using Point3i = Vec3<int>;
 #endif //MATH_VEC3_H
