@@ -45,6 +45,7 @@ public:
     Material();
     Material( const RGB& color, double intensity );
     Material( const RGB& color, double diffuse, double roughness );
+    Material( const RGB& color, double diffuse, double roughness, double metalness );
     [[nodiscard]] RGB getColor() const;
     void setColor( const RGB& c );
     [[nodiscard]] double getIntensity() const;

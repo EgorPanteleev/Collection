@@ -2,9 +2,14 @@
 Material::Material(): color(), texture(), intensity( 0 ), diffuse( 0 ), roughness( 1 ), metalness( 0 ) {
 }
 
-Material::Material( const RGB& color, double intensity ): color( color ), texture(), intensity( intensity ) {}
-Material::Material( const RGB& color, double diffuse, double roughness ): color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ), metalness( 0 ) {
+Material::Material( const RGB& color, double intensity ):
+    color( color ), texture(), intensity( intensity ) {}
+Material::Material( const RGB& color, double diffuse, double roughness ):
+    color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ), metalness( 0 ) {
 }
+Material::Material( const RGB& color, double diffuse, double roughness, double metalness ):
+    color( color ), texture(), intensity( 0 ), diffuse( diffuse ), roughness( roughness ), metalness( metalness ) {}
+
 
 RGB Material::getColor() const {
     return color;
