@@ -9,14 +9,9 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#include "Vec3.h"
-#include "Ray.h"
-#include "RGB.h"
 #include "Sphere.h"
 #include "Timer.h"
-#include "HittableList.h"
 #include "Camera.h"
-#include "Material.h"
 
 //RGB traceRay( const Ray& ray, const HittableList& world ) {
 //    Interval<double> interval( 0, std::numeric_limits<double>::infinity() );

@@ -6,6 +6,7 @@
 #define COLLECTION_CAMERA_H
 #include "HittableList.h"
 #include "RGB.h"
+#include "Material.h"
 
 class Camera {
 public:

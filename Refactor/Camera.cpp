@@ -3,7 +3,6 @@
 //
 
 #include "Camera.h"
-#include "Material.h"
 
 double linearToGamma( double linear ) {
     if ( linear > 0 ) return std::sqrt( linear );

@@ -6,7 +6,7 @@
 #define COLLECTION_MATERIAL_H
 #include "Utils.h"
 #include "Ray.h"
-#include "HittableList.h"
+#include "Hittable.h"
 #include "RGB.h"
 
 class Material {
