@@ -6,49 +6,99 @@
 #define COLLECTION_MATERIAL_H
 #include "Utils.h"
 #include "Ray.h"
-#include "Hittable.h"
+#include "HitRecord.h"
 #include "RGB.h"
+#include "SystemUtils.h"
+
 
 class Material {
 public:
-    virtual bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered ) const {
-        return false;
-    }
+    enum Type {
+        LAMBERTIAN,
+        METAL,
+        DIELECTRIC,
+        UNKNOWN
+    };
+    HOST_DEVICE Material(): type( UNKNOWN ) {}
+    HOST_DEVICE Material( Type type ): type(type) {}
+    // virtual HOST_DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered ) const = 0;
+#if HIP_ENABLED
+    virtual HOST Material* copyToDevice() = 0;
+
+    virtual HOST Material* copyToHost() = 0;
+#endif
+
+    Type type;
 };
 
 class Lambertian: public Material {
 public:
-    Lambertian( const RGB& albedo ): albedo( albedo ) {}
-    bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered ) const override {
-        Vec3d scatterDir = hitRecord.N + Vec3d( randomDouble( -1, 1 ), randomDouble( -1, 1 ), randomDouble( -1, 1 ) ).normalize();
+    Lambertian(): Material( LAMBERTIAN ), albedo() {}
+    Lambertian( const RGB& albedo ): Material( LAMBERTIAN ), albedo( albedo ) {}
+    DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) const {
+        Vec3d scatterDir = hitRecord.N + Vec3d( randomDouble( -1, 1, state ), randomDouble( -1, 1, state ),
+                                                randomDouble( -1, 1, state ) ).normalize();
         scattered = { hitRecord.p, scatterDir };
         attenuation = albedo;
         return true;
     }
-private:
+#if HIP_ENABLED
+    HOST Material* copyToDevice() override {
+        auto device = HIP::allocateOnDevice<Lambertian>();
+        HIP::copyToDevice( this, device );
+        return device;
+    }
+
+    HOST Material* copyToHost() override {
+        auto host = new Lambertian();
+        HIP::copyToHost( host, this );
+        HIP::deallocateOnDevice( this );
+        return host;
+    }
+#endif
+public:
     RGB albedo;
 };
 
 class Metal: public Material {
 public:
-    Metal( const RGB& albedo, double fuzz ): albedo( albedo ), fuzz( fuzz ) {}
-    bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered ) const override {
+    Metal(): Material( METAL ), albedo(), fuzz() {}
+    HOST_DEVICE Metal( const RGB& albedo, double fuzz ): Material( METAL ), albedo( albedo ), fuzz( fuzz ) {}
+    DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) const {
         Vec3d reflected = reflect( rayIn.direction, hitRecord.N ).normalize();
-        reflected += fuzz * Vec3d( randomDouble( -1, 1 ), randomDouble( -1, 1 ), randomDouble( -1, 1 ) ).normalize();
+        reflected += fuzz * Vec3d( randomDouble( -1, 1, state ), randomDouble( -1, 1, state ),
+                                   randomDouble( -1, 1, state ) ).normalize();
         scattered = { hitRecord.p, reflected };
         attenuation = albedo;
         return true;
     }
 
-private:
+
+#if HIP_ENABLED
+    HOST Material* copyToDevice() override {
+        auto device = HIP::allocateOnDevice<Metal>();
+        HIP::copyToDevice( this, device );
+        return device;
+    }
+
+    HOST Material* copyToHost() override {
+        auto host = new Metal();
+        HIP::copyToHost( host, this );
+        HIP::deallocateOnDevice( this );
+        return host;
+    }
+#endif
+
+public:
     RGB albedo;
     double fuzz;
 };
 
 class Dielectric: public Material {
 public:
-    Dielectric( double refractionIndex ): refractionIndex( refractionIndex ) {}
-    bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered ) const override {
+    Dielectric(): Material( DIELECTRIC ), refractionIndex() {}
+    Dielectric( double refractionIndex ):  Material( DIELECTRIC ), refractionIndex( refractionIndex ) {}
+    HOST_DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered,  hiprandState& state ) const {
         attenuation = { 1, 1, 1 };
         double ri = hitRecord.frontFace ? ( 1.0 / refractionIndex ) : refractionIndex;
 
@@ -59,7 +109,7 @@ public:
 
         Vec3d direction;
 
-        if ( cannotRefract || reflectance( cosTheta, ri ) > randomDouble() )
+        if ( cannotRefract || reflectance( cosTheta, ri ) > randomDouble( state ) )
             direction = reflect( rayIn.direction, hitRecord.N );
         else
             direction = refract( rayIn.direction, hitRecord.N, ri );
@@ -68,11 +118,26 @@ public:
         return true;
     }
 
-    static double reflectance( double cosine, double refractionIndex ) {
+    HOST_DEVICE static double reflectance( double cosine, double refractionIndex ) {
         double r0 = ( 1 - refractionIndex ) / ( 1 + refractionIndex );
         r0 = pow( r0, 2 );
         return r0 + ( 1 - r0 ) * pow( 1 - cosine, 5 );
     }
+
+#if HIP_ENABLED
+    HOST Material* copyToDevice() override {
+        auto device = HIP::allocateOnDevice<Dielectric>();
+        HIP::copyToDevice( this, device );
+        return device;
+    }
+
+    HOST Material* copyToHost() override {
+        auto host = new Dielectric();
+        HIP::copyToHost( host, this );
+        HIP::deallocateOnDevice( this );
+        return host;
+    }
+#endif
 
     double refractionIndex;
 };

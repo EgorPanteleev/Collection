@@ -4,11 +4,19 @@
 
 class Ray {
 public:
-    Ray();
-    Ray(const Vec3d& from, const Vec3d& dir);
-    ~Ray();
+    HOST_DEVICE Ray():origin(), direction() {}
 
-    Vec3d at( double t ) const;
+    HOST_DEVICE Ray(const Vec3d& from, const Vec3d& dir): origin(from), direction( dir.normalize() ) {
+    }
+
+    HOST_DEVICE ~Ray() {
+        origin = Vec3d();
+        direction = Vec3d();
+    }
+
+    HOST_DEVICE Vec3d at( double t ) const {
+        return origin + t * direction;
+    }
 
     Vec3d origin;
     Vec3d direction;

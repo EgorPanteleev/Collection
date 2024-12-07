@@ -27,15 +27,17 @@ add_subdirectory(Refactor)
 
 add_subdirectory(Refactor/Application)
 
+add_subdirectory(Utils)
+
 #add_subdirectory(Shapes)
 
-add_subdirectory(Render/General)
+#add_subdirectory(Render/General)
 
-add_subdirectory(Render/Rasterizer)
+#add_subdirectory(Render/Rasterizer)
 
-add_subdirectory(Render/RayTracer)
+#add_subdirectory(Render/RayTracer)
 
-add_subdirectory(Applications)
+#add_subdirectory(Applications)
 
 add_subdirectory(Tests)
 

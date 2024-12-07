@@ -45,21 +45,17 @@ int main() {
     srand(time( nullptr ));
 //    //init list
     HittableList world;
-    Material* ground = new Lambertian( { 0.8, 0.8, 0.0 } );
-    Material* center = new Lambertian( { 0.1, 0.2, 0.5 } );
-    Material* left = new Dielectric( 1.5 );
-    Material* bubble = new Dielectric( 1.0 / 1.5 );
-    Material* right = new Metal( { 0.8, 0.6, 0.2 }, 1.0 );
+    Lambertian* ground = new Lambertian( { 0.8, 0.8, 0.0 } );
+    Lambertian* center = new Lambertian( { 0.1, 0.2, 0.5 } );
+    Dielectric* left = new Dielectric( 1.5 );
+    Dielectric* bubble = new Dielectric( 1.0 / 1.5 );
+    Metal* right = new Metal( { 0.8, 0.6, 0.2 }, 1.0 );
     world.add( new Sphere( 100, { 0, -100.5, -1 }, ground ) );
     world.add( new Sphere( 0.5, { 0, 0, -1.2 }, center ) );
     world.add( new Sphere( 0.5, { -1, 0, -1 }, left ) );
     world.add( new Sphere( 0.4, { -1, 0, -1 }, bubble ) );
     world.add( new Sphere( 0.5, { 1, 0, -1 }, right ) );
     //
-
-    Timer timer;
-
-    timer.start();
 
     //camera settings
     Camera cam;
@@ -69,13 +65,17 @@ int main() {
     cam.maxDepth = 50;
     cam.vFOV = 30;
 
-    cam.lookFrom = { -2, 2, 1 };
+    cam.lookFrom = { 0, 0, 1 };
     cam.lookAt = { 0, 0, -1 };
     cam.up = { 0, 1, 0 };
 
     cam.init();
 
     auto colorBuffer = new unsigned char[ cam.imageWidth * cam.imageHeight * 4 ];
+
+    Timer timer;
+
+    timer.start();
 
     cam.render( world, colorBuffer );
 

@@ -6,6 +6,12 @@
 #define VECTOR_VECTOR_H
 #include "BasicAllocator.h"
 
+#include "SystemUtils.h"
+
+#if HIP_ENABLED
+#include "hip/hip_runtime.h"
+#endif
+
 template <typename Type, typename Allocator = BasicAllocator<Type>>
 class Vector {
 public:
@@ -81,7 +87,7 @@ public:
         }
         mAlloc.deallocate( mData, mCap );
     }
-    void reserve( size_t newCap ) {
+    HOST_DEVICE void reserve( size_t newCap ) {
         if ( newCap <= mCap ) return;
         Type* newData = mAlloc.allocate( newCap );
         for ( size_t i = 0; i < mSize; ++i ) {
@@ -111,7 +117,7 @@ public:
         mSize = newSize;
     }
 
-    void push_back( const Type& value ) {
+    HOST_DEVICE void push_back( const Type& value ) {
         if ( mSize == mCap ) {
             reserve( mCap == 0 ? 1 : mCap * 2 );
         }
@@ -119,7 +125,7 @@ public:
         mAlloc.construct( mData + mSize++, value );
     }
 
-    void push_back( Type&& value ) {
+    HOST_DEVICE void push_back( Type&& value ) {
         if ( mSize == mCap ) {
             reserve( mCap == 0 ? 1 : mCap * 2 );
         }
@@ -139,11 +145,11 @@ public:
         mAlloc.construct( mData + mSize++, std::forward<Args>( args )... );
     }
 
-    Reference operator[]( size_t ind ) {
+    HOST_DEVICE Reference operator[]( size_t ind ) {
         return mData[ind];
     }
 
-    ConstReference operator[]( size_t ind ) const {
+    HOST_DEVICE ConstReference operator[]( size_t ind ) const {
         return mData[ind];
     }
 
@@ -185,11 +191,11 @@ public:
         return mSize == 0;
     }
 
-    size_t size() const {
+    HOST_DEVICE size_t size() const {
         return mSize;
     }
 
-    size_t capacity() const {
+    HOST_DEVICE size_t capacity() const {
         return mCap;
     }
 
@@ -197,71 +203,78 @@ public:
         mSize = 0;
     }
 
+    void swap( Vector& other ) {
+        std::swap( mSize, other.mSize );
+        std::swap( mCap, other.mCap );
+        std::swap( mAlloc, other.mAlloc );
+        std::swap( mData, other.mData );
+    }
+
     class Iterator {
     public:
-        Iterator( Type* ptr ): ptr( ptr ) {}
+        HOST_DEVICE Iterator( Type* ptr ): ptr( ptr ) {}
 
-        Iterator& operator++() {
+        HOST_DEVICE Iterator& operator++() {
             ++ptr;
             return *this;
         }
 
-        Iterator& operator+=( size_t n ) {
+        HOST_DEVICE Iterator& operator+=( size_t n ) {
             ptr += n;
             return *this;
         }
 
-        Iterator& operator--() {
+        HOST_DEVICE Iterator& operator--() {
             --ptr;
             return *this;
         }
 
-        Iterator& operator-=( size_t n ) {
+        HOST_DEVICE Iterator& operator-=( size_t n ) {
             ptr -= n;
             return *this;
         }
 
-        Type& operator*() {
+        HOST_DEVICE Type& operator*() {
             return *ptr;
         }
 
-        const Type& operator*() const {
+        HOST_DEVICE const Type& operator*() const {
             return *ptr;
         }
 
-        Type* operator->() {
+        HOST_DEVICE Type* operator->() {
             return ptr;
         }
 
-        const Type* operator->() const {
+        HOST_DEVICE const Type* operator->() const {
             return ptr;
         }
 
-        int operator-( const Iterator& other ) const {
+        HOST_DEVICE int operator-( const Iterator& other ) const {
             return ptr - other.ptr;
         }
 
-        bool operator==( const Iterator& other ) const {
+        HOST_DEVICE bool operator==( const Iterator& other ) const {
             return ptr == other.ptr;
         }
 
-        bool operator!=( const Iterator& other ) const {
+        HOST_DEVICE bool operator!=( const Iterator& other ) const {
             return ptr != other.ptr;
         }
 
-        bool operator>=( const Iterator& other ) const {
+        HOST_DEVICE bool operator>=( const Iterator& other ) const {
             return ptr >= other.ptr;
         }
 
-        bool operator<=( const Iterator& other ) const {
+        HOST_DEVICE bool operator<=( const Iterator& other ) const {
             return ptr < other.ptr;
         }
 
-        bool operator>( const Iterator& other ) const {
+        HOST_DEVICE bool operator>( const Iterator& other ) const {
             return ptr > other.ptr;
         }
 
-        bool operator<( const Iterator& other ) const {
+        HOST_DEVICE bool operator<( const Iterator& other ) const {
             return ptr < other.ptr;
         }
 
@@ -269,21 +282,74 @@ public:
         Type* ptr;
     };
 
-    Iterator begin() {
+    HOST_DEVICE Iterator begin() {
         return Iterator( mData );
     }
 
-    const Iterator begin() const {
+    HOST_DEVICE const Iterator begin() const {
         return Iterator( mData );
     }
 
-    Iterator end() {
+    HOST_DEVICE Iterator end() {
         return Iterator( mData + mSize );
     }
 
-    const Iterator end() const {
+    HOST_DEVICE const Iterator end() const {
         return Iterator( mData + mSize );
     }
+
+#if HIP_ENABLED
+
+    HOST Vector* copyToDevice() {
+        auto device = HIP::allocateOnDevice<Vector>();
+
+        Type* data = HIP::allocateOnDevice<Type>( mCap );
+
+        if constexpr ( std::is_pointer<Type>::value ) {
+            Type* tmpData = new Type[ mSize ];
+            for ( int i = 0; i < mSize; ++i ) {
+                tmpData[i] = mData[i]->copyToDevice();
+            }
+            HIP::copyToDevice( tmpData, data, mSize );
+            delete[] tmpData;
+        } else {
+            HIP::copyToDevice( mData, data, mSize );
+        }
+        Type* originalData = mData;
+
+        mData = data;
+
+
+        HIP::copyToDevice( this, device );
+
+        mData = originalData;
+
+        return device;
+    }
+
+    HOST Vector* copyToHost() {
+        auto host = new Vector();
+
+        HIP::copyToHost( host, this );
+
+        auto hostData = new Type[ mCap ];
+
+        if constexpr ( std::is_pointer<Type>::value ) {
+            for ( int i = 0; i < mSize; ++i ) {
+                if ( mData[i] == nullptr ) {
+                    printf("nullptr!\n");
+                    continue;
+                }
+                hostData[i] = mData[i]->copyToHost();
+            }
+        } else {
+            HIP::copyToHost( hostData, mData, mSize );
+        }
+
+        host->mData = hostData;
+        return host;
+    }
+#endif
 
 private:
     Allocator mAlloc;
@@ -293,3 +359,90 @@ private:
 };
 
 #endif //VECTOR_VECTOR_H
+
+
+#if HIP_ENABLED
+//namespace HIP {
+//    template<typename Type, size_t cap = 1>
+//    [[nodiscard]] Vector<Type>* allocateOnDevice() {
+//        Vector<Type>* device;
+//        HIP_ASSERT(hipMalloc(&device, sizeof(Vector<Type>)));
+//        HIP_ASSERT(hipMalloc(&device->mData, cap * sizeof(Type)));
+//        return device;
+//    }
+//
+//    template<typename Type>
+//    void copyToDevice(Vector<Type>* host, Vector<Type>* device ) {
+//        int size = host->size();
+//        int cap = host->capacity();
+//        auto alloc = host-
+//
+//        HIP_ASSERT(hipMemcpy(&device->mSize, &size, sizeof(size_t), hipMemcpyHostToDevice));
+//        HIP_ASSERT(hipMemcpy(&device->mCap, &cap, sizeof(size_t), hipMemcpyHostToDevice));
+//        HIP_ASSERT(hipMemcpy(&device->mAlloc, &mAlloc, sizeof(Allocator), hipMemcpyHostToDevice));
+////
+////
+////        if constexpr (deepCopy) {
+////            for (int i = 0; i < mSize; ++i) {
+////                device->mData[i]->copyToDevice(&device->mData[i]);
+////            }
+////        } else {
+////            HIP_ASSERT(hipMemcpy(device->mData, mData, mSize * sizeof(Type), hipMemcpyHostToDevice));
+////        }
+//
+//
+//
+//        HIP_ASSERT(hipMemcpy(device, host, n * sizeof(Type), hipMemcpyHostToDevice));
+//    }
+////
+////    template<typename Type, size_t n = 1>
+////    void copyToHost(Type* host, Type* device) {
+////        HIP_ASSERT(hipMemcpy(host, device, n * sizeof(Type), hipMemcpyDeviceToHost));
+////    }
+////
+////    template<typename Type>
+////    void deallocateOnDevice( Type* device ) {
+////        HIP_ASSERT(hipFree(device));
+////    }
+////
+////
+////
+////    template<bool deepCopy = false>
+////    HOST void copyToDevice(Vector *&device) {
+////        HIP_ASSERT(hipMalloc(&device, sizeof(Vector)));
+////
+////        HIP_ASSERT(hipMalloc(&device->mData, mCap * sizeof(Type)));
+////
+////        HIP_ASSERT(hipMemcpy(&device->mSize, &mSize, sizeof(size_t), hipMemcpyHostToDevice));
+////        HIP_ASSERT(hipMemcpy(&device->mCap, &mCap, sizeof(size_t), hipMemcpyHostToDevice));
+////        HIP_ASSERT(hipMemcpy(&device->mAlloc, &mAlloc, sizeof(Allocator), hipMemcpyHostToDevice));
+////
+////
+////        if constexpr (deepCopy) {
+////            for (int i = 0; i < mSize; ++i) {
+////                device->mData[i]->copyToDevice(&device->mData[i]);
+////            }
+////        } else {
+////            HIP_ASSERT(hipMemcpy(device->mData, mData, mSize * sizeof(Type), hipMemcpyHostToDevice));
+////        }
+////    }
+////
+////    template<bool deepCopy = false>
+////    HOST void copyToHost(Vector *host) {
+////        size_t cap;
+////        HIP_ASSERT(hipMemcpy(&cap, &mCap, sizeof(size_t), hipMemcpyDeviceToHost));
+////        host->resize(cap);
+////
+////        HIP_ASSERT(hipMemcpy(&host->mSize, &mSize, sizeof(size_t), hipMemcpyDeviceToHost));
+////        HIP_ASSERT(hipMemcpy(&host->mAlloc, &mAlloc, sizeof(Allocator), hipMemcpyDeviceToHost));
+////
+////        if constexpr (deepCopy) {
+////            for (int i = 0; i < mSize; ++i) {
+////                mData[i]->copyToHost(&host->mData[i]);
+////            }
+////        } else {
+////            HIP_ASSERT(hipMemcpy(host->mData, mData, mSize * sizeof(Type), hipMemcpyDeviceToHost));
+////        }
+////    }
+//}
+#endif

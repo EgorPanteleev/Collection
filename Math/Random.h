@@ -8,11 +8,28 @@
 #endif //COLLECTION_RANDOM_H
 #include <random>
 #include <limits>
+#include <hiprand/hiprand_kernel.h>
+//#include <rocrand_kernel.h>
+#include "SystemUtils.h"
 
-inline double randomDouble() {
+
+HOST inline double randomDouble() {
     return std::rand() / ( RAND_MAX + 1.0 );
 }
 
-inline double randomDouble( double min, double max ) {
+HOST inline double randomDouble( double min, double max ) {
     return min + ( max - min ) * randomDouble();
 }
+
+#ifdef HIP_ENABLED
+
+DEVICE inline double randomDouble( hiprandState& state ) {
+    return hiprand_uniform_double(&state);
+}
+
+DEVICE inline double randomDouble( double min, double max, hiprandState& state ) {
+    return min + ( max - min ) * randomDouble( state );
+}
+
+#endif
+
