@@ -62,10 +62,10 @@ int main() {
     cam.aspectRatio = 16.0 / 10.0;
     cam.imageWidth = 800;
     cam.samplesPerPixel = 100;
-    cam.maxDepth = 50;
+    cam.maxDepth = 30;
     cam.vFOV = 30;
 
-    cam.lookFrom = { 0, 0, 1 };
+    cam.lookFrom = { -2, 2, 1 };
     cam.lookAt = { 0, 0, -1 };
     cam.up = { 0, 1, 0 };
 

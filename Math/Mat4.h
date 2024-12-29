@@ -109,6 +109,60 @@ public:
         };
     }
 
+    static Mat4<Type> translate(const Vec4<Type>& translation) {
+        return Mat4<Type>(
+                Vec4<Type>(1, 0, 0, translation.x),
+                Vec4<Type>(0, 1, 0, translation.y),
+                Vec4<Type>(0, 0, 1, translation.z),
+                Vec4<Type>(0, 0, 0, 1)
+        );
+    }
+
+    static Mat4<Type> rotateY(Type angle) {
+        Type cosAngle = cos(angle);
+        Type sinAngle = sin(angle);
+        return
+        {
+                { cosAngle , 0, sinAngle, 0 },
+                { 0        , 1, 0       , 0 },
+                { -sinAngle, 0, cosAngle, 0 },
+                { 0        , 0, 0       , 1 }
+        };
+    }
+//    static Mat4<double> rotateY(double angle) {
+//        Type cosAngle = cos(angle);
+//        Type sinAngle = sin(angle);
+//        return
+//                {
+//                        { cosAngle, 0, sinAngle, 0 },
+//                        { 0, 1, 0, 0 },
+//                        { -sinAngle, 0, cosAngle, 0 },
+//                        { 0, 0, 0, 1 }
+//                };
+//    }
+
+    static Mat4<Type> rotateX(Type angle) {
+        Type cosAngle = cos(angle);
+        Type sinAngle = sin(angle);
+        return Mat4<Type>(
+                Vec4<Type>(1, 0, 0, 0),
+                Vec4<Type>(0, cosAngle, -sinAngle, 0),
+                Vec4<Type>(0, sinAngle, cosAngle, 0),
+                Vec4<Type>(0, 0, 0, 1)
+        );
+    }
+
+    static Mat4<Type> rotateZ(Type angle) {
+        Type cosAngle = cos(angle);
+        Type sinAngle = sin(angle);
+        return Mat4<Type>(
+                Vec4<Type>(cosAngle, -sinAngle, 0, 0),
+                Vec4<Type>(sinAngle, cosAngle, 0, 0),
+                Vec4<Type>(0, 0, 1, 0),
+                Vec4<Type>(0, 0, 0, 1)
+        );
+    }
+
 
     Vec4<Type> columns[4];
 };

@@ -42,7 +42,6 @@ public:
 
 #if HIP_ENABLED
     Sphere* copyToDevice() {
-        printf("copy device sphere called\n");
         auto deviceMaterial = material->copyToDevice();
         auto originalMaterial = material;
         material = deviceMaterial;
@@ -57,13 +56,17 @@ public:
     }
 
     Sphere* copyToHost() {
-        printf("copy host sphere called\n");
         auto host = new Sphere();
         HIP::copyToHost( host, this );
 
         auto hostMaterial = material->copyToHost();
         host->material = hostMaterial;
         return host;
+    }
+
+    void deallocateOnDevice() {
+        material->deallocateOnDevice();
+        HIP::deallocateOnDevice( this );
     }
 #endif
 public:

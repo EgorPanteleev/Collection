@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include "Camera.h"
 #include "Vec3.h"
 #include "RGB.h"
-
 #ifdef NDEBUG
 #define HIP_ASSERT(x) x
 #else
@@ -203,7 +202,6 @@ __global__ void render( Camera* __restrict__ cam, HittableList* __restrict__ wor
     int idx = y * width + x;
     hiprandState state = states[idx];
     for ( int s = 0; s < cam->samplesPerPixel; ++s ) {
-        idx += s;
         Vec3d pixelCenter = cam->pixel00Loc + (x * cam->pixelDeltaU) + (y * cam->pixelDeltaV);
 //        double u = (x + randomDouble(state) - 0.5) / width;
 //        double v = (y + randomDouble(state) - 0.5) / height;
@@ -545,7 +543,7 @@ int main() {
     cam.maxDepth = 30;
     cam.vFOV = 30;
 
-    cam.lookFrom = { 0, 0, 1 };
+    cam.lookFrom = { -2, 2, 1 };
     cam.lookAt = { 0, 0, -1 };
     cam.up = { 0, 1, 0 };
 

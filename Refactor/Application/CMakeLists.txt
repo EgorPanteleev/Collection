@@ -4,6 +4,15 @@ add_executable( refactor main.cpp )
 
 add_executable( HIP hip.cpp )
 
+add_executable( realtime realtime.cpp )
+
+find_package(OpenGL REQUIRED)
+find_package(glfw3 3.3 REQUIRED)
+find_package(GLEW REQUIRED)
+target_link_libraries( realtime hip::host hip::device Refactor stbImage Containers Math OpenGL::GL glfw GLEW::GLEW )
+
+target_compile_definitions( realtime PRIVATE HIP_ENABLED )
+
 target_link_libraries(refactor ${Libs})
 
 if ( CMAKE_CXX_COMPILER MATCHES ".*hipcc$" )

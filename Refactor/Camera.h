@@ -5,10 +5,10 @@
 #ifndef COLLECTION_CAMERA_H
 #define COLLECTION_CAMERA_H
 #include "HittableList.h"
-#include "RGB.h"
 #include "Material.h"
 #include "SystemUtils.h"
 #include "scatter.h"
+#include "Mat4.h"
 
 class Camera {
 public:
@@ -21,9 +21,9 @@ public:
     HOST_DEVICE void writeColor( unsigned char* colorBuffer, const RGB& color, int i, int j, int imageWidth ) {
         int index = (j * imageWidth + i) * 4;
         const Interval<double> intensity( 0, 0.999 );
-        colorBuffer[index + 0] = (unsigned char) ( intensity.clamp( linearToGamma( color.r ) ) * 256 );
-        colorBuffer[index + 1] = (unsigned char) ( intensity.clamp( linearToGamma( color.g ) ) * 256 );
-        colorBuffer[index + 2] = (unsigned char) ( intensity.clamp( linearToGamma( color.b ) ) * 256 );
+        colorBuffer[index + 0] = (unsigned char) ( intensity.clamp( linearToGamma( color[0] ) ) * 256 );
+        colorBuffer[index + 1] = (unsigned char) ( intensity.clamp( linearToGamma( color[1] ) ) * 256 );
+        colorBuffer[index + 2] = (unsigned char) ( intensity.clamp( linearToGamma( color[2] ) ) * 256 );
         colorBuffer[index + 3] = 255;
     }
 
@@ -50,6 +50,44 @@ public:
         pixelDeltaV = viewportV / imageHeight;
         Vec3d viewportUpperLeft = lookFrom - focalLength * w  - viewportU / 2 - viewportV / 2;
         pixel00Loc = viewportUpperLeft + 0.5 * ( pixelDeltaU + pixelDeltaV );
+    }
+
+    void move(const Vec3d& direction ) {
+        lookFrom += direction[0] * u + direction[1] * v + direction[2] * w;
+        lookAt += direction[0] * u + direction[1] * v + direction[2] * w;
+        init();
+    }
+
+    void rotateYaw(double angle) {
+        Mat4d rotation = Mat4d::rotateY(angle);
+        auto forward =   Vec4d( ( lookAt - lookFrom ).normalize() );
+        forward = rotation * forward;
+        forward = forward.normalize();
+        lookAt = { lookFrom[0] + forward[0], lookFrom[1] + forward[1], lookFrom[2] + forward[2] };
+        init();
+    }
+
+    void rotatePitch(double angle) {
+        Mat4d rotation = Mat4d::rotateX(angle);
+        auto forward = Vec4d( ( lookAt - lookFrom ).normalize() );
+        forward = rotation * forward;
+        auto up4 = Vec4d( up );
+        up4 = rotation * up4;
+        forward = forward.normalize();
+        forward = forward.normalize();
+        up = { up4[0], up4[1], up4[2] };
+        up = up.normalize();
+        lookAt = { lookFrom[0] + forward[0], lookFrom[1] + forward[1], lookFrom[2] + forward[2] };
+        init();
+    }
+
+    void rotateRoll(double angle) {
+        Mat4d rotation = Mat4d::rotateZ(angle);
+        auto up4 = Vec4d( up );
+        up4 = rotation * up4;
+        up = { up4[0], up4[1], up4[2] };
+        up = up.normalize();
+        init();
     }
 
     double aspectRatio;
@@ -110,7 +148,7 @@ public:
             else {
                 Vec3d unitDir = ray.direction.normalize();
                 auto a = 0.5 * ( unitDir[1] + 1.0 );
-                return currentAttenuation* ( ( 1.0 - a ) * RGB( 1, 1, 1 ) + a * RGB( 0.5, 0.7, 1 ) );
+                return currentAttenuation * ( ( 1.0 - a ) * RGB( 1, 1, 1 ) + a * RGB( 0.5, 0.7, 1 ) );
             }
         }
         return { 0.0, 0.0, 0.0 }; // exceeded recursion

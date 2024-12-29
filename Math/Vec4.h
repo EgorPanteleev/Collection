@@ -27,6 +27,13 @@ public:
         data[3] = w;
     }
 
+    Vec4(const Vec3<Type>& other ) {
+        data[0] = other.data[0];
+        data[1] = other.data[1];
+        data[2] = other.data[2];
+        data[3] = 1;
+    }
+
     Vec4(const Vec4<Type>& other ) {
         data[0] = other.data[0];
         data[1] = other.data[1];

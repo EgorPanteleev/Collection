@@ -7,7 +7,6 @@
 #include "Utils.h"
 #include "Ray.h"
 #include "HitRecord.h"
-#include "RGB.h"
 #include "SystemUtils.h"
 
 
@@ -26,6 +25,8 @@ public:
     virtual HOST Material* copyToDevice() = 0;
 
     virtual HOST Material* copyToHost() = 0;
+
+    virtual HOST void deallocateOnDevice() = 0;
 #endif
 
     Type type;
@@ -54,6 +55,10 @@ public:
         HIP::copyToHost( host, this );
         HIP::deallocateOnDevice( this );
         return host;
+    }
+
+    HOST void deallocateOnDevice() override {
+        HIP::deallocateOnDevice<Lambertian>( this );
     }
 #endif
 public:
@@ -87,6 +92,10 @@ public:
         HIP::deallocateOnDevice( this );
         return host;
     }
+
+    HOST void deallocateOnDevice() override {
+        HIP::deallocateOnDevice<Metal>( this );
+    }
 #endif
 
 public:
@@ -99,7 +108,7 @@ public:
     Dielectric(): Material( DIELECTRIC ), refractionIndex() {}
     Dielectric( double refractionIndex ):  Material( DIELECTRIC ), refractionIndex( refractionIndex ) {}
     HOST_DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered,  hiprandState& state ) const {
-        attenuation = { 1, 1, 1 };
+        attenuation = 1;
         double ri = hitRecord.frontFace ? ( 1.0 / refractionIndex ) : refractionIndex;
 
         double cosTheta = std::min( dot( -rayIn.direction, hitRecord.N ), 1.0 );
@@ -136,6 +145,10 @@ public:
         HIP::copyToHost( host, this );
         HIP::deallocateOnDevice( this );
         return host;
+    }
+
+    HOST void deallocateOnDevice() override {
+        HIP::deallocateOnDevice<Dielectric>( this );
     }
 #endif
 

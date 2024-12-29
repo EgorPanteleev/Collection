@@ -305,7 +305,7 @@ public:
 
         Type* data = HIP::allocateOnDevice<Type>( mCap );
 
-        if constexpr ( std::is_pointer<Type>::value ) {
+        if constexpr ( std::is_pointer<Type>::value ) { //TODO
             Type* tmpData = new Type[ mSize ];
             for ( int i = 0; i < mSize; ++i ) {
                 tmpData[i] = mData[i]->copyToDevice();
@@ -348,6 +348,18 @@ public:
 
         host->mData = hostData;
         return host;
+    }
+
+    HOST void deallocateOnDevice() {
+        if constexpr ( std::is_pointer<Type>::value ) { //TODO
+            for ( int i = 0; i < mSize; ++i ) {
+                mData[i]->deallocateOnDevice();
+            }
+        } else {
+            HIP::deallocateOnDevice( mData );
+        }
+
+        HIP::deallocateOnDevice<Vector>( this );
     }
 #endif
 

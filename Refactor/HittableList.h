@@ -72,6 +72,12 @@ public:
         std::swap( host->spheres, *hostObjects );
         return host;
     }
+
+    HOST void deallocateOnDevice() {
+        spheres.deallocateOnDevice();
+
+        HIP::deallocateOnDevice<HittableList>( this );
+    }
 #endif
 public:
     Vector<Sphere*> spheres;

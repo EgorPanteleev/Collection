@@ -256,4 +256,5 @@ using Vec3i = Vec3<int>;
 using Point3d = Vec3<double>;
 using Point3f = Vec3<double>;
 using Point3i = Vec3<int>;
+using RGB = Vec3<double>;
 #endif //MATH_VEC3_H
