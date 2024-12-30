@@ -96,7 +96,7 @@ hiprandState* initStates( int width, int height ) {
 
 void updateBuffer( Camera* cam, HittableList* world, unsigned char* deviceBuffer, hiprandState* states ) {
     auto start =  std::chrono::steady_clock::now();
-    render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, numFrames, states );
+    render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, 1.0 / numFrames, states );
     initStates<<<gridSize, blockSize>>>(WIDTH, HEIGHT, numFrames, states);
 
     HIP_ASSERT( hipDeviceSynchronize() );
