@@ -8,7 +8,8 @@
 #include "Material.h"
 #include "SystemUtils.h"
 #include "scatter.h"
-#include "Mat4.h"
+#include "Mat3.h"
+#include "Vec2.h"
 
 class Camera {
 public:
@@ -18,17 +19,7 @@ public:
         return 0;
     }
 
-    HOST_DEVICE void writeColor( unsigned char* colorBuffer, const RGB& color, int i, int j, int imageWidth ) {
-        int index = (j * imageWidth + i) * 4;
-        const Interval<double> intensity( 0, 0.999 );
-        colorBuffer[index + 0] = (unsigned char) ( intensity.clamp( linearToGamma( color[0] ) ) * 256 );
-        colorBuffer[index + 1] = (unsigned char) ( intensity.clamp( linearToGamma( color[1] ) ) * 256 );
-        colorBuffer[index + 2] = (unsigned char) ( intensity.clamp( linearToGamma( color[2] ) ) * 256 );
-        colorBuffer[index + 3] = 255;
-    }
-
     HOST Camera();
-    DEVICE void render( const HittableList& world, unsigned char* colorBuffer );
 
     HOST_DEVICE void init() {
         imageHeight = int( imageWidth / aspectRatio );
@@ -40,53 +31,51 @@ public:
         double viewportHeight = 2.0 * h * focalLength;
         double viewportWidth = viewportHeight * ( double( imageWidth ) / imageHeight );
 
-        w = ( lookFrom - lookAt ).normalize();
-        u = ( cross( up, w ) ).normalize();
-        v = cross( w, u );
+        forward = ( lookAt - lookFrom ).normalize();
+        right = ( cross( globalUp, forward ) ).normalize();
+        up = cross( forward, right );
 
-        Vec3d viewportU = viewportWidth * u;
-        Vec3d viewportV = viewportHeight * -v;
-        pixelDeltaU = viewportU / imageWidth;
-        pixelDeltaV = viewportV / imageHeight;
-        Vec3d viewportUpperLeft = lookFrom - focalLength * w  - viewportU / 2 - viewportV / 2;
-        pixel00Loc = viewportUpperLeft + 0.5 * ( pixelDeltaU + pixelDeltaV );
+        Vec2<Vec3d> viewport = { viewportWidth * right, viewportHeight * -up };
+
+        pixelDelta[0] = viewport[0] / imageWidth;
+        pixelDelta[1] = viewport[1] / imageHeight;
+        Vec3d viewportUpperLeft = lookFrom - focalLength * forward  - viewport[0] / 2 - viewport[1] / 2;
+        pixelsOrigin = viewportUpperLeft + 0.5 * ( pixelDelta[0] + pixelDelta[1] );
     }
 
     void move(const Vec3d& direction ) {
-        lookFrom += direction[0] * u + direction[1] * v + direction[2] * w;
-        lookAt += direction[0] * u + direction[1] * v + direction[2] * w;
+        lookFrom += direction[0] * right + direction[1] * up + direction[2] * forward;
+        lookAt += direction[0] * right + direction[1] * up + direction[2] * forward;
         init();
     }
 
-    void rotateYaw(double angle) {
-        Mat4d rotation = Mat4d::rotateY(angle);
-        auto forward =   Vec4d( ( lookAt - lookFrom ).normalize() );
+    void rotateYaw(double angleRad) {
+        auto rotation = Mat3d::rotateY(angleRad);
         forward = rotation * forward;
-        forward = forward.normalize();
-        lookAt = { lookFrom[0] + forward[0], lookFrom[1] + forward[1], lookFrom[2] + forward[2] };
+        lookAt = lookFrom + forward;
         init();
     }
 
-    void rotatePitch(double angle) {
-        Mat4d rotation = Mat4d::rotateX(angle);
-        auto forward = Vec4d( ( lookAt - lookFrom ).normalize() );
-        forward = rotation * forward;
-        auto up4 = Vec4d( up );
-        up4 = rotation * up4;
-        forward = forward.normalize();
-        forward = forward.normalize();
-        up = { up4[0], up4[1], up4[2] };
-        up = up.normalize();
-        lookAt = { lookFrom[0] + forward[0], lookFrom[1] + forward[1], lookFrom[2] + forward[2] };
+    void rotatePitch(double angleRad) {
+
+        double newPitch = atan2(forward[1], sqrt(forward[0] * forward[0] + forward[2] * forward[2]));
+        newPitch += angleRad;
+
+        if (newPitch > M_PI_2) newPitch = M_PI_2 - EPS;
+        if (newPitch < -M_PI_2) newPitch = -M_PI_2 + EPS;
+
+        double yaw = atan2(forward[2], forward[0]);
+        forward = { cos(newPitch) * cos(yaw),
+                    sin(newPitch),
+                    cos(newPitch) * sin(yaw) };
+
+        lookAt = lookFrom + forward;
         init();
     }
 
-    void rotateRoll(double angle) {
-        Mat4d rotation = Mat4d::rotateZ(angle);
-        auto up4 = Vec4d( up );
-        up4 = rotation * up4;
-        up = { up4[0], up4[1], up4[2] };
-        up = up.normalize();
+    void rotateRoll(double angleRad) {
+        auto rotation = Mat3d::rotateZ(angleRad);
+        up = rotation * up;
         init();
     }
 
@@ -99,7 +88,7 @@ public:
 
     Point3d lookFrom;
     Point3d lookAt;
-    Vec3d up;
+    Vec3d globalUp;
 public:
 
 //    __device__ vec3 color(const ray& r, hitable **world, curandState *local_rand_state) {
@@ -129,10 +118,10 @@ public:
 //    }
 
     DEVICE RGB traceRay( const Ray& ray, const HittableList& world, int depth, hiprandState& state ) {
-        Interval<double> interval( 0.001, std::numeric_limits<double>::infinity() );
+        const Interval<double> interval( 0.001, 10000 );
         Ray currentRay = ray;
         RGB currentAttenuation = { 1.0, 1.0, 1.0 };
-        for(int i = 0; i < maxDepth; i++) {
+        for ( int i = 0; i < maxDepth; ++i ) {
             HitRecord rec;
             if (world.hit(currentRay, interval, rec)) {
                 Ray scattered;
@@ -151,48 +140,19 @@ public:
                 return currentAttenuation * ( ( 1.0 - a ) * RGB( 1, 1, 1 ) + a * RGB( 0.5, 0.7, 1 ) );
             }
         }
-        return { 0.0, 0.0, 0.0 }; // exceeded recursion
+        return { 0.0, 0.0, 0.0 };
     }
-
-//    HOST_DEVICE RGB traceRay( const Ray& ray, const HittableList& world, int depth ) {
-//        Interval<double> interval( 0.001, std::numeric_limits<double>::infinity() );
-//        HitRecord hitRecord;
-//        if ( depth <= 0 ) return { 0, 0, 0 };
-//        if ( world.hit( ray, interval, hitRecord ) ) {
-//            Ray scattered;
-//            RGB attenuation;
-//            if ( hitRecord.material->scatter( ray, hitRecord, attenuation, scattered ) ) {
-//                return attenuation * traceRay( scattered, world, depth - 1 );
-//            }
-//            return { 1, 0, 0 };
-//        }
-//
-//        Vec3d unitDir = ray.direction.normalize();
-//        auto a = 0.5 * ( unitDir[1] + 1.0 );
-//        return ( 1.0 - a ) * RGB( 1, 1, 1 ) + a * RGB( 0.5, 0.7, 1 );
-//    }
 
     HOST_DEVICE Ray getRay( int i, int j, hiprandState& state ) const {
         Point3d offset = { randomDouble( state ) - 0.5, randomDouble( state ) - 0.5, 0 };
-        Point3d pixelSample = pixel00Loc + ( i + offset[0] ) * pixelDeltaU + ( j + offset[1] ) * pixelDeltaV;
+        Point3d pixelSample = pixelsOrigin + ( i + offset[0] ) * pixelDelta[0] + ( j + offset[1] ) * pixelDelta[1];
         return { origin, pixelSample - origin };
     }
 
-//    HOST_DEVICE static void writeColor( unsigned char* colorBuffer, const RGB& color, int i, int j, int imageWidth ) {
-//        int index = (j * imageWidth + i) * 4;
-//        static const Interval<double> intensity( 0, 0.999 );
-//        colorBuffer[index + 0] = (unsigned char) ( intensity.clamp( linearToGamma( color.r ) ) * 256 );
-//        colorBuffer[index + 1] = (unsigned char) ( intensity.clamp( linearToGamma( color.g ) ) * 256 );
-//        colorBuffer[index + 2] = (unsigned char) ( intensity.clamp( linearToGamma( color.b ) ) * 256 );
-//        colorBuffer[index + 3] = 255;
-//    }
-
     Point3d origin;
-    Vec3d pixel00Loc;
-    Vec3d pixelDeltaU;
-    Vec3d pixelDeltaV;
-
-    Vec3d u, v, w;
+    Vec3d pixelsOrigin;
+    Vec2<Vec3d> pixelDelta;
+    Vec3d forward, up, right;
 
 };
 

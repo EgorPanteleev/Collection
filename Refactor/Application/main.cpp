@@ -77,7 +77,7 @@ int main() {
 
     timer.start();
 
-    cam.render( world, colorBuffer );
+    //cam.render( world, colorBuffer );
 
     timer.end();
 

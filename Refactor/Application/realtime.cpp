@@ -4,7 +4,6 @@
 #include <iostream>
 #include "hip/hip_runtime.h"
 #include <hip/hip_runtime_api.h>
-#include <hip/hip_gl_interop.h>
 #include <chrono>
 #include "Vector.h"
 #include "Sphere.h"
@@ -13,6 +12,9 @@
 #include "Vec3.h"
 #include "RGB.h"
 #include "Vec2.h"
+#include "Kernel.h"
+
+//#include <hip/hip_gl_interop.h>
 
 const int WIDTH = 800, HEIGHT = 500;
 unsigned char* buffer = new unsigned char[WIDTH * HEIGHT * 3];  // RGB buffer
@@ -21,90 +23,37 @@ dim3 blockSize(16, 16);
 dim3 gridSize((WIDTH + blockSize.x - 1) / blockSize.x, (HEIGHT + blockSize.y - 1) / blockSize.y);
 bool firstMouse = true;
 Point2d prevPos;
-Point2d currPos;
 Point2d offset;
 bool pressed = false;
 bool released = false;
 double* memory = nullptr;
-int cnt = 0;
+int numFrames = 0;
 bool clear;
 
-HOST_DEVICE double linearToGamma( double linear ) {
-    if ( linear > 0 ) return std::sqrt( linear );
-    return 0;
-}
-
-__global__ void clearMemory( int width, int height, double* mem ) {
-    int x = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
-    int y = hipBlockDim_y * hipBlockIdx_y + hipThreadIdx_y;
-
-    if ( x >= width || y >= height ) return;
-
-    int idx = ( y * width + x ) * 3;
-
-    mem[idx] = 0;
-    mem[idx + 1] = 0;
-    mem[idx + 2] = 0;
-}
-
-void clearAll( double* memory, int& cnt ) {
-    cnt = 0;
+void clearAll() {
+    numFrames = 0;
     clearMemory<<<gridSize, blockSize>>>( WIDTH, HEIGHT, memory );
 }
 
-__global__ void render( Camera* __restrict__ cam, HittableList* __restrict__ world, unsigned char* __restrict__ colorBuffer, double* memory, int cnt,  int width, int height, hiprandState* states )
-{
-
-    int x = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
-    int y = hipBlockDim_y * hipBlockIdx_y + hipThreadIdx_y;
-
-    if ( x >= width || y >= height ) return;
-//    const double pixelSamplesScale = 1.0 / cam->samplesPerPixel;
-    RGB pixelColor = { 0, 0, 0 };
-    int idx = y * width + x;
-    hiprandState state = states[idx];
-    idx *= 3;
-
-    Vec3d pixelCenter = cam->pixel00Loc + (x * cam->pixelDeltaU) + (y * cam->pixelDeltaV);
-    Ray ray = cam->getRay( x, y, state );
-    pixelColor = cam->traceRay(ray, *world, cam->maxDepth, state );
-
-    const Interval<double> intensity( 0, 1 );
-
-    memory[idx] += intensity.clamp( linearToGamma( pixelColor[0] ) ) * 255;
-    memory[idx + 1] += intensity.clamp( linearToGamma( pixelColor[1] ) ) * 255;
-    memory[idx + 2] += intensity.clamp( linearToGamma( pixelColor[2] ) ) * 255;
-
-
-    colorBuffer[idx] = static_cast<unsigned char>( memory[idx] / cnt );
-    colorBuffer[idx + 1] = static_cast<unsigned char>( memory[idx + 1] / cnt );
-    colorBuffer[idx + 2] = static_cast<unsigned char>( memory[idx + 2] / cnt );
-
-}
-
-__global__ void render_init(int max_x, int max_y, int seed, hiprandState* states ) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if((i >= max_x) || (j >= max_y)) return;
-    int pixel_index = j*max_x + i;
-    //Each thread gets same seed, a different sequence number, no offset
-    hiprand_init(seed, pixel_index, 0, &states[pixel_index] );
-}
 
 HittableList* initDeviceWorld() {
-    Lambertian* ground = new Lambertian( { 0.4, 0.4, 0.4 } );
-    Lambertian* center = new Lambertian( { 0.1, 0.2, 0.5 } );
-    Dielectric* left = new Dielectric( 1.5 );
-    Dielectric* bubble = new Dielectric( 1.0 / 1.5 );
-    Metal* right = new Metal( { 0.8, 0.6, 0.2 }, 0.15 );
+    /// Materials
+    auto ground = new Lambertian( { 0.4, 0.4, 0.4 } );
+    auto center = new Lambertian( { 0.1, 0.2, 0.5 } );
+    auto up     = new Lambertian( { 0.3, 0.5, 0.9 } );
+    auto left   = new Dielectric( 1.5 );
+    auto bubble = new Dielectric( 1.0 / 1.5 );
+    auto right  = new Metal( { 0.8, 0.6, 0.2 }, 0.15 );
 
+    /// Spheres
     HittableList world;
 
-    world.add( new Sphere( 10000, { 0, -10000.5, -1 }, ground ) );
-    world.add( new Sphere( 0.5, { 0, 0, -1.2 }, center ) );
-    world.add( new Sphere( 0.5, { -1, 0, -1 }, left ) );
-    world.add( new Sphere( 0.4, { -1, 0, -1 }, bubble ) );
-    world.add( new Sphere( 0.5, { 1, 0, -1 }, right ) );
+    world.add( new Sphere( 10000, {  0, -10000.5, -1   }, ground ) );
+    //world.add( new Sphere( 1000,  {  0, 1500    , -1   }, up     ) );
+    world.add( new Sphere( 0.5,   {  0, 0       , -1.2 }, center ) );
+    world.add( new Sphere( 0.5,   { -1, 0       , -1   }, left   ) );
+    world.add( new Sphere( 0.4,   { -1, 0       , -1   }, bubble ) );
+    world.add( new Sphere( 0.5,   {  1, 0       , -1   }, right  ) );
 
     auto worldDevice = world.copyToDevice();
     return worldDevice;
@@ -115,12 +64,12 @@ Camera* initDeviceCamera() {
     cam.aspectRatio = 16.0 / 10.0;
     cam.imageWidth = WIDTH;
     cam.samplesPerPixel = 1;
-    cam.maxDepth = 10;
+    cam.maxDepth = 7;
     cam.vFOV = 30;
 
     cam.lookFrom = { 0, 0, 1 };
-    cam.lookAt = { 0, 0, -1 };
-    cam.up = { 0, 1, 0 };
+    cam.lookAt = { 0, 0, 2 };
+    cam.globalUp = { 0, 1, 0 };
 
     cam.init();
     auto deviceCamera = HIP::allocateOnDevice<Camera>();
@@ -129,65 +78,34 @@ Camera* initDeviceCamera() {
     return deviceCamera;
 }
 
-void finalize( HittableList* world, Camera* cam, unsigned char* deviceBuffer, double* memory ) {
+void finalize( HittableList* world, Camera* cam, unsigned char* deviceBuffer ) {
     world->deallocateOnDevice();
     HIP::deallocateOnDevice( cam );
     HIP::deallocateOnDevice( deviceBuffer );
     HIP::deallocateOnDevice( memory );
 }
 
-unsigned char* initDeviceBuffer( int width, int height, int channels ) {
-    return HIP::allocateOnDevice<unsigned char>( width * height * channels * sizeof( unsigned char ) );
-}
-
 hiprandState* initStates( int width, int height ) {
     hiprandState *states;
     HIP_ASSERT(hipMalloc((void **)&states, width * height * sizeof(hiprandState)));
-    render_init<<<gridSize, blockSize>>>(width, height, 1984, states);
+    initStates<<<gridSize, blockSize>>>(width, height, 1984, states);
     return states;
 }
 
 
-__global__ void fillBufferKernel( int width, int height, unsigned char* deviceBuffer) {
-    int x = threadIdx.x + blockIdx.x * blockDim.x;
-    int y = threadIdx.y + blockIdx.y * blockDim.y;
-    if((x >= width) || (y >= height)) return;
-    int index = (y * width + x) * 3;
-    unsigned char color = static_cast<unsigned char>((255 * x) / (width - 1));
 
-    // Set R, G, B channels to the same gradient value
-    deviceBuffer[index] = color;     // Red channel
-    deviceBuffer[index + 1] = color; // Green channel
-    deviceBuffer[index + 2] = color; // Blue channel
+void updateBuffer( Camera* cam, HittableList* world, unsigned char* deviceBuffer, hiprandState* states ) {
+    auto start =  std::chrono::steady_clock::now();
+    render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, numFrames, states );
+    initStates<<<gridSize, blockSize>>>(WIDTH, HEIGHT, numFrames, states);
 
-}
+    HIP_ASSERT( hipDeviceSynchronize() );
+    auto end =  std::chrono::steady_clock::now();
+    std::chrono::duration<double> duration = end - start;
 
+    MESSAGE << ( 1.0 / duration.count() ) << " fps\n";
 
-
-void fillBuffer( int width, int height ) {
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            int index = (y * width + x) * 3;
-
-            // Calculate the gradient value for the current pixel
-            unsigned char color = static_cast<unsigned char>((255 * x) / (width - 1));
-
-            // Set R, G, B channels to the same gradient value
-            buffer[index] = color;     // Red channel
-            buffer[index + 1] = color; // Green channel
-            buffer[index + 2] = color; // Blue channel
-        }
-    }
-}
-
-void updateBuffer( int width, int height, Camera* cam, HittableList* world, double* memory, int cnt, unsigned char* deviceBuffer, hiprandState* states ) {
-    render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, cnt, width, height, states );
-    render_init<<<gridSize, blockSize>>>(width, height, cnt, states);
-//    fillBufferKernel<<< gridSize, blockSize>>>
-//    ( WIDTH, HEIGHT, deviceBuffer );
-    hipDeviceSynchronize();
-    hipMemcpy(buffer, deviceBuffer, width * height * 3 * sizeof(unsigned char), hipMemcpyDeviceToHost );
-    //hipMemcpy(device, host, n * sizeof(Type), hipMemcpyHostToDevice
+    HIP_ASSERT( hipMemcpy(buffer, deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char), hipMemcpyDeviceToHost ) );
 
 }
 
@@ -316,18 +234,18 @@ void InitOpenGL() {
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
         firstMouse = true;
         pressed = true;
     }
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
         pressed = false;
     }
 }
 
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
     auto cam = (Camera*)(glfwGetWindowUserPointer(window));
-    double sensetivity = 0.005;
+    double sensitivity = 0.005;
     if ( pressed ) {
 
         if (firstMouse) {
@@ -335,104 +253,83 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
             firstMouse = false;
         }
 
-        Point2d delta = sensetivity * ( Point2d(xpos, ypos) - prevPos );
+        Point2d delta = sensitivity * ( Point2d(xpos, ypos) - prevPos );
 
         cam->rotateYaw(delta[0]);
         cam->rotatePitch(delta[1]);
 
-        clearAll( memory, cnt );
+        clearAll();
 
-        //TODO make normal camera and interface for movement and etc
 
         prevPos = {xpos, ypos};
     }
 
 }
 
-void mouseCallback( GLFWwindow* window, Camera* cam ) {
-
-//    if ( offset[0] != 0 ) {
-//        cam->rotateYaw( offset[0] );
-//        clear = true;
-//    }
-//
-//    if ( offset[1] != 0 ) {
-//        cam->rotatePitch( offset[1] );
-//        clear = true;
-//    }
-//
-//    if ( pressed )  {
-//        //prevPos = currPos;
-//        offset = {};
-//    }
-
-}
-
 void keyboardCallback( GLFWwindow* window, Camera* cam ) {
+    constexpr double step = 0.1;
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
     if ( glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ) {
-        cam->move( { -0.1, 0, 0 } );
+        cam->move( { -step, 0, 0 } );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ) {
-        cam->move( { 0.1, 0, 0 } );
+        cam->move( { step, 0, 0 } );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ) {
-        cam->move( { 0, 0, -0.1 } );
+        cam->move( { 0, 0, -step } );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ) {
-        cam->move( { 0, 0, 0.1 } );
+        cam->move( { 0, 0, step } );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS ) {
-        cam->move( { 0, 0.1, 0 } );
+        cam->move( { 0, step, 0 } );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ) {
-        cam->move( { 0, -0.1, 0 } );
+        cam->move( { 0, -step, 0 } );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ) {
-        cam->rotateYaw( -0.1 );
+        cam->rotateYaw( -step );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS ) {
-        cam->rotateYaw( 0.1 );
+        cam->rotateYaw( step );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS ) {
-        cam->rotatePitch( 0.1 );
+        cam->rotatePitch( step );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS ) {
-        cam->rotatePitch( -0.1 );
-        cam->init();
+        cam->rotatePitch( -step );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS ) {
-        cam->rotateRoll( 0.1 );
-        cam->init();
+        cam->rotateRoll( step );
         clear = true;
     }
 
     if ( glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS ) {
-        cam->rotateRoll( -0.1 );
-        cam->init();
+        cam->rotateRoll( -step );
         clear = true;
     }
 
@@ -476,9 +373,9 @@ int main() {
     glViewport( 0, 0, WIDTH * 2, HEIGHT * 2 );
 
     unsigned char* deviceBuffer;
-    hipMalloc( &deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char) );
+    HIP_ASSERT( hipMalloc( &deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char) ) );
 
-    hipMalloc( &memory, WIDTH * HEIGHT * 3 * sizeof(double) );
+    HIP_ASSERT(  hipMalloc( &memory, WIDTH * HEIGHT * 3 * sizeof(double) ) );
 
     // Main loop
 
@@ -504,12 +401,11 @@ int main() {
 
         keyboardCallback( window, cam );
 
-        mouseCallback( window, cam );
-
-        if ( clear ) clearAll( memory, cnt );
+        if ( clear ) clearAll();
 
         if (currentTime - lastTime >= interval) {
-            updateBuffer( WIDTH, HEIGHT, cam, world, memory, ++cnt, deviceBuffer, states );
+            ++numFrames;
+            updateBuffer( cam, world, deviceBuffer, states );
             lastTime = currentTime;
         }
 
@@ -538,7 +434,7 @@ int main() {
         glfwPollEvents();
     }
 
-    finalize( world, cam, deviceBuffer, memory );
+    finalize( world, cam, deviceBuffer );
 
     // Cleanup
     glDeleteVertexArrays(1, &VAO);

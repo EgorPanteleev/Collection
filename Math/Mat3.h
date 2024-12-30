@@ -130,6 +130,39 @@ public:
         return rotation;
     }
 
+    static Mat3<Type> rotateY(Type angleRad) {
+        Type cosAngle = cos(angleRad);
+        Type sinAngle = sin(angleRad);
+        return
+                {
+                    { cosAngle , 0, sinAngle },
+                    { 0        , 1, 0        },
+                    { -sinAngle, 0, cosAngle }
+                };
+    }
+
+    static Mat3<Type> rotateX(Type angleRad) {
+        Type cosAngle = cos(angleRad);
+        Type sinAngle = sin(angleRad);
+        return
+                {
+                    { 1, 0       , 0         },
+                    { 0, cosAngle, -sinAngle },
+                    { 0, sinAngle, cosAngle  }
+                };
+    }
+
+    static Mat3<Type> rotateZ(Type angleRad) {
+        Type cosAngle = cos(angleRad);
+        Type sinAngle = sin(angleRad);
+        return
+                {
+                    { cosAngle, -sinAngle, 0 },
+                    { sinAngle, cosAngle , 0 },
+                    { 0       , 0        , 1 }
+                };
+    }
+
     Vec3<Type> columns[3];
 };
 

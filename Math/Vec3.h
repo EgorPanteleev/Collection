@@ -15,7 +15,7 @@
 template<typename Type>
 class Vec3 {
 public:
-    HOST_DEVICE Vec3(): data() {}
+    HOST_DEVICE Vec3() = default;
 
     HOST_DEVICE Vec3(const Type& num ) {
         data[0] = num;
@@ -35,8 +35,7 @@ public:
         data[2] = other.data[2];
     }
 
-    HOST_DEVICE ~Vec3() {
-    }
+    HOST_DEVICE ~Vec3() = default;
 
     HOST_DEVICE Vec3<Type>& operator=(const Vec3<Type>& other ) {
         if ( this == &other ) return *this;

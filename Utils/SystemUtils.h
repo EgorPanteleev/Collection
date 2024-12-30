@@ -57,3 +57,4 @@ namespace HIP {
 #define HOST_DEVICE
 
 #endif
+
