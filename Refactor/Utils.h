@@ -14,4 +14,14 @@ constexpr double INF = std::numeric_limits<double>::infinity();
 
 extern OutputStream<std::ostream> MESSAGE;
 
+template <typename Type>
+Type toRadians( Type degrees ) {
+    return degrees * ( M_PI / 180 );
+}
+
+template <typename Type>
+Type toDegrees( Type radians ) {
+    return radians * ( 180 / M_PI );
+}
+
 

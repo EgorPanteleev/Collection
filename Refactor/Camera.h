@@ -11,6 +11,14 @@
 #include "Mat3.h"
 #include "Vec2.h"
 
+inline DEVICE Vec3d randomInUnitDisk( hiprandState& state ) {
+    while (true) {
+        randomDouble( -1, 1, state );
+        auto p = Vec3d( randomDouble( -1, 1, state ), randomDouble( -1, 1, state ) , 0);
+        if ( p.lengthSquared() < 1 ) return p;
+    }
+}
+
 class Camera {
 public:
 
@@ -25,13 +33,12 @@ public:
         imageHeight = int( imageWidth / aspectRatio );
         origin = lookFrom;
 
-        double focalLength = ( lookFrom - lookAt ).length();
-        auto theta = vFOV * ( M_PI / 180 );
+        auto theta = toRadians( vFOV );
         auto h = std::tan( theta / 2 );
-        double viewportHeight = 2.0 * h * focalLength;
+        double viewportHeight = 2.0 * h * focusDistance;
         double viewportWidth = viewportHeight * ( double( imageWidth ) / imageHeight );
 
-        forward = ( lookAt - lookFrom ).normalize();
+        forward = ( lookFrom - lookAt ).normalize();
         right = ( cross( globalUp, forward ) ).normalize();
         up = cross( forward, right );
 
@@ -39,8 +46,12 @@ public:
 
         pixelDelta[0] = viewport[0] / imageWidth;
         pixelDelta[1] = viewport[1] / imageHeight;
-        Vec3d viewportUpperLeft = lookFrom - focalLength * forward  - viewport[0] / 2 - viewport[1] / 2;
+        Vec3d viewportUpperLeft = lookFrom - focusDistance * forward  - viewport[0] / 2 - viewport[1] / 2;
         pixelsOrigin = viewportUpperLeft + 0.5 * ( pixelDelta[0] + pixelDelta[1] );
+
+        auto defocusRadius = focusDistance * std::tan( toRadians( defocusAngle / 2 ) );
+        defocusDisk[0] = right * defocusRadius;
+        defocusDisk[1] = up * defocusRadius;
     }
 
     void move(const Vec3d& direction ) {
@@ -85,6 +96,8 @@ public:
     int samplesPerPixel;
     int maxDepth;
     double vFOV;
+    double defocusAngle;
+    double focusDistance;
 
     Point3d lookFrom;
     Point3d lookAt;
@@ -120,12 +133,19 @@ public:
     HOST_DEVICE Ray getRay( int i, int j, hiprandState& state ) const {
         Point3d offset = { randomDouble( state ) - 0.5, randomDouble( state ) - 0.5, 0 };
         Point3d pixelSample = pixelsOrigin + ( i + offset[0] ) * pixelDelta[0] + ( j + offset[1] ) * pixelDelta[1];
-        return { origin, pixelSample - origin };
+        Point3d rayOrigin = ( defocusAngle <= 0) ? lookFrom : defocusDiskSample( state );
+        return { rayOrigin, pixelSample - rayOrigin };
+    }
+
+    DEVICE Point3d defocusDiskSample( hiprandState& state ) const {
+        auto p = randomInUnitDisk( state );
+        return lookFrom + ( p[0] * defocusDisk[0] ) + ( p[1] * defocusDisk[1] );
     }
 
     Point3d origin;
     Vec3d pixelsOrigin;
     Vec2<Vec3d> pixelDelta;
+    Vec2<Vec3d> defocusDisk;
     Vec3d forward, up, right;
 
 };

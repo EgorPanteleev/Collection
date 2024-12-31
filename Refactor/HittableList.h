@@ -76,7 +76,7 @@ public:
     HOST void deallocateOnDevice() {
         spheres.deallocateOnDevice();
 
-        HIP::deallocateOnDevice<HittableList>( this );
+      //TODO  HIP::deallocateOnDevice<HittableList>( this );
     }
 #endif
 public:

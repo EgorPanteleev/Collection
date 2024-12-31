@@ -16,7 +16,7 @@
 
 //#include <hip/hip_gl_interop.h>
 
-const int WIDTH = 800, HEIGHT = 500;
+const int WIDTH = 400, HEIGHT = 250;
 unsigned char* buffer = new unsigned char[WIDTH * HEIGHT * 3];  // RGB buffer
 
 dim3 blockSize(16, 16);
@@ -65,10 +65,12 @@ Camera* initDeviceCamera() {
     cam.imageWidth = WIDTH;
     cam.samplesPerPixel = 1;
     cam.maxDepth = 7;
-    cam.vFOV = 30;
+    cam.vFOV = 20;
+    cam.defocusAngle = 10.0;
+    cam.focusDistance = 3.4;
 
-    cam.lookFrom = { 0, 0, 1 };
-    cam.lookAt = { 0, 0, 2 };
+    cam.lookFrom = { -2, 2, 1 };
+    cam.lookAt = { 0, 0, -1 };
     cam.globalUp = { 0, 1, 0 };
 
     cam.init();
@@ -256,7 +258,7 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
         Point2d delta = sensitivity * ( Point2d(xpos, ypos) - prevPos );
 
         cam->rotateYaw(delta[0]);
-        cam->rotatePitch(delta[1]);
+        cam->rotatePitch(-delta[1]);
 
         clearAll();
 
