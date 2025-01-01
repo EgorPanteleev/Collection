@@ -1,0 +1,58 @@
+Colors = {
+    WHITE     = { 255, 255, 255 },
+    ORANGE    = { 249, 231, 132 },
+    GRAY      = { 210, 210, 210 },
+    RED       = { 255, 0  , 0   },
+    GREEN     = { 0  , 255, 0   },
+    BLUE      = { 0  , 0  , 255 },
+    YELLOW    = { 255, 255, 0   },
+    BROWN     = { 150, 75 , 0   },
+    PINK      = { 255, 105, 180 },
+    DARK_BLUE = { 65 , 105, 225 },
+    CYAN      = { 0  , 255, 255 }
+}
+
+
+Camera = {
+    aspectRatio = 16.0 / 10.0,
+    imageWidth = 800,
+    samplesPerPixel = 1,
+    maxDepth = 7,
+    vFov = 20,
+    defocusAngle = 10.0,
+    focusDistance = 3.4,
+
+    lookFrom = { -2, 2, 1 },
+    lookAt = { 0, 0, -1 },
+    globalUp = { 0, 1, 0 }
+}
+
+World = {
+    Spheres = {
+        {
+            origin = { 0, -10000.5, -1 },
+            radius = 10000,
+            material = { "LAMBERTIAN", { 0.4, 0.4, 0.4 } }
+        },
+        {
+            origin = { 0, 0, -1.2 },
+            radius = 0.5,
+            material = { "LAMBERTIAN", { 0.1, 0.2, 0.5 }  }
+        },
+        {
+            origin = { -1, 0, -1 },
+            radius = 0.5,
+            material = { "DIELECTRIC", 1.5 }
+        },
+        {
+            origin = { -1, 0, -1 },
+            radius = 0.4,
+            material = { "DIELECTRIC", 1.0 / 1.5 }
+        },
+        {
+            origin = { 1, 0, -1 },
+            radius = 0.5,
+            material = { "METAL", { 0.8, 0.6, 0.2 }, 0.15 }
+        }
+    }
+}
