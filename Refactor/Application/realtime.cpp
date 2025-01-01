@@ -13,10 +13,13 @@
 #include "RGB.h"
 #include "Vec2.h"
 #include "Kernel.h"
+#include "LuaLoader.h"
 
 //#include <hip/hip_gl_interop.h>
 
-const int WIDTH = 400, HEIGHT = 250;
+//TODO LUA!
+
+const int WIDTH = 800, HEIGHT = 500;
 unsigned char* buffer = new unsigned char[WIDTH * HEIGHT * 3];  // RGB buffer
 
 dim3 blockSize(16, 16);
@@ -29,6 +32,8 @@ bool released = false;
 double* memory = nullptr;
 int numFrames = 0;
 bool clear;
+double oldDefocusAngle = 0;
+bool keyStateF = false;
 
 void clearAll() {
     numFrames = 0;
@@ -36,44 +41,65 @@ void clearAll() {
 }
 
 
-HittableList* initDeviceWorld() {
-    /// Materials
-    auto ground = new Lambertian( { 0.4, 0.4, 0.4 } );
-    auto center = new Lambertian( { 0.1, 0.2, 0.5 } );
-    auto up     = new Lambertian( { 0.3, 0.5, 0.9 } );
-    auto left   = new Dielectric( 1.5 );
-    auto bubble = new Dielectric( 1.0 / 1.5 );
-    auto right  = new Metal( { 0.8, 0.6, 0.2 }, 0.15 );
-
-    /// Spheres
+HittableList* initDeviceWorld( lua_State* luaState ) {
     HittableList world;
 
-    world.add( new Sphere( 10000, {  0, -10000.5, -1   }, ground ) );
-    //world.add( new Sphere( 1000,  {  0, 1500    , -1   }, up     ) );
-    world.add( new Sphere( 0.5,   {  0, 0       , -1.2 }, center ) );
-    world.add( new Sphere( 0.5,   { -1, 0       , -1   }, left   ) );
-    world.add( new Sphere( 0.4,   { -1, 0       , -1   }, bubble ) );
-    world.add( new Sphere( 0.5,   {  1, 0       , -1   }, right  ) );
+    Lua::loadWorld( luaState, &world );
+
+//    auto ground_material = new Lambertian ( { 0.5, 0.5, 0.5 } );
+//    world.add( new Sphere( 1000, { 0,-1000,0 }, ground_material) );
+//
+//    for (int a = -11; a < 11; a++) {
+//        for (int b = -11; b < 11; b++) {
+//            auto choose_mat = randomDouble();
+//            Point3d center(a + 0.9 * randomDouble(), 0.2, b + 0.9 * randomDouble());
+//
+//            if ((center - Point3d(4, 0.2, 0)).length() > 0.9) {
+//                Material* sphere_material;
+//
+//                if (choose_mat < 0.8) {
+//                    // diffuse
+//                    RGB albedo = { pow( randomDouble(), 2 ), pow( randomDouble(), 2 ), pow( randomDouble(), 2 ) }; //mb pow
+//                    sphere_material = new Lambertian( albedo );
+//                    world.add( new Sphere ( 0.2, center, sphere_material) );
+//                } else if (choose_mat < 0.95) {
+//                    // metal
+//                    RGB albedo = { randomDouble( 0.5, 1 ), randomDouble( 0.5, 1 ), randomDouble( 0.5, 1 ) };
+//                    auto fuzz = randomDouble( 0, 0.5 );
+//                    sphere_material = new Metal(albedo, fuzz);
+//                    world.add( new Sphere (0.2, center, sphere_material));
+//                } else {
+//                    // glass
+//                    sphere_material = new Dielectric(1.5);
+//                    world.add(new Sphere ( 0.2, center, sphere_material));
+//                }
+//            }
+//        }
+//    }
+//
+//    auto material1 = new Dielectric(1.5);
+//    world.add(new Sphere(1.0, Point3d (0, 1, 0), material1));
+//
+//    auto material2 = new Lambertian({0.4, 0.2, 0.1});
+//    world.add(new Sphere(1.0,Point3d(-4, 1, 0), material2));
+//
+//    auto material3 = new Metal({0.7, 0.6, 0.5}, 0.0);
+//    world.add(new Sphere(1.0, Point3d(4, 1, 0), material3));
+
 
     auto worldDevice = world.copyToDevice();
     return worldDevice;
 }
 
-Camera* initDeviceCamera() {
+Camera* initDeviceCamera( lua_State* luaState ) {
     Camera cam;
-    cam.aspectRatio = 16.0 / 10.0;
-    cam.imageWidth = WIDTH;
-    cam.samplesPerPixel = 1;
-    cam.maxDepth = 7;
-    cam.vFOV = 20;
-    cam.defocusAngle = 10.0;
-    cam.focusDistance = 3.4;
 
-    cam.lookFrom = { -2, 2, 1 };
-    cam.lookAt = { 0, 0, -1 };
-    cam.globalUp = { 0, 1, 0 };
+    Lua::loadRenderSettings( luaState, &cam );
 
     cam.init();
+
+    oldDefocusAngle = cam.defocusAngle;
+
     auto deviceCamera = HIP::allocateOnDevice<Camera>();
 
     HIP::copyToDevice( &cam, deviceCamera );
@@ -127,10 +153,10 @@ GLuint createTextureFromBuffer() {
 
     // Upload the buffer data to the textureID
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-//    glGenerateMipmap(GL_TEXTURE_2D);
+    //glGenerateMipmap(GL_TEXTURE_2D);
 
     // Unbind the textureID
-    glBindTexture(GL_TEXTURE_2D, 0);
+   // glBindTexture(GL_TEXTURE_2D, 0);
 
     return textureID; // Return the textureID ID
 }
@@ -268,6 +294,23 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
 
 }
 
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    auto cam = (Camera*)(glfwGetWindowUserPointer(window));
+    constexpr double step = 0.1;
+
+    if ( yoffset < 0 ) {
+        if ( cam->focusDistance - step > 0 ) cam->focusDistance -= step;
+        cam->init();
+        clearAll();
+    } else if ( yoffset > 0 ) {
+        cam->focusDistance += step;
+        cam->init();
+        clearAll();
+    }
+
+    std::cout << cam->focusDistance << std::endl;
+}
+
 void keyboardCallback( GLFWwindow* window, Camera* cam ) {
     constexpr double step = 0.1;
 
@@ -277,63 +320,76 @@ void keyboardCallback( GLFWwindow* window, Camera* cam ) {
 
     if ( glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ) {
         cam->move( { -step, 0, 0 } );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ) {
         cam->move( { step, 0, 0 } );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ) {
         cam->move( { 0, 0, -step } );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ) {
         cam->move( { 0, 0, step } );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS ) {
         cam->move( { 0, step, 0 } );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ) {
         cam->move( { 0, -step, 0 } );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ) {
         cam->rotateYaw( -step );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS ) {
         cam->rotateYaw( step );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS ) {
         cam->rotatePitch( step );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS ) {
         cam->rotatePitch( -step );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS ) {
         cam->rotateRoll( step );
-        clear = true;
+        clearAll();
     }
 
     if ( glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS ) {
         cam->rotateRoll( -step );
-        clear = true;
+        clearAll();
     }
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        if (!keyStateF) {
+            keyStateF = true;
+            if ( cam->defocusAngle != 0 ) cam->defocusAngle = 0;
+            else cam->defocusAngle = oldDefocusAngle;
+            cam->init();
+            clearAll();
+        }
+    } else {
+        keyStateF = false;
+    }
+    
 
 }
 
@@ -348,7 +404,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     // Create windowed mode window and OpenGL context
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Quad with textureID", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Realtime raytracer", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -357,6 +413,7 @@ int main() {
 
     glfwSetCursorPosCallback(window, cursorPositionCallback );
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetScrollCallback(window, scrollCallback);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int width, int height) {
@@ -387,11 +444,18 @@ int main() {
 
     auto lastTime = std::chrono::steady_clock::now();
 
-    Camera* cam = initDeviceCamera();
+    auto luaState = Lua::newState();
+    if ( !Lua::open( luaState, "/home/auser/dev/src/Collection/test.txt" ) ) {
+        std::cerr << "Error loading Lua file: " << lua_tostring(luaState, -1) << "\n";
+        Lua::close( luaState );
+        return 1;
+    }
+
+    Camera* cam = initDeviceCamera( luaState );
 
     glfwSetWindowUserPointer(window, cam );
 
-    HittableList* world = initDeviceWorld();
+    HittableList* world = initDeviceWorld( luaState );
 
     hiprandState* states = initStates( WIDTH, HEIGHT );
 
@@ -411,6 +475,8 @@ int main() {
             lastTime = currentTime;
         }
 
+//        glBindTexture(GL_TEXTURE_2D, textureID);
+        glClearTexImage( textureID, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL );
         textureID = createTextureFromBuffer();
         // Input
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -446,3 +512,6 @@ int main() {
     glfwTerminate();
     return 0;
 }
+
+
+// 11.5

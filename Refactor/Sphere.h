@@ -9,12 +9,11 @@
 
 class Sphere: public Hittable {
 public:
-    HOST_DEVICE Sphere() {}
+    HOST Sphere();
 
-    HOST_DEVICE Sphere( double r, const Point3d& pos, Material* mat ): Hittable(mat), radius( r ), origin(pos) {
-    }
-    [[nodiscard]] HOST_DEVICE bool hit( const Ray& ray, const Interval<double>& interval, HitRecord& record ) const {
-       // printf("HI SPHERE::hit\n");
+    HOST Sphere( double r, const Point3d& pos, Material* mat );
+
+    DEVICE bool hit( const Ray& ray, const Interval<double>& interval, HitRecord& record ) const {
         Vec3d D = ray.direction;
         Vec3d OC = ray.origin - origin;
         double k1 = dot( D, D );
@@ -39,35 +38,12 @@ public:
         return true;
     }
 
-
 #if HIP_ENABLED
-    Sphere* copyToDevice() {
-        auto deviceMaterial = material->copyToDevice();
-        auto originalMaterial = material;
-        material = deviceMaterial;
+    HOST Hittable* copyToDevice() override;
 
-        auto deviceSphere = HIP::allocateOnDevice<Sphere>();
+    HOST Hittable* copyToHost() override;
 
-        HIP::copyToDevice( this, deviceSphere );
-
-        material = originalMaterial;
-        return deviceSphere;
-
-    }
-
-    Sphere* copyToHost() {
-        auto host = new Sphere();
-        HIP::copyToHost( host, this );
-
-        auto hostMaterial = material->copyToHost();
-        host->material = hostMaterial;
-        return host;
-    }
-
-    void deallocateOnDevice() {
-        material->deallocateOnDevice();
-        HIP::deallocateOnDevice( this );
-    }
+    HOST void deallocateOnDevice() override;
 #endif
 public:
     Point3d origin;

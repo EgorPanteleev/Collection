@@ -4,7 +4,7 @@
 
 #include "HittableList.h"
 
-HittableList::HittableList(): spheres()  {
+HittableList::HittableList(): hittables()  {
 
 }
 
@@ -27,7 +27,7 @@ HittableList::HittableList(): spheres()  {
 //}
 
 void HittableList::clear() {
-    spheres.clear();
+    hittables.clear();
 }
 
 //void copyToDevice(Type *host, Type *&device) {

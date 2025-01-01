@@ -6,8 +6,12 @@ file(GLOB HEADERS "*.h")
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(Libs Math Containers )
-target_link_libraries(${PROJECT_NAME} ${Libs})
+find_package(Lua REQUIRED)
+
+#TODO add if lua found etc
+
+set(Libs Math Containers ${LUA_LIBRARIES} )
+target_link_libraries(${PROJECT_NAME} ${Libs} )
 target_compile_options( ${PROJECT_NAME} PRIVATE -fgpu-rdc )
 
 

@@ -319,7 +319,6 @@ public:
 
         mData = data;
 
-
         HIP::copyToDevice( this, device );
 
         mData = originalData;

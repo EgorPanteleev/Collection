@@ -14,10 +14,28 @@
 
 class Hittable {
 public:
+    enum Type {
+        SPHERE,
+        UNKNOWN
+    };
 
-    Hittable(): material(nullptr) {}
+    Hittable();
 
-    Hittable( Material* material ): material(material) {}
+    Hittable( Type type );
+
+    Hittable( Material* material );
+
+    Hittable( Type type, Material* material );
+
+#if HIP_ENABLED
+    virtual HOST Hittable* copyToDevice() = 0;
+
+    virtual HOST Hittable* copyToHost() = 0;
+
+    virtual HOST void deallocateOnDevice() = 0;
+#endif
+
+    Type type;
 
     Material* material;
 };
