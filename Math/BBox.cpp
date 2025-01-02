@@ -8,7 +8,7 @@ BBox::BBox(): pMin( { 1e30, 1e30 , 1e30 } ), pMax( { -1e30, -1e30 , -1e30 } ) {}
 
 BBox::BBox( const Vec3d& pMin, const Vec3d& pMax ): pMin( pMin ), pMax( pMax ) {}
 
-Vec3d BBox::getCentroid() {
+Vec3d BBox::getCentroid() const {
     return (pMax + pMin) / 2.0;
 }
 
@@ -35,7 +35,7 @@ bool BBox::intersectsWithRay( const Vec3d& origin, const Vec3d& direction ) cons
     return tmax >= tmin && tmin < 1e30f && tmax > 0;
 }
 
-double BBox::getArea() {
+double BBox::getArea() const {
     Vec3d d = pMax - pMin;
     return (d[0] * d[1] + d[0] * d[2] + d[1] * d[2]);
 }

@@ -13,7 +13,7 @@ public:
 
     BBox( const Vec3d& pMin, const Vec3d& pMax );
 
-    Vec3d getCentroid();
+    Vec3d getCentroid() const;
 
     void merge( const BBox &bbox );
 
@@ -21,7 +21,7 @@ public:
 
     bool intersectsWithRay( const Vec3d& origin, const Vec3d& direction ) const;
 
-    double getArea();
+    double getArea() const;
 
     bool operator==( const BBox& bbox ) const;
 

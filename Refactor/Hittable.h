@@ -11,6 +11,7 @@
 #include "HitRecord.h"
 #include "Material.h"
 #include "SystemUtils.h"
+#include "BBox.h"
 
 class Hittable {
 public:
@@ -27,6 +28,8 @@ public:
 
     Hittable( Type type, Material* material );
 
+    BBox getBBox() const;
+
 #if HIP_ENABLED
     virtual HOST Hittable* copyToDevice() = 0;
 
@@ -36,6 +39,8 @@ public:
 #endif
 
     Type type;
+
+    BBox bbox;
 
     Material* material;
 };

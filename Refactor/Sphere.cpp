@@ -4,9 +4,17 @@
 
 #include "Sphere.h"
 
-HOST Sphere::Sphere(): Hittable(SPHERE) {}
+HOST Sphere::Sphere(): Hittable(SPHERE), origin(), radius() {
+    bbox = computeBBox();
+}
 
-HOST Sphere::Sphere( double r, const Point3d& pos, Material* mat ): Hittable(SPHERE, mat), radius( r ), origin(pos) {}
+HOST Sphere::Sphere( double r, const Point3d& pos, Material* mat ): Hittable(SPHERE, mat), radius( r ), origin(pos) {
+    bbox = computeBBox();
+}
+
+BBox Sphere::computeBBox() const {
+    return { { origin - radius }, { origin + radius } };
+}
 
 #if HIP_ENABLED
 HOST Hittable* Sphere::copyToDevice() {
