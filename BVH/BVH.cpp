@@ -116,8 +116,8 @@ double BVH::findBestSplitPlane( BVHNode& node, int& axis, int& splitPos, Vec3d& 
 
 
 bool BVH::intersectBBox( const Ray& ray, const Vec3d& bmin, const Vec3d& bmax ) {
-    Vec3d t1 = ( bmin - ray.origin ) * ray.invDirection;
-    Vec3d t2 = ( bmax - ray.origin ) * ray.invDirection;
+    Vec3d t1 = ( bmin - ray.origin ) / ray.direction;
+    Vec3d t2 = ( bmax - ray.origin ) / ray.direction;
     double tmin = std::min( t1[0], t2[0] );
     tmin = std::max( tmin, std::min( t1[1], t2[1] ) );
     tmin = std::max( tmin, std::min( t1[2], t2[2] ) );

@@ -21,17 +21,17 @@ public:
     using ValueType = Type;
     using AllocatorType = Allocator;
 
-    Vector(): mAlloc(), mData(nullptr), mSize(0), mCap(0)  {}
+    HOST_DEVICE Vector(): mAlloc(), mData(nullptr), mSize(0), mCap(0)  {}
 
-    Vector( size_t n, const Type& value = Type() ): mAlloc(), mData(nullptr), mSize(0), mCap(n)  {
+    HOST_DEVICE Vector( size_t n, const Type& value = Type() ): mAlloc(), mData(nullptr), mSize(0), mCap(n)  {
         resize( n, value );
     }
 
-    Vector( size_t n, Type&& value ): mAlloc(), mData(nullptr), mSize(0), mCap(0)  {
+    HOST_DEVICE Vector( size_t n, Type&& value ): mAlloc(), mData(nullptr), mSize(0), mCap(0)  {
         resize( n, std::move( value ) );
     }
 
-    Vector( const Vector& other ): mSize(other.mSize), mCap(other.mCap), mAlloc(other.mAlloc)  {
+    HOST_DEVICE Vector( const Vector& other ): mSize(other.mSize), mCap(other.mCap), mAlloc(other.mAlloc)  {
         mData = mAlloc.allocate( mCap );
         for ( size_t i = 0; i < mSize; ++i ) {
             mAlloc.construct( mData + i, other.mData[i] );
@@ -81,7 +81,7 @@ public:
         return *this;
     }
 
-    ~Vector() {
+    HOST_DEVICE ~Vector() {
         for ( size_t i = 0; i < mSize; ++i ) {
             if ( mData ) mAlloc.destroy( mData + i );
         }
@@ -133,7 +133,7 @@ public:
         mAlloc.construct( mData + mSize++, std::move( value ) );
     }
 
-    void pop_back() {
+    HOST_DEVICE void pop_back() {
         --mSize;
     }
 
@@ -171,7 +171,7 @@ public:
         return mData[0];
     }
 
-    Reference back() {
+    HOST_DEVICE Reference back() {
         return mData[mSize - 1];
     }
 
@@ -187,7 +187,7 @@ public:
         return mData;
     }
 
-    bool empty() const {
+    HOST_DEVICE bool empty() const {
         return mSize == 0;
     }
 

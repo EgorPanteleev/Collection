@@ -4,12 +4,13 @@
 
 #ifndef COLLECTION_CAMERA_H
 #define COLLECTION_CAMERA_H
-#include "HittableList.h"
+#include "BVH.h"
 #include "Material.h"
 #include "SystemUtils.h"
 #include "scatter.h"
 #include "Mat3.h"
 #include "Vec2.h"
+
 
 inline DEVICE Vec3d randomInUnitDisk( hiprandState& state ) {
     while (true) {
@@ -104,20 +105,24 @@ public:
     Vec3d globalUp;
 public:
 
-    DEVICE RGB traceRay( const Ray& ray, const HittableList& world, int depth, hiprandState& state ) {
+    DEVICE RGB traceRay( const Ray& ray, const BVH& world, hiprandState& state ) {
         const Interval<double> interval( 0.001, 10000 );
         Ray currentRay = ray;
         RGB currentAttenuation = { 1.0, 1.0, 1.0 };
         for ( int i = 0; i < maxDepth; ++i ) {
             HitRecord rec;
-            if (world.hit(currentRay, interval, rec)) {
+            rec.t = interval.max;
+            if (world.hit(currentRay, interval, rec )) {
                 Ray scattered;
                 RGB attenuation;
+                //printf("asd\n");
                 if ( scatter( rec.material, currentRay, rec, attenuation, scattered, state ) ) {
                     currentAttenuation *= attenuation;
+                    //printf("asd1\n");
                     currentRay = scattered;
                 }
                 else {
+                    //printf("asd2\n");
                     return { 0.0, 0.0, 0.0 };
                 }
             }

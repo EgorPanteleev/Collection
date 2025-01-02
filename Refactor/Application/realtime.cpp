@@ -7,7 +7,6 @@
 #include <chrono>
 #include "Vector.h"
 #include "Sphere.h"
-#include "HittableList.h"
 #include "Camera.h"
 #include "Vec3.h"
 #include "RGB.h"
@@ -40,54 +39,14 @@ void clearAll() {
     clearMemory<<<gridSize, blockSize>>>( WIDTH, HEIGHT, memory );
 }
 
-
-HittableList* initDeviceWorld( lua_State* luaState ) {
-    HittableList world;
+BVH* initDeviceWorld( lua_State* luaState ) {
+    BVH world;
 
     Lua::loadWorld( luaState, &world );
 
-//    auto ground_material = new Lambertian ( { 0.5, 0.5, 0.5 } );
-//    world.add( new Sphere( 1000, { 0,-1000,0 }, ground_material) );
-//
-//    for (int a = -11; a < 11; a++) {
-//        for (int b = -11; b < 11; b++) {
-//            auto choose_mat = randomDouble();
-//            Point3d center(a + 0.9 * randomDouble(), 0.2, b + 0.9 * randomDouble());
-//
-//            if ((center - Point3d(4, 0.2, 0)).length() > 0.9) {
-//                Material* sphere_material;
-//
-//                if (choose_mat < 0.8) {
-//                    // diffuse
-//                    RGB albedo = { pow( randomDouble(), 2 ), pow( randomDouble(), 2 ), pow( randomDouble(), 2 ) }; //mb pow
-//                    sphere_material = new Lambertian( albedo );
-//                    world.add( new Sphere ( 0.2, center, sphere_material) );
-//                } else if (choose_mat < 0.95) {
-//                    // metal
-//                    RGB albedo = { randomDouble( 0.5, 1 ), randomDouble( 0.5, 1 ), randomDouble( 0.5, 1 ) };
-//                    auto fuzz = randomDouble( 0, 0.5 );
-//                    sphere_material = new Metal(albedo, fuzz);
-//                    world.add( new Sphere (0.2, center, sphere_material));
-//                } else {
-//                    // glass
-//                    sphere_material = new Dielectric(1.5);
-//                    world.add(new Sphere ( 0.2, center, sphere_material));
-//                }
-//            }
-//        }
-//    }
-//
-//    auto material1 = new Dielectric(1.5);
-//    world.add(new Sphere(1.0, Point3d (0, 1, 0), material1));
-//
-//    auto material2 = new Lambertian({0.4, 0.2, 0.1});
-//    world.add(new Sphere(1.0,Point3d(-4, 1, 0), material2));
-//
-//    auto material3 = new Metal({0.7, 0.6, 0.5}, 0.0);
-//    world.add(new Sphere(1.0, Point3d(4, 1, 0), material3));
+    world.build();
 
-
-    auto worldDevice = world.copyToDevice();
+    auto worldDevice = (BVH*) world.copyToDevice();
     return worldDevice;
 }
 
@@ -106,7 +65,7 @@ Camera* initDeviceCamera( lua_State* luaState ) {
     return deviceCamera;
 }
 
-void finalize( HittableList* world, Camera* cam, unsigned char* deviceBuffer ) {
+void finalize( BVH* world, Camera* cam, unsigned char* deviceBuffer ) {
     world->deallocateOnDevice();
     HIP::deallocateOnDevice( cam );
     HIP::deallocateOnDevice( deviceBuffer );
@@ -122,7 +81,7 @@ hiprandState* initStates( int width, int height ) {
 
 
 
-void updateBuffer( Camera* cam, HittableList* world, unsigned char* deviceBuffer, hiprandState* states ) {
+void updateBuffer( Camera* cam, BVH* world, unsigned char* deviceBuffer, hiprandState* states ) {
     auto start =  std::chrono::steady_clock::now();
     render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, 1.0 / numFrames, states );
     initStates<<<gridSize, blockSize>>>(WIDTH, HEIGHT, numFrames, states);
@@ -455,7 +414,10 @@ int main() {
 
     glfwSetWindowUserPointer(window, cam );
 
-    HittableList* world = initDeviceWorld( luaState );
+    BVH* world = initDeviceWorld( luaState );
+    
+    //world->printDebug();
+
 
     hiprandState* states = initStates( WIDTH, HEIGHT );
 

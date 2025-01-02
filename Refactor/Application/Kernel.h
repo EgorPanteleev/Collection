@@ -20,7 +20,7 @@ __global__ void clearMemory( int width, int height, double* memory ) {
 }
 
 __global__ void render( Camera* __restrict__ cam,
-                        HittableList* __restrict__ world,
+                        BVH* __restrict__ world,
                         unsigned char* __restrict__ colorBuffer,
                         double* __restrict__ memory,
                         double invFrames,
@@ -36,7 +36,8 @@ __global__ void render( Camera* __restrict__ cam,
     idx *= 3;
 
     Ray ray = cam->getRay( x, y, state );
-    pixelColor = cam->traceRay(ray, *world, cam->maxDepth, state );
+    pixelColor = cam->traceRay(ray, *world, state );
+    //printf( "%i\n", world->indexes.size() );
 
     const Interval<double> intensity( 0, 1 );
 

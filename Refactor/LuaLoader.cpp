@@ -213,6 +213,7 @@ bool Lua::loadSpheres( lua_State* luaState, HittableList* world ) {
         loadVec3d( luaState, "origin", sphere->origin );
         loadNumber( luaState, "radius", sphere->radius );
         loadMaterial( luaState, sphere->material );
+        sphere->computeBBox();
         world->add( sphere );
         pop( luaState, 1 );
     }

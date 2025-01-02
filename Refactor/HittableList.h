@@ -40,7 +40,7 @@ public:
     void clear();
 
 #if HIP_ENABLED
-    HOST HittableList* copyToDevice() {
+    virtual HOST HittableList* copyToDevice() {
         auto objectsDevice = hittables.copyToDevice();
 
         auto device = HIP::allocateOnDevice<HittableList>();
@@ -49,7 +49,7 @@ public:
         return device;
     }
 
-    HOST HittableList* copyToHost() {
+    virtual HOST HittableList* copyToHost() {
         auto host = new HittableList();
         HIP::copyToHost( host, this );
 
@@ -59,7 +59,7 @@ public:
         return host;
     }
 
-    HOST void deallocateOnDevice() {
+    virtual HOST void deallocateOnDevice() {
         hittables.deallocateOnDevice();
 
       //TODO  HIP::deallocateOnDevice<HittableList>( this );

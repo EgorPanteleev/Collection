@@ -5,15 +5,15 @@
 #include "Sphere.h"
 
 HOST Sphere::Sphere(): Hittable(SPHERE), origin(), radius() {
-    bbox = computeBBox();
+    computeBBox();
 }
 
 HOST Sphere::Sphere( double r, const Point3d& pos, Material* mat ): Hittable(SPHERE, mat), radius( r ), origin(pos) {
-    bbox = computeBBox();
+    computeBBox();
 }
 
-BBox Sphere::computeBBox() const {
-    return { { origin - radius }, { origin + radius } };
+void Sphere::computeBBox() {
+    bbox = BBox( { origin - radius }, { origin + radius } );
 }
 
 #if HIP_ENABLED

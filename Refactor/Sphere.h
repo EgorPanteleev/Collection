@@ -38,7 +38,7 @@ public:
         return true;
     }
 
-    BBox computeBBox() const;
+    void computeBBox();
 
 #if HIP_ENABLED
     HOST Hittable* copyToDevice() override;

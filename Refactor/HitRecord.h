@@ -12,6 +12,8 @@ class Material;
 
 class HitRecord {
 public:
+    HitRecord() = default;
+
     Material* material;
     Point3d p;
     Vec3d N;
