@@ -111,7 +111,7 @@ public:
             reserve( newSize );
         }
 
-        for ( size_t i = mSize; i < newSize; ++i ) {
+        for ( size_t i = mSize - 1; i < newSize; ++i ) {
             mAlloc.construct( mData + i, value );
         }
         mSize = newSize;

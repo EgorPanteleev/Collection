@@ -416,7 +416,8 @@ int main() {
 
     BVH* world = initDeviceWorld( luaState );
     
-    //world->printDebug();
+    world->printDebug();
+
 
 
     hiprandState* states = initStates( WIDTH, HEIGHT );

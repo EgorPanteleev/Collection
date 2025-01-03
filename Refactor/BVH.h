@@ -15,15 +15,22 @@ public:
     BVHNode() = default;
 
     [[nodiscard]] HOST_DEVICE bool isLeaf() const {
-        return ( trianglesCount > 0 );
+        return ( count > 0 );
     }
     [[nodiscard]] double calculateNodeCost() const {
         Vec3d e = bbox.pMax - bbox.pMin;
-        return (e[0] * e[1] + e[1] * e[2] + e[2] * e[0]) * trianglesCount;
+        return (e[0] * e[1] + e[1] * e[2] + e[2] * e[0]) * count;
     }
 
     BBox bbox;
-    uint leftFirst, trianglesCount;
+    uint leftFirst, count;
+};
+
+class Bin {
+public:
+    Bin(): count(0), bounds( INF, -INF ) {}
+    BBox bounds;
+    int count;
 };
 
 
@@ -52,7 +59,7 @@ public:
             }
             if (node->isLeaf()) {
                 HitRecord tmpRecord;
-                for (uint i = 0; i < node->trianglesCount; ++i ) {
+                for (uint i = 0; i < node->count; ++i ) {
                     auto hittable = hittables[indexes[node->leftFirst + i]];
                     if ( !::hit(hittable, ray, interval, tmpRecord ) ) continue;
                     hitAnything = true;

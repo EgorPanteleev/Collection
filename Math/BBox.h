@@ -31,6 +31,7 @@ public:
         tmin = std::max( tmin, std::min( t0[2], t1[2] ) );
         tmax = std::min( tmax, std::max( t0[2], t1[2] ) );
         return tmax >= tmin && tmin < 1e30f && tmax > 0;
+        //if (tmax >= tmin && tmin < ray.hit.t && tmax > 0) return tmin; else return 1e30f;
     }
 
     [[nodiscard]] double getArea() const;

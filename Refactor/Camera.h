@@ -147,7 +147,7 @@ public:
                 if ( scatter( rec.material, currentRay, rec, attenuation, scattered, state ) ) {
                     currentAttenuation *= attenuation;
                     currentRay = scattered;
-                } else return emission;
+                } else return currentAttenuation + emission;
 
             }
             else {
