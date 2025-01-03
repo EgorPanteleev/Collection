@@ -132,7 +132,7 @@ public:
 
 
     DEVICE RGB traceRay( const Ray& ray, const BVH& world, hiprandState& state ) {
-        const Interval<double> interval( 0.001, 10000 );
+        const Interval<double> interval( 0.001, INF );
         Ray currentRay = ray;
         RGB currentAttenuation = background;
         for ( int i = 0; i < maxDepth; ++i ) {
