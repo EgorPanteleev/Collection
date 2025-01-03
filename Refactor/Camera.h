@@ -103,36 +103,58 @@ public:
     Point3d lookFrom;
     Point3d lookAt;
     Vec3d globalUp;
+
+    RGB background;
 public:
+
+//    color ray_color(const ray& r, int depth, const hittable& world) const {
+//        // If we've exceeded the ray bounce limit, no more light is gathered.
+//        if (depth <= 0)
+//            return color(0,0,0);
+//
+//        hit_record rec;
+//
+//        // If the ray hits nothing, return the background color.
+//        if (!world.hit(r, interval(0.001, infinity), rec))
+//            return background;
+//
+//        ray scattered;
+//        color attenuation;
+//        color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+//
+//        if (!rec.mat->scatter(r, rec, attenuation, scattered))
+//            return color_from_emission;
+//
+//        color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+//
+//        return color_from_emission + color_from_scatter;
+//    }
+
 
     DEVICE RGB traceRay( const Ray& ray, const BVH& world, hiprandState& state ) {
         const Interval<double> interval( 0.001, 10000 );
         Ray currentRay = ray;
-        RGB currentAttenuation = { 1.0, 1.0, 1.0 };
+        RGB currentAttenuation = background;
         for ( int i = 0; i < maxDepth; ++i ) {
             HitRecord rec;
             rec.t = interval.max;
             if (world.hit(currentRay, interval, rec )) {
                 Ray scattered;
                 RGB attenuation;
-                //printf("asd\n");
+
+                RGB emission = emit( rec.material, rec.u, rec.v, rec.p );
+
                 if ( scatter( rec.material, currentRay, rec, attenuation, scattered, state ) ) {
                     currentAttenuation *= attenuation;
-                    //printf("asd1\n");
                     currentRay = scattered;
-                }
-                else {
-                    //printf("asd2\n");
-                    return { 0.0, 0.0, 0.0 };
-                }
+                } else return emission;
+
             }
             else {
-                Vec3d unitDir = ray.direction.normalize();
-                auto a = 0.5 * ( unitDir[1] + 1.0 );
-                return currentAttenuation * ( ( 1.0 - a ) * RGB( 1, 1, 1 ) + a * RGB( 0.5, 0.7, 1 ) );
+                return currentAttenuation;
             }
         }
-        return { 0.0, 0.0, 0.0 };
+        return 0;
     }
 
     HOST_DEVICE Ray getRay( int i, int j, hiprandState& state ) const {

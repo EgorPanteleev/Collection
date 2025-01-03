@@ -36,5 +36,16 @@ DEVICE bool scatter( Material* material, const Ray& rayIn, const HitRecord& hitR
     }
 }
 
+DEVICE RGB emit( Material* material, double u, double v, const Point3d & p) {
+    switch (material->type) {
+        case Material::LIGHT: {
+            return ((Light*) material)->emit( u, v, p );
+        }
+        default: {
+            return { 0, 0, 0 };
+        }
+    }
+}
+
 
 #endif //COLLECTION_SCATTER_H

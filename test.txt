@@ -21,6 +21,7 @@ Camera = {
     vFov = 20,
     defocusAngle = 10.0,
     focusDistance = 3.4,
+    background = { 0.1, 0.1, 0.1 },
 
     lookFrom = { -2, 2, 1 },
     lookAt = { 0, 0, -1 },
@@ -34,7 +35,7 @@ World = {
             radius = 10000,
             material = { "LAMBERTIAN", { 0.4, 0.4, 0.4 } }
         },
-        {
+        {   
             origin = { 0, 0, -1.2 },
             radius = 0.5,
             material = { "LAMBERTIAN", { 0.1, 0.2, 0.5 }  }
@@ -53,6 +54,11 @@ World = {
             origin = { 1, 0, -1 },
             radius = 0.5,
             material = { "METAL", { 0.8, 0.6, 0.2 }, 0.15 }
-        }
+        },
+        {
+            origin = { 1, 0, -3 },
+            radius = 0.5,
+            material = { "METAL", { 0.8, 0.6, 0.2 }, 0.15 }
+        },
     }
 }

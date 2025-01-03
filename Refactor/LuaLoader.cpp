@@ -150,6 +150,7 @@ bool Lua::loadRenderSettings( lua_State* luaState, Camera* cam ) {
     loadNumber( luaState, "vFov", cam->vFOV );
     loadNumber( luaState, "defocusAngle", cam->defocusAngle );
     loadNumber( luaState, "focusDistance", cam->focusDistance );
+    loadVec3d( luaState, "background", cam->background );
     loadVec3d( luaState, "lookFrom", cam->lookFrom );
     loadVec3d( luaState, "lookAt", cam->lookAt );
     loadVec3d( luaState, "globalUp", cam->globalUp );
@@ -172,6 +173,7 @@ bool Lua::loadMaterial( lua_State* luaState, Material*& material ) {
         auto mat = new Lambertian();
         getElement( luaState, -1, 2 );
         if ( !loadVec3d( luaState, mat->albedo ) ) return false;
+        //mat->texture = new SolidColor( albedo );
         material = mat;
         material->type = Material::LAMBERTIAN;
     } else if ( type == "METAL" ) {
@@ -188,6 +190,14 @@ bool Lua::loadMaterial( lua_State* luaState, Material*& material ) {
         if ( !loadNumber( luaState, mat->refractionIndex ) ) return false;
         material = mat;
         material->type = Material::DIELECTRIC;
+    } else if ( type == "LIGHT" ) {
+        auto mat = new Light();
+        getElement( luaState, -1, 2 );
+        if ( !loadVec3d( luaState, mat->albedo ) ) return false;
+        getElement( luaState, -1, 3 );
+        if ( !loadNumber( luaState, mat->intensity ) ) return false;
+        material = mat;
+        material->type = Material::LIGHT;
     } else {
         std::cerr << "type " << type << " doesnt exist!\n";
         return false;

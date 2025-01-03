@@ -8,6 +8,7 @@
 #include "Ray.h"
 #include "HitRecord.h"
 #include "SystemUtils.h"
+#include "Texture.h"
 
 
 class Material {
@@ -16,6 +17,7 @@ public:
         LAMBERTIAN,
         METAL,
         DIELECTRIC,
+        LIGHT,
         UNKNOWN
     };
     HOST_DEVICE Material(): type( UNKNOWN ) {}
@@ -34,35 +36,42 @@ public:
 
 class Lambertian: public Material {
 public:
+//    Lambertian(): Material( LAMBERTIAN ), texture() {}
+//    Lambertian( const RGB& albedo ): Material( LAMBERTIAN ), texture( new SolidColor( albedo ) ) {}
+//    Lambertian( Texture* texture ): Material( LAMBERTIAN ), texture( texture ) {}
     Lambertian(): Material( LAMBERTIAN ), albedo() {}
     Lambertian( const RGB& albedo ): Material( LAMBERTIAN ), albedo( albedo ) {}
     DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) const {
         Vec3d scatterDir = hitRecord.N + Vec3d( randomDouble( -1, 1, state ), randomDouble( -1, 1, state ),
                                                 randomDouble( -1, 1, state ) ).normalize();
         scattered = { hitRecord.p, scatterDir };
-        attenuation = albedo;
+        attenuation = albedo;//value( texture, hitRecord.u, hitRecord.v, hitRecord.p );
         return true;
     }
 #if HIP_ENABLED
     HOST Material* copyToDevice() override {
         auto device = HIP::allocateOnDevice<Lambertian>();
         HIP::copyToDevice( this, device );
+        //device->texture = texture->copyToDevice();
         return device;
     }
 
     HOST Material* copyToHost() override {
         auto host = new Lambertian();
         HIP::copyToHost( host, this );
+       // host->texture = texture->copyToHost();
         HIP::deallocateOnDevice( this );
         return host;
     }
 
     HOST void deallocateOnDevice() override {
+        //texture->deallocateOnDevice();
         HIP::deallocateOnDevice<Lambertian>( this );
     }
 #endif
 public:
     RGB albedo;
+    //Texture* texture;
 };
 
 class Metal: public Material {
@@ -153,6 +162,39 @@ public:
 #endif
 
     double refractionIndex;
+};
+
+class Light: public Material {
+public:
+    Light(): Material( LIGHT ), albedo(), intensity() {}
+    Light( double intensity ):  Material( LIGHT ), albedo(), intensity( intensity ) {}
+    Light( const RGB& albedo ):  Material( LIGHT ), albedo(albedo), intensity() {}
+    Light( const RGB& albedo, double intensity ):  Material( LIGHT ), albedo(albedo), intensity( intensity ) {}
+
+    DEVICE RGB emit(double u, double v, const Point3d & p) const {
+        return intensity * albedo;
+    }
+
+#if HIP_ENABLED
+    HOST Material* copyToDevice() override {
+        auto device = HIP::allocateOnDevice<Light>();
+        HIP::copyToDevice( this, device );
+        return device;
+    }
+
+    HOST Material* copyToHost() override {
+        auto host = new Light();
+        HIP::copyToHost( host, this );
+        HIP::deallocateOnDevice( this );
+        return host;
+    }
+
+    HOST void deallocateOnDevice() override {
+        HIP::deallocateOnDevice<Light>( this );
+    }
+#endif
+    RGB albedo;
+    double intensity;
 };
 
 #endif //COLLECTION_MATERIAL_H

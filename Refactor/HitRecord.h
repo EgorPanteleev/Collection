@@ -19,6 +19,8 @@ public:
     Vec3d N;
     double t;
     bool frontFace;
+    double u;
+    double v;
 
     HOST_DEVICE void setFaceNormal( const Ray& ray, const Vec3d& outwardNormal ) {
         frontFace = dot( ray.direction, outwardNormal ) < 0;
