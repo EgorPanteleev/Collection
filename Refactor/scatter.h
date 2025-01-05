@@ -7,11 +7,15 @@
 
 #include "Material.h"
 #include "Sphere.h"
+#include "Triangle.h"
 
 DEVICE bool hit( Hittable* hittable, const Ray& ray, const Interval<double>& interval, HitRecord& record ) {
     switch (hittable->type) {
         case Hittable::SPHERE: {
             return ((Sphere*) hittable)->hit( ray, interval, record );
+        }
+        case Hittable::TRIANGLE: {
+            return ((Triangle*) hittable)->hit( ray, interval, record );
         }
         default: {
             return false;

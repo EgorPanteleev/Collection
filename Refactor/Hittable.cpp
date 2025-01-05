@@ -15,3 +15,4 @@ Hittable::Hittable( Type type, Material* material ): material(material), type(ty
 BBox Hittable::getBBox() const {
     return bbox;
 }
+

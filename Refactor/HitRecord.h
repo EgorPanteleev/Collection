@@ -12,7 +12,7 @@ class Material;
 
 class HitRecord {
 public:
-    HitRecord() = default;
+    HOST_DEVICE HitRecord(): material(nullptr), p(), N(), t(INFINITY) {}
 
     Material* material;
     Point3d p;

@@ -17,6 +17,7 @@ class Hittable {
 public:
     enum Type {
         SPHERE,
+        TRIANGLE,
         UNKNOWN
     };
 

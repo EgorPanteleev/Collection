@@ -14,7 +14,9 @@ public:
 
     BBox( const Vec3d& pMin, const Vec3d& pMax );
 
-    [[nodiscard]] Vec3d getCentroid() const;
+    [[nodiscard]] HOST_DEVICE Vec3d getCentroid() const {
+        return (pMax + pMin) / 2.0;
+    }
 
     void merge( const BBox &bbox );
 

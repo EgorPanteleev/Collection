@@ -19,7 +19,7 @@ class HittableList {
 public:
     HittableList();
 
-    HOST_DEVICE void add( Hittable* hittable )  {
+    HOST void add( Hittable* hittable )  {
         hittables.push_back( hittable );
     }
 

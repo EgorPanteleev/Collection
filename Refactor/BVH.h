@@ -28,11 +28,12 @@ public:
 
 class Bin {
 public:
-    Bin(): count(0), bounds( INF, -INF ) {}
+    Bin(): count(0), bounds() {}
     BBox bounds;
     int count;
 };
 
+//TODO try to store vector of hittable lists?
 
 class BVH: public HittableList {
 public:

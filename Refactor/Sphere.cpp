@@ -22,12 +22,12 @@ HOST Hittable* Sphere::copyToDevice() {
     auto originalMaterial = material;
     material = deviceMaterial;
 
-    auto deviceSphere = HIP::allocateOnDevice<Sphere>();
+    auto device = HIP::allocateOnDevice<Sphere>();
 
-    HIP::copyToDevice( this, deviceSphere );
+    HIP::copyToDevice( this, device );
 
     material = originalMaterial;
-    return deviceSphere;
+    return device;
 
 }
 

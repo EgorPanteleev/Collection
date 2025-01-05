@@ -4,16 +4,12 @@
 
 #include "BBox.h"
 
-BBox::BBox(): pMin( { 1e30, 1e30 , 1e30 } ), pMax( { -1e30, -1e30 , -1e30 } ) {}
+BBox::BBox(): pMin( 1e30 ), pMax( -1e30 ) {}
 
 BBox::BBox( const Vec3d& pMin, const Vec3d& pMax ): pMin( pMin ), pMax( pMax ) {}
 
-Vec3d BBox::getCentroid() const {
-    return (pMax + pMin) / 2.0;
-}
-
 void BBox::merge( const BBox &bbox ) {
-    if (bbox.pMin[0] == 1e30) return;
+//    if (bbox.pMin[0] == 1e30) return;
     merge( bbox.pMin );
     merge( bbox.pMax );
 }

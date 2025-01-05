@@ -7,6 +7,7 @@
 #include <chrono>
 #include "Vector.h"
 #include "Sphere.h"
+#include "Triangle.h"
 #include "Camera.h"
 #include "Vec3.h"
 #include "RGB.h"
@@ -39,10 +40,84 @@ void clearAll() {
     clearMemory<<<gridSize, blockSize>>>( WIDTH, HEIGHT, memory );
 }
 
+void addCube( HittableList* world, Material* mat, const Vec3d& v1, const Vec3d& v2, Material* left = nullptr, Material* right = nullptr ) {
+    Vec3d vertices[8];
+    vertices[0] = { v1[0], v1[1], v1[2] };
+    vertices[1] = { v1[0], v1[1], v2[2] };
+    vertices[2] = { v1[0], v2[1], v1[2] };
+    vertices[3] = { v1[0], v2[1], v2[2] };
+    vertices[4] = { v2[0], v1[1], v1[2] };
+    vertices[5] = { v2[0], v1[1], v2[2] };
+    vertices[6] = { v2[0], v2[1], v1[2] };
+    vertices[7] = { v2[0], v2[1], v2[2] };
+
+    if ( !left ) left = mat;
+    if ( !right ) right = mat;
+
+    // Add triangles for each face of the cube
+    world->add(new Triangle(vertices[0], vertices[1], vertices[3], left)); // left face
+    world->add(new Triangle(vertices[0], vertices[3], vertices[2], left));
+
+    world->add(new Triangle(vertices[4], vertices[6], vertices[7], right)); // Right face
+    world->add(new Triangle(vertices[4], vertices[7], vertices[5], right));
+
+    world->add(new Triangle(vertices[0], vertices[2], vertices[6], mat)); // Back face
+    world->add(new Triangle(vertices[0], vertices[6], vertices[4], mat));
+
+//    world->add(new Triangle(vertices[1], vertices[5], vertices[7], mat)); // Front face
+//    world->add(new Triangle(vertices[1], vertices[7], vertices[3], mat));
+
+    world->add(new Triangle(vertices[0], vertices[4], vertices[5], mat)); // Bottom face
+    world->add(new Triangle(vertices[0], vertices[5], vertices[1], mat));
+
+    world->add(new Triangle(vertices[2], vertices[3], vertices[7], mat)); // Top face
+    world->add(new Triangle(vertices[2], vertices[7], vertices[6], mat));
+}
+
+void quads( HittableList* world ) {
+    //Materials
+    Material* ground = new Lambertian({ 0.8, 0.8, 0.8 } );
+    Material* red = new Lambertian({ 0.8, 0.2, 0.2 } );
+    Material* yellow = new Light({ 0.8, 0.8, 0.2 }, 2 );
+    Material* blue = new Metal({ 0.2, 0.2, 0.8 }, 0.1 );
+    //Hittables
+    world->add( new Sphere( 1000, { 0, -1000, 0 }, ground ));
+    //world->add( new Triangle( {-2, 1, -2 }, { -1.5, 2, -2 }, { 1, 1, -2 }, red ));
+    addCube( world, red, { -0.5, 0.5, -1  }, { 0.5, 1.5, -2 } );
+    addCube( world, yellow, { -2.5, 0.5, -1  }, { -1.5, 1.5, -2 } );
+    addCube( world, blue, { 1.5, 0.5, -1  }, { 2.5, 1.5, -2 } );
+}
+
+void room( HittableList* world ) {
+    //Materials
+    Material* ground = new Lambertian({ 0.8, 0.8, 0.8 } );
+    Material* red = new Lambertian({ 0.8, 0.2, 0.2 } );
+    Material* green = new Lambertian({ 0.2, 0.8, 0.2 } );
+    Material* gray = new Lambertian({ 0.8, 0.8, 0.8 } );
+    Material* light = new Light({ 1, 1, 1 }, 2 );
+    //Hittables
+    world->add( new Sphere( 1000, { 0, -1000, 0 }, ground ));
+    //world->add( new Triangle( {-2, 1, -2 }, { -1.5, 2, -2 }, { 1, 1, -2 }, red ));
+    double length = 5;
+    double width = 5;
+    double height = 5;
+    addCube( world, gray, { -width/2, 0, -length / 2  }, { width/2, height, length / 2 }, green, red );
+    length = 2;
+    width = 2;
+    height = 5;
+    addCube( world, light, { -width/2, height - 0.1, -length / 2  }, { width/2, height - 0.01, length / 2 } );
+//    addCube( world, yellow, { -2.5, 0.5, -1  }, { -1.5, 1.5, -2 } );
+//    addCube( world, blue, { 1.5, 0.5, -1  }, { 2.5, 1.5, -2 } );
+}
+
+
 BVH* initDeviceWorld( lua_State* luaState ) {
     BVH world;
 
-    Lua::loadWorld( luaState, &world );
+    //Lua::loadWorld( luaState, &world );
+
+//    quads( &world );
+    room( &world );
 
     world.build();
 
@@ -78,7 +153,6 @@ hiprandState* initStates( int width, int height ) {
     initStates<<<gridSize, blockSize>>>(width, height, 1984, states);
     return states;
 }
-
 
 
 void updateBuffer( Camera* cam, BVH* world, unsigned char* deviceBuffer, hiprandState* states ) {
