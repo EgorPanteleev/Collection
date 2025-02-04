@@ -94,7 +94,7 @@ void room( HittableList* world ) {
     Material* red = new Lambertian({ 0.8, 0.2, 0.2 } );
     Material* green = new Lambertian({ 0.2, 0.8, 0.2 } );
     Material* gray = new Lambertian({ 0.8, 0.8, 0.8 } );
-    Material* light = new Light({ 1, 1, 1 }, 2 );
+    Material* light = new Light({ 1, 1, 1 }, 10 );
     //Hittables
     world->add( new Sphere( 1000, { 0, -1000, 0 }, ground ));
     //world->add( new Triangle( {-2, 1, -2 }, { -1.5, 2, -2 }, { 1, 1, -2 }, red ));
@@ -105,7 +105,7 @@ void room( HittableList* world ) {
     length = 2;
     width = 2;
     height = 5;
-    addCube( world, light, { -width/2, height - 0.1, -length / 2  }, { width/2, height - 0.01, length / 2 } );
+    addCube( world, light, { -width / 1.5, height - 0.1, -length / 1.5  }, { width / 1.5, height - 0.01, length / 1.5 } );
 //    addCube( world, yellow, { -2.5, 0.5, -1  }, { -1.5, 1.5, -2 } );
 //    addCube( world, blue, { 1.5, 0.5, -1  }, { 2.5, 1.5, -2 } );
 }
