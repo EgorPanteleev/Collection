@@ -9,6 +9,9 @@
 #include "HitRecord.h"
 #include "SystemUtils.h"
 #include "Texture.h"
+#include "CoordinateSystem.h"
+#include "Sampler.h"
+
 
 
 class Material {
@@ -34,6 +37,17 @@ public:
     Type type;
 };
 
+
+//                Vec3d wi_T = Lambertian::getIncidentDir( traceData.cs.getNormal() );
+//                Vec3d wi = traceData.cs.from( wi_T );
+//                double Nwi = saturate(wi_T[2]);
+//                double PDF = Lambertian::PDF( Nwi );
+//                double BRDF = Lambertian::BRDF();
+//                Ray newRay = { traceData.P + wi * 1e-3, wi };
+//                CanvasData data;
+//                traceRay( newRay, data, nextDepth - 1 );
+//                ambient += BRDF / PDF * data.color * Nwi;
+
 class Lambertian: public Material {
 public:
 //    Lambertian(): Material( LAMBERTIAN ), texture() {}
@@ -42,9 +56,10 @@ public:
     Lambertian(): Material( LAMBERTIAN ), albedo() {}
     Lambertian( const RGB& albedo ): Material( LAMBERTIAN ), albedo( albedo ) {}
     DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) const {
-        Vec3d scatterDir = hitRecord.N + Vec3d( randomDouble( -1, 1, state ), randomDouble( -1, 1, state ),
-                                                randomDouble( -1, 1, state ) ).normalize();
-        scattered = { hitRecord.p, scatterDir };
+        CoordinateSystem cs( hitRecord.N );
+        Vec3d wi_T = LambertianSampler::getIncidentDir( cs.getNormal(), state );
+        Vec3d wi = cs.from( wi_T );
+        scattered = { hitRecord.p + wi * 1e-3, wi };
         attenuation = albedo;//value( texture, hitRecord.u, hitRecord.v, hitRecord.p );
         return true;
     }

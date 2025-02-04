@@ -11,7 +11,6 @@
 #include "Mat3.h"
 #include "Vec2.h"
 
-
 inline DEVICE Vec3d randomInUnitDisk( hiprandState& state ) {
     while (true) {
         randomDouble( -1, 1, state );

@@ -9,45 +9,45 @@
 template<typename Type>
 class Mat3 {
 public:
-    Mat3(): columns() {
+    HOST_DEVICE Mat3(): columns() {
     }
 
-    Mat3(const Vec3<Type>& vec1, const Vec3<Type>& vec2, const Vec3<Type>& vec3 ) {
+    HOST_DEVICE Mat3(const Vec3<Type>& vec1, const Vec3<Type>& vec2, const Vec3<Type>& vec3 ) {
         columns[0] = vec1;
         columns[1] = vec2;
         columns[2] = vec3;
     }
 
-    Mat3<Type>& operator+=( const Mat3<Type>& other ) {
+    HOST_DEVICE Mat3<Type>& operator+=( const Mat3<Type>& other ) {
         columns[0] += other.columns[0];
         columns[1] += other.columns[1];
         columns[2] += other.columns[2];
         return *this;
     }
 
-    Mat3<Type> operator+( const Mat3<Type>& other ) {
+    HOST_DEVICE Mat3<Type> operator+( const Mat3<Type>& other ) {
         return { columns[0] + other.columns[0], columns[1] + other.columns[1], columns[2] + other.columns[2] };
     }
 
-    Mat3<Type>& operator*=( const Mat3<Type>& other ) {
+    HOST_DEVICE Mat3<Type>& operator*=( const Mat3<Type>& other ) {
         columns[0] = *this * other.columns[0];
         columns[1] = *this * other.columns[1];
         columns[2] = *this * other.columns[2];
         return *this;
     }
-    Mat3<Type> operator*( const Mat3<Type>& other ) const {
+    HOST_DEVICE Mat3<Type> operator*( const Mat3<Type>& other ) const {
         return { *this * other.columns[0], *this * other.columns[1], *this * other.columns[2] };
     }
 
-    Vec3<Type>& operator[]( int index ) {
+    HOST_DEVICE Vec3<Type>& operator[]( int index ) {
         return columns[index];
     }
 
-    const Vec3<Type>& operator[]( int index ) const {
+    HOST_DEVICE const Vec3<Type>& operator[]( int index ) const {
         return columns[index];
     }
 
-    bool operator==( const Mat3<Type>& mat ) const {
+    HOST_DEVICE bool operator==( const Mat3<Type>& mat ) const {
         for ( int i = 0; i < 3; ++i ) {
             for ( int j = 0; j < 3; ++j ) {
                 if ( columns[i][j] != mat[i][j] ) return false;
@@ -56,11 +56,11 @@ public:
         return true;
     }
 
-    bool operator!=( const Mat3<Type>& other ) const {
+    HOST_DEVICE bool operator!=( const Mat3<Type>& other ) const {
         return !( *this == other );
     }
 
-    Type getAlgExtension( int col, int row ) const {
+    HOST_DEVICE Type getAlgExtension( int col, int row ) const {
         Mat3<Type> mat;
         double sign = ( ( col + row ) % 2 == 0 ) ? 1 : -1;
         for ( int i = 0, si = 0; i < 3; ++i ) {
@@ -75,7 +75,7 @@ public:
         return sign * mat.getDet();
     }
 
-    Type getDet() const {
+    HOST_DEVICE Type getDet() const {
         return ( columns[0][0] * columns[1][1] * columns[2][2] +
                  columns[1][0] * columns[2][1] * columns[0][2] +
                  columns[0][1] * columns[1][2] * columns[2][0] -
@@ -84,7 +84,7 @@ public:
                  columns[1][2] * columns[2][1] * columns[0][0]);
     }
 
-    Mat3<Type> transpose() const {
+    HOST_DEVICE Mat3<Type> transpose() const {
         Mat3<Type> res;
         int i = 0;
         for ( auto c : columns ) {
@@ -96,7 +96,7 @@ public:
         return res;
     }
 
-    Mat3<Type> inverse() const {
+    HOST_DEVICE Mat3<Type> inverse() const {
         Mat3<Type> res;
         double det = getDet();
         if ( det == 0 ) return {};
@@ -104,7 +104,7 @@ public:
         return res;
     }
 
-    Mat3<Type> getUnion() const {
+    HOST_DEVICE Mat3<Type> getUnion() const {
         return { {getAlgExtension(0, 0), getAlgExtension(0, 1), getAlgExtension(0, 2) },
                  {getAlgExtension(1, 0), getAlgExtension(1, 1), getAlgExtension(1, 2) },
                  {getAlgExtension(2, 0), getAlgExtension(2, 1), getAlgExtension(2, 2) } };
@@ -167,34 +167,34 @@ public:
 };
 
 template<typename Type>
-inline Mat3<Type> operator*( const Mat3<Type>& mat, const Type& a ) {
+HOST_DEVICE inline Mat3<Type> operator*( const Mat3<Type>& mat, const Type& a ) {
     return { mat.columns[0] * a, mat.columns[1] * a, mat.columns[2] * a };
 }
 
 template<typename Type>
-inline Mat3<Type> operator*( const Type& a, const Mat3<Type>& mat ) {
+HOST_DEVICE inline Mat3<Type> operator*( const Type& a, const Mat3<Type>& mat ) {
     return { mat.columns[0] * a, mat.columns[1] * a, mat.columns[2] * a };
 }
 
 template<typename Type>
-inline Mat3<Type> operator/( const Mat3<Type>& mat, const Type& a ) {
+HOST_DEVICE inline Mat3<Type> operator/( const Mat3<Type>& mat, const Type& a ) {
     return { mat.columns[0] / a, mat.columns[1] / a, mat.columns[2] / a };
 }
 
 template<typename Type>
-inline Mat3<Type> operator/( const Type& a, const Mat3<Type>& mat ) {
+HOST_DEVICE inline Mat3<Type> operator/( const Type& a, const Mat3<Type>& mat ) {
     return { mat.columns[0] / a, mat.columns[1] / a, mat.columns[2] / a };
 }
 
 template<typename Type>
-inline Vec3<Type> operator*( const Mat3<Type>& mat, const Vec3<Type>& vec ) {
+HOST_DEVICE inline Vec3<Type> operator*( const Mat3<Type>& mat, const Vec3<Type>& vec ) {
     return { mat.columns[0][0] * vec[0] + mat.columns[1][0] * vec[1] + mat.columns[2][0] * vec[2],
              mat.columns[0][1] * vec[0] + mat.columns[1][1] * vec[1] + mat.columns[2][1] * vec[2],
              mat.columns[0][2] * vec[0] + mat.columns[1][2] * vec[1] + mat.columns[2][2] * vec[2] };
 }
 
 template<typename Type>
-inline Vec3<Type> operator*( const Vec3<Type>& vec, const Mat3<Type>& mat ) {
+HOST_DEVICE inline Vec3<Type> operator*( const Vec3<Type>& vec, const Mat3<Type>& mat ) {
     return { mat.columns[0][0] * vec[0] + mat.columns[0][1] * vec[1] + mat.columns[0][2] * vec[2],
              mat.columns[1][0] * vec[0] + mat.columns[1][1] * vec[1] + mat.columns[1][2] * vec[2],
              mat.columns[2][0] * vec[0] + mat.columns[2][1] * vec[1] + mat.columns[2][2] * vec[2] };
