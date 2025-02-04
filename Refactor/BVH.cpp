@@ -112,15 +112,11 @@ void BVH::printDebug() const {
 
 #if HIP_ENABLED
 HOST HittableList* BVH::copyToDevice() {
-    auto hittablesDevice = hittables.copyToDevice();
-    auto indexesDevice = indexes.copyToDevice();
-    auto nodesDevice = bvhNodes.copyToDevice();
-
     auto device = HIP::allocateOnDevice<BVH>();
 
-    std::swap( device->hittables, *hittablesDevice );
-    std::swap( device->indexes, *indexesDevice );
-    std::swap( device->bvhNodes, *nodesDevice );
+    device->hittables = move(*hittables.copyToDevice());
+    device->indexes = move(*indexes.copyToDevice());
+    device->bvhNodes = move(*bvhNodes.copyToDevice());
     return device;
 }
 
@@ -128,13 +124,9 @@ HOST HittableList* BVH::copyToHost() {
     auto host = new BVH();
     HIP::copyToHost( host, this );
 
-    auto hostHittables = hittables.copyToHost();
-    auto hostIndexes = indexes.copyToHost();
-    auto hostNodes = bvhNodes.copyToHost();
-
-    std::swap( host->hittables, *hostHittables );
-    std::swap( host->indexes, *hostIndexes );
-    std::swap( host->bvhNodes, *hostNodes );
+    host->hittables = move(*hittables.copyToHost());
+    host->indexes = move(*indexes.copyToHost());
+    host->bvhNodes = move(*bvhNodes.copyToHost());
     return host;
 }
 
@@ -143,7 +135,7 @@ HOST void BVH::deallocateOnDevice() {
     indexes.deallocateOnDevice();
     bvhNodes.deallocateOnDevice();
 
-    //TODO  HIP::deallocateOnDevice<HittableList>( this );
+    HIP::deallocateOnDevice<BVH>( this );
 }
 #endif
 

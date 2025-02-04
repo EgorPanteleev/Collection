@@ -149,7 +149,7 @@ void finalize( BVH* world, Camera* cam, unsigned char* deviceBuffer ) {
 
 hiprandState* initStates( int width, int height ) {
     hiprandState *states;
-    HIP_ASSERT(hipMalloc((void **)&states, width * height * sizeof(hiprandState)));
+    HIP_CHECK(hipMalloc((void **)&states, width * height * sizeof(hiprandState)));
     initStates<<<gridSize, blockSize>>>(width, height, 1984, states);
     return states;
 }
@@ -160,13 +160,13 @@ void updateBuffer( Camera* cam, BVH* world, unsigned char* deviceBuffer, hiprand
     render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, 1.0 / numFrames, states );
     initStates<<<gridSize, blockSize>>>(WIDTH, HEIGHT, numFrames, states);
 
-    HIP_ASSERT( hipDeviceSynchronize() );
+    HIP_CHECK( hipDeviceSynchronize() );
     auto end =  std::chrono::steady_clock::now();
     std::chrono::duration<double> duration = end - start;
 
     MESSAGE << ( 1.0 / duration.count() ) << " fps\n";
 
-    HIP_ASSERT( hipMemcpy(buffer, deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char), hipMemcpyDeviceToHost ) );
+    HIP_CHECK( hipMemcpy(buffer, deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char), hipMemcpyDeviceToHost ) );
 
 }
 
@@ -333,14 +333,16 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 
     if ( yoffset < 0 ) {
         if ( cam->focusDistance - step > 0 ) cam->focusDistance -= step;
-        cam->init();
-        clearAll();
     } else if ( yoffset > 0 ) {
         cam->focusDistance += step;
+    }
+
+    if ( yoffset == 0 ) return;
+
+    if ( cam->defocusAngle != 0 ) {
         cam->init();
         clearAll();
     }
-
     std::cout << cam->focusDistance << std::endl;
 }
 
@@ -465,9 +467,9 @@ int main() {
     glViewport( 0, 0, WIDTH * 2, HEIGHT * 2 );
 
     unsigned char* deviceBuffer;
-    HIP_ASSERT( hipMalloc( &deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char) ) );
+    HIP_CHECK( hipMalloc( &deviceBuffer, WIDTH * HEIGHT * 3 * sizeof(unsigned char) ) );
 
-    HIP_ASSERT(  hipMalloc( &memory, WIDTH * HEIGHT * 3 * sizeof(double) ) );
+    HIP_CHECK(  hipMalloc( &memory, WIDTH * HEIGHT * 3 * sizeof(double) ) );
 
     // Main loop
 

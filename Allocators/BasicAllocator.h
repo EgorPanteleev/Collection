@@ -5,21 +5,6 @@
 #ifndef COLLECTION_ALLOCATOR_H
 #define COLLECTION_ALLOCATOR_H
 #include <iostream>
-
-//template <typename Type>
-//struct RemoveReference {
-//    using type = Type;
-//};
-//
-//template <typename Type>
-//struct RemoveReference<Type&> {
-//    using type = Type;
-//};
-//
-//template <typename Type>
-//struct RemoveReference<Type&&> {
-//    using type = Type;
-//};
 #include "SystemUtils.h"
 
 template <typename Type>

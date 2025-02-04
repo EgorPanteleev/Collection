@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.29)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 project(Collection)
 
@@ -7,6 +7,7 @@ find_package(Kokkos REQUIRED)
 
 enable_testing()
 
+include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(BVH)
 #add_subdirectory(Models)
 add_subdirectory(Externals)

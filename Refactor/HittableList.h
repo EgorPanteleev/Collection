@@ -42,11 +42,9 @@ public:
 #if HIP_ENABLED
     virtual HOST HittableList* copyToDevice() {
         auto objectsDevice = hittables.copyToDevice();
-
         auto device = HIP::allocateOnDevice<HittableList>();
-
-        std::swap( device->hittables, *objectsDevice );
-        return device;
+        device->hittables = move(*objectsDevice);
+        return nullptr;
     }
 
     virtual HOST HittableList* copyToHost() {
@@ -54,15 +52,13 @@ public:
         HIP::copyToHost( host, this );
 
         auto hostObjects = hittables.copyToHost();
-//        objects.swap( *hostObjects );
-        std::swap( host->hittables, *hostObjects );
+        host->hittables = move(*hostObjects);
         return host;
     }
 
     virtual HOST void deallocateOnDevice() {
         hittables.deallocateOnDevice();
-
-      //TODO  HIP::deallocateOnDevice<HittableList>( this );
+        HIP::deallocateOnDevice<HittableList>( this );
     }
 #endif
 public:
