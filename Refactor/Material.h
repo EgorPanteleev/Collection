@@ -94,10 +94,13 @@ public:
     Metal(): Material( METAL ), albedo(), fuzz() {}
     HOST_DEVICE Metal( const RGB& albedo, double fuzz ): Material( METAL ), albedo( albedo ), fuzz( fuzz ) {}
     DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) const {
-        Vec3d reflected = reflect( rayIn.direction, hitRecord.N ).normalize();
-        reflected += fuzz * Vec3d( randomDouble( -1, 1, state ), randomDouble( -1, 1, state ),
-                                   randomDouble( -1, 1, state ) ).normalize();
-        scattered = { hitRecord.p, reflected };
+        CoordinateSystem cs( hitRecord.N );
+        Vec3d wo_T = cs.to( rayIn.direction * (-1) );
+        Vec2d alpha = { pow2( fuzz ), pow2( fuzz ) };
+        Vec3d H_T = GGX::getNormal( wo_T, alpha, state );
+        Vec3d wi_T = reflect( wo_T, H_T ) * ( -1 );
+        Vec3d wi = cs.from( wi_T );
+        scattered = { hitRecord.p + wi * 1e-3, wi };
         attenuation = albedo;
         return true;
     }
