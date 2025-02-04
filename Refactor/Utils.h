@@ -22,17 +22,25 @@ extern OutputStream<std::ostream> MESSAGE;
 //}
 
 template <typename Type>
-HOST_DEVICE Type pow2( Type a ) {
+inline HOST_DEVICE Type saturate( Type z ) {
+    if ( z < 0.0f ) return 0.0;
+    if ( z > 1.0f ) return 1.0;
+    return z;
+}
+
+
+template <typename Type>
+inline HOST_DEVICE Type pow2( Type a ) {
     return a * a;
 }
 
 template <typename Type>
-Type toRadians( Type degrees ) {
+inline Type toRadians( Type degrees ) {
     return degrees * ( M_PI / 180 );
 }
 
 template <typename Type>
-Type toDegrees( Type radians ) {
+inline Type toDegrees( Type radians ) {
     return radians * ( 180 / M_PI );
 }
 

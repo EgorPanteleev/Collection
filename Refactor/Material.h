@@ -38,15 +38,16 @@ public:
 };
 
 
-//                Vec3d wi_T = Lambertian::getIncidentDir( traceData.cs.getNormal() );
-//                Vec3d wi = traceData.cs.from( wi_T );
-//                double Nwi = saturate(wi_T[2]);
-//                double PDF = Lambertian::PDF( Nwi );
-//                double BRDF = Lambertian::BRDF();
-//                Ray newRay = { traceData.P + wi * 1e-3, wi };
-//                CanvasData data;
-//                traceRay( newRay, data, nextDepth - 1 );
-//                ambient += BRDF / PDF * data.color * Nwi;
+//        Vec3d wi_T = Lambertian::getIncidentDir( traceData.cs.getNormal() );
+//        Vec3d wi = traceData.cs.from( wi_T );
+//        double Nwi = saturate(wi_T[2]);
+//        double PDF = Lambertian::PDF( Nwi );
+//        double BRDF = Lambertian::BRDF();
+//        Ray newRay = { traceData.P + wi * 1e-3, wi };
+//        CanvasData data;
+//        traceRay( newRay, data, nextDepth - 1 );
+//        ambient += BRDF / PDF * data.color * Nwi;
+
 
 class Lambertian: public Material {
 public:
@@ -60,7 +61,10 @@ public:
         Vec3d wi_T = LambertianSampler::getIncidentDir( cs.getNormal(), state );
         Vec3d wi = cs.from( wi_T );
         scattered = { hitRecord.p + wi * 1e-3, wi };
-        attenuation = albedo;//value( texture, hitRecord.u, hitRecord.v, hitRecord.p );
+        double Nwi = saturate( wi_T[2] );
+        double PDF = LambertianSampler::PDF( Nwi );
+        double BRDF = LambertianSampler::BRDF();
+        attenuation = BRDF / PDF * albedo * Nwi;//value( texture, hitRecord.u, hitRecord.v, hitRecord.p );
         return true;
     }
 #if HIP_ENABLED
@@ -99,9 +103,13 @@ public:
         Vec2d alpha = { pow2( fuzz ), pow2( fuzz ) };
         Vec3d H_T = GGX::getNormal( wo_T, alpha, state );
         Vec3d wi_T = reflect( wo_T, H_T ) * ( -1 );
+        double Nwi = saturate(wi_T[2]);
+        double PDF;
+        double BRDF = GGX::BRDF( wi_T, wo_T, alpha, PDF, 0.0256 );
         Vec3d wi = cs.from( wi_T );
         scattered = { hitRecord.p + wi * 1e-3, wi };
-        attenuation = albedo;
+
+        attenuation = BRDF / PDF * albedo * Nwi;;
         return true;
     }
 
