@@ -41,12 +41,16 @@ __global__ void render( Camera* __restrict__ cam,
 
     const Interval<double> intensity( 0, 1 );
 
-    memory[idx] += intensity.clamp( cam->linearToGamma( pixelColor[0] ) ) * 255;
-    memory[idx + 1] += intensity.clamp( cam->linearToGamma( pixelColor[1] ) ) * 255;
-    memory[idx + 2] += intensity.clamp( cam->linearToGamma( pixelColor[2] ) ) * 255;
+    double maxColor = max( max( pixelColor[0], pixelColor[1] ), pixelColor[2] );
+    double invMax = 1;
+    if ( maxColor > 1 ) invMax = 1.0 / maxColor ;
+
+    memory[idx    ] += cam->linearToGamma( pixelColor[0] * invMax ) * 255;
+    memory[idx + 1] += cam->linearToGamma( pixelColor[1] * invMax ) * 255;
+    memory[idx + 2] += cam->linearToGamma( pixelColor[2] * invMax ) * 255;
 
 
-    colorBuffer[idx] = memory[idx] * invFrames;
+    colorBuffer[idx    ] = memory[idx    ] * invFrames;
     colorBuffer[idx + 1] = memory[idx + 1] * invFrames;
     colorBuffer[idx + 2] = memory[idx + 2] * invFrames;
 

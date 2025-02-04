@@ -137,19 +137,16 @@ public:
         RGB currentAttenuation = { 1, 1, 1 };
         for ( int i = 0; i < maxDepth; ++i ) {
             HitRecord rec;
-            if (world.hit(currentRay, interval, rec )) {
+            if ( world.hit(currentRay, interval, rec ) ) {
                 Ray scattered;
                 RGB attenuation;
-
-                RGB emission = emit( rec.material, rec.u, rec.v, rec.p );
-
-                //return ( rec.N.normalize() + 1.0 ) * 0.5;
-
                 if ( scatter( rec.material, currentRay, rec, attenuation, scattered, state ) ) {
                     currentAttenuation *= attenuation;
                     currentRay = scattered;
-                } else return currentAttenuation * emission;
-
+                } else {
+                    RGB emission = emit( rec.material, rec.u, rec.v, rec.p );
+                    return currentAttenuation * emission;
+                }
             }
             else {
                 return currentAttenuation * background;
