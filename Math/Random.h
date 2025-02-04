@@ -4,8 +4,6 @@
 
 #ifndef COLLECTION_RANDOM_H
 #define COLLECTION_RANDOM_H
-
-#endif //COLLECTION_RANDOM_H
 #include <random>
 #include <limits>
 #include <hiprand/hiprand_kernel.h>
@@ -32,4 +30,6 @@ DEVICE inline double randomDouble( double min, double max, hiprandState& state )
 }
 
 #endif
+
+#endif //COLLECTION_RANDOM_H
 
