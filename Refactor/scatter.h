@@ -12,10 +12,10 @@
 DEVICE bool hit( Hittable* hittable, const Ray& ray, const Interval<double>& interval, HitRecord& record ) {
     switch (hittable->type) {
         case Hittable::SPHERE: {
-            return ((Sphere*) hittable)->hit( ray, interval, record );
+            return static_cast<Sphere*>(hittable)->hit( ray, interval, record );
         }
         case Hittable::TRIANGLE: {
-            return ((Triangle*) hittable)->hit( ray, interval, record );
+            return static_cast<Triangle*>(hittable)->hit( ray, interval, record );
         }
         default: {
             return false;
@@ -26,13 +26,13 @@ DEVICE bool hit( Hittable* hittable, const Ray& ray, const Interval<double>& int
 DEVICE bool scatter( Material* material, const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) {
     switch (material->type) {
         case Material::LAMBERTIAN: {
-            return ((Lambertian*) material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
+            return static_cast<Lambertian*>(material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
         }
         case Material::METAL: {
-            return ((Metal*) material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
+            return static_cast<Metal*>(material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
         }
         case Material::DIELECTRIC:{
-            return ((Dielectric*) material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
+            return static_cast<Dielectric*>(material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
         }
         default: {
             return false;
@@ -43,7 +43,7 @@ DEVICE bool scatter( Material* material, const Ray& rayIn, const HitRecord& hitR
 DEVICE RGB emit( Material* material, double u, double v, const Point3d & p) {
     switch (material->type) {
         case Material::LIGHT: {
-            return ((Light*) material)->emit( u, v, p );
+            return static_cast<Light*>(material)->emit( u, v, p );
         }
         default: {
             return { 0, 0, 0 };
