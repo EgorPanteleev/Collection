@@ -55,7 +55,7 @@ namespace LambertianSampler {
 
 //we can avoid trigonometric functions for better perfomance ( but not now )
 
-namespace OrenNayar {
+namespace OrenNayarSampler {
     DEVICE double BRDF( const Vec3d& wi, const Vec3d& wo, double alpha ) {
         double A = 1 - ( alpha / ( 2 * ( alpha + 0.33 ) ) ); // A and B precomputed
         double B = ( 0.45 * alpha ) / ( alpha + 0.09 );

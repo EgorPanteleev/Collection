@@ -18,6 +18,7 @@ class Material {
 public:
     enum Type {
         LAMBERTIAN,
+        ORENNAYAR,
         METAL,
         DIELECTRIC,
         LIGHT,
@@ -90,6 +91,46 @@ public:
 #endif
 public:
     RGB albedo;
+    //Texture* texture;
+};
+
+class OrenNayar: public Material {
+public:
+    OrenNayar(): Material( ORENNAYAR ), albedo() {}
+    OrenNayar( const RGB& albedo, double roughness ): Material( ORENNAYAR ), albedo( albedo ), roughness( roughness ) {}
+    DEVICE bool scatter( const Ray& rayIn, const HitRecord& hitRecord, RGB& attenuation, Ray& scattered, hiprandState& state ) const {
+        CoordinateSystem cs( hitRecord.N );
+        Vec3d wo_T = cs.to( rayIn.direction * (-1) );
+        Vec3d wi_T = OrenNayarSampler::getIncidentDir( cs.getNormal(), state );
+        Vec3d wi = cs.from( wi_T );
+        double Nwi = saturate(wi_T[2]);
+        double PDF = OrenNayarSampler::PDF( Nwi );
+        double BRDF = OrenNayarSampler::BRDF( wi_T, wo_T, roughness );
+        scattered = { hitRecord.p + wi * 1e-3, wi };
+        attenuation = BRDF / PDF * albedo * Nwi;
+        return true;
+    }
+#if HIP_ENABLED
+    HOST Material* copyToDevice() override {
+        auto device = HIP::allocateOnDevice<OrenNayar>();
+        HIP::copyToDevice( this, device );
+        return device;
+    }
+
+    HOST Material* copyToHost() override {
+        auto host = new OrenNayar();
+        HIP::copyToHost( host, this );
+        HIP::deallocateOnDevice( this );
+        return host;
+    }
+
+    HOST void deallocateOnDevice() override {
+        HIP::deallocateOnDevice<OrenNayar>( this );
+    }
+#endif
+public:
+    RGB albedo;
+    double roughness;
     //Texture* texture;
 };
 

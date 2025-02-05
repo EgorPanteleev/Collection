@@ -28,6 +28,9 @@ DEVICE bool scatter( Material* material, const Ray& rayIn, const HitRecord& hitR
         case Material::LAMBERTIAN: {
             return static_cast<Lambertian*>(material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
         }
+        case Material::ORENNAYAR: {
+            return static_cast<OrenNayar*>(material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
+        }
         case Material::METAL: {
             return static_cast<Metal*>(material)->scatter( rayIn, hitRecord, attenuation, scattered, state );
         }
