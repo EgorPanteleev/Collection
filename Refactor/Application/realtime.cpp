@@ -1,4 +1,4 @@
-
+#define STB_IMAGE_IMPLEMENTATION
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -14,7 +14,9 @@
 #include "Vec2.h"
 #include "Kernel.h"
 #include "LuaLoader.h"
-
+#include "OBJLoader.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 //#include <hip/hip_gl_interop.h>
 
 //TODO LUA!
@@ -88,16 +90,25 @@ void quads( HittableList* world ) {
     addCube( world, blue, { 1.5, 0.5, -1  }, { 2.5, 1.5, -2 } );
 }
 
+void sphere( HittableList* world ) {
+    Material* metal = new Metal({ 0.733, 0.647, 0.239 }, 0.15  );
+    Material* red = new Lambertian({ 0.8, 0.2, 0.2 } );
+    addCube( world, red, { -3.5, 0, 0  }, { -1.5, 2, -2 } );
+    addCube( world, red, { 3.5, 0, 0  }, { 5.5, 2, -2 } );
+    world->add( new Sphere( 1, { 1, 1, -1 }, metal ));
+}
+
 void room( HittableList* world ) {
     //Materials
     Material* ground = new Lambertian({ 0.8, 0.8, 0.8 } );
     Material* red = new Lambertian({ 0.8, 0.2, 0.2 } );
     Material* green = new Lambertian({ 0.2, 0.8, 0.2 } );
     Material* gray = new Lambertian({ 0.8, 0.8, 0.8 } );
+    Material* metal = new Metal({ 0.733, 0.647, 0.239 }, 0.25 );
     Material* light = new Light({ 1, 1, 1 }, 10 );
     //Hittables
     world->add( new Sphere( 1000, { 0, -1000, 0 }, ground ));
-    //world->add( new Triangle( {-2, 1, -2 }, { -1.5, 2, -2 }, { 1, 1, -2 }, red ));
+    world->add( new Sphere( 1, { 1, 1, -1 }, metal ));
     double length = 5;
     double width = 5;
     double height = 5;
@@ -106,22 +117,36 @@ void room( HittableList* world ) {
     width = 2;
     height = 5;
     addCube( world, light, { -width / 1.5, height - 0.1, -length / 1.5  }, { width / 1.5, height - 0.01, length / 1.5 } );
-//    addCube( world, yellow, { -2.5, 0.5, -1  }, { -1.5, 1.5, -2 } );
-//    addCube( world, blue, { 1.5, 0.5, -1  }, { 2.5, 1.5, -2 } );
+
+    //HittableList dog;
+
+    //OBJLoader::load( "/home/auser/dev/src/Collection/Models/dog/model.obj", &dog, new Lambertian( { 1, 0, 0 } ) );
+
+//    dog.scaleTo( { 10, 10, 10 } );
+//    dog.translateTo( { 0, 5, 0 } );
+//
+//    auto bbox = dog.computeBBox();
+
+    //std::cout << "bbox - " << bbox;
+    //return;
+    //world->add( &dog );
 }
 
 
-BVH* initDeviceWorld( lua_State* luaState ) {
-    BVH world;
+Scene* initDeviceWorld( lua_State* luaState ) {
+    Scene world;
 
-    //Lua::loadWorld( luaState, &world );
+//    Lua::loadWorld( luaState, &world );
 
 //    quads( &world );
-    room( &world );
+//    room( &world );
+    sphere( &world );
+
+    world.setSkyBox( "/home/auser/Downloads/sky2.jpg" );
 
     world.build();
 
-    auto worldDevice = (BVH*) world.copyToDevice();
+    auto worldDevice = (Scene*) world.copyToDevice();
     return worldDevice;
 }
 
@@ -140,7 +165,7 @@ Camera* initDeviceCamera( lua_State* luaState ) {
     return deviceCamera;
 }
 
-void finalize( BVH* world, Camera* cam, unsigned char* deviceBuffer ) {
+void finalize( Scene* world, Camera* cam, unsigned char* deviceBuffer ) {
     world->deallocateOnDevice();
     HIP::deallocateOnDevice( cam );
     HIP::deallocateOnDevice( deviceBuffer );
@@ -150,12 +175,12 @@ void finalize( BVH* world, Camera* cam, unsigned char* deviceBuffer ) {
 hiprandState* initStates( int width, int height ) {
     hiprandState *states;
     HIP_CHECK(hipMalloc((void **)&states, width * height * sizeof(hiprandState)));
-    initStates<<<gridSize, blockSize>>>(width, height, 1984, states);
+    initStates<<<gridSize, blockSize>>>(width, height, 1999 , states);
     return states;
 }
 
 
-void updateBuffer( Camera* cam, BVH* world, unsigned char* deviceBuffer, hiprandState* states ) {
+void updateBuffer( Camera* cam, Scene* world, unsigned char* deviceBuffer, hiprandState* states ) {
     auto start =  std::chrono::steady_clock::now();
     render<<<gridSize, blockSize>>>( cam, world, deviceBuffer, memory, 1.0 / numFrames, states );
     initStates<<<gridSize, blockSize>>>(WIDTH, HEIGHT, numFrames, states);
@@ -428,6 +453,12 @@ void keyboardCallback( GLFWwindow* window, Camera* cam ) {
 
 }
 
+void saveToPNG( const std::string& fileName, unsigned char* colorBuffer, int imageWidth, int imageHeight ) {
+    if (stbi_write_png( fileName.c_str(), imageWidth, imageHeight, 3, colorBuffer, imageWidth * 3))
+        std::cout << "Image saved successfully: " << fileName << std::endl;
+    else std::cerr << "Failed to save image: " << fileName << std::endl;
+}
+
 int main() {
     // Initialize GLFW
     if (!glfwInit()) {
@@ -490,7 +521,7 @@ int main() {
 
     glfwSetWindowUserPointer(window, cam );
 
-    BVH* world = initDeviceWorld( luaState );
+    Scene* world = initDeviceWorld( luaState );
     
     world->printDebug();
 

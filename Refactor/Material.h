@@ -8,7 +8,7 @@
 #include "Ray.h"
 #include "HitRecord.h"
 #include "SystemUtils.h"
-#include "Texture.h"
+//#include "Texture.h"
 #include "CoordinateSystem.h"
 #include "Sampler.h"
 

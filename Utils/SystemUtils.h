@@ -25,29 +25,29 @@
 namespace HIP {
 
     template<typename Type>
-    [[nodiscard]] Type* allocateOnDevice( size_t n = 1 ) {
+    [[nodiscard]] inline Type* allocateOnDevice( size_t n = 1 ) {
         Type* device;
         HIP_CHECK(hipMalloc(&device, n * sizeof(Type)));
         return device;
     }
 
     template<typename Type>
-    void allocateOnDevice( Type*& device, size_t n = 1 ) {
+    inline void allocateOnDevice( Type*& device, size_t n = 1 ) {
         HIP_CHECK(hipMalloc(&device, n * sizeof(Type)));
     }
 
     template<typename Type>
-    void copyToDevice( Type* host, Type* device, size_t n = 1 ) {
+    inline void copyToDevice( Type* host, Type* device, size_t n = 1 ) {
         HIP_CHECK(hipMemcpy(device, host, n * sizeof(Type), hipMemcpyHostToDevice));
     }
 
     template<typename Type>
-    void copyToHost(Type* host, Type* device, size_t n = 1) {
+    inline void copyToHost(Type* host, Type* device, size_t n = 1) {
         HIP_CHECK(hipMemcpy(host, device, n * sizeof(Type), hipMemcpyDeviceToHost));
     }
 
     template<typename Type>
-    void deallocateOnDevice( Type* device ) {
+    inline void deallocateOnDevice( Type* device ) {
         HIP_CHECK(hipFree(device));
     }
 

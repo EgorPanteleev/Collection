@@ -20,7 +20,7 @@ __global__ void clearMemory( int width, int height, double* memory ) {
 }
 
 __global__ void render( Camera* __restrict__ cam,
-                        BVH* __restrict__ world,
+                        Scene* __restrict__ world,
                         unsigned char* __restrict__ colorBuffer,
                         double* __restrict__ memory,
                         double invFrames,

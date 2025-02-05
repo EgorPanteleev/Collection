@@ -119,7 +119,6 @@ namespace GGX {
     }
 
     DEVICE Vec3d getNormal( const Vec3d& wo, const Vec2d& a, hiprandState& state ) {
-
         double u = randomDouble( 0, 1, state );
         double v = randomDouble( 0, 1, state );
         Vec3d Vh = (Vec3d(a[0] * wo[0], a[1] * wo[1], wo[2])).normalize();

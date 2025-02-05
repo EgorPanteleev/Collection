@@ -4,7 +4,7 @@
 
 #ifndef COLLECTION_CAMERA_H
 #define COLLECTION_CAMERA_H
-#include "BVH.h"
+#include "Scene.h"
 #include "Material.h"
 #include "SystemUtils.h"
 #include "scatter.h"
@@ -130,7 +130,7 @@ public:
 //    }
 
 
-    DEVICE RGB traceRay( const Ray& ray, const BVH& world, hiprandState& state ) {
+    DEVICE RGB traceRay( const Ray& ray, const Scene& world, hiprandState& state ) {
         const Interval<double> interval( 0.001, INF );
         Ray currentRay = ray;
         RGB currentAttenuation = { 1, 1, 1 };
@@ -148,7 +148,7 @@ public:
                 }
             }
             else {
-                return currentAttenuation * background;
+                return currentAttenuation * world.getBackgroundColor( currentRay, background );
             }
         }
         return 0;
