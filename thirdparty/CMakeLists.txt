@@ -8,6 +8,9 @@ file(GLOB IMGUI_HEADERS "./imgui/*.h" "./imgui/backends/*vulkan.h" "./imgui/back
 add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
 target_include_directories(imgui PUBLIC ./imgui/)
 
+#gli
+add_subdirectory(./gli)
+
 #MeshOptimizer
 add_subdirectory(./meshoptimizer)
 
