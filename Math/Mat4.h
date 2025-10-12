@@ -109,6 +109,51 @@ public:
         };
     }
 
+    static Mat4<Type> translate(const Vec4<Type>& translation) {
+        return
+        {
+            { 1, 0, 0, translation.x },
+            { 0, 1, 0, translation.y },
+            { 0, 0, 1, translation.z },
+            { 0, 0, 0, 1 }
+        };
+    }
+
+    static Mat4<Type> rotateY(Type angleRad ) {
+        Type cosAngle = cos(angleRad);
+        Type sinAngle = sin(angleRad);
+        return
+        {
+            { cosAngle , 0, sinAngle, 0 },
+            { 0        , 1, 0       , 0 },
+            { -sinAngle, 0, cosAngle, 0 },
+            { 0        , 0, 0       , 1 }
+        };
+    }
+
+    static Mat4<Type> rotateX(Type angleRad) {
+        Type cosAngle = cos(angleRad);
+        Type sinAngle = sin(angleRad);
+        return
+        {
+            { 1, 0       , 0        , 0 },
+            { 0, cosAngle, -sinAngle, 0 },
+            { 0, sinAngle, cosAngle , 0 },
+            { 0, 0       , 0        , 1 }
+        };
+    }
+
+    static Mat4<Type> rotateZ(Type angleRad) {
+        Type cosAngle = cos(angleRad);
+        Type sinAngle = sin(angleRad);
+        return
+        {
+            { cosAngle, -sinAngle, 0, 0 },
+            { sinAngle, cosAngle , 0, 0 },
+            { 0       , 0        , 1, 0 },
+            { 0       , 0        , 0, 1 }
+        };
+    }
 
     Vec4<Type> columns[4];
 };

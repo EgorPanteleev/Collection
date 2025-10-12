@@ -1,12 +1,11 @@
-#pragma once
-#include "Mesh.h"
-#include "GroupOfMeshes.h"
-#include <cstring>
-class OBJLoader {
-public:
-    OBJLoader( const std::string& path, Mesh* target );
-    OBJLoader( const std::string& path, GroupOfMeshes* target );
-    static bool load( const std::string& path, Mesh* target );
-    static bool load( const std::string& path, GroupOfMeshes* target );
-};
+#ifndef COLLECTION_OBJLOADER_H
+#define COLLECTION_OBJLOADER_H
+#include "HittableList.h"
+#include "Material.h"
 
+namespace OBJLoader {
+    bool load( const std::string& path, HittableList* world, Material* material = nullptr );
+}
+
+
+#endif //COLLECTION_OBJLOADER_H

@@ -21,14 +21,14 @@ inline Type pow2( Type a ) {
 
 template <typename Type>
 inline Vec3<Type> toNormal( const RGB& col ) {
-    Vec3<Type> res = { col.r, col.g, col.b };
+    Vec3<Type> res = { col[0], col[1], col[2] };
     res = res / 255.0 * 2.0 - 1;
     return res.normalize();
 }
 
 template<typename Type>
 inline Vec3<Type> toVec3( const RGB& col ) {
-    return { (Type) col.r, (Type) col.g, (Type) col.b };
+    return { (Type) col[0], (Type) col[1], (Type) col[2] };
 }
 template<typename Type>
 inline RGB toRGB( const Vec3<Type>& vec ) {

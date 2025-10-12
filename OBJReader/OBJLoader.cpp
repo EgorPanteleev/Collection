@@ -1,58 +1,26 @@
 #include "OBJLoader.h"
 #include "OBJ_Loader.h"
-#include <random>
-OBJLoader::OBJLoader( const std::string& path, Mesh* target ) {
-    load( path, target );
-}
 
-OBJLoader::OBJLoader( const std::string& path, GroupOfMeshes* target ) {
-    load( path, target );
-}
-
-bool OBJLoader::load( const std::string& path, Mesh* target ) {
+bool OBJLoader::load( const std::string& path, HittableList* world, Material* material ) {
+    size_t oldSize = world->hittables.size();
+    static Lambertian defaultMaterial( { 0.8, 0.8, 0.8 } );
+    if ( material == nullptr ) material = &defaultMaterial;
     objl::Loader loader;
-    bool res = loader.LoadFile( path);
-    if ( !res ) return res;
-    for (int i = 0; i < loader.LoadedMeshes.size(); i++) {
-        // Copy one of the loaded meshes to be our current mesh
+    bool status = loader.LoadFile( path);
+    if ( !status ) return status;
+    for ( auto i = 0; i < loader.LoadedMeshes.size(); ++i ) {
         objl::Mesh curMesh = loader.LoadedMeshes[i];
-        for (int j = 0; j < curMesh.Indices.size(); j += 3) {
+        for ( auto j = 0; j < curMesh.Indices.size(); j += 3 ) {
             if ( j + 2 >= curMesh.Indices.size() ) continue;
-            uint idx1 = (int) curMesh.Indices[j];
-            uint idx2 = (int) curMesh.Indices[j + 1];
-            uint idx3 = (int) curMesh.Indices[j + 2];
-            target->addPrimitive( new Triangle{ Vec3d(curMesh.Vertices[idx1].Position.X , curMesh.Vertices[idx1].Position.Y , curMesh.Vertices[idx1].Position.Z ),
-                                   Vec3d(curMesh.Vertices[idx2].Position.X , curMesh.Vertices[idx2].Position.Y , curMesh.Vertices[idx2].Position.Z ),
-                                   Vec3d(curMesh.Vertices[idx3].Position.X , curMesh.Vertices[idx3].Position.Y , curMesh.Vertices[idx3].Position.Z ) });
+            Point3d vertices[3];
+            for ( int n = 0; n < 3; ++n ) {
+                uint idx = curMesh.Indices[j + n];
+                vertices[n] = { curMesh.Vertices[idx].Position.X, curMesh.Vertices[idx].Position.Y, curMesh.Vertices[idx].Position.Z };
+            }
+
+            world->add( new Triangle(vertices[0], vertices[1], vertices[2], material ) );
         }
     }
-    std::cout << "Model Loaded with " << target->getPrimitives().size() << " primitives." << std::endl;
-    return res;
-}
-
-bool OBJLoader::load( const std::string& path, GroupOfMeshes* target ) {
-    objl::Loader loader;
-    bool res = loader.LoadFile( path);
-    if ( !res ) return res;
-    for (int i = 0; i < loader.LoadedMeshes.size(); i++) {
-        // Copy one of the loaded meshes to be our current mesh
-        objl::Mesh curMesh = loader.LoadedMeshes[i];
-        Mesh* newMesh = new Mesh();
-        for (int j = 0; j < curMesh.Indices.size(); j += 3) {
-            if ( j + 2 >= curMesh.Indices.size() ) continue;
-            uint idx1 = (int) curMesh.Indices[j];
-            uint idx2 = (int) curMesh.Indices[j + 1];
-            uint idx3 = (int) curMesh.Indices[j + 2];
-            newMesh->addPrimitive( new Triangle{ Vec3d(curMesh.Vertices[idx1].Position.X , curMesh.Vertices[idx1].Position.Y , curMesh.Vertices[idx1].Position.Z ),
-                                   Vec3d(curMesh.Vertices[idx2].Position.X , curMesh.Vertices[idx2].Position.Y , curMesh.Vertices[idx2].Position.Z ),
-                                   Vec3d(curMesh.Vertices[idx3].Position.X , curMesh.Vertices[idx3].Position.Y , curMesh.Vertices[idx3].Position.Z ) });
-        }
-        target->addMesh( newMesh );
-    }
-    int primitiveCount = 0;
-    for ( auto mesh: target->getMeshes() ) {
-        primitiveCount += mesh->getPrimitives().size();
-    }
-    std::cout << "Model Loaded with " << primitiveCount << " primitives." << std::endl;
-    return res;
+    std::cout << "Model Loaded with " << world->hittables.size() - oldSize << " hittables." << std::endl;
+    return status;
 }
