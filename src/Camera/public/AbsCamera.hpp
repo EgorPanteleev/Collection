@@ -40,6 +40,10 @@ namespace crv::scene {
         glm::mat4 projectionMatrix() const { return mProjectionMatrix; }
         glm::mat4 viewMatrix() const { return mViewMatrix; }
         CameraType type() const { return mType; }
+        float FOV() const { return mFOV; }
+        float aspectRatio() const { return mAspectRatio; }
+        float nearPlane() const { return mNearPlane; }
+        float farPlane() const { return mFarPlane; }
 
         virtual void move(float forward_, float right_, float up_) = 0;
         virtual void rotate(float pitch, float yaw, float roll) = 0;
