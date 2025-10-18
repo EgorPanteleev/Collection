@@ -16,13 +16,14 @@ namespace crv::graphics {
         Window(const char* name, int width, int height);
 
         ~Window();
-        bool shouldClose() const { return glfwWindowShouldClose(mWindow); }
-        void makeContextCurrent() { glfwMakeContextCurrent(mWindow); }
-        void getFrameBufferSize(int& width, int& height) { glfwGetFramebufferSize(mWindow, &width, &height); }
-        void swapBuffers() { glfwSwapBuffers(mWindow); }
+        [[nodiscard]] bool shouldClose() const { return glfwWindowShouldClose(mWindow); }
+        void makeContextCurrent() const { glfwMakeContextCurrent(mWindow); }
+        void getFrameBufferSize(int& width, int& height) const { glfwGetFramebufferSize(mWindow, &width, &height); }
+        void swapBuffers() const { glfwSwapBuffers(mWindow); }
+        void setTitle(const char* title) const { glfwSetWindowTitle(mWindow, title); }
         static void pollEvents() { glfwPollEvents(); }
-        int width() { return mWidth; }
-        int height() { return mHeight; }
+        [[nodiscard]] int width() const { return mWidth; }
+        [[nodiscard]] int height() const { return mHeight; }
     private:
         void initWindow(const char* name);
 

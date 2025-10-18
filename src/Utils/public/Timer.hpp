@@ -32,6 +32,7 @@ namespace crv::utils {
         FpsCounter();
         void update();
         double fps() { return mFps; }
+        std::string fpsAsString() { return std::to_string(mFps); }
     protected:
         uint32_t mFrames;
         double mFps;

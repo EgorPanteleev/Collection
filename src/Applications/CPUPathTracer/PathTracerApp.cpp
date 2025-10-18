@@ -6,11 +6,12 @@
 #include "Window.hpp"
 #include "GLUtils.hpp"
 #include "PathTracerApp.hpp"
+#include "Timer.hpp"
 
 namespace crv::app {
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo):
     mPathTracer(createInfo.spheres, createInfo.cameraCreateInfo),
-    mWindow("Path Tracer", createInfo.width, createInfo.height) {}
+    mWindow(title(), createInfo.width, createInfo.height) {}
 
     void PathTracerApp::run() {
         std::vector<uint8_t> imageBuffer = mPathTracer.render();
@@ -22,8 +23,12 @@ namespace crv::app {
         createBuffers(VAO, VBO, EBO);
         const GLuint shader = createShaderProgram();
         scene::AbsCamera* camera = mPathTracer.camera();
+        utils::FpsCounter fpsCounter;
 
         while(!mWindow.shouldClose()) {
+            fpsCounter.update();
+            std::string newTitle(title());
+            mWindow.setTitle( (newTitle + "(" + fpsCounter.fpsAsString() + " fps)").c_str() );
             camera->rotate( 0, 0, 2 );
             imageBuffer = mPathTracer.render();
 

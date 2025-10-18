@@ -1,4 +1,4 @@
-set(Libs PathTracer glfw GL GLEW )
+set(Libs PathTracer Utils glfw GL GLEW )
 
 add_executable( CPUPathTracer main.cpp GLUtils.cpp PathTracerApp.cpp )
 

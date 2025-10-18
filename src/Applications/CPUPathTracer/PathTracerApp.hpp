@@ -22,6 +22,8 @@ namespace crv::app {
     public:
         PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
+
+        static const char* title() { return "Path Tracer"; }
     private:
         graphics::PathTracer mPathTracer;
         graphics::Window mWindow;
