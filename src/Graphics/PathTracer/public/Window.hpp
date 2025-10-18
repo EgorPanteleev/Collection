@@ -13,40 +13,16 @@
 namespace crv::graphics {
     class Window {
     public:
-        Window(const char* name, int width, int height): mWindow(nullptr) {
-            initWindow(name, width, height);
-        }
+        Window(const char* name, int width, int height);
 
-        ~Window() {
-            if (mWindow) {
-                glfwDestroyWindow(mWindow);
-            }
-            glfwTerminate();
-        }
-
-        bool shouldClose() const {
-            return glfwWindowShouldClose(mWindow);
-        }
-
+        ~Window();
+        bool shouldClose() const { return glfwWindowShouldClose(mWindow); }
         void makeContextCurrent() { glfwMakeContextCurrent(mWindow); }
-
         void getFrameBufferSize(int& width, int& height) { glfwGetFramebufferSize(mWindow, &width, &height); }
-
         void swapBuffers() { glfwSwapBuffers(mWindow); }
         static void pollEvents() { glfwPollEvents(); }
     private:
-        void initWindow(const char* name, int width, int height) {
-            if (!glfwInit()) throw std::runtime_error("Failed to initialize GLFW");
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-            mWindow = glfwCreateWindow(width, height, name, nullptr, nullptr);
-            if (!mWindow) {
-                glfwTerminate();
-                throw std::runtime_error("Failed to create GLFW window");
-            }
-        }
+        void initWindow(const char* name, int width, int height);
 
         GLFWwindow* mWindow;
     };
