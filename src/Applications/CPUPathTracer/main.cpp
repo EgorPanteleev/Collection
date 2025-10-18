@@ -9,7 +9,8 @@ namespace graphics = crv::graphics;
 namespace scene = crv::scene;
 namespace app = crv::app;
 
-using Vec3 = graphics::Sphere<float>::Vec3;
+using Sphere = graphics::Sphere<float>;
+using Vec3 = Sphere::Vec3;
 
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;

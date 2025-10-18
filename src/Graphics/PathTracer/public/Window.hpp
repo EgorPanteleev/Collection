@@ -21,10 +21,14 @@ namespace crv::graphics {
         void getFrameBufferSize(int& width, int& height) { glfwGetFramebufferSize(mWindow, &width, &height); }
         void swapBuffers() { glfwSwapBuffers(mWindow); }
         static void pollEvents() { glfwPollEvents(); }
+        int width() { return mWidth; }
+        int height() { return mHeight; }
     private:
-        void initWindow(const char* name, int width, int height);
+        void initWindow(const char* name);
 
         GLFWwindow* mWindow;
+        int mWidth;
+        int mHeight;
     };
 }
 
