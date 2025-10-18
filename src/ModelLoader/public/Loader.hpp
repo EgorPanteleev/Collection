@@ -24,7 +24,7 @@ namespace crv::model {
 
         virtual bool load();
 
-        [[nodiscard]] BBox bbox() const;
+        [[nodiscard]] utils::BBox bbox() const;
         [[nodiscard]] const std::vector<Mesh>& meshes() const;
         [[nodiscard]] const std::vector<Material>& materials() const;
         [[nodiscard]] const std::vector<Vertex>& vertices() const;

@@ -7,34 +7,36 @@
 
 #include <chrono>
 
-class Timer {
-public:
-    Timer(double stopTime);
+namespace crv::utils {
+    class Timer {
+    public:
+        Timer(double stopTime);
 
-    void start();
+        void start();
 
-    //void stop();
+        //void stop();
 
-    double duration();
+        double duration();
 
-    void setStopTime(double stopTime) { mStopTime = stopTime; }
+        void setStopTime(double stopTime) { mStopTime = stopTime; }
 
-    bool isTimeout();
-protected:
-    std::chrono::high_resolution_clock::time_point mStartTime;
-    double mDuration;
-    double mStopTime;
-};
+        bool isTimeout();
+    protected:
+        std::chrono::high_resolution_clock::time_point mStartTime;
+        double mDuration;
+        double mStopTime;
+    };
 
-class FpsCounter: public Timer {
-public:
-    FpsCounter();
-    void update();
-    double fps() { return mFps; }
-protected:
-    uint32_t mFrames;
-    double mFps;
-};
+    class FpsCounter: public Timer {
+    public:
+        FpsCounter();
+        void update();
+        double fps() { return mFps; }
+    protected:
+        uint32_t mFrames;
+        double mFps;
+    };
+}
 
 
 #endif //VULKAN_TIMER_H
