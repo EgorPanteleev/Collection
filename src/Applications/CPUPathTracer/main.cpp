@@ -17,7 +17,7 @@ static int constexpr HEIGHT = 600;
 
 int main() {
     std::vector<graphics::Sphere<float>> spheres;
-    spheres.emplace_back(Vec3(0, 5, 100), 10);
+    spheres.emplace_back(Vec3(0, 50, 1000), 100);
 
     scene::CameraCreateInfo cameraCreateInfo {
         .type = scene::CameraType::FLY,

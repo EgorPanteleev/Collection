@@ -22,8 +22,9 @@ namespace crv::app {
     public:
         PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
-
+        void quit() const { mWindow.close(); }
         static const char* title() { return "Path Tracer"; }
+        friend void mouseMoveCallback(GLFWwindow*, double, double);
     private:
         graphics::PathTracer mPathTracer;
         graphics::Window mWindow;
