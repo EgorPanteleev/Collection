@@ -3,21 +3,29 @@
 //
 
 #include "PathTracerApp.hpp"
-#include "Sphere.hpp"
+#include "Loader.hpp"
+#include "Message.hpp"
 
 namespace graphics = crv::graphics;
 namespace scene = crv::scene;
 namespace app = crv::app;
+namespace model = crv::model;
 
-using Sphere = graphics::Sphere<float>;
-using Vec3 = Sphere::Vec3;
+using PreTri = graphics::PrecomputedTriangle<float>;
+using Vec3 = PreTri::Vec3;
 
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;
 
 int main() {
-    std::vector<graphics::Sphere<float>> spheres;
-    spheres.emplace_back(Vec3(0, 50, 1000), 100);
+    model::Loader loader("/home/igor/dev/src/Collection/assets/DragonAttenuation/glTF/DragonAttenuation.gltf");
+    loader.load();
+    std::vector<PreTri> triangles;
+    const auto& vertices = loader.vertices();
+    for (int i = 0; i < loader.indices().size(); i+=3) {
+        uint32_t idx = loader.indices()[i];
+        triangles.emplace_back(vertices[idx].pos, vertices[idx+1].pos, vertices[idx+2].pos);
+    }
 
     scene::CameraCreateInfo cameraCreateInfo {
         .type = scene::CameraType::FLY,
@@ -34,7 +42,7 @@ int main() {
     app::PathTracerAppCreateInfo appCreateInfo {
         .width = WIDTH,
         .height = HEIGHT,
-        .spheres = spheres,
+        .triangles = triangles,
         .cameraCreateInfo = cameraCreateInfo
     };
 

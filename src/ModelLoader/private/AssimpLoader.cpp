@@ -11,6 +11,7 @@
 #include <meshoptimizer.h>
 #include <filesystem>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <gli/gli.hpp>

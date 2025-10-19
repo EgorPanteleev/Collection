@@ -39,8 +39,4 @@
 # Clion
 *.idea
 
-#Models
-
-*Models
-
-*Textures*
+assets

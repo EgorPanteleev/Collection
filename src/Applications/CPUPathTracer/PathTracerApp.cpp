@@ -86,11 +86,11 @@ namespace crv::app {
     }
 
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo):
-    mPathTracer(createInfo.spheres, createInfo.cameraCreateInfo),
+    mPathTracer(createInfo.triangles, createInfo.cameraCreateInfo),
     mWindow(title(), createInfo.width, createInfo.height) {}
 
     void PathTracerApp::run() {
-        std::vector<uint8_t> imageBuffer = mPathTracer.render();
+        std::vector<uint8_t> imageBuffer;
         mWindow.makeContextCurrent();
         mWindow.setUserPoint(this);
         mWindow.setKeyCallBack(keyCallBack);

@@ -17,8 +17,8 @@ namespace crv::graphics {
         buffer[idx + 2] = floatToByte(color.b);
     }
 
-    PathTracer::PathTracer(const std::vector<Sphere<Type>>& spheres, const scene::CameraCreateInfo& createInfo ):
-    mSpheres(spheres) {
+    PathTracer::PathTracer(const std::vector<PreTri>& mTriangles, const scene::CameraCreateInfo& createInfo ):
+    mTriangles(mTriangles) {
         mCamera = scene::makeCameraUnique(createInfo);
     }
 
@@ -44,8 +44,8 @@ namespace crv::graphics {
     }
 
     PathTracer::Vec3 PathTracer::traceRay(const Ray<Type>& ray) const {
-        for (const auto& sphere: mSpheres) {
-            if (!sphere.intersect(ray)) continue;
+        for (const auto& sphere: mTriangles) {
+            if (!sphere.intersect(ray, 0.01)) continue;
             return {1,0,0};
         }
         return {0,0,0};

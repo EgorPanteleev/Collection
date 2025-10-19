@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 
+#include "AbsLoader.hpp"
 #include "BBox.hpp"
 #include "Mesh.hpp"
 #include "Material.hpp"
@@ -19,12 +20,13 @@ namespace crv::model {
 
     class Loader {
     public:
+        using Box = AbsLoader::Box;
         Loader(std::string modelPath);
         virtual ~Loader() = default;
 
         virtual bool load();
 
-        [[nodiscard]] utils::BBox bbox() const;
+        [[nodiscard]] Box bbox() const;
         [[nodiscard]] const std::vector<Mesh>& meshes() const;
         [[nodiscard]] const std::vector<Material>& materials() const;
         [[nodiscard]] const std::vector<Vertex>& vertices() const;

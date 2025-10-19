@@ -6,15 +6,15 @@
 #define CPUPATHTRACER_HPP
 
 #include "PathTracer.hpp"
-#include "Sphere.hpp"
 #include "Window.hpp"
 
 namespace crv::app {
     struct PathTracerAppCreateInfo {
         using Type = float;
+        using PreTri = graphics::PrecomputedTriangle<Type>;
         int width;
         int height;
-        std::vector<graphics::Sphere<Type>> spheres;
+        std::vector<PreTri> triangles;
         scene::CameraCreateInfo cameraCreateInfo;
     };
 
