@@ -5,6 +5,8 @@
 #include "PathTracerApp.hpp"
 #include "Loader.hpp"
 #include "Message.hpp"
+#include "AbsBuilder.hpp"
+#include "Node.hpp"
 
 namespace graphics = crv::graphics;
 namespace scene = crv::scene;
@@ -27,6 +29,10 @@ int main() {
         triangles.emplace_back(vertices[idx].pos, vertices[idx+1].pos, vertices[idx+2].pos);
     }
 
+    graphics::AbsBuilder<graphics::Node<float>> builder(graphics::AbsBuilder<graphics::Node<float>>::BINNED_SAH);
+    builder.build(std::span(triangles.data(), triangles.size()));
+
+    MESSAGE << "Builded..";
     scene::CameraCreateInfo cameraCreateInfo {
         .type = scene::CameraType::FLY,
         .pos = glm::vec3(0),
