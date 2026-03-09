@@ -5,10 +5,9 @@
 #ifndef INDEX_HPP
 #define INDEX_HPP
 
-#include <cstdint>
-#include <type_traits>
-#include <limits>
 #include <cassert>
+#include <cstdint>
+#include <cstddef>
 
 namespace crv::graphics {
     template <size_t bits>
@@ -22,8 +21,11 @@ namespace crv::graphics {
     template<size_t bits>
     using UnsignedIntType = typename UnsignedInt<bits>::Type;
 
-    template <typename Type, std::enable_if_t<std::is_unsigned_v<Type>, bool> = true>
-    constexpr Type makeBitMask(size_t bits) { return bits >= std::numeric_limits<Type>::digits ? static_cast<Type>(-1) : (static_cast<Type>(1) << bits) - 1; }
+    template <typename Type>
+    constexpr Type makeBitMask(size_t bits) {
+        assert(sizeof(Type) * 8 > bits);
+        return (static_cast<Type>(1) << bits) - 1;
+    }
 
     template <size_t bits, size_t primCountBits>
     class Index {
@@ -31,8 +33,8 @@ namespace crv::graphics {
         using Type = UnsignedIntType<bits>;
         Index() = default;
         explicit Index(Type value): value(value) {}
-        Index(size_t firstPrim, size_t primCount) { set(firstPrim, primCount); }
-        Index(size_t firstChild) { set(firstChild, 0); }
+        explicit Index(size_t firstPrim, size_t primCount) { set(firstPrim, primCount); }
+        explicit Index(size_t firstChild) { set(firstChild, 0); }
         Type id() const { return value >> primCountBits; }
         Type primCount() const { return value & maxPrimCount; }
         bool isLeaf() const { return primCount() != 0; }
