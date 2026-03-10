@@ -15,6 +15,8 @@ namespace crv::graphics {
     class BVH {
     public:
         friend class SweepSAHBuilder<Node>;
+
+
     protected:
         std::vector<Node> mNodes;
     };

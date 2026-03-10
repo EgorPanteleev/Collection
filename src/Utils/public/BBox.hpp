@@ -9,11 +9,14 @@
 #include <iosfwd>
 #include <glm/glm.hpp>
 
+#include "Ray.hpp"
+
 namespace crv::graphics {
     template <typename T>
     struct BBox {
         using Type = T;
         using Vec3 = glm::vec<3, Type>;
+        using RayType = Ray<Type>;
 
         BBox(): min(std::numeric_limits<Type>::max()), max(-std::numeric_limits<Type>::max()) {}
         BBox(const Vec3& min, const Vec3& max): min(min), max(max) {}
@@ -25,9 +28,22 @@ namespace crv::graphics {
         Type getHalfArea() const;
         BBox& operator+=(const BBox& other);
         bool operator==(const BBox& other) const;
-        // template <typename Ray>
-        // std::pair<T, T> intersect(const Ray& ray) //todo implement
-        // https://jcgt.org/published/0002/02/02/paper-original.pdf
+
+
+        std::optional<Type> intersect(const RayType& ray) {
+            Vec3 t1 = (min - ray.origin) * ray.invDir;
+            Vec3 t2 = (max - ray.origin) * ray.invDirPad;
+
+            Vec3 tmin = glm::min(t1, t2); //can be removed with sign
+            Vec3 tmax = glm::max(t1, t2);
+
+            Type trmin = std::max({ray.tmin, tmin.x, tmin.y, tmin.z});
+            Type trmax = std::min({ray.tmax, tmax.x, tmax.y, tmax.z});
+            if (trmin < trmax) {
+                return trmin;
+            }
+            return std::nullopt;
+        }
 
         Vec3 min;
         Vec3 max;
