@@ -9,15 +9,16 @@
 #include <iostream>
 
 namespace crv::message {
-    static constexpr auto RED = "\033[31m";
-    static constexpr auto GREEN = "\033[32m";
-    static constexpr auto BLUE = "\033[34m";
-    static constexpr auto CYAN = "\033[36m";
-    static constexpr auto WHITE = "\033[37m";
-    static constexpr auto GRAY = "\033[90m";
-    static constexpr auto YELLOW = "\033[33m";
-    static constexpr auto PINK = "\033[95m";
-    static constexpr auto PURPLE = "\033[35m";
+    static constexpr auto RED        = "\033[31m";
+    static constexpr auto GREEN      = "\033[32m";
+    static constexpr auto BLUE       = "\033[34m";
+    static constexpr auto CYAN       = "\033[36m";
+    static constexpr auto WHITE      = "\033[37m";
+    static constexpr auto GRAY       = "\033[90m";
+    static constexpr auto LIGHT_GRAY = "\033[38;5;250m";
+    static constexpr auto YELLOW     = "\033[33m";
+    static constexpr auto PINK       = "\033[95m";
+    static constexpr auto PURPLE     = "\033[35m";
 
 /**
 * Wrapper for console output
@@ -53,10 +54,10 @@ namespace crv::message {
 
 }
 
-#define MESSAGE  crv::message::Message( std::cout, crv::message::GRAY   )
-#define INFO     crv::message::Message( std::cout, crv::message::CYAN   )
-#define DEBUG    crv::message::Message( std::cout, crv::message::BLUE   )
-#define WARNING  crv::message::Message( std::cout, crv::message::YELLOW )
-#define ERROR    crv::message::Message( std::cerr, crv::message::RED    )
+#define MESSAGE  crv::message::Message( std::cout, crv::message::LIGHT_GRAY   )
+#define INFO     crv::message::Message( std::cout, crv::message::CYAN         )
+#define DEBUG    crv::message::Message( std::cout, crv::message::BLUE         )
+#define WARNING  crv::message::Message( std::cout, crv::message::YELLOW       )
+#define ERROR    crv::message::Message( std::cerr, crv::message::RED          )
 
 #endif //VULKAN_MESSAGELOGGER_H

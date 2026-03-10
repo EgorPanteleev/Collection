@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_FLAGS "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 project(Collection)
 

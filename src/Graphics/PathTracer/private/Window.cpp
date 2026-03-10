@@ -4,6 +4,8 @@
 
 #include "Window.hpp"
 
+#include <stdexcept>
+
 namespace crv::graphics {
     Window::Window(const char* name, int width, int height): mWindow(nullptr), mWidth(width), mHeight(height) {
         initWindow(name);

@@ -1,44 +1,33 @@
 //
-// Created by igor on 11/1/25.
+// Created by igor on 3/9/26.
 //
 
-#ifndef NODE_HPP
-#define NODE_HPP
-
-#include <limits.h>
+#ifndef COLLECTION_NODE_HPP
+#define COLLECTION_NODE_HPP
 
 #include "Index.hpp"
-#include "BBox.hpp"
-
-//        Type id() const { return value >> primCountBits; }
-// Type primCount() const { return value & maxPrimCount; }
-// bool isLeaf() const { return primCount() != 0; }
-// bool isInner() const { return !isLeaf(); }
-// void setID(size_t id) { set(id, static_cast<size_t>(primCount())); }
-// void setPrimCount(size_t primCount) { set(static_cast<size_t>(id()), primCount); }
 
 namespace crv::graphics {
-    template<typename T,
-        size_t indexBits = sizeof(T) * CHAR_BIT,
-        size_t primCountBits = 4>
+    template <typename T,
+              size_t indexBits = sizeof(T) * CHAR_BIT,
+              size_t primBits = 4>
     class Node {
     public:
         using Type = T;
-        using IndexType = Index<indexBits, primCountBits>;
-        using BoxType = BBox<Type>;
+        using IndexType = Index<indexBits, primBits>;
+        using Box = BBox<Type>;
+        explicit Node(const Box& bbox, const IndexType& index): mBBox(bbox), mIndex(index) {}
+        explicit Node(const Box& bbox): mBBox(bbox), mIndex() {}
 
-        Node() = default;
-
-        bool isLeaf() const { return mIndex.isLeaf(); }
-        BoxType getBBox() const { return mBBox; }
-
-        void setBBox(const BoxType& bbox) { mBBox = bbox; }
+        void setBBox(const Box& bbox) { mBBox = bbox; }
         void setIndex(const IndexType& index) { mIndex = index; }
-        //todo impelement intersection
-    private:
+
+        Box bbox() const { return mBBox; }
+        bool isLeaf() const { return mIndex.isLeaf(); }
+    protected:
+        Box mBBox;
         IndexType mIndex;
-        BoxType mBBox; //std::array<T, Dim * 2> bounds;
     };
 }
 
-#endif //NODE_HPP
+#endif //COLLECTION_NODE_HPP

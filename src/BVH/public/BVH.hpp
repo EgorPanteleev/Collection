@@ -1,20 +1,23 @@
 //
-// Created by igor on 11/1/25.
+// Created by igor on 3/10/26.
 //
 
-#ifndef BVH_HPP
-#define BVH_HPP
+#ifndef COLLECTION_BVH_HPP
+#define COLLECTION_BVH_HPP
 
 #include <vector>
 
 namespace crv::graphics {
     template <typename Node>
+    class SweepSAHBuilder;
+
+    template <typename Node>
     class BVH {
     public:
-
+        friend class SweepSAHBuilder<Node>;
+    protected:
         std::vector<Node> mNodes;
-        std::vector<size_t> mPrimIds;
     };
 }
 
-#endif //BVH_HPP
+#endif //COLLECTION_BVH_HPP

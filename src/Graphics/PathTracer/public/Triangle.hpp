@@ -16,7 +16,7 @@ namespace crv::graphics {
     template<typename T>
     struct Triangle {
         using Type = T;
-        using Vec3 = glm::vec<3, Type, glm::defaultp>;
+        using Vec3 = glm::vec<3, Type>;
         Triangle() = default;
         Triangle(const Vec3& p0, const Vec3& p1, const Vec3& p2): p0(p0), p1(p1), p2(p2) {}
 
@@ -30,13 +30,14 @@ namespace crv::graphics {
     template<typename T>
     struct PrecomputedTriangle {
         using Type = T;
-        using Vec3 = glm::vec<3, Type, glm::defaultp>;
+        using Vec3 = glm::vec<3, Type>;
+        using Box = BBox<Type>;
         PrecomputedTriangle(const Vec3& p0, const Vec3& p1, const Vec3& p2):
         p0(p0), e1(p0 - p1), e2(p2 - p0), N(glm::cross(e1, e2)) {}
         PrecomputedTriangle(const Triangle<Type>& tri): PrecomputedTriangle(tri.p0, tri.p1, tri.p2) {}
 
         Triangle<Type> castToTriangle() const { return { p0, p0 - e1, e2 + p0 }; }
-        BBox<Type> bbox() const { return castToTriangle().bbox(); }
+        Box bbox() const { return castToTriangle().bbox(); }
         Vec3 center() const { return castToTriangle().center(); }
 
         std::optional<std::tuple<Type, Type, Type>> intersect(const Ray<Type>& ray, T eps) const {

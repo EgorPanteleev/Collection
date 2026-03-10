@@ -23,7 +23,7 @@ namespace crv::graphics {
 
     template <typename Type>
     constexpr Type makeBitMask(size_t bits) {
-        assert(sizeof(Type) * 8 > bits);
+        assert(sizeof(Type) * CHAR_BIT > bits);
         return (static_cast<Type>(1) << bits) - 1;
     }
 
@@ -32,26 +32,28 @@ namespace crv::graphics {
     public:
         using Type = UnsignedIntType<bits>;
         Index() = default;
-        explicit Index(Type value): value(value) {}
+        explicit Index(Type value): mValue(value) {}
         explicit Index(size_t firstPrim, size_t primCount) { set(firstPrim, primCount); }
         explicit Index(size_t firstChild) { set(firstChild, 0); }
-        Type id() const { return value >> primCountBits; }
-        Type primCount() const { return value & maxPrimCount; }
+        Type id() const { return mValue >> primCountBits; }
+        Type primCount() const { return mValue & MAX_PRIM; }
         bool isLeaf() const { return primCount() != 0; }
         bool isInner() const { return !isLeaf(); }
         void setID(size_t id) { set(id, static_cast<size_t>(primCount())); }
         void setPrimCount(size_t primCount) { set(static_cast<size_t>(id()), primCount); }
-    private:
-        static constexpr Type maxID = makeBitMask<Type>(bits - primCountBits);
-        static constexpr Type maxPrimCount = makeBitMask<Type>(primCountBits);
 
-        void set(size_t id, size_t primCount) { value = static_cast<Type>(id) << primCountBits |
-                                                        (static_cast<Type>(primCount) & maxPrimCount);
-            assert(id <= static_cast<size_t>(maxID));
-            assert(primCount <= static_cast<size_t>(maxPrimCount));
+        static Type maxPrim() { return MAX_PRIM; }
+    private:
+        static constexpr Type MAX_ID = makeBitMask<Type>(bits - primCountBits);
+        static constexpr Type MAX_PRIM = makeBitMask<Type>(primCountBits);
+
+        void set(size_t id, size_t primCount) { mValue = static_cast<Type>(id) << primCountBits |
+                                                        (static_cast<Type>(primCount) & MAX_PRIM);
+            assert(id <= static_cast<size_t>(MAX_ID));
+            assert(primCount <= static_cast<size_t>(MAX_PRIM));
         }
 
-        Type value;
+        Type mValue;
     };
 }
 
