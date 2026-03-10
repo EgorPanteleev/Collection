@@ -10,6 +10,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(GoogleTest)
 include(GoogleTest)
 
+add_custom_target(all_tests)
+
 add_subdirectory( Message )
 add_subdirectory( Utils )
 add_subdirectory( BVH )
