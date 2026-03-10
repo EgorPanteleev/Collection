@@ -16,7 +16,7 @@
 
 namespace crv::graphics {
     template <typename Node>
-   class SweepSAHBuilder {
+    class SweepSAHBuilder {
     public:
         using Type = Node::Type;
         using Box = BBox<Type>;
