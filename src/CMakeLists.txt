@@ -12,12 +12,13 @@ include(GoogleTest)
 
 add_custom_target(all_tests)
 
-add_subdirectory( Message )
-add_subdirectory( Utils )
-add_subdirectory( BVH )
-add_subdirectory( Camera )
-add_subdirectory( ModelLoader )
-add_subdirectory( Graphics )
-add_subdirectory( Applications )
+add_subdirectory(Message)
+add_subdirectory(Utils)
+add_subdirectory(ThreadPool)
+add_subdirectory(BVH)
+add_subdirectory(Camera)
+add_subdirectory(ModelLoader)
+add_subdirectory(Graphics)
+add_subdirectory(Applications)
 
 
