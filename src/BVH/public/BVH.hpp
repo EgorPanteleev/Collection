@@ -31,11 +31,11 @@ namespace crv::graphics {
         using Node = NodeType;
         using Type = Node::Type;
         using IndexType = Node::IndexType;
-        using Hit = Hit<Type>;
+        using HitType = Hit<Type>;
         friend class SweepSAHBuilder<Node, Primitive>;
 
-        std::optional<Hit> intersect(const Ray<Type>& ray, Type eps) const {
-            std::optional<Hit> closestHit;
+        std::optional<HitType> intersect(const Ray<Type>& ray, Type eps) const {
+            std::optional<HitType> closestHit;
             Type closestT = std::numeric_limits<Type>::max();
 
             std::stack<Node> stack;

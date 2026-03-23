@@ -35,6 +35,7 @@ namespace crv::graphics {
         using BvhType = BVH<Node, Primitive>;
         using Type = BvhType::Node::Type;
         using Vec3 = glm::vec<3, Type, glm::defaultp>;
+        using Vec2 = glm::vec<2, Type, glm::defaultp>;
         using PreTri = PrecomputedTriangle<Type>;
 
         PathTracer() = default;
@@ -44,6 +45,8 @@ namespace crv::graphics {
         std::vector<uint8_t> render_parallel() const;
     private:
         Vec3 traceRay(const Ray<Type>& ray) const;
+        Vec2 getUV(size_t id, Type u, Type v) const;
+        Vec3 getColor(size_t id, const Vec2& uv, cm::Texture::Type type) const;
 
         cs::AbsCamera* mCamera;
         cm::Loader* mLoader;
@@ -98,7 +101,7 @@ namespace crv::graphics {
         const float imagePlaneWidth  = imagePlaneHeight * mCamera->aspectRatio();
         std::vector<uint8_t> imageBuffer;
         imageBuffer.resize(mWidth * mHeight * 3);
-        auto task = [&](int x, int y) {
+        auto task = [&](const int x, const int y) {
             const int xMax = std::min(x + TILE_SIZE, mWidth);
             const int yMax = std::min(y + TILE_SIZE, mHeight);
             for (int i = x; i < xMax; ++i) {
@@ -128,31 +131,39 @@ namespace crv::graphics {
         auto hit = mBvh->intersect(ray, 1e-6);
         if (!hit) return {0, 0, 0};
         auto& [id, t, u, v] = *hit;
-        const Primitive& primitive = mBvh->primitive(id);
-        const cm::Material& material = mLoader->materials()[mMaterialIndices->at(id)];
-        auto& texData = material.mTextures[cm::Texture::DIFFUSE].mDataByLevel[0];
-        auto uv = u * mLoader->vertices()[mLoader->indices()[id * 3 + 1]].texCoord0 +
-            v * mLoader->vertices()[mLoader->indices()[id * 3 + 2]].texCoord0 +
-            (1.0f - u - v) * mLoader->vertices()[mLoader->indices()[id * 3 + 0]].texCoord0;
-        uv.x = std::clamp(uv.x, 0.0f, 1.0f);
-        uv.y = std::clamp(uv.y, 0.0f, 1.0f);
+        Vec2 uv = getUV(id, u, v);
+        Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
+        // const Primitive& primitive = mBvh->primitive(id);
+        // Vec3 N = primitive.normal();
+        // Vec3 P = ray.pos + ray.dir * t;
+        // constexpr Vec3 L = {1, 2, 3};
+        // Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
 
-        int x = static_cast<int>(uv.x * (texData.width - 1));
-        int y = static_cast<int>(uv.y * (texData.height - 1));
-        int channels = 4;
-        int texIdx = (y * texData.width + x) * channels;
-        auto imgData = static_cast<unsigned char*>(texData.data);
-        unsigned char r = imgData[texIdx + 0];
-        unsigned char g = imgData[texIdx + 1];
-        unsigned char b = imgData[texIdx + 2];
+        return diffuseColor;
+    }
 
-        Vec3 N = primitive.normal();
-        Vec3 P = ray.pos + ray.dir * t;
-        constexpr Vec3 L = {1, 2, 3};
-        Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
-        Vec3 color = {r / 255.0, g / 255.0, b / 255.0};
+    template<typename Node, typename Primitive>
+    PathTracer<Node, Primitive>::Vec2 PathTracer<Node, Primitive>::getUV(const size_t id, Type u, Type v) const {
+        const auto& vertices = mLoader->vertices();
+        const auto& indices = mLoader->indices();
+        const size_t idx = id * 3;
+        const Type w = static_cast<Type>(1.) - u - v;
+        return u * vertices[indices[idx + 1]].texCoord0 +
+               v * vertices[indices[idx + 2]].texCoord0 +
+               w * vertices[indices[idx + 0]].texCoord0;
+    }
 
-        return color;
+    template<typename Node, typename Primitive>
+    PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::getColor(const size_t id, const Vec2& uv, cm::Texture::Type type) const {
+        const cm::Material& material = mLoader->materials()[(*mMaterialIndices)[id]];
+        const auto&[texData, width, height] = material.mTextures[cm::Texture::DIFFUSE].mDataByLevel[0];
+        const int x = static_cast<int>(uv.x * (width - 1));
+        const int y = static_cast<int>(uv.y * (height - 1));
+        static constexpr int channels = 4;
+        const int texIdx = (y * width + x) * channels;
+        const unsigned char* imgData = static_cast<unsigned char*>(texData);
+        Type coeff = static_cast<Type>(1.) / 255.;
+        return {imgData[texIdx + 0] * coeff, imgData[texIdx + 1] * coeff, imgData[texIdx + 2] * coeff};
     }
 }
 
