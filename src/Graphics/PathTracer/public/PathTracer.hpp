@@ -38,12 +38,12 @@ namespace crv::graphics {
         BvhType mBvh;
     };
 
-        static uint8_t floatToByte(float f) {
+
+    static uint8_t floatToByte(const float f) {
         return static_cast<uint8_t>(glm::clamp(f, 0.0f, 1.0f) * 255.0f);
     }
 
-    template <typename Node, typename Primitive>
-    static void setColor( std::vector<uint8_t>& buffer, int idx, const typename PathTracer<Node, Primitive>::Vec3& color) {
+    static void setColor( std::vector<uint8_t>& buffer, const int idx, const auto& color) {
         buffer[idx + 0] = floatToByte(color.r);
         buffer[idx + 1] = floatToByte(color.g);
         buffer[idx + 2] = floatToByte(color.b);
@@ -56,21 +56,21 @@ namespace crv::graphics {
 
     template <typename Node, typename Primitive>
     std::vector<uint8_t> PathTracer<Node, Primitive>::render() const {
-        int width = 800;
-        int height = static_cast<int>(std::round(width / mCamera->aspectRatio()));
-        float imagePlaneHeight = 2.0f * tan(glm::radians(mCamera->FOV() * 0.5f));
-        float imagePlaneWidth  = imagePlaneHeight * mCamera->aspectRatio();
+        constexpr int width = 800;
+        const int height = static_cast<int>(std::round(width / mCamera->aspectRatio()));
+        const float imagePlaneHeight = 2.0f * tan(glm::radians(mCamera->FOV() * 0.5f));
+        const float imagePlaneWidth  = imagePlaneHeight * mCamera->aspectRatio();
         std::vector<uint8_t> imageBuffer;
-        imageBuffer.resize( width * height * 3 );
+        imageBuffer.resize(width * height * 3);
         for (int i = 0; i < width; ++i) {
-            float u = (i + 0.5f) / width;
-            float px = (2.0f * u - 1.0f) * imagePlaneWidth * 0.5f;
+            const float u = (static_cast<float>(i) + 0.5f) / width;
+            const float px = (2.0f * u - 1.0f) * imagePlaneWidth * 0.5f;
             for (int j = 0; j < height; ++j) {
-                float v = (j + 0.5f) / height;
-                float py = (1.0f - 2.0f * v) * imagePlaneHeight * 0.5f;
+                const float v = (static_cast<float>(j) + 0.5f) / height;
+                const float py = (1.0f - 2.0f * v) * imagePlaneHeight * 0.5f;
                 glm::vec3 dir = glm::normalize(px * mCamera->right() + py * mCamera->up() + mCamera->forward());
                 Vec3 color = traceRay( {mCamera->position(), dir, mCamera->nearPlane(), mCamera->farPlane()} );
-                setColor<Node, Primitive>(imageBuffer, (width * j + i) * 3, color);
+                setColor(imageBuffer, (width * j + i) * 3, color);
             }
         }
         return imageBuffer;
@@ -80,7 +80,12 @@ namespace crv::graphics {
     PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray<Type> &ray) const {
         auto hit = mBvh.intersect(ray, 1e-6);
         if (!hit) return {0, 0, 0};
-        return {std::get<0>(*hit), std::get<1>(*hit), std::get<2>(*hit)};
+        auto& [N, t, u, v] = *hit;
+        Vec3 P = ray.pos + ray.dir * t;
+        constexpr Vec3 L = {1, 2, 3};
+        Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
+        Vec3 color = {90, 90, 90};
+        return 255 * I * color;
     }
 }
 

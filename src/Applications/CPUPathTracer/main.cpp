@@ -23,14 +23,14 @@ using NodeType = cg::Node<Type>;
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;
 
-#define YEY_PATH "/home/igor/dev/src/Collection/assets/eye/obj/eyeball.obj"
+#define EYE_PATH "/home/igor/dev/src/Collection/assets/eye/obj/eyeball.obj"
 #define SWORD_PATH "/home/igor/dev/src/Collection/assets/sword/sword.obj"
 #define DRAGON_PATH "/home/igor/dev/src/Collection/assets/DragonAttenuation/glTF/DragonAttenuation.gltf"
 
 int main() {
     cu::Timer timer;
     timer.start();
-    cm::Loader loader(SWORD_PATH);
+    cm::Loader loader(DRAGON_PATH);
     loader.load();
     INFO << "Load time: " << timer.duration() / 1000 << " sec";
     std::vector<PreTri> triangles;
@@ -53,7 +53,7 @@ int main() {
         .FOV = 60,
         .aspectRatio = static_cast<float>(WIDTH) / HEIGHT,
         .nearPlane = 0,
-        .farPlane = 100000.0f,
+        .farPlane = 500.0f,
     };
 
     capp::PathTracerAppCreateInfo<NodeType, PreTri> appCreateInfo {

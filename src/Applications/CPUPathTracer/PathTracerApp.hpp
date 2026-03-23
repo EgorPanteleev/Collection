@@ -42,8 +42,8 @@ namespace crv::app {
     static double lastX = 0.0f, lastY = 0.0f;
 
     static void processKeyboard(GLFWwindow* window, cs::AbsCamera* camera, double deltaTime) {
-        auto speed = static_cast<float>(deltaTime) * 0.1;
-        if (speed < 0) return;
+        auto speed = 5;
+        //if (speed < 0) return;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             camera->move(speed, 0, 0);
         }

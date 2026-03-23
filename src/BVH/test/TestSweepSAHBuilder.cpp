@@ -37,7 +37,7 @@ std::vector<Tri> randomTriangles(size_t n) {
     return res;
 }
 
-TEST(Index, Build) {
+TEST(BVH, Build) {
     std::vector<Tri> triangles = randomTriangles(1000);
     SweepSAHBuilder<NodeType> builder{std::span(triangles)};
     auto bvh = builder.build();

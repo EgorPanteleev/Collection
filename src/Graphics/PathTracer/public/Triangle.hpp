@@ -39,6 +39,7 @@ namespace crv::graphics {
         Triangle<Type> castToTriangle() const { return { p0, p0 - e1, e2 + p0 }; }
         Box bbox() const { return castToTriangle().bbox(); }
         Vec3 center() const { return castToTriangle().center(); }
+        Vec3 normal() const { return N; }
 
         std::optional<std::tuple<Type, Type, Type>> intersect(const Ray<Type>& ray, Type eps) const {
             auto c = p0 - ray.pos;

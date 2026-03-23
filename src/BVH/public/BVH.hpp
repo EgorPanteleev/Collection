@@ -16,50 +16,46 @@ namespace crv::graphics {
     template <typename Node, typename Primitive>
     class SweepSAHBuilder;
 
-    template <typename N, typename Primitive>
+    template <typename Type>
+    struct Hit {
+        using Vec3 = glm::vec<3, Type>;
+        Vec3 N;
+        Type t;
+        Type u;
+        Type v;
+    };
+
+    template <typename NodeType, typename Primitive>
     class BVH {
     public:
-        using Node = N;
+        using Node = NodeType;
         using Type = Node::Type;
         using IndexType = Node::IndexType;
+        using Hit = Hit<Type>;
         friend class SweepSAHBuilder<Node, Primitive>;
 
-        std::optional<std::tuple<Type, Type, Type>> intersect(const Ray<Type>& ray, Type eps) const {
-            std::optional<std::tuple<Type, Type, Type>> closestHit;
+        std::optional<Hit> intersect(const Ray<Type>& ray, Type eps) const {
+            std::optional<Hit> closestHit;
             Type closestT = std::numeric_limits<Type>::max();
 
-            // for (auto& prim : mPrimitives) {
-            //     auto hit = prim.intersect(ray, 0);
-            //
-            // if (hit) {
-            //     auto [t, u, v] = *hit;
-            //     if (t < closestT) {
-            //         closestT = t;
-            //         closestHit = *hit;
-            //     }
-            // }
-            // }
-            // return closestHit;
             std::stack<Node> stack;
             stack.push(mNodes[0]);
             while (!stack.empty()) {
                 const Node& node = stack.top();
                 stack.pop();
-                if ( node.isLeaf() ) {
+                if (node.isLeaf()) {
                     IndexType index = node.index();
                     for (auto i = index.id(); i < index.id() + index.primCount(); ++i) {
-                        auto hit = mPrimitives[mPrimIds[i]].intersect(ray, eps);
-                        if (hit) {
-                            auto [t, u, v] = *hit;
-                            if (t < closestT) {
-                                closestT = t;
-                                closestHit = *hit;
-                            }
+                        auto& primitive = mPrimitives[mPrimIds[i]];
+                        auto hit = primitive.intersect(ray, eps);
+                        if (!hit) continue;
+                        auto [t, u, v] = *hit;
+                        if (t < closestT) {
+                            closestT = t;
+                            closestHit = {primitive.normal(), t, u, v};
                         }
                     }
-                    index.id();
-                    index.primCount();
-                } else if ( node.bbox().intersect( ray ) ) {
+                } else if (node.bbox().intersect(ray)) {
                     auto nodeIdx = node.index().id();
                     stack.emplace(mNodes[nodeIdx]);
                     stack.emplace(mNodes[nodeIdx + 1]);
