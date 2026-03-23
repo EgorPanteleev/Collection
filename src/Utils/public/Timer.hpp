@@ -6,10 +6,12 @@
 #define VULKAN_TIMER_H
 
 #include <chrono>
+#include <string>
 
 namespace crv::utils {
     class Timer {
     public:
+        Timer();
         Timer(double stopTime);
 
         void start();

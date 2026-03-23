@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
+#include <climits>
 
 namespace crv::graphics {
     template <size_t bits>

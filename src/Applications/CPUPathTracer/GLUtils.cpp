@@ -71,7 +71,8 @@ GLuint createShaderProgram() {
 
 bool initGLEW() {
     glewExperimental = GL_TRUE;
-    if(glewInit() != GLEW_OK){
+    GLenum err = glewInit();
+    if(err != GLEW_OK and err != GLEW_ERROR_NO_GLX_DISPLAY){
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return false;
     }

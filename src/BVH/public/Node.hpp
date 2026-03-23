@@ -6,6 +6,9 @@
 #define COLLECTION_NODE_HPP
 
 #include "Index.hpp"
+#include "BBox.hpp"
+
+#include <climits>
 
 namespace crv::graphics {
     template <typename T,
@@ -24,6 +27,7 @@ namespace crv::graphics {
 
         Box bbox() const { return mBBox; }
         bool isLeaf() const { return mIndex.isLeaf(); }
+        IndexType index() const { return mIndex; }
     protected:
         Box mBBox;
         IndexType mIndex;

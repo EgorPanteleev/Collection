@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <iosfwd>
+#include <optional>
 #include <glm/glm.hpp>
 
 #include "Ray.hpp"
@@ -31,8 +32,8 @@ namespace crv::graphics {
 
 
         std::optional<Type> intersect(const RayType& ray) {
-            Vec3 t1 = (min - ray.origin) * ray.invDir;
-            Vec3 t2 = (max - ray.origin) * ray.invDirPad;
+            Vec3 t1 = (min - ray.pos) * ray.invDir;
+            Vec3 t2 = (max - ray.pos) * ray.invDirPad;
 
             Vec3 tmin = glm::min(t1, t2); //can be removed with sign
             Vec3 tmax = glm::max(t1, t2);

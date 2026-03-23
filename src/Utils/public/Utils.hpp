@@ -28,7 +28,7 @@ namespace crv::utils {
 
     template<>
     inline double addUlp(double num, int ulps) {
-        if (!std::isfinite(num)) return;
+        if (!std::isfinite(num)) return num;
         const unsigned bits = reinterpretType<double, unsigned long long>(num);
         return reinterpretType<unsigned long long, double>(bits + ulps);
     }

@@ -5,37 +5,48 @@
 #include "PathTracerApp.hpp"
 #include "Loader.hpp"
 #include "Message.hpp"
-#include "AbsBuilder.hpp"
+#include "SweepSAHBuilder.hpp"
 #include "Node.hpp"
+#include "Timer.hpp"
 
-namespace graphics = crv::graphics;
-namespace scene = crv::scene;
-namespace app = crv::app;
-namespace model = crv::model;
+namespace cg = crv::graphics;
+namespace cs = crv::scene;
+namespace capp = crv::app;
+namespace cm = crv::model;
+namespace cu = crv::utils;
 
-using PreTri = graphics::PrecomputedTriangle<float>;
+using Type = float;
+using PreTri = cg::PrecomputedTriangle<Type>;
 using Vec3 = PreTri::Vec3;
+using NodeType = cg::Node<Type>;
 
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;
 
+#define YEY_PATH "/home/igor/dev/src/Collection/assets/eye/obj/eyeball.obj"
+#define SWORD_PATH "/home/igor/dev/src/Collection/assets/sword/sword.obj"
+#define DRAGON_PATH "/home/igor/dev/src/Collection/assets/DragonAttenuation/glTF/DragonAttenuation.gltf"
+
 int main() {
-    model::Loader loader("/home/igor/dev/src/Collection/assets/DragonAttenuation/glTF/DragonAttenuation.gltf");
+    cu::Timer timer;
+    timer.start();
+    cm::Loader loader(SWORD_PATH);
     loader.load();
+    INFO << "Load time: " << timer.duration() / 1000 << " sec";
     std::vector<PreTri> triangles;
+    const auto& indices = loader.indices();
     const auto& vertices = loader.vertices();
-    for (int i = 0; i < loader.indices().size(); i+=3) {
-        uint32_t idx = loader.indices()[i];
-        triangles.emplace_back(vertices[idx].pos, vertices[idx+1].pos, vertices[idx+2].pos);
+    for (int i = 0; i < indices.size(); i += 3) {
+        triangles.emplace_back(vertices[indices[i]].pos, vertices[indices[i + 1]].pos, vertices[indices[i + 2]].pos);
     }
 
-    graphics::AbsBuilder<graphics::Node<float>> builder(graphics::AbsBuilder<graphics::Node<float>>::BINNED_SAH);
-    builder.build(std::span(triangles.data(), triangles.size()));
-
-    MESSAGE << "Builded..";
-    scene::CameraCreateInfo cameraCreateInfo {
-        .type = scene::CameraType::FLY,
-        .pos = glm::vec3(0),
+    timer.start();
+    cg::SweepSAHBuilder<NodeType, PreTri> builder{ std::span(triangles) };
+    auto bvh = builder.build();
+    INFO << "Build time: " << timer.duration() / 1000 << " sec";
+    cs::CameraCreateInfo cameraCreateInfo {
+        .type = cs::CameraType::FLY,
+        .pos = glm::vec3(0, 0, -5),
         .target = glm::vec3(0, 0, 1),
         .up = glm::vec3(0, 1, 0),
         .zoom = 1,
@@ -45,13 +56,13 @@ int main() {
         .farPlane = 100000.0f,
     };
 
-    app::PathTracerAppCreateInfo appCreateInfo {
+    capp::PathTracerAppCreateInfo<NodeType, PreTri> appCreateInfo {
         .width = WIDTH,
         .height = HEIGHT,
-        .triangles = triangles,
+        .bvh = bvh,
         .cameraCreateInfo = cameraCreateInfo
     };
 
-    app::PathTracerApp app(appCreateInfo);
+    capp::PathTracerApp app(appCreateInfo);
     app.run();
 }

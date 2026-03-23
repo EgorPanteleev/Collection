@@ -40,7 +40,7 @@ namespace crv::graphics {
         Box bbox() const { return castToTriangle().bbox(); }
         Vec3 center() const { return castToTriangle().center(); }
 
-        std::optional<std::tuple<Type, Type, Type>> intersect(const Ray<Type>& ray, T eps) const {
+        std::optional<std::tuple<Type, Type, Type>> intersect(const Ray<Type>& ray, Type eps) const {
             auto c = p0 - ray.pos;
             auto r = cross(ray.dir, c);
             auto inv_det = static_cast<T>(1.) / dot(N, ray.dir);

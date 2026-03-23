@@ -15,15 +15,15 @@
 #include <stack>
 
 namespace crv::graphics {
-    template <typename Node>
+    template <typename Node, typename Primitive>
     class SweepSAHBuilder {
     public:
+        using BvhType = BVH<Node, Primitive>;
         using Type = Node::Type;
         using Box = BBox<Type>;
         using Vec3 = Box::Vec3;
-        using IndexType =  Node::IndexType;
-        template <typename Primitive>
-        SweepSAHBuilder(std::span<Primitive> primitives) {
+        using IndexType = Node::IndexType;
+        SweepSAHBuilder(std::span<Primitive> primitives): mPrimitives(primitives) {
             mBBoxes.reserve(primitives.size());
             mCenters.reserve(primitives.size());
             std::ranges::for_each(primitives, [this](const Primitive& prim) {
@@ -45,7 +45,7 @@ namespace crv::graphics {
             Type cost;
         };
 
-        BVH<Node> build() {
+        BvhType build() {
             if (mBBoxes.empty()) return {};
             size_t size = mBBoxes.size();
             for (int axis = 0; axis < 3; ++axis) {
@@ -55,32 +55,48 @@ namespace crv::graphics {
                 });
             }
 
-            BVH<Node> bvh;
+            BvhType bvh;
+            bvh.mPrimitives = mPrimitives;
             std::stack<NodeData> stack;
             bvh.mNodes.reserve(size * 2);
             bvh.mNodes.emplace_back(computeBBox(0, size));
             stack.emplace(0, 0, size);
             while (!stack.empty()) {
                 NodeData data = stack.top();
+                size_t nodeSize = data.size();
                 stack.pop();
                 Node& node = bvh.mNodes[data.nodeId];
-                if ( data.size() < IndexType::maxPrim() ) {
-                    node.setIndex(IndexType{data.begin, data.size()});
+                if (nodeSize < IndexType::maxPrim()) {
+                    node.setIndex(IndexType{data.begin, nodeSize});
                     continue;
                 }
                 //split
                 SplitData bestSplit;
                 bestSplit.cost = std::numeric_limits<Type>::max();
                 for (size_t axis = 0; axis < 3; ++axis) {
+                    std::vector<Box> prefix(nodeSize);
+                    std::vector<Box> suffix(nodeSize);
+
+                    prefix[0] = mBBoxes[mIndexesPerAxis[axis][data.begin]];
+                    for (size_t i = 1; i < nodeSize; ++i) {
+                        prefix[i] = prefix[i - 1] + mBBoxes[mIndexesPerAxis[axis][data.begin + i]];
+                    }
+
+                    suffix[nodeSize - 1] = mBBoxes[mIndexesPerAxis[axis][data.end - 1]];
+                    for (int i = static_cast<int>(nodeSize) - 2; i >= 0; --i) {
+                        suffix[i] = suffix[i + 1] + mBBoxes[mIndexesPerAxis[axis][data.begin + i]];
+                    }
+                    Type parentArea = node.bbox().getHalfArea();
+
                     for (size_t idx = data.begin + 1; idx < data.end; ++idx) {
-                        Type leftArea = computeBBox(data.begin, idx, axis).getHalfArea();
-                        Type rightArea = computeBBox(idx, data.end, axis).getHalfArea();
-                        Type parentArea = node.bbox().getHalfArea();
                         size_t leftCount = idx - data.begin;
                         size_t rightCount = data.end - idx;
+                        Type leftArea = prefix[leftCount - 1].getHalfArea();
+                        Type rightArea = suffix[leftCount].getHalfArea();
+
                         Type cost = TRAVERSAL_COST +
-                            leftArea  / parentArea * (leftCount  * INTERSECTION_COST) +
-                            rightArea / parentArea * (rightCount * INTERSECTION_COST);
+                                    leftArea  / parentArea * (leftCount  * INTERSECTION_COST) +
+                                    rightArea / parentArea * (rightCount * INTERSECTION_COST);
                         if (cost >= bestSplit.cost) continue;
                         bestSplit = {
                             .axis = axis,
@@ -89,8 +105,8 @@ namespace crv::graphics {
                         };
                     }
                 }
-                if (bestSplit.cost > data.size() * INTERSECTION_COST and data.size() < IndexType::maxPrim() ) { //not sure
-                    node.setIndex(IndexType{data.begin, data.size()});
+                if (bestSplit.cost > nodeSize * INTERSECTION_COST and nodeSize < IndexType::maxPrim() ) { //not sure
+                    node.setIndex(IndexType{data.begin, nodeSize});
                     continue;
                 }
                 std::vector isLeft(size, false);
@@ -122,21 +138,22 @@ namespace crv::graphics {
                 stack.emplace(childIdx + 1, bestSplit.idx, data.end);
                 bvh.mNodes.emplace_back(computeBBox(bestSplit.idx, data.end, bestSplit.axis));
             }
+            bvh.mPrimIds = mIndexesPerAxis[0];
             return bvh;
         }
     protected:
         Box computeBBox(size_t begin, size_t end, size_t axis = 0) const {
             Box res;
-            auto view = mIndexesPerAxis[axis] | std::views::drop(begin) | std::views::take(end - begin);
-            std::ranges::for_each( view, [this, &res](size_t index) {
-                res += mBBoxes[index];
-            });
+            for ( size_t i = begin; i < end; ++i ) {
+                res += mBBoxes[mIndexesPerAxis[axis][i]];
+            }
             return res;
         }
 
         static constexpr int TRAVERSAL_COST = 1;
         static constexpr int INTERSECTION_COST = 1;
 
+        std::span<Primitive> mPrimitives;
         std::vector<Box> mBBoxes;
         std::vector<Vec3> mCenters;
         std::array<std::vector<size_t>, 3> mIndexesPerAxis;

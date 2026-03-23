@@ -5,6 +5,7 @@
 #include "Timer.hpp"
 
 namespace crv::utils {
+    Timer::Timer(): mStartTime(), mDuration(0), mStopTime(0) {}
     Timer::Timer(double stopTime): mStartTime(), mDuration(0), mStopTime(stopTime) {}
 
 

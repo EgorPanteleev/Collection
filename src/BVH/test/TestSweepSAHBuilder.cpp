@@ -16,7 +16,7 @@
 using namespace crv::graphics;
 using Tri = PrecomputedTriangle<float>;
 using Vec3 = Tri::Vec3;
-using NodeType = Node<float>;
+using NodeType = Node<float, 32, 8>;
 using Box = NodeType::Box;
 
 std::vector<Tri> randomTriangles(size_t n) {
@@ -38,7 +38,7 @@ std::vector<Tri> randomTriangles(size_t n) {
 }
 
 TEST(Index, Build) {
-    std::vector<Tri> triangles = randomTriangles(100);
+    std::vector<Tri> triangles = randomTriangles(1000);
     SweepSAHBuilder<NodeType> builder{std::span(triangles)};
     auto bvh = builder.build();
     auto primIds = builder.mIndexesPerAxis[0];
