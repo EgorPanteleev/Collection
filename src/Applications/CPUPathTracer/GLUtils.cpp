@@ -89,6 +89,8 @@ GLuint createTexture(int width, int height, void* data) {
     return tex;
 }
 
+#include <cassert>
+
 void updateTexture(GLuint tex, int width, int height, void* data) {
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height,

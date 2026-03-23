@@ -19,7 +19,7 @@ namespace crv::graphics {
     template <typename Type>
     struct Hit {
         using Vec3 = glm::vec<3, Type>;
-        Vec3 N;
+        size_t id;
         Type t;
         Type u;
         Type v;
@@ -52,7 +52,7 @@ namespace crv::graphics {
                         auto [t, u, v] = *hit;
                         if (t < closestT) {
                             closestT = t;
-                            closestHit = {primitive.normal(), t, u, v};
+                            closestHit = {mPrimIds[i], t, u, v};
                         }
                     }
                 } else if (node.bbox().intersect(ray)) {
@@ -63,6 +63,8 @@ namespace crv::graphics {
             }
             return closestHit;
         }
+
+        const Primitive& primitive(size_t idx) const { return mPrimitives[idx]; }
 
     protected:
         std::vector<Node> mNodes;

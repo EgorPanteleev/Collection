@@ -17,9 +17,11 @@ namespace crv::model {
     class AbsLoader {
     public:
         using Box = graphics::BBox<float>;
+        AbsLoader() = default;
         AbsLoader(std::string modelPath);
         virtual ~AbsLoader() = default;
 
+        void setModel(const std::string& path) { mModelPath = path; }
         [[nodiscard]] Box bbox() const { return mBBox; }
         [[nodiscard]] const std::vector<Mesh>& meshes() const { return mMeshes; }
         [[nodiscard]] const std::vector<Material>& materials() const { return mMaterials; }

@@ -5,35 +5,49 @@
 #ifndef CPUPATHTRACER_HPP
 #define CPUPATHTRACER_HPP
 
-#include "BVH.hpp"
 #include "PathTracer.hpp"
 #include "Window.hpp"
 #include "Node.hpp"
 #include "Timer.hpp"
 #include "GLUtils.hpp"
-
-namespace cg = crv::graphics;
-namespace cs = crv::scene;
+#include "Triangle.hpp"
+#include "Loader.hpp"
+#include "SweepSAHBuilder.hpp"
 
 namespace crv::app {
-    template <typename Node, typename Primitive>
+    namespace cg = graphics;
+    namespace cs = scene;
+    namespace cm = model;
+    namespace cu = utils;
+
     struct PathTracerAppCreateInfo {
+        cs::CameraCreateInfo cameraCreateInfo;
+        std::string modelPath;
         int width;
         int height;
-        cg::BVH<Node, Primitive> bvh;
-        cs::CameraCreateInfo cameraCreateInfo;
     };
 
-    template <typename Node, typename Primitive>
+    template <typename T, size_t primBits>
     class PathTracerApp {
     public:
-        using Type = Node::Type;
-        PathTracerApp(const PathTracerAppCreateInfo<Node, Primitive>& createInfo);
+        using Type = T;
+        using Node = cg::Node<Type, 32, primBits>;
+        using Primitive = cg::PrecomputedTriangle<Type>;
+        PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
         void quit() const { mWindow.close(); }
+        cs::AbsCamera* camera() { return mCamera.get(); }
         static const char* title() { return "Path Tracer"; }
-        friend void mouseMoveCallback<Node, Primitive>(GLFWwindow*, double, double);
+        friend void mouseMoveCallback<Type, primBits>(GLFWwindow*, double, double);
     private:
+        void loadModel(const std::string& modelPath);
+        void buildBVH(std::span<Primitive> primitives);
+
+        cm::Loader mLoader;
+        std::vector<size_t> mMaterialIndices;
+        std::vector<Primitive> mPrimitives;
+        cg::BVH<Node, Primitive> mBvh;
+        std::unique_ptr<scene::AbsCamera> mCamera;
         cg::PathTracer<Node, Primitive> mPathTracer;
         cg::Window mWindow;
     };
@@ -42,7 +56,7 @@ namespace crv::app {
     static double lastX = 0.0f, lastY = 0.0f;
 
     static void processKeyboard(GLFWwindow* window, cs::AbsCamera* camera, double deltaTime) {
-        auto speed = 5;
+        auto speed = 1;
         //if (speed < 0) return;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             camera->move(speed, 0, 0);
@@ -78,9 +92,9 @@ namespace crv::app {
         }
     }
 
-    template <typename Node, typename Primitive>
+    template <typename Type, size_t primBits>
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        auto app = static_cast<PathTracerApp<Node, Primitive>*>(glfwGetWindowUserPointer(window));
+        auto app = static_cast<PathTracerApp<Type, primBits>*>(glfwGetWindowUserPointer(window));
 
         if (action == GLFW_PRESS && key == GLFW_KEY_Q) {
             app->quit();
@@ -99,10 +113,10 @@ namespace crv::app {
         }
     }
 
-    template <typename Node, typename Primitive>
+    template <typename Type, size_t primBits>
     void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
-        auto app = static_cast<PathTracerApp<Node, Primitive>*>(glfwGetWindowUserPointer(window));
-        cs::AbsCamera* camera = app->mPathTracer.camera();
+        auto app = static_cast<PathTracerApp<Type, primBits>*>(glfwGetWindowUserPointer(window));
+        cs::AbsCamera* camera = app->camera();
 
         if (!rightMouseButtonPressed || !camera) return;
 
@@ -116,26 +130,35 @@ namespace crv::app {
                        static_cast<float>(-offsetX * sensitivity), 0.f);
     }
 
-    template <typename Node, typename Primitive>
-    PathTracerApp<Node, Primitive>::PathTracerApp(const PathTracerAppCreateInfo<Node, Primitive>& createInfo):
-    mPathTracer(createInfo.bvh, createInfo.cameraCreateInfo),
-    mWindow(title(), createInfo.width, createInfo.height) {}
+    template <typename Type, size_t primBits>
+    PathTracerApp<Type, primBits>::PathTracerApp(const PathTracerAppCreateInfo& createInfo):
+    mCamera(cs::makeCameraUnique(createInfo.cameraCreateInfo)), mWindow(title(), createInfo.width, createInfo.height) {
+        loadModel(createInfo.modelPath);
+        cg::PathTracerCreateInfo<Node, Primitive> pathTracerCreateInfo = {
+            .camera = mCamera.get(),
+            .loader = &mLoader,
+            .bvh = &mBvh,
+            .materialIndices = &mMaterialIndices,
+            .width = createInfo.width,
+            .height = createInfo.height
+        };
+        mPathTracer = {pathTracerCreateInfo};
+    }
 
-    template <typename Node, typename Primitive>
-    void PathTracerApp<Node, Primitive>::run() {
+    template <typename Type, size_t primBits>
+    void PathTracerApp<Type, primBits>::run() {
         std::vector<uint8_t> imageBuffer;
         mWindow.makeContextCurrent();
         mWindow.setUserPoint(this);
-        mWindow.setKeyCallBack(keyCallBack<Node, Primitive>);
+        mWindow.setKeyCallBack(keyCallBack<Type, primBits>);
         mWindow.setMouseButtonCallBack(mouseButtonCallback);
-        mWindow.setMouseMoveCallBack(mouseMoveCallback<Node, Primitive>);
+        mWindow.setMouseMoveCallBack(mouseMoveCallback<Type, primBits>);
 
         if ( !initGLEW() ) return;
         const GLuint tex = createTexture(mWindow.width(), mWindow.height(), imageBuffer.data());
         GLuint VAO, VBO, EBO;
         createBuffers(VAO, VBO, EBO);
         const GLuint shader = createShaderProgram();
-        scene::AbsCamera* camera = mPathTracer.camera();
         utils::FpsCounter fpsCounter;
         double deltaTime = 0;
         while(!mWindow.shouldClose()) {
@@ -143,8 +166,7 @@ namespace crv::app {
             std::string newTitle(title());
             mWindow.setTitle( (newTitle + "(" + fpsCounter.fpsAsString() + " fps)").c_str() );
             deltaTime = 1e3 / fpsCounter.fps();
-            imageBuffer = mPathTracer.render();
-
+            imageBuffer = mPathTracer.render_parallel();
             updateTexture(tex, mWindow.width(), mWindow.height(), imageBuffer.data());
 
             int winWidth, winHeight;
@@ -155,9 +177,44 @@ namespace crv::app {
 
             mWindow.swapBuffers();
             graphics::Window::pollEvents();
-            processKeyboard(mWindow.glfwWindow(), camera, deltaTime);
+            processKeyboard(mWindow.glfwWindow(), mCamera.get(), deltaTime);
         }
         cleanData(tex, shader, VBO, EBO, VAO);
+    }
+
+    template <typename Type, size_t primBits>
+    void PathTracerApp<Type, primBits>::loadModel(const std::string& modelPath) {
+        cu::Timer timer;
+        timer.start();
+        mLoader.setModel(modelPath);
+        mLoader.load();
+        INFO << "Model load time: " << timer.duration() / 1000 << " sec";
+
+        timer.start();
+        const auto& indices = mLoader.indices();
+        const auto& vertices = mLoader.vertices();
+        const auto& meshes = mLoader.meshes();
+        for (size_t i = 0; i < meshes.size(); ++i) {
+            const auto& mesh = meshes[i];
+            for (size_t j = 0; j < mesh.numIndices; j += 3) {
+                const size_t idx = mesh.baseIndex + j;
+                mPrimitives.emplace_back(vertices[indices[idx + 0]].pos,
+                                        vertices[indices[idx + 1]].pos,
+                                        vertices[indices[idx + 2]].pos);
+                mMaterialIndices.emplace_back(mesh.materialIndex);
+            }
+        }
+        INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
+        buildBVH(std::span(mPrimitives));
+    }
+
+    template <typename Type, size_t primBits>
+    void PathTracerApp<Type, primBits>::buildBVH(std::span<Primitive> primitives) {
+        cu::Timer timer;
+        timer.start();
+        cg::SweepSAHBuilder<Node, Primitive> builder{ primitives };
+        mBvh = builder.build();
+        INFO << "BVH build time: " << timer.duration() / 1000 << " sec";
     }
 }
 

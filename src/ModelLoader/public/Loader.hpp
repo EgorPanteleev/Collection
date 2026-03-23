@@ -21,11 +21,13 @@ namespace crv::model {
     class Loader {
     public:
         using Box = AbsLoader::Box;
+        Loader(): Loader("") {}
         Loader(std::string modelPath);
         virtual ~Loader() = default;
 
         virtual bool load();
 
+        void setModel(const std::string& modelPath) const { mLoader->setModel(modelPath); }
         [[nodiscard]] Box bbox() const;
         [[nodiscard]] const std::vector<Mesh>& meshes() const;
         [[nodiscard]] const std::vector<Material>& materials() const;

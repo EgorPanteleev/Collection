@@ -7,8 +7,7 @@
 #include <unordered_map>
 
 namespace crv::model {
-    AbsLoader::AbsLoader(std::string modelPath) : mModelPath(std::move(modelPath)),
-                                                  mVertices(), mIndices() {}
+    AbsLoader::AbsLoader(std::string modelPath) : mModelPath(std::move(modelPath)) {}
 
     static glm::vec3 min(const glm::vec3 &v1, const glm::vec3 &v2) {
         return {

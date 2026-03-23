@@ -296,7 +296,6 @@ namespace crv::model {
                 if (tex.empty()) throw std::runtime_error("Failed to load texture!");
                 texture.mDataByLevel.resize(tex.levels());
                 int layer = 0; int face = 0;
-                MESSAGE << "Load3" << " " << tex.levels();
                 for (int level = 0; level < tex.levels(); ++level) {
                     pixels = tex.data(layer, face, level);
                     texture.mDataByLevel[level] = {pixels, (uint32_t) tex.extent(level).x,
@@ -305,7 +304,6 @@ namespace crv::model {
                 texture.mFormat = toTextureFormat( tex.format() );
             }
         }
-
 
         mMaterials[materialIndex].mTextures[textureType] = texture;
     }

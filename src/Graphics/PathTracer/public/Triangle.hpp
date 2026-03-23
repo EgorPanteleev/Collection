@@ -31,6 +31,7 @@ namespace crv::graphics {
     struct PrecomputedTriangle {
         using Type = T;
         using Vec3 = glm::vec<3, Type>;
+        using Vec2 = glm::vec<2, Type>;
         using Box = BBox<Type>;
         PrecomputedTriangle(const Vec3& p0, const Vec3& p1, const Vec3& p2):
         p0(p0), e1(p0 - p1), e2(p2 - p0), N(glm::cross(e1, e2)) {}
