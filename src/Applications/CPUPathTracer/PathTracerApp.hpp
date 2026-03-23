@@ -93,6 +93,14 @@ namespace crv::app {
     }
 
     template <typename Type, size_t primBits>
+    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+        auto app = static_cast<PathTracerApp<Type, primBits>*>(glfwGetWindowUserPointer(window));
+        cs::AbsCamera* camera = app->camera();
+        float speed = 10.0f;
+        camera->zoom(yoffset * speed);
+    }
+
+    template <typename Type, size_t primBits>
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
         auto app = static_cast<PathTracerApp<Type, primBits>*>(glfwGetWindowUserPointer(window));
 
@@ -153,6 +161,7 @@ namespace crv::app {
         mWindow.setKeyCallBack(keyCallBack<Type, primBits>);
         mWindow.setMouseButtonCallBack(mouseButtonCallback);
         mWindow.setMouseMoveCallBack(mouseMoveCallback<Type, primBits>);
+        mWindow.setScrollCallBack(scrollCallback<Type, primBits>);
 
         if ( !initGLEW() ) return;
         const GLuint tex = createTexture(mWindow.width(), mWindow.height(), imageBuffer.data());

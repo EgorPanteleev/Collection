@@ -133,13 +133,13 @@ namespace crv::graphics {
         auto& [id, t, u, v] = *hit;
         Vec2 uv = getUV(id, u, v);
         Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
-        // const Primitive& primitive = mBvh->primitive(id);
-        // Vec3 N = primitive.normal();
-        // Vec3 P = ray.pos + ray.dir * t;
-        // constexpr Vec3 L = {1, 2, 3};
-        // Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
+        const Primitive& primitive = mBvh->primitive(id);
+        Vec3 N = primitive.normal();
+        Vec3 P = ray.pos + ray.dir * t;
+        constexpr Vec3 L = {1, 2, 3};
+        Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
 
-        return diffuseColor;
+        return 10 * I * diffuseColor;
     }
 
     template<typename Node, typename Primitive>

@@ -22,6 +22,7 @@ namespace crv::graphics {
         void setKeyCallBack(GLFWkeyfun callback) const { glfwSetKeyCallback(mWindow, callback); }
         void setMouseButtonCallBack(GLFWmousebuttonfun callback) const { glfwSetMouseButtonCallback(mWindow, callback); }
         void setMouseMoveCallBack(GLFWcursorposfun callback) const { glfwSetCursorPosCallback(mWindow, callback); }
+        void setScrollCallBack(GLFWscrollfun callback) const { glfwSetScrollCallback(mWindow, callback); }
         void setUserPoint(void* pointer) { glfwSetWindowUserPointer(mWindow, pointer); }
         [[nodiscard]] void* getUserPoint() const { return glfwGetWindowUserPointer(mWindow); }
         static void pollEvents() { glfwPollEvents(); }
