@@ -101,15 +101,20 @@ namespace crv::graphics {
                         return binId <= bestSplit.id;
                     });
                 size_t splitId = std::distance(mPrimIds.begin(), midIt);
-                //if (firstBBox.getHalfArea() < secondBBox.getHalfArea()) {
-                //std::swap(firstBBox, secondBBox);
-                //std::swap(firstRange, secondRange);
-                //if (firstItem.size() < secondItem.size()) std::swap(firstItem, secondItem);
+
+                std::pair<size_t, size_t> leftRange = {data.begin, splitId};
+                std::pair<size_t, size_t> rightRange = {splitId, data.end};
+                if (bestSplit.leftBox.getHalfArea() < bestSplit.rightBox.getHalfArea()) {
+                    std::swap(bestSplit.leftBox, bestSplit.rightBox);
+                    std::swap(leftRange, rightRange);
+                }
                 size_t childIdx = bvh.mNodes.size();
                 node.setIndex(IndexType{childIdx});
-                stack.emplace(childIdx, data.begin, splitId);
+
+                stack.emplace(childIdx, leftRange.first, leftRange.second);
                 bvh.mNodes.emplace_back(bestSplit.leftBox);
-                stack.emplace(childIdx + 1, splitId, data.end);
+
+                stack.emplace(childIdx + 1, rightRange.first, rightRange.second);
                 bvh.mNodes.emplace_back(bestSplit.rightBox);
             }
             bvh.mPrimIds = mPrimIds;

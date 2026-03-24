@@ -47,7 +47,7 @@ int main() {
     capp::PathTracerAppCreateInfo appCreateInfo {
         .cameraCreateInfo = cameraCreateInfo,
         .model = model,
-        .modelPath = DRAGON_PATH,
+        .modelPath = ROOM_PATH,
         .width = WIDTH,
         .height = HEIGHT
     };
