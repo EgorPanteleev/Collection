@@ -1,5 +1,5 @@
 //
-// Created by igor on 3/10/26.
+// Created by igor on 3/24/26.
 //
 
 #include <gtest/gtest.h>
@@ -8,7 +8,7 @@
 #define private public
 #define protected public
 
-#include "SweepSAHBuilder.hpp"
+#include "BinnedSAHBuilder.hpp"
 #include "Node.hpp"
 #include "Message.hpp"
 #include "Triangle.hpp"
@@ -23,8 +23,8 @@ std::vector<Tri> randomTriangles(size_t n) {
     std::vector<Tri> res;
     res.reserve(n);
 
-    std::mt19937 gen(42);
-    std::uniform_int_distribution dist(-1000, 1000);
+    std::mt19937 gen(43);
+    std::uniform_int_distribution dist(-100000, 100000);
 
     for (size_t i = 0; i < n; ++i) {
         Vec3 a(dist(gen), dist(gen), dist(gen));
@@ -38,10 +38,10 @@ std::vector<Tri> randomTriangles(size_t n) {
 }
 
 TEST(BVH, Build) {
-    std::vector<Tri> triangles = randomTriangles(100000);
-    SweepSAHBuilder<NodeType, Tri> builder{std::span(triangles)};
+    std::vector<Tri> triangles = randomTriangles(10000);
+    BinnedSAHBuilder<NodeType, Tri> builder{std::span(triangles)};
     auto bvh = builder.build();
-    auto primIds = builder.mIndexesPerAxis[0];
+    auto primIds = builder.mPrimIds;
     for (int nodeId = 0; nodeId < bvh.mNodes.size(); ++nodeId) {
         NodeType& node = bvh.mNodes[nodeId];
         Box nodeBox = node.mBBox;

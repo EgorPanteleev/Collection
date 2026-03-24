@@ -140,7 +140,7 @@ namespace crv::graphics {
         Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
         return diffuseColor;
         //return N;
-        //return 10 * I * diffuseColor;
+        //return 5 * I * diffuseColor;
     }
 
     template<typename Node, typename Primitive>

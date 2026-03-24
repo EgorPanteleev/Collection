@@ -47,11 +47,19 @@ int main() {
     capp::PathTracerAppCreateInfo appCreateInfo {
         .cameraCreateInfo = cameraCreateInfo,
         .model = model,
-        .modelPath = ROOM_PATH,
+        .modelPath = DRAGON_PATH,
         .width = WIDTH,
         .height = HEIGHT
     };
 
     capp::PathTracerApp<Type, 4> app(appCreateInfo);
     app.run();
+
+
+    // ---- ROOM ------
+    // BVH build (Sweep SAH) - 2.94
+    // Fps - 30
+
+    // BVH build (Sweep SAH) - 0.021
+    // Fps - 28
 }

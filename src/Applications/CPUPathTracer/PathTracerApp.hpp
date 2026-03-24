@@ -13,6 +13,7 @@
 #include "Triangle.hpp"
 #include "Loader.hpp"
 #include "SweepSAHBuilder.hpp"
+#include "BinnedSAHBuilder.hpp"
 
 namespace crv::app {
     namespace cg = graphics;
@@ -215,6 +216,7 @@ namespace crv::app {
             }
         }
         INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
+        INFO << "Total number of primitives: " << mPrimitives.size();
         buildBVH(std::span(mPrimitives));
     }
 
@@ -222,7 +224,7 @@ namespace crv::app {
     void PathTracerApp<Type, primBits>::buildBVH(std::span<Primitive> primitives) {
         cu::Timer timer;
         timer.start();
-        cg::SweepSAHBuilder<Node, Primitive> builder{ primitives };
+        cg::BinnedSAHBuilder<Node, Primitive> builder{ primitives };
         mBvh = builder.build();
         INFO << "BVH build time: " << timer.duration() / 1000 << " sec";
     }

@@ -15,6 +15,8 @@
 namespace crv::graphics {
     template <typename Node, typename Primitive>
     class SweepSAHBuilder;
+    template <typename Node, typename Primitive>
+    class BinnedSAHBuilder;
 
     template <typename Type>
     struct Hit {
@@ -33,6 +35,7 @@ namespace crv::graphics {
         using IndexType = Node::IndexType;
         using HitType = Hit<Type>;
         friend class SweepSAHBuilder<Node, Primitive>;
+        friend class BinnedSAHBuilder<Node, Primitive>;
 
         std::optional<HitType> intersect(const Ray<Type>& ray, Type eps) const {
             std::optional<HitType> closestHit;
