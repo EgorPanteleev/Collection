@@ -157,7 +157,7 @@ namespace crv::graphics {
     template<typename Node, typename Primitive>
     PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::getColor(const size_t id, const Vec2& uv, cm::Texture::Type type) const {
         const cm::Material& material = mLoader->materials()[(*mMaterialIndices)[id]];
-        const auto&[texData, width, height] = material.mTextures[cm::Texture::DIFFUSE].mDataByLevel[0];
+        const auto&[texData, width, height] = material.mTextures[type].mDataByLevel[0];
         const int x = static_cast<int>(uv.x * (width - 1));
         const int y = static_cast<int>(uv.y * (height - 1));
         static constexpr int channels = 4;

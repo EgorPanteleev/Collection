@@ -62,4 +62,7 @@ int main() {
 
     // BVH build (Sweep SAH) - 0.021
     // Fps - 28
+
+
+    //TODO new class material, which handles default material, knows BRDF and etc
 }
