@@ -28,7 +28,7 @@ namespace crv::model {
         [[nodiscard]] const std::vector<Vertex>& vertices() const { return mVertices; }
         [[nodiscard]] const std::vector<uint32_t>& indices() const { return mIndices; }
 
-        virtual bool load() = 0;
+        virtual bool load(const glm::mat4& model) = 0;
     protected:
         void computeBBox();
         std::string mModelPath;

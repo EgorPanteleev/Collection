@@ -16,7 +16,7 @@ namespace crv::model {
     public:
         AssimpLoader(std::string modelPath);
 
-        bool load() override;
+        bool load(const glm::mat4& model) override;
     private:
         bool loadScene();
 
@@ -24,8 +24,11 @@ namespace crv::model {
 
         bool loadMaterials();
 
+        void processNode(const aiNode* node, const aiMatrix4x4& parentTransform = aiMatrix4x4());
+
         template<typename VertexType>
-        void loadMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices, uint meshIndex);
+        void processMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices,
+            uint meshIndex, const aiMatrix4x4& transform);
 
         template<typename VertexType>
         void optimizeMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices, uint meshIndex);

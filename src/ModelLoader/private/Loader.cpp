@@ -11,8 +11,8 @@ namespace crv::model {
     Loader::Loader(std::string modelPath): mLoader(getLoader(std::move(modelPath))) {
     }
 
-    bool Loader::load() {
-        return mLoader->load();
+    bool Loader::load(const glm::mat4& model) {
+        return mLoader->load(model);
     }
 
     AbsLoader::Box Loader::bbox() const { return mLoader->bbox(); }

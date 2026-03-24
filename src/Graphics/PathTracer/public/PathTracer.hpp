@@ -138,8 +138,9 @@ namespace crv::graphics {
         Vec3 P = ray.pos + ray.dir * t;
         constexpr Vec3 L = {1, 2, 3};
         Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
-
-        return 10 * I * diffuseColor;
+        return diffuseColor;
+        //return N;
+        //return 10 * I * diffuseColor;
     }
 
     template<typename Node, typename Primitive>

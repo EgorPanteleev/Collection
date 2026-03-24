@@ -16,6 +16,29 @@
 
 #include <gli/gli.hpp>
 
+namespace {
+    uint countValidFaces(const aiMesh *Mesh) {
+        uint NumValidFaces = 0;
+
+        for (uint i = 0; i < Mesh->mNumFaces; i++) {
+            if (Mesh->mFaces[i].mNumIndices == 3) {
+                NumValidFaces++;
+            }
+        }
+
+        return NumValidFaces;
+    }
+
+    aiMatrix4x4 glmToAssimp(const glm::mat4& m) {
+        aiMatrix4x4 ai;
+        ai.a1 = m[0][0]; ai.a2 = m[1][0]; ai.a3 = m[2][0]; ai.a4 = m[3][0];
+        ai.b1 = m[0][1]; ai.b2 = m[1][1]; ai.b3 = m[2][1]; ai.b4 = m[3][1];
+        ai.c1 = m[0][2]; ai.c2 = m[1][2]; ai.c3 = m[2][2]; ai.c4 = m[3][2];
+        ai.d1 = m[0][3]; ai.d2 = m[1][3]; ai.d3 = m[2][3]; ai.d4 = m[3][3];
+        return ai;
+    }
+}
+
 namespace crv::model {
 
     namespace fs = std::filesystem;
@@ -31,7 +54,8 @@ namespace crv::model {
                            aiProcess_FindInvalidData          | \
                            aiProcess_GenUVCoords              | \
                            aiProcess_CalcTangentSpace         | \
-                           aiProcess_FlipUVs                    )
+                           aiProcess_FlipUVs                  | \
+                           aiProcess_PreTransformVertices)
 
 //#define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | \
 //                           aiProcess_FlipUVs     | \
@@ -40,15 +64,15 @@ namespace crv::model {
 
     AssimpLoader::AssimpLoader(std::string modelPath) : AbsLoader(std::move(modelPath)) {}
 
-    bool AssimpLoader::load() {
+    bool AssimpLoader::load(const glm::mat4& model) {
         Assimp::Importer importer;
         mScene = importer.ReadFile(mModelPath, ASSIMP_LOAD_FLAGS);
         if (!mScene) {
             ERROR << "Assimp Error: " << importer.GetErrorString();
             return false;
         }
-//    m_GlobalInverseTransform = mScene->mRootNode->mTransformation;
-//    m_GlobalInverseTransform = m_GlobalInverseTransform.Inverse();
+        const aiMatrix4x4 aiModel = glmToAssimp(model);
+        mScene->mRootNode->mTransformation = mScene->mRootNode->mTransformation * aiModel;
         return loadScene();
     }
 
@@ -57,49 +81,17 @@ namespace crv::model {
                loadMaterials();
     }
 
-    uint countValidFaces(const aiMesh *Mesh) {
-        uint NumValidFaces = 0;
-
-        for (uint i = 0; i < Mesh->mNumFaces; i++) {
-            if (Mesh->mFaces[i].mNumIndices == 3) {
-                NumValidFaces++;
-            }
-        }
-
-        return NumValidFaces;
-    }
-
     bool AssimpLoader::loadGeometry() {
         mMeshes.resize(mScene->mNumMeshes);
         uint numVertices = 0;
         uint numIndices = 0;
-        for (unsigned int i = 0; i < mMeshes.size(); ++i) { //fill meshes data
-            mMeshes[i].materialIndex = (int) mScene->mMeshes[i]->mMaterialIndex;
-            mMeshes[i].validFaces = countValidFaces(mScene->mMeshes[i]);
-            mMeshes[i].numIndices = mMeshes[i].validFaces * 3;
-            mMeshes[i].numVertices = mScene->mMeshes[i]->mNumVertices;
-            mMeshes[i].baseVertex = numVertices; //TODO for optimized meshes
-            mMeshes[i].baseIndex = numIndices;
+        for (unsigned int i = 0; i < mMeshes.size(); ++i) { //count vertices, indices
             numVertices += mScene->mMeshes[i]->mNumVertices;
             numIndices += mMeshes[i].numIndices;
         }
         mVertices.reserve(numVertices);
         mIndices.reserve(numIndices);
-
-        for (size_t i = 0; i < mMeshes.size(); ++i) {
-            std::vector<Vertex> vertices;
-            std::vector<uint32_t> indices;
-            vertices.reserve(numVertices);
-            indices.reserve(numIndices);
-            loadMesh<Vertex>(vertices, indices, i);
-            optimizeMesh<Vertex>(vertices, indices, i);
-            mMeshes[i].baseVertex = mVertices.size();
-            mMeshes[i].baseIndex = mIndices.size();
-            mVertices.insert(mVertices.end(), vertices.begin(), vertices.end());
-            uint32_t baseVertex = mVertices.size() - vertices.size();
-            std::ranges::for_each(indices, [&](uint32_t &ind) { ind += baseVertex; });
-            mIndices.insert(mIndices.end(), indices.begin(), indices.end());
-        }
+        processNode(mScene->mRootNode);
         computeBBox();
         INFO << "Scene size:";
         INFO << "min - (" << mBBox.min.x << ", " << mBBox.min.y << ", " << mBBox.min.z << ")";
@@ -116,16 +108,47 @@ namespace crv::model {
         return true;
     }
 
+    void AssimpLoader::processNode(const aiNode* node, const aiMatrix4x4& parentTransform) {
+        const aiMatrix4x4 transform = parentTransform * node->mTransformation;
+        for (unsigned i = 0; i < node->mNumMeshes; i++) {
+            const uint meshIndex = node->mMeshes[i];
+            Mesh& mesh = mMeshes[meshIndex];
+            mesh.materialIndex = static_cast<int>(mScene->mMeshes[meshIndex]->mMaterialIndex);
+            mesh.validFaces    = countValidFaces(mScene->mMeshes[i]);
+            mesh.numIndices    = mMeshes[i].validFaces * 3;
+            mesh.numVertices   = mScene->mMeshes[i]->mNumVertices;
+
+            std::vector<Vertex> vertices;
+            std::vector<uint32_t> indices;
+            processMesh<Vertex>(vertices, indices, meshIndex, transform);
+            mesh.baseVertex = mVertices.size();
+            mesh.baseIndex  = mIndices.size();
+            mVertices.insert(mVertices.end(), vertices.begin(), vertices.end());
+            uint32_t baseVertex = mVertices.size() - vertices.size();
+            std::ranges::for_each(indices, [&](uint32_t &ind) { ind += baseVertex; });
+            mIndices.insert(mIndices.end(), indices.begin(), indices.end());
+        }
+        for (unsigned i = 0; i < node->mNumChildren; i++) {
+            processNode(node->mChildren[i], transform);
+        }
+    }
+
     template<typename VertexType>
-    void AssimpLoader::loadMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices, uint meshIndex) {
+    void AssimpLoader::processMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices,
+        uint meshIndex, const aiMatrix4x4& transform) {
         VertexType vert{};
         const aiMesh *mesh = mScene->mMeshes[meshIndex];
         for (size_t i = 0; i < mesh->mNumVertices; ++i) {
-            const aiVector3D &pos = mesh->mVertices[i];
+            aiVector3D pos = mesh->mVertices[i];
+            pos *= transform;
             vert.pos = glm::vec3(pos.x, pos.y, pos.z);
 
             if (mesh->mNormals) {
-                const aiVector3D &normal = mesh->mNormals[i];
+                aiVector3D normal = mesh->mNormals[i];
+                auto normalMatrix = aiMatrix3x3(transform);
+                normalMatrix.Inverse();
+                normalMatrix.Transpose();
+                normal *= normalMatrix;
                 vert.normal = glm::vec3(normal.x, normal.y, normal.z);
             } else {
                 vert.normal = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -134,11 +157,8 @@ namespace crv::model {
             if (mesh->mTangents) {
                 const aiVector3D &tangent = mesh->mTangents[i];
                 glm::vec3 computedBitangent = glm::cross(vert.normal, glm::vec3(tangent.x, tangent.y, tangent.z));
-
                 auto B = mesh->mBitangents[i];
-
                 float w = (dot(computedBitangent, glm::vec3(B.x, B.y, B.z)) < 0.0f) ? -1.0f : 1.0f;
-
                 vert.tangent = glm::vec4(tangent.x, tangent.y, tangent.z, w);
             } else {
                 vert.tangent = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -177,6 +197,7 @@ namespace crv::model {
             indices.push_back(face.mIndices[1]);
             indices.push_back(face.mIndices[2]);
         }
+        optimizeMesh<Vertex>(vertices, indices, meshIndex);
     }
 
     template<typename VertexType>

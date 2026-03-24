@@ -25,7 +25,7 @@ namespace crv::model {
         Loader(std::string modelPath);
         virtual ~Loader() = default;
 
-        virtual bool load();
+        virtual bool load(const glm::mat4& model = glm::mat4(1.));
 
         void setModel(const std::string& modelPath) const { mLoader->setModel(modelPath); }
         [[nodiscard]] Box bbox() const;

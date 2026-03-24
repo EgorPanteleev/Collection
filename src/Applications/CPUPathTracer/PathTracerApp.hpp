@@ -22,6 +22,7 @@ namespace crv::app {
 
     struct PathTracerAppCreateInfo {
         cs::CameraCreateInfo cameraCreateInfo;
+        glm::mat4 model = glm::mat4(1.);
         std::string modelPath;
         int width;
         int height;
@@ -40,7 +41,7 @@ namespace crv::app {
         static const char* title() { return "Path Tracer"; }
         friend void mouseMoveCallback<Type, primBits>(GLFWwindow*, double, double);
     private:
-        void loadModel(const std::string& modelPath);
+        void loadModel(const glm::mat4& modelMatrix, const std::string& modelPath);
         void buildBVH(std::span<Primitive> primitives);
 
         cm::Loader mLoader;
@@ -141,7 +142,7 @@ namespace crv::app {
     template <typename Type, size_t primBits>
     PathTracerApp<Type, primBits>::PathTracerApp(const PathTracerAppCreateInfo& createInfo):
     mCamera(cs::makeCameraUnique(createInfo.cameraCreateInfo)), mWindow(title(), createInfo.width, createInfo.height) {
-        loadModel(createInfo.modelPath);
+        loadModel(createInfo.model, createInfo.modelPath);
         cg::PathTracerCreateInfo<Node, Primitive> pathTracerCreateInfo = {
             .camera = mCamera.get(),
             .loader = &mLoader,
@@ -192,11 +193,11 @@ namespace crv::app {
     }
 
     template <typename Type, size_t primBits>
-    void PathTracerApp<Type, primBits>::loadModel(const std::string& modelPath) {
+    void PathTracerApp<Type, primBits>::loadModel(const glm::mat4& modelMatrix, const std::string& modelPath) {
         cu::Timer timer;
         timer.start();
         mLoader.setModel(modelPath);
-        mLoader.load();
+        mLoader.load(modelMatrix);
         INFO << "Model load time: " << timer.duration() / 1000 << " sec";
 
         timer.start();
