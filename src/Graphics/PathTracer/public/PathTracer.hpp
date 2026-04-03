@@ -54,6 +54,7 @@ namespace crv::graphics {
         Vec3 traceRay(const Ray& ray, uint8_t depth) const;
         Vec2 getUV(size_t id, Type u, Type v) const;
         Vec3 getColor(size_t id, const Vec2& uv, cm::Texture::Type type) const;
+        auto intersect(const Ray& ray, Type eps) const;
 
         cs::AbsCamera* mCamera;
         cm::Loader* mLoader;
@@ -136,7 +137,7 @@ namespace crv::graphics {
 
     template<typename Node, typename Primitive>
     PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray &ray, uint8_t depth) const {
-        auto hit = mBvh->intersect(ray, 1e-6);
+        auto hit = intersect(ray, 1e-6);
         if (!hit) return {0., 0., 0.};
         auto& [id, t, u, v] = *hit;
         Vec2 uv = getUV(id, u, v);
@@ -148,7 +149,7 @@ namespace crv::graphics {
         for (auto light: mLights) {
             Sample sample = light->sample(P);
             Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
-            auto shadowHit = mBvh->intersect(shadowRay, 1e-6);
+            auto shadowHit = intersect(shadowRay, 1e-6);
             if (shadowHit) continue;
             directColor += diffuseColor * sample.radiance;
         }
@@ -162,6 +163,11 @@ namespace crv::graphics {
         Vec3 indirectColor = diffuseColor * brdf * traceRay(nextRay, depth + 1) * glm::dot(N, wi) / pdf;
 
         return directColor + indirectColor;
+    }
+
+    template<typename Node, typename Primitive>
+    auto PathTracer<Node, Primitive>::intersect(const Ray& ray, Type eps) const {
+        return mBvh->intersect16(ray, eps);
     }
 
     template<typename Node, typename Primitive>
