@@ -14,6 +14,7 @@
 #include "Loader.hpp"
 #include "SweepSAHBuilder.hpp"
 #include "BinnedSAHBuilder.hpp"
+#include "Light.hpp"
 
 namespace crv::app {
     namespace cg = graphics;
@@ -21,9 +22,11 @@ namespace crv::app {
     namespace cm = model;
     namespace cu = utils;
 
+    template <typename T>
     struct PathTracerAppCreateInfo {
         cs::CameraCreateInfo cameraCreateInfo;
         glm::mat4 model = glm::mat4(1.);
+        std::vector<cg::Light<T>*> lights;
         std::string modelPath;
         int width;
         int height;
@@ -35,7 +38,7 @@ namespace crv::app {
         using Type = T;
         using Node = cg::Node<Type, 32, primBits>;
         using Primitive = cg::PrecomputedTriangle<Type>;
-        PathTracerApp(const PathTracerAppCreateInfo& createInfo);
+        PathTracerApp(const PathTracerAppCreateInfo<Type>& createInfo);
         void run();
         void quit() const { mWindow.close(); }
         cs::AbsCamera* camera() { return mCamera.get(); }
@@ -58,7 +61,7 @@ namespace crv::app {
     static double lastX = 0.0f, lastY = 0.0f;
 
     static void processKeyboard(GLFWwindow* window, cs::AbsCamera* camera, double deltaTime) {
-        auto speed = 1;
+        auto speed = 0.03 * deltaTime;
         //if (speed < 0) return;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             camera->move(speed, 0, 0);
@@ -141,13 +144,14 @@ namespace crv::app {
     }
 
     template <typename Type, size_t primBits>
-    PathTracerApp<Type, primBits>::PathTracerApp(const PathTracerAppCreateInfo& createInfo):
+    PathTracerApp<Type, primBits>::PathTracerApp(const PathTracerAppCreateInfo<Type>& createInfo):
     mCamera(cs::makeCameraUnique(createInfo.cameraCreateInfo)), mWindow(title(), createInfo.width, createInfo.height) {
         loadModel(createInfo.model, createInfo.modelPath);
         cg::PathTracerCreateInfo<Node, Primitive> pathTracerCreateInfo = {
             .camera = mCamera.get(),
             .loader = &mLoader,
             .bvh = &mBvh,
+            .lights = createInfo.lights,
             .materialIndices = &mMaterialIndices,
             .width = createInfo.width,
             .height = createInfo.height
@@ -155,9 +159,20 @@ namespace crv::app {
         mPathTracer = {pathTracerCreateInfo};
     }
 
+    inline void add(std::vector<uint16_t>& buf1, const std::vector<uint8_t>& buf2) {
+        for (int i = 0; i < buf1.size(); ++i) buf1[i] += buf2[i];
+    }
+
+    inline void divide(std::vector<uint8_t>& buf1, const int cnt) {
+        for (int i = 0; i < buf1.size(); ++i) buf1[i] /= cnt;
+    }
+
     template <typename Type, size_t primBits>
     void PathTracerApp<Type, primBits>::run() {
         std::vector<uint8_t> imageBuffer;
+        imageBuffer.resize(mWindow.width() * mWindow.height() * 3);
+        std::vector<uint8_t> currBuffer;
+        currBuffer.resize(mWindow.width() * mWindow.height() * 3);
         mWindow.makeContextCurrent();
         mWindow.setUserPoint(this);
         mWindow.setKeyCallBack(keyCallBack<Type, primBits>);
@@ -172,12 +187,26 @@ namespace crv::app {
         const GLuint shader = createShaderProgram();
         utils::FpsCounter fpsCounter;
         double deltaTime = 0;
+        int cnt = 0;
+        auto oldState = mCamera->state();
+        auto currState = oldState;
         while(!mWindow.shouldClose()) {
             fpsCounter.update();
             std::string newTitle(title());
             mWindow.setTitle( (newTitle + "(" + fpsCounter.fpsAsString() + " fps)").c_str() );
             deltaTime = 1e3 / fpsCounter.fps();
-            imageBuffer = mPathTracer.render_parallel();
+            currState = mCamera->state();
+
+            if (oldState != currState) {
+                oldState = currState;
+                cnt = 0;
+            }
+            currBuffer = mPathTracer.render_parallel();
+
+            for (int i = 0; i < imageBuffer.size(); ++i) {
+                imageBuffer[i] = (imageBuffer[i] * cnt + currBuffer[i]) / (cnt + 1);
+            }
+            ++cnt;
             updateTexture(tex, mWindow.width(), mWindow.height(), imageBuffer.data());
 
             int winWidth, winHeight;

@@ -29,6 +29,7 @@ namespace crv::scene {
 
     class AbsCamera {
     public:
+        using State = std::tuple<glm::vec3, glm::quat, float>;
         AbsCamera(const CameraCreateInfo& createInfo);
 
         glm::vec3 forward() const { return glm::normalize(mOrientation * glm::vec3(0, 0, -1)); }
@@ -37,6 +38,7 @@ namespace crv::scene {
         virtual glm::vec3 target() const { return mPosition + forward(); }
         glm::vec3 position() const { return mPosition; }
         glm::quat orientation() const { return mOrientation; }
+        State state() const { return { mPosition, mOrientation, mFOV }; }
         glm::mat4 projectionMatrix() const { return mProjectionMatrix; }
         glm::mat4 viewMatrix() const { return mViewMatrix; }
         CameraType type() const { return mType; }

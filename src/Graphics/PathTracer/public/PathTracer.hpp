@@ -11,9 +11,13 @@
 #include "ThreadPool.hpp"
 #include "Loader.hpp"
 #include "Message.hpp"
+#include "Light.hpp"
+#include "Material.hpp"
 
 #include <vector>
 #include <memory>
+
+#define MAX_DEPTH 2
 
 namespace crv::graphics {
     namespace cs = scene;
@@ -24,6 +28,7 @@ namespace crv::graphics {
         cs::AbsCamera* camera;
         cm::Loader* loader;
         BVH<Node, Primitive>* bvh;
+        std::vector<Light<typename Node::Type>*> lights;
         std::vector<size_t>* materialIndices;
         int width;
         int height;
@@ -37,6 +42,8 @@ namespace crv::graphics {
         using Vec3 = glm::vec<3, Type, glm::defaultp>;
         using Vec2 = glm::vec<2, Type, glm::defaultp>;
         using PreTri = PrecomputedTriangle<Type>;
+        using Sample = Light<Type>::Sample;
+        using Ray = Ray<Type>;
 
         PathTracer() = default;
         PathTracer(const PathTracerCreateInfo<Node, Primitive>& createInfo);
@@ -44,13 +51,14 @@ namespace crv::graphics {
         std::vector<uint8_t> render() const;
         std::vector<uint8_t> render_parallel() const;
     private:
-        Vec3 traceRay(const Ray<Type>& ray) const;
+        Vec3 traceRay(const Ray& ray, uint8_t depth) const;
         Vec2 getUV(size_t id, Type u, Type v) const;
         Vec3 getColor(size_t id, const Vec2& uv, cm::Texture::Type type) const;
 
         cs::AbsCamera* mCamera;
         cm::Loader* mLoader;
         BvhType* mBvh;
+        std::vector<Light<Type>*> mLights;
         std::vector<size_t>* mMaterialIndices;
         int mWidth;
         int mHeight;
@@ -70,7 +78,7 @@ namespace crv::graphics {
     template <typename Node, typename Primitive>
     PathTracer<Node, Primitive>::PathTracer(const PathTracerCreateInfo<Node, Primitive>& createInfo):
     mCamera(createInfo.camera), mLoader(createInfo.loader),
-    mBvh(createInfo.bvh), mMaterialIndices(createInfo.materialIndices),
+    mBvh(createInfo.bvh), mLights(createInfo.lights), mMaterialIndices(createInfo.materialIndices),
     mWidth(createInfo.width), mHeight(createInfo.height) {}
 
     template <typename Node, typename Primitive>
@@ -86,7 +94,7 @@ namespace crv::graphics {
                 const float v = (static_cast<float>(j) + 0.5f) / mHeight;
                 const float py = (1.0f - 2.0f * v) * imagePlaneHeight * 0.5f;
                 glm::vec3 dir = glm::normalize(px * mCamera->right() + py * mCamera->up() + mCamera->forward());
-                Vec3 color = traceRay( {mCamera->position(), dir, mCamera->nearPlane(), mCamera->farPlane()} );
+                Vec3 color = traceRay( {mCamera->position(), dir, mCamera->nearPlane(), mCamera->farPlane()}, 0 );
                 setColor(imageBuffer, (mWidth * j + i) * 3, color);
             }
         }
@@ -111,7 +119,7 @@ namespace crv::graphics {
                     const float v = (static_cast<float>(j) + 0.5f) / mHeight;
                     const float py = (1.0f - 2.0f * v) * imagePlaneHeight * 0.5f;
                     glm::vec3 dir = glm::normalize(px * mCamera->right() + py * mCamera->up() + mCamera->forward());
-                    Vec3 color = traceRay( {mCamera->position(), dir, mCamera->nearPlane(), mCamera->farPlane()} );
+                    Vec3 color = traceRay( {mCamera->position(), dir, mCamera->nearPlane(), mCamera->farPlane()}, 0 );
                     setColor(imageBuffer, (mWidth * j + i) * 3, color);
                 }
             }
@@ -127,20 +135,33 @@ namespace crv::graphics {
     }
 
     template<typename Node, typename Primitive>
-    PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray<Type> &ray) const {
+    PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray &ray, uint8_t depth) const {
         auto hit = mBvh->intersect(ray, 1e-6);
-        if (!hit) return {0, 0, 0};
+        if (!hit) return {0., 0., 0.};
         auto& [id, t, u, v] = *hit;
         Vec2 uv = getUV(id, u, v);
         Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
         const Primitive& primitive = mBvh->primitive(id);
         Vec3 N = primitive.normal();
         Vec3 P = ray.pos + ray.dir * t;
-        constexpr Vec3 L = {1, 2, 3};
-        Type I = std::max(static_cast<Type>(0), glm::dot(N, L));
-        return diffuseColor;
-        //return N;
-        //return 5 * I * diffuseColor;
+        Vec3 directColor{0};
+        for (auto light: mLights) {
+            Sample sample = light->sample(P);
+            Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
+            auto shadowHit = mBvh->intersect(shadowRay, 1e-6);
+            if (shadowHit) continue;
+            directColor += diffuseColor * sample.radiance;
+        }
+        if (depth == MAX_DEPTH) return directColor;
+        Vec3 wo = mCamera->position() - P;
+        Lambertian<Type> mat;
+        Vec3 wi, brdf;
+        Type pdf;
+        mat.scatter(N, wo, wi, brdf, pdf);
+        Ray nextRay(P, wi, 1e-3, mCamera->farPlane());
+        Vec3 indirectColor = diffuseColor * brdf * traceRay(nextRay, depth + 1) * glm::dot(N, wi) / pdf;
+
+        return directColor + indirectColor;
     }
 
     template<typename Node, typename Primitive>
