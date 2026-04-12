@@ -10,8 +10,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(GoogleTest)
 include(GoogleTest)
 
-add_custom_target(all_tests)
+add_compile_definitions(PROJECT_PATH="${CMAKE_SOURCE_DIR}/")
+add_compile_definitions(BINARY_PATH="${CMAKE_BINARY_DIR}/")
+add_compile_definitions(ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets/")
+#add_compile_definitions(COMPILED_SHADERS_PATH="${CMAKE_BINARY_DIR}/compiled_shaders/")
 
+add_custom_target(all_tests)
 add_subdirectory(Message)
 add_subdirectory(Utils)
 add_subdirectory(ThreadPool)

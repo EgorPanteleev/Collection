@@ -146,6 +146,7 @@ namespace crv::app {
     template <typename Type, size_t primBits>
     PathTracerApp<Type, primBits>::PathTracerApp(const PathTracerAppCreateInfo<Type>& createInfo):
     mCamera(cs::makeCameraUnique(createInfo.cameraCreateInfo)), mWindow(title(), createInfo.width, createInfo.height) {
+        mWindow.init();
         loadModel(createInfo.model, createInfo.modelPath);
         cg::PathTracerCreateInfo<Node, Primitive> pathTracerCreateInfo = {
             .camera = mCamera.get(),

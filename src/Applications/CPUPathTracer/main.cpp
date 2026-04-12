@@ -21,7 +21,6 @@ using Type = float;
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;
 
-#define ASSETS_PATH "/home/igor/dev/src/Collection/assets/"
 
 #define ROOM_PATH     ASSETS_PATH"room/scene.gltf"
 #define LIMINAL_PATH  ASSETS_PATH"liminal/scene.gltf"
