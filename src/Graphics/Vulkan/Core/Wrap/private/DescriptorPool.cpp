@@ -20,6 +20,8 @@ namespace crv::graphics::vulkan {
     }
 
     void DescriptorPool::destroy() {
+        if (mDevice == VK_NULL_HANDLE) return;
         vkDestroyDescriptorPool(mDevice, mHandle, nullptr);
+        mDevice = VK_NULL_HANDLE;
     }
 }

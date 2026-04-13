@@ -24,6 +24,8 @@ namespace crv::graphics::vulkan {
     }
 
     void PipelineLayout::destroy() {
+        if (mDevice == VK_NULL_HANDLE) return;
         vkDestroyPipelineLayout(mDevice, mHandle, nullptr);
+        mDevice = VK_NULL_HANDLE;
     }
 }

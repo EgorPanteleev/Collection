@@ -37,4 +37,10 @@ namespace crv::graphics::vulkan {
                                    descriptorWrites.data(), 0, nullptr);
         }
     }
+
+    void DescriptorSets::destroy() {
+        if (mDevice == VK_NULL_HANDLE) return;
+        mVec.clear();
+        mDevice = VK_NULL_HANDLE;
+    }
 }

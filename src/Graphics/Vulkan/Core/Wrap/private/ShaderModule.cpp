@@ -31,7 +31,9 @@ namespace crv::graphics::vulkan {
     }
 
     void ShaderModule::destroy() {
+        if (mDevice == VK_NULL_HANDLE) return;
         vkDestroyShaderModule(mDevice, mHandle, nullptr);
+        mDevice = VK_NULL_HANDLE;
     }
 }
 

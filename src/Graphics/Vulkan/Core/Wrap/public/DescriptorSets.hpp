@@ -28,7 +28,7 @@ namespace crv::graphics::vulkan {
         explicit DescriptorSets(const DescriptorSetsCreateInfo& info);
         DescriptorSets& operator=(DescriptorSets&&) = default;
         ~DescriptorSets() override { DescriptorSets::destroy(); }
-        void destroy() override { mVec.clear(); mDevice = VK_NULL_HANDLE; }
+        void destroy() override;
         void update(const DescriptorSetsUpdateInfo& info) const;
     protected:
         VkDevice mDevice = VK_NULL_HANDLE;

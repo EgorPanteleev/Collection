@@ -30,10 +30,6 @@ namespace crv::graphics::vulkan {
     public:
         Context() = default;
         explicit Context(const ContextCreateInfo &createInfo);
-        // Context& operator=(const Context&) = delete;
-        // Context(Context&& other) noexcept;
-        // Context& operator=(Context&& other) noexcept;
-        // ~Context() = default;
         [[nodiscard]] VkInstance instance() const { return mInstance.get(); }
         [[nodiscard]] const Window& window() const { return mWindow; }
         [[nodiscard]] Window& window() { return mWindow; }

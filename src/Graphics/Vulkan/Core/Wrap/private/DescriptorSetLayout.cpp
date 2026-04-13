@@ -27,6 +27,8 @@ namespace crv::graphics::vulkan {
     }
 
     void DescriptorSetLayout::destroy() {
+        if (mDevice == VK_NULL_HANDLE) return;
         vkDestroyDescriptorSetLayout(mDevice, mHandle, nullptr);
+        mDevice = VK_NULL_HANDLE;
     }
 }
