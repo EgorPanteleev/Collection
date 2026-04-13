@@ -16,11 +16,13 @@ namespace crv::graphics::vulkan {
             pipelineInfos.push_back(pipelineInfo);
         }
 
+        mVec.resize(info.layouts.size());
         vkCreateComputePipelines(mDevice,VK_NULL_HANDLE,
             1, pipelineInfos.data(), nullptr, mVec.data());
     }
 
     void ComputePipelines::destroy() {
+        if (mDevice == VK_NULL_HANDLE) return;
         for (auto& pipeline: mVec) {
             vkDestroyPipeline(mDevice, pipeline, nullptr);
             pipeline = VK_NULL_HANDLE;

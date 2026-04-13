@@ -13,6 +13,7 @@ namespace crv::graphics::vulkan {
         createDescriptorSets();
         createPipelineLayout();
         createShaders();
+        createComputePipelines();
     }
 
     void PathTracer::createContext(const WindowCreateInfo& windowCreateInfo) {
@@ -27,23 +28,23 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSetLayout() {
-        const VkDescriptorSetLayoutBinding binding1 {
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        const VkDescriptorSetLayoutBinding binding0 {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
-        const VkDescriptorSetLayoutBinding binding2 {
-            .binding = 2,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        const VkDescriptorSetLayoutBinding binding1 {
+            .binding = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
 
-        std::vector bindings{binding1,
-                             binding2};
+        std::vector bindings{binding0,
+                             binding1};
         std::vector<VkDescriptorBindingFlags> bindingFlags{0,
                                                            0};
         const DescriptorSetLayoutCreateInfo createInfo {
@@ -55,8 +56,8 @@ namespace crv::graphics::vulkan {
     }
     void PathTracer::createDescriptorPool() {
         std::vector<VkDescriptorPoolSize> poolSizes {
-                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1},
-                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1},
+                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
+                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
         };
 
         const DescriptorPoolCreateInfo createInfo {
@@ -68,12 +69,10 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSets() {
-        std::vector<VkDescriptorSetLayout> layouts;
-        layouts.push_back(mDescriptorSetLayout.get());
         std::vector<uint32_t> variableCounts{0, 0};
         DescriptorSetsCreateInfo createInfo {
             .device = mContext.device(),
-            .layouts = layouts,
+            .layouts = getDescriptorLayouts(),
             .pool = mDescriptorPool.get(),
             .variableCounts =variableCounts
         };
@@ -81,11 +80,9 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createPipelineLayout() {
-        std::vector<VkDescriptorSetLayout> layouts;
-        layouts.push_back(mDescriptorSetLayout.get());
         PipelineLayoutCreateInfo createInfo {
             .device = mContext.device(),
-            .layouts = layouts
+            .layouts = getDescriptorLayouts()
         };
         mPipelineLayout = PipelineLayout(createInfo);
     }
@@ -96,6 +93,38 @@ namespace crv::graphics::vulkan {
             .fileName = COMPILED_SHADERS_DIR"/shader1.comp.spv"
         };
         mShader = ShaderModule(createInfo);
+    }
+
+    void PathTracer::createComputePipelines() {
+        std::vector<VkPipelineShaderStageCreateInfo> stages {
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = mShader.get(),
+                .pName = "main",
+                .pSpecializationInfo = nullptr
+            },
+        };
+        ComputePipelinesCreateInfo createInfo {
+            .device = mContext.device(),
+            .stages = stages,
+            .layouts = getPipelineLayouts(),
+        };
+        mComputePipelines = ComputePipelines(createInfo);
+    }
+
+    std::vector<VkDescriptorSetLayout> PathTracer::getDescriptorLayouts() const {
+        std::vector<VkDescriptorSetLayout> layouts;
+        layouts.push_back(mDescriptorSetLayout.get());
+        return layouts;
+    }
+
+    std::vector<VkPipelineLayout> PathTracer::getPipelineLayouts() const {
+        std::vector<VkPipelineLayout> layouts;
+        layouts.push_back(mPipelineLayout.get());
+        return layouts;
     }
 }
 
