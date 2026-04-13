@@ -6,10 +6,11 @@
 #define COLLECTION_DEFAULTWRAPPER_HPP
 
 #include <vulkan/vulkan_core.h>
+#include <vector>
 
 namespace crv::graphics::vulkan {
     template <typename Type>
-   class DefaultWrapper {
+    class DefaultWrapper {
     public:
         DefaultWrapper() = default;
         explicit  DefaultWrapper(Type handle): mHandle(handle) {}
@@ -31,6 +32,31 @@ namespace crv::graphics::vulkan {
         virtual void destroy() = 0;
     protected:
         Type mHandle = VK_NULL_HANDLE;
+    };
+
+    template <typename Type>
+    class VectorWrapper {
+    public:
+        VectorWrapper() = default;
+        explicit  VectorWrapper(const std::vector<Type>& vec): mVec(vec) {}
+        VectorWrapper(const VectorWrapper&) = delete;
+        VectorWrapper& operator=(const VectorWrapper&) = delete;
+        VectorWrapper(VectorWrapper&& other) noexcept : mVec(std::move(other.mVec)) {
+            other.mVec.clear();
+        }
+        VectorWrapper& operator=(VectorWrapper&& other) noexcept {
+            if (this != &other) {
+                destroy();
+                mVec = std::move(other.mVec);
+                other.mVec.clear();
+            }
+            return *this;
+        }
+        virtual ~VectorWrapper() { mVec.clear(); };
+        Type get(uint32_t index) const { return mVec[index]; }
+        virtual void destroy() = 0;
+    protected:
+        std::vector<Type> mVec{};
     };
 }
 
