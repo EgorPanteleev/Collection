@@ -16,6 +16,8 @@
 #include "CommandBuffers.hpp"
 #include "Buffer.hpp"
 #include "Swapchain.hpp"
+#include "Image.hpp"
+#include "ImageView.hpp"
 
 namespace crv::graphics::vulkan {
     class PathTracer {
@@ -33,6 +35,7 @@ namespace crv::graphics::vulkan {
         void createCommandPool();
         void createCommandBuffers();
         void createSwapChain();
+        void createImages();
         void update();
         void record();
         void submit();
@@ -55,7 +58,9 @@ namespace crv::graphics::vulkan {
         CommandBuffers mCommandBuffers{};
         Buffer mBuffer1{};
         Buffer mBuffer2{};
-        Swapchain mSwapchain;
+        Swapchain mSwapchain{};
+        std::vector<VkImage> mImages{};
+        std::vector<ImageView> mImageViews{};
     };
 }
 

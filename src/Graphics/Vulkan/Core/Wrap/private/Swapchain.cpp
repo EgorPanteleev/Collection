@@ -40,32 +40,21 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    static uint32_t getImageCount(const VkSurfaceCapabilitiesKHR capabilities) {
-        uint32_t imageCount = capabilities.minImageCount + 1;
-
-        if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
-            imageCount = capabilities.maxImageCount;
-        }
-        return imageCount;
-    }
-
     Swapchain::Swapchain(const SwapchainCreateInfo &info): mDevice(info.device) {
         const auto [capabilities, formats, presentModes] = getSupport(info.physicalDevice, info.surface);
         const auto [format, colorSpace] = chooseSwapSurfaceFormat(formats);
         const VkPresentModeKHR presentMode = chooseSwapPresentMode(presentModes);
-        VkExtent2D extent = chooseSwapExtent(capabilities, info.windowWidth, info.windowHeight);
+        mExtent = chooseSwapExtent(capabilities, info.windowWidth, info.windowHeight);
+        mFormat = format;
 
         const uint32_t imageCount = getImageCount(capabilities);
-
-        //mFormat = format;
-        //mExtent = extent;
         VkSwapchainCreateInfoKHR createInfo{
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             .surface = info.surface,
             .minImageCount = imageCount,
             .imageFormat = format,
             .imageColorSpace = colorSpace,
-            .imageExtent = extent,
+            .imageExtent = mExtent,
             .imageArrayLayers = 1,
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
@@ -117,5 +106,14 @@ namespace crv::graphics::vulkan {
             vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, support.presentModes.data());
         }
         return support;
+    }
+
+    uint32_t Swapchain::getImageCount(const VkSurfaceCapabilitiesKHR capabilities) {
+        uint32_t imageCount = capabilities.minImageCount + 1;
+
+        if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
+            imageCount = capabilities.maxImageCount;
+        }
+        return imageCount;
     }
 }

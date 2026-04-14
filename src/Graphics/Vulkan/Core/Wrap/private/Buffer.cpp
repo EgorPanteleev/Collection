@@ -6,6 +6,7 @@
 #include "CommandPool.hpp"
 #include "CommandBuffers.hpp"
 #include "Message.hpp"
+#include "Utils.hpp"
 
 #include <stdexcept>
 #include <cstring>
@@ -57,42 +58,15 @@ namespace crv::graphics::vulkan {
     }
 
     void Buffer::copy(const CopyBufferToBufferInfo& info) {
-        const CommandPoolCreateInfo poolCreateInfo {
-            .device = info.device,
-            .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
-            .queueFamilyIndex = info.queueFamilyIndex
-        };
-        CommandPool commandPool(poolCreateInfo);
-
-        const CommandBuffersCreateInfo createInfo {
-            .device = info.device,
-            .commandPool = commandPool.get(),
-            .bufferCount = 1
-        };
-        CommandBuffers commandBuffers(createInfo);
-        VkCommandBuffer commandBuffer = commandBuffers[0];
-
-        const VkCommandBufferBeginInfo beginInfo {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-        };
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
+        auto [commandPool, commandBuffers] = beginCommandBuffer(info.device, info.queueFamilyIndex);
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
         const VkBufferCopy copyRegion{
             .srcOffset = 0,
             .dstOffset = 0,
             .size = info.size,
         };
         vkCmdCopyBuffer(commandBuffer, info.srcBuffer, info.dstBuffer, 1, &copyRegion);
-        vkEndCommandBuffer(commandBuffer);
-
-        const VkSubmitInfo submitInfo{
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &commandBuffer
-        };
-        vkQueueSubmit(info.queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(info.queue);
+        endCommandBuffer(commandPool, commandBuffers, info.queue);
     }
 
     void Buffer::copy(const CopyDataToGPUBufferInfo& info) {

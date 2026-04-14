@@ -31,10 +31,14 @@ namespace crv::graphics::vulkan {
         Swapchain& operator=(Swapchain&&) = default;
         ~Swapchain() override { Swapchain::destroy(); }
         void destroy() override;
-
+        [[nodiscard]] VkFormat format() const { return mFormat; }
+        [[nodiscard]] VkExtent2D extent() const { return mExtent; }
         static SwapchainSupport getSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+        static uint32_t getImageCount(VkSurfaceCapabilitiesKHR capabilities);
     protected:
         VkDevice mDevice = VK_NULL_HANDLE;
+        VkFormat mFormat = VK_FORMAT_MAX_ENUM;
+        VkExtent2D mExtent{};
     };
 }
 

@@ -4,6 +4,7 @@
 
 #include "PathTracer.hpp"
 #include "Message.hpp"
+#include "Utils.hpp"
 
 namespace crv::graphics::vulkan {
     PathTracer::PathTracer(const WindowCreateInfo& windowCreateInfo) {
@@ -17,6 +18,7 @@ namespace crv::graphics::vulkan {
         createCommandPool();
         createCommandBuffers();
         createSwapChain();
+        createImages();
     }
 
     void PathTracer::run() {
@@ -172,6 +174,48 @@ namespace crv::graphics::vulkan {
             .familyIndices = mContext.familyIndices()
         };
         mSwapchain = Swapchain(info);
+    }
+
+    void PathTracer::createImages() {
+        auto [capabilities, formats, presentModes] = Swapchain::getSupport(mContext.physicalDevice(), mContext.surface());
+        uint32_t imageCount = Swapchain::getImageCount(capabilities);
+        vkGetSwapchainImagesKHR(mContext.device(), mSwapchain.get(), &imageCount, nullptr);
+        mImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(mContext.device(), mSwapchain.get(), &imageCount, mImages.data());
+
+        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        for (uint32_t i = 0; i < imageCount; ++i) {
+            ImageViewCreateInfo imageViewCreateInfo{
+                .device = mContext.device(),
+                .image = mImages[i],
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = mSwapchain.format(),
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevels = 1,
+                .baseMipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            };
+            mImageViews.emplace_back(imageViewCreateInfo);
+            ImageTransitInfo imageTransitInfo {
+                .commandBuffer = commandBuffer,
+                .image = mImages[i],
+                .srcAccessMask = VK_ACCESS_NONE,
+                .dstAccessMask = VK_ACCESS_NONE,
+                .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+                .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                .dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+            };
+            Image::transit(imageTransitInfo);
+        }
+        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::COMPUTE));
     }
 
     void PathTracer::update() {

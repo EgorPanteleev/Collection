@@ -1,0 +1,16 @@
+//
+// Created by igor on 4/14/26.
+//
+
+#ifndef COLLECTION_UTILS_HPP
+#define COLLECTION_UTILS_HPP
+
+#include "CommandPool.hpp"
+#include "CommandBuffers.hpp"
+
+namespace crv::graphics::vulkan {
+    std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, uint32_t queueFamilyIndex);
+    void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue);
+}
+
+#endif //COLLECTION_UTILS_HPP
