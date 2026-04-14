@@ -16,6 +16,7 @@ namespace crv::graphics::vulkan {
         createComputePipelines();
         createCommandPool();
         createCommandBuffers();
+        createSwapChain();
     }
 
     void PathTracer::run() {
@@ -157,6 +158,20 @@ namespace crv::graphics::vulkan {
             .bufferCount = 1
         };
         mCommandBuffers = CommandBuffers(createInfo);
+    }
+
+    void PathTracer::createSwapChain() {
+        int width, height;
+        mContext.window().getFrameBufferSize(width, height);
+        const SwapchainCreateInfo info{
+            .device = mContext.device(),
+            .physicalDevice = mContext.physicalDevice(),
+            .surface = mContext.surface(),
+            .windowWidth = static_cast<uint32_t>(width),
+            .windowHeight = static_cast<uint32_t>(height),
+            .familyIndices = mContext.familyIndices()
+        };
+        mSwapchain = Swapchain(info);
     }
 
     void PathTracer::update() {

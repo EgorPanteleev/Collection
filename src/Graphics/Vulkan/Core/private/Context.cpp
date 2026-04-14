@@ -15,6 +15,7 @@
 #include <set>
 
 #include "Device.hpp"
+#include "Swapchain.hpp"
 
 namespace crv::graphics::vulkan {
     Context::Context(const ContextCreateInfo &createInfo) {
@@ -116,7 +117,9 @@ namespace crv::graphics::vulkan {
 
         const auto familyIndices = getQueueFamilies(device);
         bool extensionsSupported = checkDeviceExtensionSupport(device);
-        bool swapChainSupported = extensionsSupported and checkSwapChainSupport(device);
+        const SwapchainSupport swapchainSupport = Swapchain::getSupport(device, mSurface.get());
+        bool swapChainSupported = extensionsSupported and
+        !swapchainSupport.formats.empty() and !swapchainSupport.presentModes.empty();
 
         VkPhysicalDeviceFeatures supportedFeatures{};
         vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
@@ -158,28 +161,5 @@ namespace crv::graphics::vulkan {
             requiredExtensions.erase(extension.extensionName);
         }
         return requiredExtensions.empty();
-    }
-
-    bool Context::checkSwapChainSupport(VkPhysicalDevice device) const {
-        VkSurfaceCapabilitiesKHR capabilities{};
-        std::vector<VkSurfaceFormatKHR> formats{};
-        std::vector<VkPresentModeKHR> presentModes{};
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, mSurface.get(), &capabilities);
-        uint32_t formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface.get(), &formatCount, nullptr);
-
-        if (formatCount != 0) {
-            formats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface.get(), &formatCount, formats.data());
-        }
-
-        uint32_t presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface.get(), &presentModeCount, nullptr);
-
-        if (presentModeCount != 0) {
-            presentModes.resize(presentModeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface.get(), &presentModeCount, presentModes.data());
-        }
-        return !formats.empty() && !presentModes.empty();
     }
 }
