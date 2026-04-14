@@ -12,11 +12,15 @@
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"
 #include "ComputePipelines.hpp"
+#include "CommandPool.hpp"
+#include "CommandBuffers.hpp"
+#include "Buffer.hpp"
 
 namespace crv::graphics::vulkan {
     class PathTracer {
     public:
         explicit PathTracer(const WindowCreateInfo& windowCreateInfo);
+        void run();
     protected:
         void createContext(const WindowCreateInfo& windowCreateInfo);
         void createDescriptorSetLayout();
@@ -25,9 +29,14 @@ namespace crv::graphics::vulkan {
         void createPipelineLayout();
         void createShaders();
         void createComputePipelines();
+        void createCommandPool();
+        void createCommandBuffers();
+        void update();
+        void record();
+        void submit();
 
-        std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
-        std::vector<VkPipelineLayout> getPipelineLayouts() const;
+        [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
+        [[nodiscard]] std::vector<VkPipelineLayout> getPipelineLayouts() const;
 #ifdef NDEBUG
         bool mDebug = false;
 #else
@@ -40,6 +49,10 @@ namespace crv::graphics::vulkan {
         PipelineLayout mPipelineLayout{};
         ShaderModule mShader{};
         ComputePipelines mComputePipelines{};
+        CommandPool mCommandPool{};
+        CommandBuffers mCommandBuffers{};
+        Buffer mBuffer1{};
+        Buffer mBuffer2{};
     };
 }
 

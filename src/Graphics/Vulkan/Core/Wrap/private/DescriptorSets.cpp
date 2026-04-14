@@ -39,7 +39,7 @@ namespace crv::graphics::vulkan {
     }
 
     void DescriptorSets::destroy() {
-        if (mDevice == VK_NULL_HANDLE) return;
+        if (mDevice == VK_NULL_HANDLE or mVec.empty()) return;
         mVec.clear();
         mDevice = VK_NULL_HANDLE;
     }

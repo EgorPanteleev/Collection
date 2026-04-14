@@ -37,8 +37,10 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] VkSurfaceKHR surface() const { return mSurface.get(); }
         [[nodiscard]] VkPhysicalDevice physicalDevice() const { return mPhysicalDevice; }
         [[nodiscard]] const QueueFamilyIndices& familyIndices() const { return mFamilyIndices; }
+        [[nodiscard]] std::optional<uint32_t> familyIndex(QueueFamilyType type) const { return mFamilyIndices.get(type); }
         [[nodiscard]] VkDevice device() const { return mDevice.get(); }
         [[nodiscard]] VmaAllocator allocator() const { return mAllocator.get(); }
+        [[nodiscard]] VkQueue queue(QueueFamilyType type) const;
     protected:
         void pickPhysicalDevice();
         bool isDeviceSuitable(VkPhysicalDevice device) const;

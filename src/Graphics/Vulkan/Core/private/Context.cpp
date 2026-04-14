@@ -62,6 +62,21 @@ namespace crv::graphics::vulkan {
         mAllocator = Allocator(allocatorCreateInfo);
     }
 
+    VkQueue Context::queue(const QueueFamilyType type) const {
+        switch (type) {
+            case QueueFamilyType::COMPUTE:
+                return mComputeQueue;
+            case QueueFamilyType::GRAPHICS:
+                return mGraphicsQueue;
+            case QueueFamilyType::PRESENT:
+                return mPresentQueue;
+            default: {
+                ERROR << "There is no queue with given type!";
+                return {};
+            }
+        }
+    }
+
     void Context::pickPhysicalDevice() {
         uint32_t deviceCount = 0;
         vkEnumeratePhysicalDevices(mInstance.get(), &deviceCount, nullptr);

@@ -13,4 +13,5 @@ int main() {
         .name = "GPU Path Tracer"
     };
     cvk::PathTracer pathTracer(windowCreateInfo);
+    pathTracer.run();
 }

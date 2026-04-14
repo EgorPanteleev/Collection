@@ -54,6 +54,8 @@ namespace crv::graphics::vulkan {
         }
         virtual ~VectorWrapper() { mVec.clear(); };
         Type get(uint32_t index) const { return mVec[index]; }
+        Type& operator[](uint32_t index) { return mVec[index]; }
+        const Type& operator[](uint32_t index) const { return mVec[index]; }
         virtual void destroy() = 0;
     protected:
         std::vector<Type> mVec{};

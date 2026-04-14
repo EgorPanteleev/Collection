@@ -14,6 +14,31 @@ namespace crv::graphics::vulkan {
         createPipelineLayout();
         createShaders();
         createComputePipelines();
+        createCommandPool();
+        createCommandBuffers();
+    }
+
+    void PathTracer::run() {
+        update();
+        record();
+        submit();
+
+        auto data = new float[3];
+        VkDeviceSize size = sizeof(float) * 3;
+        CopyGPUBufferToDataInfo copyInfo {
+            .data = data,
+            .size = size,
+            .allocator = mContext.allocator(),
+            .buffer = mBuffer2.get(),
+            .device = mContext.device(),
+            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+            .queue = mContext.queue(QueueFamilyType::COMPUTE)
+        };
+        Buffer::copy(copyInfo);
+
+        for (int i = 0; i < 3; ++i) {
+            MESSAGE << data[i];
+        }
     }
 
     void PathTracer::createContext(const WindowCreateInfo& windowCreateInfo) {
@@ -54,6 +79,7 @@ namespace crv::graphics::vulkan {
         };
         mDescriptorSetLayout = DescriptorSetLayout(createInfo);
     }
+
     void PathTracer::createDescriptorPool() {
         std::vector<VkDescriptorPoolSize> poolSizes {
                 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
@@ -113,6 +139,147 @@ namespace crv::graphics::vulkan {
             .layouts = getPipelineLayouts(),
         };
         mComputePipelines = ComputePipelines(createInfo);
+    }
+
+    void PathTracer::createCommandPool() {
+        const CommandPoolCreateInfo createInfo {
+            .device = mContext.device(),
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value()
+        };
+        mCommandPool = CommandPool(createInfo);
+    }
+
+    void PathTracer::createCommandBuffers() {
+        const CommandBuffersCreateInfo createInfo {
+            .device = mContext.device(),
+            .commandPool = mCommandPool.get(),
+            .bufferCount = 1
+        };
+        mCommandBuffers = CommandBuffers(createInfo);
+    }
+
+    void PathTracer::update() {
+        std::vector<float> data1;
+        data1.push_back(1);
+        data1.push_back(2);
+        data1.push_back(3);
+        auto data2 = data1;
+        BufferCreateInfo bufferCreateInfo {
+            .allocator = mContext.allocator(),
+            .size = sizeof(float) * data1.size(),
+            .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+        };
+        mBuffer1 = Buffer(bufferCreateInfo);
+        CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+            .data = data1.data(),
+            .size = sizeof(float) * data1.size(),
+            .allocator = mContext.allocator(),
+            .buffer = mBuffer1.get(),
+            .device = mContext.device(),
+            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+            .queue = mContext.queue(QueueFamilyType::COMPUTE)
+        };
+        Buffer::copy(copyDataToGPUBufferInfo);
+        bufferCreateInfo.size = sizeof(float) * data2.size();
+        mBuffer2 = Buffer(bufferCreateInfo);
+        copyDataToGPUBufferInfo.data = data2.data();
+        copyDataToGPUBufferInfo.size = sizeof(float) * data2.size();
+        copyDataToGPUBufferInfo.buffer = mBuffer2.get();
+        Buffer::copy(copyDataToGPUBufferInfo);
+
+        VkDescriptorBufferInfo buffer1Info {
+            .buffer = mBuffer1.get(),
+            .offset = 0,
+            .range = mBuffer1.size()
+        };
+
+        VkDescriptorBufferInfo buffer2Info {
+            .buffer = mBuffer2.get(),
+            .offset = 0,
+            .range = mBuffer2.size()
+        };
+
+        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites{
+            { //1
+                {
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstBinding = 0,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    .pImageInfo = nullptr,
+                    .pBufferInfo = &buffer1Info,
+                    .pTexelBufferView = nullptr
+                },
+                {
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstBinding = 1,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    .pImageInfo = nullptr,
+                    .pBufferInfo = &buffer2Info,
+                    .pTexelBufferView = nullptr
+                },
+            },
+        };
+
+        DescriptorSetsUpdateInfo updateInfo {
+            .descriptorsWrites = descriptorsWrites
+        };
+        mDescriptorSets.update(updateInfo);
+    }
+
+    void PathTracer::record() {
+        const uint32_t currentFrame = 0;//recordInfo.currentFrame;
+        const auto& commandBuffer = mCommandBuffers[currentFrame];
+        vkResetCommandBuffer(commandBuffer, 0);
+        const VkCommandBufferBeginInfo beginInfo {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                .flags = 0,
+                .pInheritanceInfo = nullptr
+        };
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to begin recording command buffer!");
+        }
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelines[0]);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
+                        0, 1, &mDescriptorSets[currentFrame], 0, nullptr);
+        vkCmdDispatch(commandBuffer, 120, 68, 1);
+
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to record command buffer!");
+        }
+    }
+
+    void PathTracer::submit() {
+        const uint32_t currentFrame = 0;
+        auto& commandBuffer = mCommandBuffers[currentFrame];
+        const VkSubmitInfo submitInfo{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer
+        };
+        // VkSemaphore waitSemaphores[] = { submitInfo.syncObjects->imageAvailableSemaphore( currentFrame ) };
+        // VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        // vkSubmitInfo.waitSemaphoreCount = 1;
+        // vkSubmitInfo.pWaitSemaphores = waitSemaphores;
+        // vkSubmitInfo.pWaitDstStageMask = waitStages;
+        // vkSubmitInfo.commandBufferCount = 1;
+        // vkSubmitInfo.pCommandBuffers = &commandBuffer;
+        // VkSemaphore signalSemaphores[] = { submitInfo.syncObjects->renderFinishedSemaphore( submitInfo.imageIndex ) };
+        // vkSubmitInfo.signalSemaphoreCount = 1;
+        // vkSubmitInfo.pSignalSemaphores = signalSemaphores;
+
+        VkQueue queue = mContext.queue(QueueFamilyType::COMPUTE);
+        if (vkQueueSubmit(queue, 1, &submitInfo,
+            VK_NULL_HANDLE ) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to submit draw command buffer!");
+        }
+        vkQueueWaitIdle(queue);
     }
 
     std::vector<VkDescriptorSetLayout> PathTracer::getDescriptorLayouts() const {

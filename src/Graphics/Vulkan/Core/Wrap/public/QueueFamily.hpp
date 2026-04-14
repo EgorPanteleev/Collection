@@ -18,7 +18,7 @@ enum class QueueFamilyType {
 
 struct QueueFamilyIndices {
     void set( QueueFamilyType type, uint32_t index ) { data[static_cast<int>(type)] = index; }
-    [[nodiscard]] std::optional<uint32_t> get( QueueFamilyType type ) const { return data[static_cast<int>(type)]; }
+    [[nodiscard]] std::optional<uint32_t> get(QueueFamilyType type) const { return data[static_cast<int>(type)]; }
     [[nodiscard]] bool isComplete() const {
         for (const auto& family: data) {
             if (!family.has_value()) return false;

@@ -22,7 +22,7 @@ namespace crv::graphics::vulkan {
     }
 
     void ComputePipelines::destroy() {
-        if (mDevice == VK_NULL_HANDLE) return;
+        if (mDevice == VK_NULL_HANDLE or mVec.empty()) return;
         for (auto& pipeline: mVec) {
             vkDestroyPipeline(mDevice, pipeline, nullptr);
             pipeline = VK_NULL_HANDLE;
