@@ -4,7 +4,8 @@
 
 #include "PathTracer.hpp"
 #include "Message.hpp"
-#include "Utils.hpp"
+#include "CoreUtils.hpp"
+#include "Timer.hpp"
 
 namespace crv::graphics::vulkan {
     PathTracer::PathTracer(const WindowCreateInfo& windowCreateInfo) {
@@ -23,8 +24,13 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::run() {
-        //acquire -> update -> record -> reset fences -> submit
+        utils::FpsCounter fpsCounter;
+        // double deltaTime = 0;
         while (true) {
+            glfwPollEvents();
+            fpsCounter.update();
+            mContext.window().setTitle(std::to_string(fpsCounter.fps()).c_str());
+
             uint32_t imageIndex;
             SwapchainAcquireInfo swapchainAcquireInfo {
                 .imageAvailableSemaphore = mImageAvailableSemaphore.get(),
@@ -36,25 +42,8 @@ namespace crv::graphics::vulkan {
                 throw std::runtime_error("Failed to acquire image!");
             }
             update();
-            record();
+            record(imageIndex);
             submit(imageIndex);
-
-            auto data = new float[3];
-            VkDeviceSize size = sizeof(float) * 3;
-            CopyGPUBufferToDataInfo copyInfo {
-                .data = data,
-                .size = size,
-                .allocator = mContext.allocator(),
-                .buffer = mBuffer2.get(),
-                .device = mContext.device(),
-                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext.queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyInfo);
-
-            for (int i = 0; i < 3; ++i) {
-                MESSAGE << data[i];
-            }
         }
     }
 
@@ -79,7 +68,7 @@ namespace crv::graphics::vulkan {
         };
         const VkDescriptorSetLayoutBinding binding1 {
             .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
@@ -100,7 +89,7 @@ namespace crv::graphics::vulkan {
     void PathTracer::createDescriptorPool() {
         std::vector<VkDescriptorPoolSize> poolSizes {
                 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
-                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
+                {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , 1},
         };
 
         const DescriptorPoolCreateInfo createInfo {
@@ -113,7 +102,7 @@ namespace crv::graphics::vulkan {
 
     void PathTracer::createDescriptorSets() {
         std::vector<uint32_t> variableCounts{0, 0};
-        DescriptorSetsCreateInfo createInfo {
+        const DescriptorSetsCreateInfo createInfo {
             .device = mContext.device(),
             .layouts = getDescriptorLayouts(),
             .pool = mDescriptorPool.get(),
@@ -123,7 +112,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createPipelineLayout() {
-        PipelineLayoutCreateInfo createInfo {
+        const PipelineLayoutCreateInfo createInfo {
             .device = mContext.device(),
             .layouts = getDescriptorLayouts()
         };
@@ -150,7 +139,7 @@ namespace crv::graphics::vulkan {
                 .pSpecializationInfo = nullptr
             },
         };
-        ComputePipelinesCreateInfo createInfo {
+        const ComputePipelinesCreateInfo createInfo {
             .device = mContext.device(),
             .stages = stages,
             .layouts = getPipelineLayouts(),
@@ -200,7 +189,7 @@ namespace crv::graphics::vulkan {
         auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
         VkCommandBuffer commandBuffer = (*commandBuffers)[0];
         for (uint32_t i = 0; i < imageCount; ++i) {
-            ImageViewCreateInfo imageViewCreateInfo{
+            const ImageViewCreateInfo imageViewCreateInfo{
                 .device = mContext.device(),
                 .image = mImages[i],
                 .viewType = VK_IMAGE_VIEW_TYPE_2D,
@@ -212,7 +201,7 @@ namespace crv::graphics::vulkan {
                 .layerCount = 1
             };
             mImageViews.emplace_back(imageViewCreateInfo);
-            ImageTransitInfo imageTransitInfo {
+            const ImageTransitInfo imageTransitInfo {
                 .commandBuffer = commandBuffer,
                 .image = mImages[i],
                 .srcAccessMask = VK_ACCESS_NONE,
@@ -257,34 +246,72 @@ namespace crv::graphics::vulkan {
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
         };
-        mBuffer1 = Buffer(bufferCreateInfo);
+        mdBuffer = Buffer(bufferCreateInfo);
         CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
             .data = data1.data(),
             .size = sizeof(float) * data1.size(),
             .allocator = mContext.allocator(),
-            .buffer = mBuffer1.get(),
+            .buffer = mdBuffer.get(),
             .device = mContext.device(),
             .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
             .queue = mContext.queue(QueueFamilyType::COMPUTE)
         };
         Buffer::copy(copyDataToGPUBufferInfo);
-        bufferCreateInfo.size = sizeof(float) * data2.size();
-        mBuffer2 = Buffer(bufferCreateInfo);
-        copyDataToGPUBufferInfo.data = data2.data();
-        copyDataToGPUBufferInfo.size = sizeof(float) * data2.size();
-        copyDataToGPUBufferInfo.buffer = mBuffer2.get();
-        Buffer::copy(copyDataToGPUBufferInfo);
-
         VkDescriptorBufferInfo buffer1Info {
-            .buffer = mBuffer1.get(),
+            .buffer = mdBuffer.get(),
             .offset = 0,
-            .range = mBuffer1.size()
+            .range = mdBuffer.size()
         };
 
-        VkDescriptorBufferInfo buffer2Info {
-            .buffer = mBuffer2.get(),
-            .offset = 0,
-            .range = mBuffer2.size()
+        ImageCreateInfo imageCreateInfo {
+            .device = mContext.device(),
+            .allocator = mContext.allocator(),
+            .flags = 0,
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+            .extent = {mSwapchain.extent().width, mSwapchain.extent().height, 1},
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        mdImage = Image(imageCreateInfo);
+
+        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        const ImageTransitInfo imageTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mdImage.get(),
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+        };
+        Image::transit(imageTransitInfo);
+
+        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::COMPUTE));
+
+        ImageViewCreateInfo imageViewCreateInfo {
+            .device = mContext.device(),
+            .image = mdImage.get(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = imageCreateInfo.format,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevels = 1,
+            .baseMipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        };
+        mdImageView = ImageView(imageViewCreateInfo);
+
+        VkDescriptorImageInfo imageInfo {
+            .sampler = VK_NULL_HANDLE,
+            .imageView = mdImageView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL
         };
 
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites{
@@ -304,9 +331,9 @@ namespace crv::graphics::vulkan {
                     .dstBinding = 1,
                     .dstArrayElement = 0,
                     .descriptorCount = 1,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                    .pImageInfo = nullptr,
-                    .pBufferInfo = &buffer2Info,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                    .pImageInfo = &imageInfo,
+                    .pBufferInfo = nullptr,
                     .pTexelBufferView = nullptr
                 },
             },
@@ -318,7 +345,7 @@ namespace crv::graphics::vulkan {
         mDescriptorSets.update(updateInfo);
     }
 
-    void PathTracer::record() {
+    void PathTracer::record(const uint32_t imageIndex) {
         const uint32_t currentFrame = 0;//recordInfo.currentFrame;
         const auto& commandBuffer = mCommandBuffers[currentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
@@ -333,7 +360,102 @@ namespace crv::graphics::vulkan {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelines[0]);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[currentFrame], 0, nullptr);
-        vkCmdDispatch(commandBuffer, 120, 68, 1);
+
+        uint32_t groupX = (mSwapchain.extent().width + 15) / 16;
+        uint32_t groupY = (mSwapchain.extent().height + 15) / 16;
+        vkCmdDispatch(commandBuffer, groupX, groupY, 1);
+
+
+        //render start
+        const VkImageMemoryBarrier dataBarrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .image = mdImage.get(),
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        const VkImageMemoryBarrier presentBarrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .image = mImages[imageIndex],
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        VkImageMemoryBarrier barriers[] = {dataBarrier, presentBarrier};
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr,
+                             0, nullptr, 2, barriers);
+
+
+        VkImageBlit blit{};
+        blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        blit.srcSubresource.layerCount = 1;
+
+        blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        blit.dstSubresource.layerCount = 1;
+
+        const auto width = static_cast<int32_t>(mSwapchain.extent().width);
+        const auto height = static_cast<int32_t>(mSwapchain.extent().height);
+        blit.srcOffsets[0] = {0, 0, 0};
+        blit.srcOffsets[1] = {width, height, 1};
+
+        blit.dstOffsets[0] = {0, 0, 0};
+        blit.dstOffsets[1] = {width, height, 1};
+
+        vkCmdBlitImage(
+            commandBuffer,
+            mdImage.get(),
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            mImages[imageIndex],
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &blit,
+            VK_FILTER_NEAREST
+        );
+
+        VkImageMemoryBarrier presentBarrier1{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = 0,
+            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .image = mImages[imageIndex],
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .levelCount = 1,
+                .layerCount = 1
+            }
+        };
+
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            0,
+            0, nullptr,
+            0, nullptr,
+            1, &presentBarrier1
+        );
+        //render end
+
 
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to record command buffer!");
@@ -344,7 +466,7 @@ namespace crv::graphics::vulkan {
     void PathTracer::submit(const uint32_t imageIndex) {
         const uint32_t currentFrame = 0;
         auto& commandBuffer = mCommandBuffers[currentFrame];
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
         const VkSubmitInfo submitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .waitSemaphoreCount = 1,
@@ -360,7 +482,6 @@ namespace crv::graphics::vulkan {
         if (vkQueueSubmit(queue, 1, &submitInfo, mFence.get()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
-
         const VkPresentInfoKHR presentInfo {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,

@@ -12,10 +12,10 @@ namespace crv::graphics::vulkan {
     }
 
     void Image::destroy() {
-        if (mDevice == VK_NULL_HANDLE) return;
-        vmaDestroyImage(mAllocator, mHandle, mAllocation);
+        if (mHandle == VK_NULL_HANDLE or mDevice == VK_NULL_HANDLE) return;
+        vmaDestroyImage(mAllocator, mHandle, mAllocation.get());
         mDevice = VK_NULL_HANDLE;
-        mAllocator = VK_NULL_HANDLE;
+        mAllocation.destroy();
     }
 
     void Image::createImage(const ImageCreateInfo& info) {
@@ -40,7 +40,7 @@ namespace crv::graphics::vulkan {
         };
 
         const VkResult result = vmaCreateImage(info.allocator, &imageInfo, &allocInfo,
-                                               &mHandle, &mAllocation, nullptr);
+                                               &mHandle, &mAllocation.get(), nullptr);
         if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to create image!");
         }

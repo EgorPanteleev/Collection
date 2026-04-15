@@ -6,6 +6,7 @@
 #define COLLECTION_BUFFER_HPP
 
 #include "DefaultWrapper.hpp"
+#include "Allocation.hpp"
 
 #include <vk_mem_alloc.h>
 
@@ -68,7 +69,7 @@ namespace crv::graphics::vulkan {
         Buffer& operator=(Buffer&&) = default;
         ~Buffer() override { Buffer::destroy(); }
         void destroy() override;
-        [[nodiscard]] VmaAllocation allocation() const { return mAllocation; }
+        [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         [[nodiscard]] VkDeviceSize size() const { return mSize; }
         static std::tuple<VkBuffer, VmaAllocation> createBuffer(const BufferCreateInfo& info);
         static void copy(const CopyDataToCPUBufferInfo& info);
@@ -78,7 +79,7 @@ namespace crv::graphics::vulkan {
         static void copy(const CopyGPUBufferToDataInfo& info);
     protected:
         VmaAllocator mAllocator = VK_NULL_HANDLE;
-        VmaAllocation mAllocation = VK_NULL_HANDLE;
+        Allocation mAllocation{};
         VkDeviceSize mSize = 0;
     };
 }

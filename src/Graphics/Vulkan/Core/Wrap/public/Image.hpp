@@ -7,6 +7,7 @@
 
 #include "DefaultWrapper.hpp"
 #include "vk_mem_alloc.h"
+#include "Allocation.hpp"
 
 namespace crv::graphics::vulkan {
     struct ImageCreateInfo {
@@ -46,14 +47,14 @@ namespace crv::graphics::vulkan {
         Image& operator=(Image&&) = default;
         ~Image() override { Image::destroy(); }
         void destroy() override;
-        [[nodiscard]] VmaAllocation allocation() const { return mAllocation; }
+        [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         static void transit(const ImageTransitInfo& info);
     protected:
         void createImage(const ImageCreateInfo& info);
 
         VkDevice mDevice = VK_NULL_HANDLE;
         VmaAllocator mAllocator = VK_NULL_HANDLE;
-        VmaAllocation mAllocation = VK_NULL_HANDLE;
+        Allocation mAllocation{};
     };
 }
 

@@ -1,14 +1,25 @@
 #version 450
 
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
 layout(binding = 0) buffer InputBuffer {
     float data[];
 } inputBuffer;
 
-layout(binding = 1) buffer OutputBuffer {
-    float data[];
-} outputBuffer;
+layout(binding = 1, rgba8) uniform writeonly image2D outImage;
+
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
 
 void main() {
-    uint idx = gl_GlobalInvocationID.x;
-    outputBuffer.data[idx] = inputBuffer.data[idx] * 2.0;
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+
+    vec2 uv = vec2(coord);
+
+    float r = rand(uv);
+    float g = rand(uv + 13.37);
+    float b = rand(uv + 42.42);
+
+    imageStore(outImage, coord, vec4(r, g, b, 1.0));
 }

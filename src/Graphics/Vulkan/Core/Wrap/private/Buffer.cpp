@@ -6,21 +6,22 @@
 #include "CommandPool.hpp"
 #include "CommandBuffers.hpp"
 #include "Message.hpp"
-#include "Utils.hpp"
+#include "CoreUtils.hpp"
 
 #include <stdexcept>
 #include <cstring>
 
 namespace crv::graphics::vulkan {
     Buffer::Buffer(const BufferCreateInfo &info): mAllocator(info.allocator), mSize(info.size) {
-        std::tie(mHandle, mAllocation) = createBuffer(info);
+        VmaAllocation allocation;
+        std::tie(mHandle, allocation) = createBuffer(info);
+        mAllocation = Allocation(allocation);
     }
 
     void Buffer::destroy() {
-        if (mHandle == VK_NULL_HANDLE or mAllocation == VK_NULL_HANDLE) return;
-        vmaDestroyBuffer(mAllocator, mHandle, mAllocation);
-        mAllocation = VK_NULL_HANDLE;
-        mAllocator = VK_NULL_HANDLE;
+        if (mHandle == VK_NULL_HANDLE) return;
+        vmaDestroyBuffer(mAllocator, mHandle, mAllocation.get());
+        mAllocation.destroy();
     }
 
     std::tuple<VkBuffer, VmaAllocation> Buffer::createBuffer(const BufferCreateInfo& info) {

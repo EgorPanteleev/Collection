@@ -40,7 +40,7 @@ namespace crv::graphics::vulkan {
         void createImages();
         void createSyncObjects();
         void update();
-        void record();
+        void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
 
         [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
@@ -59,8 +59,9 @@ namespace crv::graphics::vulkan {
         ComputePipelines mComputePipelines{};
         CommandPool mCommandPool{};
         CommandBuffers mCommandBuffers{};
-        Buffer mBuffer1{};
-        Buffer mBuffer2{};
+        Buffer mdBuffer{};
+        Image mdImage{};
+        ImageView mdImageView{};
         Swapchain mSwapchain{};
         std::vector<VkImage> mImages{};
         std::vector<ImageView> mImageViews{};

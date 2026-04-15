@@ -2,7 +2,7 @@
 // Created by igor on 4/14/26.
 //
 
-#include "Utils.hpp"
+#include "CoreUtils.hpp"
 
 namespace crv::graphics::vulkan {
     std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(const VkDevice device, const uint32_t queueFamilyIndex) {
