@@ -19,28 +19,42 @@ namespace crv::graphics::vulkan {
         createCommandBuffers();
         createSwapChain();
         createImages();
+        createSyncObjects();
     }
 
     void PathTracer::run() {
-        update();
-        record();
-        submit();
+        //acquire -> update -> record -> reset fences -> submit
+        while (true) {
+            uint32_t imageIndex;
+            SwapchainAcquireInfo swapchainAcquireInfo {
+                .imageAvailableSemaphore = mImageAvailableSemaphore.get(),
+                .fence = mFence.get(),
+                .imageIndex = &imageIndex
+            };
+            const VkResult result = mSwapchain.acquireNextImage(swapchainAcquireInfo);
+            if (result != VK_SUCCESS) {
+                throw std::runtime_error("Failed to acquire image!");
+            }
+            update();
+            record();
+            submit(imageIndex);
 
-        auto data = new float[3];
-        VkDeviceSize size = sizeof(float) * 3;
-        CopyGPUBufferToDataInfo copyInfo {
-            .data = data,
-            .size = size,
-            .allocator = mContext.allocator(),
-            .buffer = mBuffer2.get(),
-            .device = mContext.device(),
-            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-            .queue = mContext.queue(QueueFamilyType::COMPUTE)
-        };
-        Buffer::copy(copyInfo);
+            auto data = new float[3];
+            VkDeviceSize size = sizeof(float) * 3;
+            CopyGPUBufferToDataInfo copyInfo {
+                .data = data,
+                .size = size,
+                .allocator = mContext.allocator(),
+                .buffer = mBuffer2.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyInfo);
 
-        for (int i = 0; i < 3; ++i) {
-            MESSAGE << data[i];
+            for (int i = 0; i < 3; ++i) {
+                MESSAGE << data[i];
+            }
         }
     }
 
@@ -218,6 +232,18 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::COMPUTE));
     }
 
+    void PathTracer::createSyncObjects() {
+        const SemaphoreCreateInfo semaphoreCreateInfo {
+            .device = mContext.device()
+        };
+        mImageAvailableSemaphore = Semaphore(semaphoreCreateInfo);
+        mComputeFinishedSemaphore = Semaphore(semaphoreCreateInfo);
+        const FenceCreateInfo fenceCreateInfo {
+            .device = mContext.device()
+        };
+        mFence = Fence(fenceCreateInfo);
+    }
+
     void PathTracer::update() {
         std::vector<float> data1;
         data1.push_back(1);
@@ -312,33 +338,42 @@ namespace crv::graphics::vulkan {
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to record command buffer!");
         }
+        vkResetFences(mContext.device(), 1, &mFence.get());
     }
 
-    void PathTracer::submit() {
+    void PathTracer::submit(const uint32_t imageIndex) {
         const uint32_t currentFrame = 0;
         auto& commandBuffer = mCommandBuffers[currentFrame];
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         const VkSubmitInfo submitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &mImageAvailableSemaphore.get(),
+            .pWaitDstStageMask = waitStages,
             .commandBufferCount = 1,
-            .pCommandBuffers = &commandBuffer
+            .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &mComputeFinishedSemaphore.get()
         };
-        // VkSemaphore waitSemaphores[] = { submitInfo.syncObjects->imageAvailableSemaphore( currentFrame ) };
-        // VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        // vkSubmitInfo.waitSemaphoreCount = 1;
-        // vkSubmitInfo.pWaitSemaphores = waitSemaphores;
-        // vkSubmitInfo.pWaitDstStageMask = waitStages;
-        // vkSubmitInfo.commandBufferCount = 1;
-        // vkSubmitInfo.pCommandBuffers = &commandBuffer;
-        // VkSemaphore signalSemaphores[] = { submitInfo.syncObjects->renderFinishedSemaphore( submitInfo.imageIndex ) };
-        // vkSubmitInfo.signalSemaphoreCount = 1;
-        // vkSubmitInfo.pSignalSemaphores = signalSemaphores;
 
         VkQueue queue = mContext.queue(QueueFamilyType::COMPUTE);
-        if (vkQueueSubmit(queue, 1, &submitInfo,
-            VK_NULL_HANDLE ) != VK_SUCCESS) {
+        if (vkQueueSubmit(queue, 1, &submitInfo, mFence.get()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
-        vkQueueWaitIdle(queue);
+
+        const VkPresentInfoKHR presentInfo {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &mComputeFinishedSemaphore.get(),
+            .swapchainCount = 1,
+            .pSwapchains = &mSwapchain.get(),
+            .pImageIndices = &imageIndex,
+            .pResults = nullptr
+        };
+        const VkResult result = vkQueuePresentKHR(mContext.queue(QueueFamilyType::PRESENT), &presentInfo);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("Failed to present image!");
+        }
     }
 
     std::vector<VkDescriptorSetLayout> PathTracer::getDescriptorLayouts() const {

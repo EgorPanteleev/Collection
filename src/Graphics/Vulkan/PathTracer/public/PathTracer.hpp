@@ -18,6 +18,8 @@
 #include "Swapchain.hpp"
 #include "Image.hpp"
 #include "ImageView.hpp"
+#include "Semaphore.hpp"
+#include "Fence.hpp"
 
 namespace crv::graphics::vulkan {
     class PathTracer {
@@ -36,9 +38,10 @@ namespace crv::graphics::vulkan {
         void createCommandBuffers();
         void createSwapChain();
         void createImages();
+        void createSyncObjects();
         void update();
         void record();
-        void submit();
+        void submit(uint32_t imageIndex);
 
         [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
         [[nodiscard]] std::vector<VkPipelineLayout> getPipelineLayouts() const;
@@ -61,6 +64,9 @@ namespace crv::graphics::vulkan {
         Swapchain mSwapchain{};
         std::vector<VkImage> mImages{};
         std::vector<ImageView> mImageViews{};
+        Semaphore mImageAvailableSemaphore{};
+        Semaphore mComputeFinishedSemaphore{};
+        Fence mFence{};
     };
 }
 

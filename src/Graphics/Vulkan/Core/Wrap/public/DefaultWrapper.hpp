@@ -28,7 +28,8 @@ namespace crv::graphics::vulkan {
             return *this;
         }
         virtual ~DefaultWrapper() { mHandle = VK_NULL_HANDLE; };
-        Type get() const { return mHandle; }
+        const Type& get() const { return mHandle; }
+        Type& get() { return mHandle; }
         virtual void destroy() = 0;
     protected:
         Type mHandle = VK_NULL_HANDLE;

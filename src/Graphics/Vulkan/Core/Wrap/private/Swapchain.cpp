@@ -86,6 +86,14 @@ namespace crv::graphics::vulkan {
         vkDestroySwapchainKHR(mDevice, mHandle, nullptr);
         mDevice = VK_NULL_HANDLE;
     }
+    
+    VkResult Swapchain::acquireNextImage(const SwapchainAcquireInfo& info) const {
+        vkWaitForFences(mDevice, 1, &info.fence, VK_TRUE, UINT64_MAX);
+        const VkResult result = vkAcquireNextImageKHR(mDevice, mHandle, UINT64_MAX,
+                                                 info.imageAvailableSemaphore,
+                                                 VK_NULL_HANDLE, info.imageIndex);
+        return result;
+    }
 
     SwapchainSupport Swapchain::getSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
         SwapchainSupport support;

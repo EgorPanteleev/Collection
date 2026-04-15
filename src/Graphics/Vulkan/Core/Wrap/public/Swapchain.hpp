@@ -24,6 +24,12 @@ namespace crv::graphics::vulkan {
         std::vector<VkPresentModeKHR> presentModes{};
     };
 
+    struct SwapchainAcquireInfo {
+        VkSemaphore imageAvailableSemaphore = VK_NULL_HANDLE;
+        VkFence     fence                   = VK_NULL_HANDLE;
+        uint32_t*   imageIndex              = nullptr;
+    };
+
     class Swapchain: public DefaultWrapper<VkSwapchainKHR> {
     public:
         using DefaultWrapper::DefaultWrapper;
@@ -33,6 +39,7 @@ namespace crv::graphics::vulkan {
         void destroy() override;
         [[nodiscard]] VkFormat format() const { return mFormat; }
         [[nodiscard]] VkExtent2D extent() const { return mExtent; }
+        [[nodiscard]] VkResult acquireNextImage(const SwapchainAcquireInfo& info) const;
         static SwapchainSupport getSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
         static uint32_t getImageCount(VkSurfaceCapabilitiesKHR capabilities);
     protected:
