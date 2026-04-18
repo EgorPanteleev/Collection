@@ -2,8 +2,8 @@
 // Created by igor on 4/14/26.
 //
 
-#ifndef COLLECTION_UTILS_HPP
-#define COLLECTION_UTILS_HPP
+#ifndef COLLECTION_COREUTILS_HPP
+#define COLLECTION_COREUTILS_HPP
 
 #include "CommandPool.hpp"
 #include "CommandBuffers.hpp"
@@ -13,4 +13,4 @@ namespace crv::graphics::vulkan {
     void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue);
 }
 
-#endif //COLLECTION_UTILS_HPP
+#endif //COLLECTION_COREUTILS_HPP

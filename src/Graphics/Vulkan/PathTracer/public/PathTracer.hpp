@@ -20,12 +20,35 @@
 #include "ImageView.hpp"
 #include "Semaphore.hpp"
 #include "Fence.hpp"
+#include "Triangle.hpp"
+#include "Camera.hpp"
+//#include "BVH.hpp"
 
 namespace crv::graphics::vulkan {
+    using Scalar = float;
+    using Vec4 = glm::vec<4, Scalar>;
+    struct AlignedTriangle {
+        Vec4 p0, e1, e2, N;
+    };
+
+    struct AlignedCamera {
+        Vec4 position, forward, right, up;
+        float FOV, aspectRatio, nearPlane, farPlane;
+    };
+
+    struct PathTracerCreateInfo {
+        const WindowCreateInfo& windowCreateInfo;
+        const scene::CameraCreateInfo cameraCreateInfo;
+        std::vector<AlignedTriangle> triangles;
+        //BVH<>
+    };
+
     class PathTracer {
     public:
-        explicit PathTracer(const WindowCreateInfo& windowCreateInfo);
+        explicit PathTracer(const PathTracerCreateInfo& info);
         void run();
+        Window& window() { return mContext.window(); }
+        scene::AbsCamera* camera() { return mCamera.get(); }
     protected:
         void createContext(const WindowCreateInfo& windowCreateInfo);
         void createDescriptorSetLayout();
@@ -50,6 +73,9 @@ namespace crv::graphics::vulkan {
 #else
         bool mDebug = true;
 #endif
+        std::vector<AlignedTriangle> mTriangles{};
+        std::unique_ptr<scene::AbsCamera> mCamera{};
+
         Context mContext{};
         DescriptorSetLayout mDescriptorSetLayout{};
         DescriptorPool mDescriptorPool{};
@@ -59,7 +85,8 @@ namespace crv::graphics::vulkan {
         ComputePipelines mComputePipelines{};
         CommandPool mCommandPool{};
         CommandBuffers mCommandBuffers{};
-        Buffer mdBuffer{};
+        Buffer mCameraBuffer{};
+        Buffer mTrianglesBuffer{};
         Image mdImage{};
         ImageView mdImageView{};
         Swapchain mSwapchain{};

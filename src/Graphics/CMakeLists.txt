@@ -1,3 +1,4 @@
+add_subdirectory(Geometry)
 add_subdirectory(BaseWindow)
 add_subdirectory(PathTracer)
 add_subdirectory(Vulkan)

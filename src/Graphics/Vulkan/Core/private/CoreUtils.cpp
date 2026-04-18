@@ -5,7 +5,7 @@
 #include "CoreUtils.hpp"
 
 namespace crv::graphics::vulkan {
-    std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(const VkDevice device, const uint32_t queueFamilyIndex) {
+    std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, const uint32_t queueFamilyIndex) {
         const CommandPoolCreateInfo poolCreateInfo {
             .device = device,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,

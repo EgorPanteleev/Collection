@@ -8,8 +8,9 @@
 #include "Timer.hpp"
 
 namespace crv::graphics::vulkan {
-    PathTracer::PathTracer(const WindowCreateInfo& windowCreateInfo) {
-        createContext(windowCreateInfo);
+    PathTracer::PathTracer(const PathTracerCreateInfo& info): mTriangles(info.triangles) {
+        mCamera = std::make_unique<scene::FlyCamera>(info.cameraCreateInfo);
+        createContext(info.windowCreateInfo);
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -25,11 +26,14 @@ namespace crv::graphics::vulkan {
 
     void PathTracer::run() {
         utils::FpsCounter fpsCounter;
-        // double deltaTime = 0;
-        while (true) {
+        double deltaTime = 0;
+        const Window& window = mContext.window();
+        while (!window.shouldClose()) {
             glfwPollEvents();
+            window.keyboardCallBack(mCamera.get(), deltaTime);
             fpsCounter.update();
-            mContext.window().setTitle(std::to_string(fpsCounter.fps()).c_str());
+            deltaTime = 1e3 / fpsCounter.fps();
+            window.setTitle(std::to_string(fpsCounter.fps()).c_str());
 
             uint32_t imageIndex;
             SwapchainAcquireInfo swapchainAcquireInfo {
@@ -45,6 +49,7 @@ namespace crv::graphics::vulkan {
             record(imageIndex);
             submit(imageIndex);
         }
+        vkDeviceWaitIdle(mContext.device());
     }
 
     void PathTracer::createContext(const WindowCreateInfo& windowCreateInfo) {
@@ -59,25 +64,30 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSetLayout() {
-        const VkDescriptorSetLayoutBinding binding0 {
+        constexpr VkDescriptorSetLayoutBinding binding0 {
             .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr
+        };
+        constexpr VkDescriptorSetLayoutBinding binding1 {
+            .binding = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
-        const VkDescriptorSetLayoutBinding binding1 {
-            .binding = 1,
+        constexpr VkDescriptorSetLayoutBinding binding2 {
+            .binding = 2,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
 
-        std::vector bindings{binding0,
-                             binding1};
-        std::vector<VkDescriptorBindingFlags> bindingFlags{0,
-                                                           0};
+        const std::vector bindings{binding0, binding1, binding2};
+        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0};
         const DescriptorSetLayoutCreateInfo createInfo {
             .device = mContext.device(),
             .bindings = bindings,
@@ -87,9 +97,10 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorPool() {
-        std::vector<VkDescriptorPoolSize> poolSizes {
-                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
-                {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , 1},
+        const std::vector<VkDescriptorPoolSize> poolSizes{
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
+            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , 1},
         };
 
         const DescriptorPoolCreateInfo createInfo {
@@ -101,7 +112,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSets() {
-        std::vector<uint32_t> variableCounts{0, 0};
+        const std::vector<uint32_t> variableCounts{0, 0, 0};
         const DescriptorSetsCreateInfo createInfo {
             .device = mContext.device(),
             .layouts = getDescriptorLayouts(),
@@ -128,7 +139,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createComputePipelines() {
-        std::vector<VkPipelineShaderStageCreateInfo> stages {
+        const std::vector<VkPipelineShaderStageCreateInfo> stages {
             {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = nullptr,
@@ -234,36 +245,70 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::update() {
-        std::vector<float> data1;
-        data1.push_back(1);
-        data1.push_back(2);
-        data1.push_back(3);
-        auto data2 = data1;
-        BufferCreateInfo bufferCreateInfo {
-            .allocator = mContext.allocator(),
-            .size = sizeof(float) * data1.size(),
-            .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-        };
-        mdBuffer = Buffer(bufferCreateInfo);
-        CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-            .data = data1.data(),
-            .size = sizeof(float) * data1.size(),
-            .allocator = mContext.allocator(),
-            .buffer = mdBuffer.get(),
-            .device = mContext.device(),
-            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-            .queue = mContext.queue(QueueFamilyType::COMPUTE)
-        };
-        Buffer::copy(copyDataToGPUBufferInfo);
-        VkDescriptorBufferInfo buffer1Info {
-            .buffer = mdBuffer.get(),
+        {
+            AlignedCamera camera {
+                .position = Vec4(mCamera->position(), 1),
+                .forward = Vec4(mCamera->forward(), 1),
+                .right = Vec4(mCamera->right(), 1),
+                .up = Vec4(mCamera->up(), 1),
+                .FOV = mCamera->FOV(),
+                .aspectRatio = mCamera->aspectRatio(),
+                .nearPlane = mCamera->nearPlane(),
+                .farPlane = mCamera->farPlane()
+            };
+            const BufferCreateInfo cameraBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = sizeof(AlignedCamera),
+                .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, //TODO
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mCameraBuffer = Buffer(cameraBufferCreateInfo);
+            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = &camera,
+                .size = sizeof(AlignedCamera),
+                .allocator = mContext.allocator(),
+                .buffer = mCameraBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        VkDescriptorBufferInfo cameraBufferInfo {
+            .buffer = mCameraBuffer.get(),
             .offset = 0,
-            .range = mdBuffer.size()
+            .range = mCameraBuffer.size()
         };
 
-        ImageCreateInfo imageCreateInfo {
+        {
+            const uint32_t trianglesSize = sizeof(AlignedTriangle) * mTriangles.size();
+            const BufferCreateInfo trianglesBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = trianglesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mTrianglesBuffer = Buffer(trianglesBufferCreateInfo);
+            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = mTriangles.data(),
+                .size = trianglesSize,
+                .allocator = mContext.allocator(),
+                .buffer = mTrianglesBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        VkDescriptorBufferInfo trianglesBufferInfo {
+            .buffer = mTrianglesBuffer.get(),
+            .offset = 0,
+            .range = mTrianglesBuffer.size()
+        };
+
+        const ImageCreateInfo imageCreateInfo {
             .device = mContext.device(),
             .allocator = mContext.allocator(),
             .flags = 0,
@@ -314,29 +359,40 @@ namespace crv::graphics::vulkan {
             .imageLayout = VK_IMAGE_LAYOUT_GENERAL
         };
 
+        VkWriteDescriptorSet writeDescriptorSet0 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &cameraBufferInfo,
+            .pTexelBufferView = nullptr
+        };
+
+        VkWriteDescriptorSet writeDescriptorSet1 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &trianglesBufferInfo,
+            .pTexelBufferView = nullptr
+        };
+
+        VkWriteDescriptorSet writeDescriptorSet2 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 2,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .pImageInfo = &imageInfo,
+            .pBufferInfo = nullptr,
+            .pTexelBufferView = nullptr
+        };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites{
-            { //1
-                {
-                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                    .dstBinding = 0,
-                    .dstArrayElement = 0,
-                    .descriptorCount = 1,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                    .pImageInfo = nullptr,
-                    .pBufferInfo = &buffer1Info,
-                    .pTexelBufferView = nullptr
-                },
-                {
-                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                    .dstBinding = 1,
-                    .dstArrayElement = 0,
-                    .descriptorCount = 1,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                    .pImageInfo = &imageInfo,
-                    .pBufferInfo = nullptr,
-                    .pTexelBufferView = nullptr
-                },
-            },
+            { writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2 },
         };
 
         DescriptorSetsUpdateInfo updateInfo {
@@ -349,7 +405,7 @@ namespace crv::graphics::vulkan {
         const uint32_t currentFrame = 0;//recordInfo.currentFrame;
         const auto& commandBuffer = mCommandBuffers[currentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
-        const VkCommandBufferBeginInfo beginInfo {
+        constexpr VkCommandBufferBeginInfo beginInfo {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                 .flags = 0,
                 .pInheritanceInfo = nullptr

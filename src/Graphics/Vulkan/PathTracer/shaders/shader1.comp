@@ -2,24 +2,115 @@
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-layout(binding = 0) buffer InputBuffer {
-    float data[];
+struct PrecomputedTriangle {
+    vec4 p0, e1, e2, N;
+};
+
+//layout(push_constant) uniform PushConstants {
+//    float width;
+//    float height;
+//} pc;
+
+layout(binding = 0) uniform Camera {
+    vec4 position, forward, right, up;
+    float FOV, aspectRatio, nearPlane, farPlane;
+} camera;
+
+layout(binding = 1) buffer InputBuffer {
+    PrecomputedTriangle triangles[];
 } inputBuffer;
 
-layout(binding = 1, rgba8) uniform writeonly image2D outImage;
+layout(binding = 2, rgba8) uniform writeonly image2D outImage;
 
-float rand(vec2 co) {
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+struct Ray {
+    vec3 pos, dir, invDir, invDirPad;
+    float tmin, tmax;
+};
+
+bool isFinite(float x) {
+    return !isinf(x) && !isnan(x);
+}
+
+float addUlp(float num, int ulps) {
+    if (!isFinite(num)) return num;
+
+    uint bits = floatBitsToUint(num);
+    if (num >= 0.0) bits += uint(ulps);
+    else bits -= uint(ulps);
+    return uintBitsToFloat(bits);
+}
+
+Ray makeRay(vec3 pos, vec3 dir, float tmin, float tmax) {
+    Ray ray;
+    ray.pos = pos;
+    ray.dir = dir;
+    ray.tmin = tmin;
+    ray.tmax = tmax;
+    ray.invDir = 1.0 / dir;
+    ray.invDirPad.x = addUlp(ray.invDir.x, 2);
+    ray.invDirPad.y = addUlp(ray.invDir.y, 2);
+    ray.invDirPad.z = addUlp(ray.invDir.z, 2);
+    return ray;
+}
+
+struct Hit {
+    bool hit;
+    float t, u, v;
+};
+
+Hit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
+    vec3 p0 = vec3(tri.p0);
+    vec3 e1 = vec3(tri.e1);
+    vec3 e2 = vec3(tri.e2);
+    vec3 N = vec3(tri.N);
+
+    vec3 c = p0 - ray.pos;
+    vec3 r = cross(ray.dir, c);
+    float inv_det = 1.0 / dot(N, ray.dir);
+
+    float u = dot(r, e2) * inv_det;
+    float v = dot(r, e1) * inv_det;
+    float w = 1.0 - u - v;
+
+    if (u >= eps && v >= eps && w >= eps) {
+        float t = dot(N, c) * inv_det;
+        if (t >= ray.tmin && t <= ray.tmax)
+        return Hit(true, t, u, v);
+    }
+
+    return Hit(false, 0, 0, 0);
+}
+
+Hit intersect(Ray ray, float eps) {
+    int triangleCount = 14264;
+    Hit res = Hit(false, 1e30, 0, 0);
+    for (uint i = 0; i < triangleCount; i++) {
+        PrecomputedTriangle tri = inputBuffer.triangles[i];
+        Hit hit = intersect(tri, ray, eps);
+        if (hit.hit && hit.t < res.t) {
+            res = hit;
+        }
+    }
+    return res;
+}
+
+vec3 traceRay(Ray ray) {
+    Hit hit = intersect(ray, 1e-6);
+    if (!hit.hit) return vec3(0.0);
+    else return vec3(1.0, 0.0, 0.0);
 }
 
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    const float imagePlaneHeight = 2.0 * tan(radians(camera.FOV * 0.5));
+    const float imagePlaneWidth  = imagePlaneHeight * camera.aspectRatio;
 
-    vec2 uv = vec2(coord);
-
-    float r = rand(uv);
-    float g = rand(uv + 13.37);
-    float b = rand(uv + 42.42);
-
-    imageStore(outImage, coord, vec4(r, g, b, 1.0));
+    const float u  = (coord.x + 0.5) / 800.0;
+    const float px = (2.0 * u - 1.0) * imagePlaneWidth * 0.5;
+    const float v  = (coord.y + 0.5) / 600.0;
+    const float py = (1.0 - 2.0 * v) * imagePlaneHeight * 0.5;
+    vec3 dir = normalize(px * vec3(camera.right) + py * vec3(camera.up) + vec3(camera.forward));
+    Ray ray = makeRay(vec3(camera.position), dir, camera.nearPlane, camera.farPlane);
+    vec3 color = traceRay(ray);
+    imageStore(outImage, coord, vec4(color, 1.0));
 }
