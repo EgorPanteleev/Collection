@@ -22,6 +22,7 @@ static int constexpr HEIGHT = 600;
 #define LIMINAL_PATH  ASSETS_PATH"liminal/scene.gltf"
 #define MICRO_PATH    ASSETS_PATH"microphone/scene.gltf"
 #define DRAGON_PATH   ASSETS_PATH"DragonAttenuation/glTF/DragonAttenuation.gltf"
+#define SWORD_PATH    ASSETS_PATH"Sword/sword.obj"
 
 std::vector<Tri> loadModel(const glm::mat4& modelMatrix, const std::string& modelPath) {
     std::vector<Tri> triangles;
@@ -80,9 +81,9 @@ int main() {
     auto model = glm::mat4(1.);
     // model = glm::translate(model, glm::vec3(0, 0, 0));
     model = glm::rotate(model, glm::radians(180.f), glm::vec3(1, 0, 0));
-    model = glm::scale(model, glm::vec3(100));
+    model = glm::scale(model, glm::vec3(1));
     std::vector<cvk::AlignedTriangle> triangles;
-    for (auto tri: loadModel(model, MICRO_PATH)) {
+    for (auto tri: loadModel(model, SWORD_PATH)) {
         triangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1), Vec4(tri.e2, 1), Vec4(tri.N, 1));
     }
     const cvk::PathTracerCreateInfo pathTracerCreateInfo {

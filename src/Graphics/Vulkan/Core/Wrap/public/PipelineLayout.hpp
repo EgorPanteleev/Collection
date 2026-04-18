@@ -11,6 +11,7 @@ namespace crv::graphics::vulkan {
     struct PipelineLayoutCreateInfo {
         VkDevice device = VK_NULL_HANDLE;
         std::vector<VkDescriptorSetLayout> layouts{};
+        std::vector<VkPushConstantRange> ranges{};
     };
 
     class PipelineLayout: public DefaultWrapper<VkPipelineLayout> {

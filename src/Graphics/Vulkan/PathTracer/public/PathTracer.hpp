@@ -36,6 +36,12 @@ namespace crv::graphics::vulkan {
         float FOV, aspectRatio, nearPlane, farPlane;
     };
 
+    struct PushConstants {
+        int width;
+        int height;
+        int triangleCount;
+    };
+
     struct PathTracerCreateInfo {
         const WindowCreateInfo& windowCreateInfo;
         const scene::CameraCreateInfo cameraCreateInfo;

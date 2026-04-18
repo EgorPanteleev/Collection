@@ -123,9 +123,15 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createPipelineLayout() {
+        VkPushConstantRange pushRange{
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .offset = 0,
+            .size = sizeof(PushConstants)
+        };
         const PipelineLayoutCreateInfo createInfo {
             .device = mContext.device(),
-            .layouts = getDescriptorLayouts()
+            .layouts = getDescriptorLayouts(),
+            .ranges = {pushRange}
         };
         mPipelineLayout = PipelineLayout(createInfo);
     }
@@ -416,6 +422,10 @@ namespace crv::graphics::vulkan {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelines[0]);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[currentFrame], 0, nullptr);
+
+        PushConstants pc(window().width(), window().height(), static_cast<int>(mTriangles.size()));
+        vkCmdPushConstants(commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
+            0, sizeof(PushConstants), &pc);
 
         uint32_t groupX = (mSwapchain.extent().width + 15) / 16;
         uint32_t groupY = (mSwapchain.extent().height + 15) / 16;

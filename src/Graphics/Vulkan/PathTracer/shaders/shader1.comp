@@ -6,10 +6,9 @@ struct PrecomputedTriangle {
     vec4 p0, e1, e2, N;
 };
 
-//layout(push_constant) uniform PushConstants {
-//    float width;
-//    float height;
-//} pc;
+layout(push_constant) uniform PushConstants {
+    int width, height, triangleCount;
+} pc;
 
 layout(binding = 0) uniform Camera {
     vec4 position, forward, right, up;
@@ -82,9 +81,8 @@ Hit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
 }
 
 Hit intersect(Ray ray, float eps) {
-    int triangleCount = 14264;
     Hit res = Hit(false, 1e30, 0, 0);
-    for (uint i = 0; i < triangleCount; i++) {
+    for (uint i = 0; i < pc.triangleCount; i++) {
         PrecomputedTriangle tri = inputBuffer.triangles[i];
         Hit hit = intersect(tri, ray, eps);
         if (hit.hit && hit.t < res.t) {
@@ -105,9 +103,9 @@ void main() {
     const float imagePlaneHeight = 2.0 * tan(radians(camera.FOV * 0.5));
     const float imagePlaneWidth  = imagePlaneHeight * camera.aspectRatio;
 
-    const float u  = (coord.x + 0.5) / 800.0;
+    const float u  = (coord.x + 0.5) / pc.width;
     const float px = (2.0 * u - 1.0) * imagePlaneWidth * 0.5;
-    const float v  = (coord.y + 0.5) / 600.0;
+    const float v  = (coord.y + 0.5) / pc.height;
     const float py = (1.0 - 2.0 * v) * imagePlaneHeight * 0.5;
     vec3 dir = normalize(px * vec3(camera.right) + py * vec3(camera.up) + vec3(camera.forward));
     Ray ray = makeRay(vec3(camera.position), dir, camera.nearPlane, camera.farPlane);

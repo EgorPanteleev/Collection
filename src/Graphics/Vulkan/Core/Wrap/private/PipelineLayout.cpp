@@ -13,8 +13,8 @@ namespace crv::graphics::vulkan {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 1,
             .pSetLayouts = info.layouts.data(),
-            .pushConstantRangeCount = 0,
-            .pPushConstantRanges = nullptr
+            .pushConstantRangeCount = static_cast<uint32_t>(info.ranges.size()),
+            .pPushConstantRanges = info.ranges.data()
     };
 
         if (vkCreatePipelineLayout(mDevice, &pipelineLayoutInfo, nullptr, &mHandle) != VK_SUCCESS) {
