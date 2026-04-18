@@ -6,6 +6,7 @@
 #include "Timer.hpp"
 #include "Loader.hpp"
 #include "CallBacks.hpp"
+#include "BinnedSAHBuilder.hpp"
 
 namespace cvk = crv::graphics::vulkan;
 namespace cg = crv::graphics;
@@ -24,7 +25,16 @@ static int constexpr HEIGHT = 600;
 #define DRAGON_PATH   ASSETS_PATH"DragonAttenuation/glTF/DragonAttenuation.gltf"
 #define SWORD_PATH    ASSETS_PATH"Sword/sword.obj"
 
-std::vector<Tri> loadModel(const glm::mat4& modelMatrix, const std::string& modelPath) {
+cvk::BVH buildBVH(std::span<Tri> tris) {
+    cu::Timer timer;
+    timer.start();
+    cg::BinnedSAHBuilder<cvk::BVH::Node, Tri> builder{ tris };
+    cvk::BVH bvh = builder.build();
+    INFO << "BVH build time: " << timer.duration() / 1000 << " sec";
+    return bvh;
+}
+
+std::tuple<std::vector<Tri>, cvk::BVH> loadModel(const glm::mat4& modelMatrix, const std::string& modelPath) {
     std::vector<Tri> triangles;
     cm::Loader loader;
     cu::Timer timer;
@@ -49,16 +59,7 @@ std::vector<Tri> loadModel(const glm::mat4& modelMatrix, const std::string& mode
     }
     INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
     INFO << "Total number of primitives: " << triangles.size();
-    //buildBVH(std::span(mPrimitives));
-    return triangles;
-}
-
-void buildBVH(std::span<Tri> tris) {
-    // cu::Timer timer;
-    // timer.start();
-    // cg::BinnedSAHBuilder<Node, Primitive> builder{ primitives };
-    // mBvh = builder.build();
-    // INFO << "BVH build time: " << timer.duration() / 1000 << " sec";
+    return {triangles, buildBVH(std::span(triangles))};
 }
 
 int main() {
@@ -81,15 +82,25 @@ int main() {
     auto model = glm::mat4(1.);
     // model = glm::translate(model, glm::vec3(0, 0, 0));
     model = glm::rotate(model, glm::radians(180.f), glm::vec3(1, 0, 0));
-    model = glm::scale(model, glm::vec3(1));
+    model = glm::scale(model, glm::vec3(100));
     std::vector<cvk::AlignedTriangle> triangles;
-    for (auto tri: loadModel(model, SWORD_PATH)) {
+    auto [tris, bvh] =  loadModel(model, DRAGON_PATH);
+    for (const auto& tri: tris) {
         triangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1), Vec4(tri.e2, 1), Vec4(tri.N, 1));
+    }
+    std::vector<cvk::AlignedNode> nodes;
+    for (const auto& node: bvh.nodes()) {
+        cvk::AlignedNode alignedNode{};
+        alignedNode.bbox = cvk::AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
+        alignedNode.index = node.index().value();
+        nodes.push_back(alignedNode);
     }
     const cvk::PathTracerCreateInfo pathTracerCreateInfo {
         .windowCreateInfo = windowCreateInfo,
         .cameraCreateInfo = cameraCreateInfo,
-        .triangles = triangles
+        .triangles = triangles,
+        .nodes = nodes,
+        .indexes = bvh.primIds()
     };
     cvk::PathTracer pathTracer(pathTracerCreateInfo);
     setCallBacks(pathTracer.window(), pathTracer.camera());

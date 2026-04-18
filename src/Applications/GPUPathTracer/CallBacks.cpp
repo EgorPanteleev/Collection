@@ -24,10 +24,10 @@ static void processKeyboard(GLFWwindow* window, void* cameraPtr, double deltaTim
         camera->move(0, speed, 0);
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera->move(0, 0, speed);
+        camera->move(0, 0, -speed);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        camera->move(0, 0, -speed);
+        camera->move(0, 0, speed);
     }
     float rotateSpeed = speed * 0.3f;
 

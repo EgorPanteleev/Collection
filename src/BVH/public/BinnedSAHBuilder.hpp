@@ -65,7 +65,7 @@ namespace crv::graphics {
         BvhType build() {
             if (mBBoxes.empty()) return {};
             const size_t size = mBBoxes.size();
-            mPrimIds = std::views::iota(static_cast<size_t>(0), size) | std::ranges::to<std::vector<size_t>>();
+            mPrimIds = std::views::iota(static_cast<uint32_t>(0), size) | std::ranges::to<std::vector<uint32_t>>();
             BvhType bvh;
             bvh.mPrimitives = mPrimitives;
             std::stack<NodeData> stack;
@@ -195,7 +195,7 @@ namespace crv::graphics {
         std::span<Primitive> mPrimitives;
         std::vector<Box> mBBoxes;
         std::vector<Vec3> mCenters;
-        std::vector<size_t> mPrimIds;
+        std::vector<uint32_t> mPrimIds;
     };
 }
 

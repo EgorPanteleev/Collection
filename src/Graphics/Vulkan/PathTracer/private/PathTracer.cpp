@@ -8,7 +8,8 @@
 #include "Timer.hpp"
 
 namespace crv::graphics::vulkan {
-    PathTracer::PathTracer(const PathTracerCreateInfo& info): mTriangles(info.triangles) {
+    PathTracer::PathTracer(const PathTracerCreateInfo& info):
+    mTriangles(info.triangles), mNodes(info.nodes), mIndexes(info.indexes) {
         mCamera = std::make_unique<scene::FlyCamera>(info.cameraCreateInfo);
         createContext(info.windowCreateInfo);
         createDescriptorSetLayout();
@@ -80,14 +81,28 @@ namespace crv::graphics::vulkan {
         };
         constexpr VkDescriptorSetLayoutBinding binding2 {
             .binding = 2,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr
+        };
+        constexpr VkDescriptorSetLayoutBinding binding3 {
+            .binding = 3,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr
+        };
+        constexpr VkDescriptorSetLayoutBinding binding4 {
+            .binding = 4,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
 
-        const std::vector bindings{binding0, binding1, binding2};
-        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0};
+        const std::vector bindings{binding0, binding1, binding2, binding3, binding4};
+        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0};
         const DescriptorSetLayoutCreateInfo createInfo {
             .device = mContext.device(),
             .bindings = bindings,
@@ -99,6 +114,8 @@ namespace crv::graphics::vulkan {
     void PathTracer::createDescriptorPool() {
         const std::vector<VkDescriptorPoolSize> poolSizes{
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
             {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , 1},
         };
@@ -112,7 +129,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSets() {
-        const std::vector<uint32_t> variableCounts{0, 0, 0};
+        const std::vector<uint32_t> variableCounts{0, 0, 0, 0, 0};
         const DescriptorSetsCreateInfo createInfo {
             .device = mContext.device(),
             .layouts = getDescriptorLayouts(),
@@ -289,19 +306,19 @@ namespace crv::graphics::vulkan {
 
         {
             const uint32_t trianglesSize = sizeof(AlignedTriangle) * mTriangles.size();
-            const BufferCreateInfo trianglesBufferCreateInfo {
+            const BufferCreateInfo triangleBufferCreateInfo {
                 .allocator = mContext.allocator(),
                 .size = trianglesSize,
                 .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
-            mTrianglesBuffer = Buffer(trianglesBufferCreateInfo);
+            mTriangleBuffer = Buffer(triangleBufferCreateInfo);
             CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
                 .data = mTriangles.data(),
                 .size = trianglesSize,
                 .allocator = mContext.allocator(),
-                .buffer = mTrianglesBuffer.get(),
+                .buffer = mTriangleBuffer.get(),
                 .device = mContext.device(),
                 .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
                 .queue = mContext.queue(QueueFamilyType::COMPUTE)
@@ -309,9 +326,62 @@ namespace crv::graphics::vulkan {
             Buffer::copy(copyDataToGPUBufferInfo);
         }
         VkDescriptorBufferInfo trianglesBufferInfo {
-            .buffer = mTrianglesBuffer.get(),
+            .buffer = mTriangleBuffer.get(),
             .offset = 0,
-            .range = mTrianglesBuffer.size()
+            .range = mTriangleBuffer.size()
+        };
+        {
+            const uint32_t nodesSize = sizeof(AlignedNode) * mNodes.size();
+            const BufferCreateInfo nodeBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = nodesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mNodeBuffer = Buffer(nodeBufferCreateInfo);
+            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = mNodes.data(),
+                .size = nodesSize,
+                .allocator = mContext.allocator(),
+                .buffer = mNodeBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        VkDescriptorBufferInfo nodeBufferInfo {
+            .buffer = mNodeBuffer.get(),
+            .offset = 0,
+            .range = mNodeBuffer.size()
+        };
+
+        {
+            const uint32_t indexesSize = sizeof(uint32_t) * mIndexes.size();
+            const BufferCreateInfo indexBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = indexesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mIndexBuffer = Buffer(indexBufferCreateInfo);
+            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = mIndexes.data(),
+                .size = indexesSize,
+                .allocator = mContext.allocator(),
+                .buffer = mIndexBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        VkDescriptorBufferInfo indexBufferInfo {
+            .buffer = mIndexBuffer.get(),
+            .offset = 0,
+            .range = mIndexBuffer.size()
         };
 
         const ImageCreateInfo imageCreateInfo {
@@ -392,13 +462,36 @@ namespace crv::graphics::vulkan {
             .dstBinding = 2,
             .dstArrayElement = 0,
             .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &nodeBufferInfo,
+            .pTexelBufferView = nullptr
+        };
+
+        VkWriteDescriptorSet writeDescriptorSet3 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 3,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &indexBufferInfo,
+            .pTexelBufferView = nullptr
+        };
+
+        VkWriteDescriptorSet writeDescriptorSet4 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 4,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             .pImageInfo = &imageInfo,
             .pBufferInfo = nullptr,
             .pTexelBufferView = nullptr
         };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites{
-            { writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2 },
+            {writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2,
+                writeDescriptorSet3, writeDescriptorSet4},
         };
 
         DescriptorSetsUpdateInfo updateInfo {
@@ -423,12 +516,12 @@ namespace crv::graphics::vulkan {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[currentFrame], 0, nullptr);
 
-        PushConstants pc(window().width(), window().height(), static_cast<int>(mTriangles.size()));
+        PushConstants pc(window().width(), window().height());
         vkCmdPushConstants(commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
             0, sizeof(PushConstants), &pc);
 
-        uint32_t groupX = (mSwapchain.extent().width + 15) / 16;
-        uint32_t groupY = (mSwapchain.extent().height + 15) / 16;
+        uint32_t groupX = (mSwapchain.extent().width + 7) / 8;
+        uint32_t groupY = (mSwapchain.extent().height + 7) / 8;
         vkCmdDispatch(commandBuffer, groupX, groupY, 1);
 
 

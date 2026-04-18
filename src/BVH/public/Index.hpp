@@ -36,6 +36,7 @@ namespace crv::graphics {
         explicit Index(Type value): mValue(value) {}
         explicit Index(size_t firstPrim, size_t primCount) { set(firstPrim, primCount); }
         explicit Index(size_t firstChild) { set(firstChild, 0); }
+        Type value() const { return mValue; }
         Type id() const { return mValue >> primCountBits; }
         Type primCount() const { return mValue & MAX_PRIM; }
         bool isLeaf() const { return primCount() != 0; }
@@ -44,7 +45,7 @@ namespace crv::graphics {
         void setPrimCount(size_t primCount) { set(static_cast<size_t>(id()), primCount); }
 
         static Type maxPrim() { return MAX_PRIM; }
-    private:
+    protected:
         static constexpr Type MAX_ID = makeBitMask<Type>(bits - primCountBits);
         static constexpr Type MAX_PRIM = makeBitMask<Type>(primCountBits);
 

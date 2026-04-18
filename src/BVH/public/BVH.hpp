@@ -67,37 +67,58 @@ namespace crv::graphics {
             return closestHit;
         }
 
-        std::optional<HitType> intersect16(const Ray<Type>& ray, Type eps) const {
-            std::optional<HitType> closestHit;
-            Type closestT = std::numeric_limits<Type>::max();
-
-            std::stack<Node> stack;
-            stack.push(mNodes[0]);
-            while (!stack.empty()) {
-                const Node& node = stack.top();
-                stack.pop();
-                if (node.isLeaf()) {
-                    IndexType index = node.index();
-                    for (int iBlock = 0; iBlock < index.primCount(); iBlock += 16) {
-                        PreTri16 tri16 = mSimdTris[mPrimIds[index.id() + iBlock]];
-                        auto hit16 = tri16.intersect(ray);
-                        if (hit16) {
-                            auto [t, u, v, hitIdx] = *hit16;
-                            int primIdx = mPrimIds[index.id() + iBlock + hitIdx];
-                            if (t < closestT) {
-                                closestT = t;
-                                closestHit = {primIdx, t, u, v};
-                            }
+    std::optional<HitType> intersect16(const Ray<Type>& ray, Type eps) const {
+        std::optional<HitType> closestHit;
+        Type closestT = std::numeric_limits<Type>::max();
+        std::stack<uint32_t> stack;
+        stack.push(0);
+        while (!stack.empty()) {
+            uint32_t nodeIdx = stack.top();
+            stack.pop();
+            const Node& node = mNodes[nodeIdx];
+            auto bboxHit = node.bbox().intersect(ray);
+            if (!bboxHit || *bboxHit >= closestT) continue;
+            if (node.isLeaf()) {
+                auto index = node.index();
+                uint32_t base = index.id();
+                for (uint32_t i = 0; i < index.primCount(); i += 16) {
+                    PreTri16 tri16 = mSimdTris[mPrimIds[base + i]];
+                    auto hit16 = tri16.intersect(ray);
+                    if (hit16) {
+                        auto [t, u, v, lane] = *hit16;
+                        uint32_t primIdx = mPrimIds[base + i + lane];
+                        if (t < closestT) {
+                            closestT = t;
+                            closestHit = HitType{primIdx, t, u, v};
                         }
                     }
-                } else if (node.bbox().intersect(ray)) {
-                    auto nodeIdx = node.index().id();
-                    stack.emplace(mNodes[nodeIdx]);
-                    stack.emplace(mNodes[nodeIdx + 1]);
+                }
+            } else {
+                uint32_t leftIdx  = node.index().id();
+                uint32_t rightIdx = leftIdx + 1;
+                const Node& left  = mNodes[leftIdx];
+                const Node& right = mNodes[rightIdx];
+                auto tLeft  = left.bbox().intersect(ray);
+                auto tRight = right.bbox().intersect(ray);
+                bool hitLeft  = tLeft  && *tLeft  < closestT;
+                bool hitRight = tRight && *tRight < closestT;
+                if (hitLeft && hitRight) {
+                    if (*tLeft < *tRight) {
+                        stack.push(rightIdx);
+                        stack.push(leftIdx);
+                    } else {
+                        stack.push(leftIdx);
+                        stack.push(rightIdx);
+                    }
+                } else if (hitLeft) {
+                    stack.push(leftIdx);
+                } else if (hitRight) {
+                    stack.push(rightIdx);
                 }
             }
-            return closestHit;
         }
+        return closestHit;
+    }
 
         void fillSimdTris() {
             mSimdTris.resize( mPrimitives.size() );
@@ -144,11 +165,14 @@ namespace crv::graphics {
 
         const Primitive& primitive(size_t idx) const { return mPrimitives[idx]; }
 
+        std::vector<Node>& nodes() { return mNodes; }
+        std::vector<uint32_t>& primIds() { return mPrimIds; }
+
     protected:
         std::vector<Node> mNodes;
         std::span<Primitive> mPrimitives;
         std::vector<PreTri16> mSimdTris;
-        std::vector<size_t> mPrimIds;
+        std::vector<uint32_t> mPrimIds;
     };
 }
 

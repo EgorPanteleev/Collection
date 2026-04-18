@@ -1,13 +1,23 @@
 #version 450
 
-layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 struct PrecomputedTriangle {
     vec4 p0, e1, e2, N;
 };
 
+struct BBox {
+    vec4 min, max;
+};
+
+struct Node {
+    BBox bbox;
+    uint index;
+    uint pad[3];
+};
+
 layout(push_constant) uniform PushConstants {
-    int width, height, triangleCount;
+    int width, height;
 } pc;
 
 layout(binding = 0) uniform Camera {
@@ -15,11 +25,19 @@ layout(binding = 0) uniform Camera {
     float FOV, aspectRatio, nearPlane, farPlane;
 } camera;
 
-layout(binding = 1) buffer InputBuffer {
-    PrecomputedTriangle triangles[];
-} inputBuffer;
+layout(binding = 1) buffer TriangleBuffer {
+    PrecomputedTriangle data[];
+} triangleBuffer;
 
-layout(binding = 2, rgba8) uniform writeonly image2D outImage;
+layout(binding = 2) buffer NodeBuffer {
+    Node data[];
+} nodeBuffer;
+
+layout(binding = 3) buffer IndexBuffer {
+    uint data[];
+} indexBuffer;
+
+layout(binding = 4, rgba8) uniform writeonly image2D outImage;
 
 struct Ray {
     vec3 pos, dir, invDir, invDirPad;
@@ -39,6 +57,17 @@ float addUlp(float num, int ulps) {
     return uintBitsToFloat(bits);
 }
 
+const uint PRIM_COUNT_BITS = 4;
+const uint MAX_PRIM = (1u << PRIM_COUNT_BITS) - 1u;
+
+uint id(uint index) {
+    return index >> PRIM_COUNT_BITS;
+}
+
+uint primCount(uint index) {
+    return index & MAX_PRIM;
+}
+
 Ray makeRay(vec3 pos, vec3 dir, float tmin, float tmax) {
     Ray ray;
     ray.pos = pos;
@@ -52,16 +81,35 @@ Ray makeRay(vec3 pos, vec3 dir, float tmin, float tmax) {
     return ray;
 }
 
-struct Hit {
-    bool hit;
+struct TriHit {
     float t, u, v;
 };
 
-Hit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
-    vec3 p0 = vec3(tri.p0);
-    vec3 e1 = vec3(tri.e1);
-    vec3 e2 = vec3(tri.e2);
-    vec3 N = vec3(tri.N);
+struct Hit {
+    uint id;
+    float t, u, v;
+};
+
+float intersect(BBox bbox, Ray ray) {
+    vec3 t1 = (bbox.min.xyz - ray.pos) * ray.invDir;
+    vec3 t2 = (bbox.max.xyz - ray.pos) * ray.invDirPad;
+
+    vec3 tmin = min(t1, t2);
+    vec3 tmax = max(t1, t2);
+
+    float trmin = max(max(ray.tmin, tmin.x), max(tmin.y, tmin.z));
+    float trmax = min(min(ray.tmax, tmax.x), min(tmax.y, tmax.z));
+    if (trmin < trmax) {
+        return trmin;
+    }
+    return -1;
+}
+
+TriHit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
+    vec3 p0 = tri.p0.xyz;
+    vec3 e1 = tri.e1.xyz;
+    vec3 e2 = tri.e2.xyz;
+    vec3 N = tri.N.xyz;
 
     vec3 c = p0 - ray.pos;
     vec3 r = cross(ray.dir, c);
@@ -74,27 +122,88 @@ Hit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
     if (u >= eps && v >= eps && w >= eps) {
         float t = dot(N, c) * inv_det;
         if (t >= ray.tmin && t <= ray.tmax)
-        return Hit(true, t, u, v);
+        return TriHit(t, u, v);
     }
 
-    return Hit(false, 0, 0, 0);
+    return TriHit(-1, 0, 0);
+}
+
+bool isLeaf(Node node) {
+    return primCount(node.index) != 0;
 }
 
 Hit intersect(Ray ray, float eps) {
-    Hit res = Hit(false, 1e30, 0, 0);
-    for (uint i = 0; i < pc.triangleCount; i++) {
-        PrecomputedTriangle tri = inputBuffer.triangles[i];
-        Hit hit = intersect(tri, ray, eps);
-        if (hit.hit && hit.t < res.t) {
-            res = hit;
+    Hit closestHit = Hit(-1, 0, 0, 0);
+    float closestT = 1e30;
+    uint stack[32];
+    uint sp = 0;
+    stack[sp++] = 0;
+    while (sp != 0) {
+        uint nodeIdx = stack[--sp];
+        Node node = nodeBuffer.data[nodeIdx];
+        float tNode = intersect(node.bbox, ray);
+        if (tNode == -1.0 || tNode >= closestT) continue;
+        if (isLeaf(node)) {
+            uint id = id(node.index);
+            for (uint i = 0; i < primCount(node.index); ++i) {
+                uint primIdx = indexBuffer.data[id + i];
+                PrecomputedTriangle tri = triangleBuffer.data[primIdx];
+                TriHit triHit = intersect(tri, ray, eps);
+                if (triHit.t > eps && triHit.t < closestT) {
+                    closestT = triHit.t;
+                    closestHit = Hit(primIdx, triHit.t, triHit.u, triHit.v);
+                }
+            }
+        } else {
+            uint leftIdx  = id(node.index);
+            uint rightIdx = leftIdx + 1;
+            Node left  = nodeBuffer.data[leftIdx];
+            Node right = nodeBuffer.data[rightIdx];
+            float tLeft  = intersect(left.bbox, ray);
+            float tRight = intersect(right.bbox, ray);
+            bool hitLeft  = (tLeft  != -1.0) && (tLeft  < closestT);
+            bool hitRight = (tRight != -1.0) && (tRight < closestT);
+            if (hitLeft && hitRight) {
+                if (tLeft < tRight) {
+                    stack[sp++] = rightIdx;
+                    stack[sp++] = leftIdx;
+                } else {
+                    stack[sp++] = leftIdx;
+                    stack[sp++] = rightIdx;
+                }
+            } else if (hitLeft) {
+                stack[sp++] = leftIdx;
+            } else if (hitRight) {
+                stack[sp++] = rightIdx;
+            }
+            //            uint leftIdx  = id(node.index);
+            //            uint rightIdx = leftIdx + 1;
+            //
+            //            float tLeft  = -1.0;
+            //            float tRight = -1.0;
+            //
+            //            Node left  = nodeBuffer.data[leftIdx];
+            //            tLeft = intersect(left.bbox, ray);
+            //
+            //            if (tLeft != -1.0 && tLeft < closestT) {
+            //                stack[sp++] = leftIdx;
+            //            }
+            //
+            //            Node right = nodeBuffer.data[rightIdx];
+            //            tRight = intersect(right.bbox, ray);
+            //
+            //            if (tRight != -1.0 && tRight < closestT) {
+            //                stack[sp++] = rightIdx;
+            //            }
         }
     }
-    return res;
+
+    return closestHit;
 }
 
 vec3 traceRay(Ray ray) {
     Hit hit = intersect(ray, 1e-6);
-    if (!hit.hit) return vec3(0.0);
+    if (hit.id == -1) return vec3(0.0);
     else return vec3(1.0, 0.0, 0.0);
 }
 
@@ -106,9 +215,14 @@ void main() {
     const float u  = (coord.x + 0.5) / pc.width;
     const float px = (2.0 * u - 1.0) * imagePlaneWidth * 0.5;
     const float v  = (coord.y + 0.5) / pc.height;
-    const float py = (1.0 - 2.0 * v) * imagePlaneHeight * 0.5;
+    const float py = (2.0 * v - 1.0) * imagePlaneHeight * 0.5;
     vec3 dir = normalize(px * vec3(camera.right) + py * vec3(camera.up) + vec3(camera.forward));
     Ray ray = makeRay(vec3(camera.position), dir, camera.nearPlane, camera.farPlane);
     vec3 color = traceRay(ray);
     imageStore(outImage, coord, vec4(color, 1.0));
 }
+
+/*Try
+* 1) memory optimizations
+* 2) BVH8
+*/
