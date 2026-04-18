@@ -265,7 +265,7 @@ namespace crv::graphics::vulkan {
             const BufferCreateInfo cameraBufferCreateInfo {
                 .allocator = mContext.allocator(),
                 .size = sizeof(AlignedCamera),
-                .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, //TODO
+                .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
@@ -292,7 +292,7 @@ namespace crv::graphics::vulkan {
             const BufferCreateInfo trianglesBufferCreateInfo {
                 .allocator = mContext.allocator(),
                 .size = trianglesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
