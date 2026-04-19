@@ -64,8 +64,8 @@ std::tuple<std::vector<Tri>, cvk::BVH> loadModel(const glm::mat4& modelMatrix, c
 
 int main() {
     const cvk::WindowCreateInfo windowCreateInfo{
-        .width = 800,
-        .height = 600,
+        .width = WIDTH,
+        .height = HEIGHT,
         .name = "GPU Path Tracer"
     };
     const cs::CameraCreateInfo cameraCreateInfo{
@@ -85,8 +85,10 @@ int main() {
     model = glm::scale(model, glm::vec3(100));
     std::vector<cvk::AlignedTriangle> triangles;
     auto [tris, bvh] =  loadModel(model, DRAGON_PATH);
-    for (const auto& tri: tris) {
-        triangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1), Vec4(tri.e2, 1), Vec4(tri.N, 1));
+    for (int i = 0; i < tris.size(); ++i) {
+        Tri& tri = tris[bvh.primIds()[i]];
+        triangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
+                               Vec4(tri.e2, 1), Vec4(tri.N, 1));
     }
     std::vector<cvk::AlignedNode> nodes;
     for (const auto& node: bvh.nodes()) {
@@ -100,7 +102,6 @@ int main() {
         .cameraCreateInfo = cameraCreateInfo,
         .triangles = triangles,
         .nodes = nodes,
-        .indexes = bvh.primIds()
     };
     cvk::PathTracer pathTracer(pathTracerCreateInfo);
     setCallBacks(pathTracer.window(), pathTracer.camera());

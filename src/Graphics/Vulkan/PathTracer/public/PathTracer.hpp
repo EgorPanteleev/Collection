@@ -31,7 +31,6 @@ namespace crv::graphics::vulkan {
         scene::CameraCreateInfo cameraCreateInfo{};
         std::vector<AlignedTriangle> triangles{};
         std::vector<AlignedNode> nodes{};
-        std::vector<uint32_t> indexes{};
     };
 
     class PathTracer {
@@ -66,7 +65,6 @@ namespace crv::graphics::vulkan {
 #endif
         std::vector<AlignedTriangle> mTriangles{};
         std::vector<AlignedNode> mNodes{};
-        std::vector<uint32_t> mIndexes{};
         std::unique_ptr<scene::AbsCamera> mCamera{};
 
         Context mContext{};
@@ -81,7 +79,6 @@ namespace crv::graphics::vulkan {
         Buffer mCameraBuffer{};
         Buffer mTriangleBuffer{};
         Buffer mNodeBuffer{};
-        Buffer mIndexBuffer{};
         Image mdImage{};
         ImageView mdImageView{};
         Swapchain mSwapchain{};
