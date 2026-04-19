@@ -16,6 +16,7 @@ namespace crv::graphics::vulkan {
     public:
         using DefaultWrapper::DefaultWrapper;
         explicit Fence(const FenceCreateInfo& info);
+        explicit Fence(Fence&&) = default;
         Fence& operator=(Fence&&) = default;
         ~Fence() override { Fence::destroy(); }
         void destroy() override;

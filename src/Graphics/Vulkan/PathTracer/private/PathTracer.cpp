@@ -8,8 +8,7 @@
 #include "Timer.hpp"
 
 namespace crv::graphics::vulkan {
-    PathTracer::PathTracer(const PathTracerCreateInfo& info):
-    mTriangles(info.triangles), mNodes(info.nodes) {
+    PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight) {
         mCamera = std::make_unique<scene::FlyCamera>(info.cameraCreateInfo);
         createContext(info.windowCreateInfo);
         createDescriptorSetLayout();
@@ -23,6 +22,7 @@ namespace crv::graphics::vulkan {
         createSwapChain();
         createImages();
         createSyncObjects();
+        createBuffers(info);
     }
 
     void PathTracer::run() {
@@ -31,10 +31,15 @@ namespace crv::graphics::vulkan {
         const Window& window = mContext.window();
         while (!window.shouldClose()) {
             glfwPollEvents();
+            window.keyboardCallBack(mCamera.get(), deltaTime);
+            fpsCounter.update();
+            deltaTime = 1e3 / fpsCounter.fps();
+            window.setTitle(std::to_string(fpsCounter.fps()).c_str());
+
             uint32_t imageIndex;
             SwapchainAcquireInfo swapchainAcquireInfo {
-                .imageAvailableSemaphore = mImageAvailableSemaphore.get(),
-                .fence = mFence.get(),
+                .imageAvailableSemaphore = mImageAvailableSemaphores[mCurrentFrame].get(),
+                .fence = mFences[mCurrentFrame].get(),
                 .imageIndex = &imageIndex
             };
             const VkResult result = mSwapchain.acquireNextImage(swapchainAcquireInfo);
@@ -44,11 +49,7 @@ namespace crv::graphics::vulkan {
             update();
             record(imageIndex);
             submit(imageIndex);
-
-            window.keyboardCallBack(mCamera.get(), deltaTime);
-            fpsCounter.update();
-            deltaTime = 1e3 / fpsCounter.fps();
-            window.setTitle(std::to_string(fpsCounter.fps()).c_str());
+            updateCurrentFrame();
         }
         vkDeviceWaitIdle(mContext.device());
     }
@@ -106,16 +107,16 @@ namespace crv::graphics::vulkan {
 
     void PathTracer::createDescriptorPool() {
         const std::vector<VkDescriptorPoolSize> poolSizes{
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
-            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , 1},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , mFramesInFlight},
         };
 
         const DescriptorPoolCreateInfo createInfo {
             .device = mContext.device(),
             .poolSizes = poolSizes,
-            .maxSets = 1
+            .maxSets = mFramesInFlight
         };
         mDescriptorPool = DescriptorPool(createInfo);
     }
@@ -186,7 +187,7 @@ namespace crv::graphics::vulkan {
         const CommandBuffersCreateInfo createInfo {
             .device = mContext.device(),
             .commandPool = mCommandPool.get(),
-            .bufferCount = 1
+            .bufferCount = mFramesInFlight
         };
         mCommandBuffers = CommandBuffers(createInfo);
     }
@@ -251,12 +252,92 @@ namespace crv::graphics::vulkan {
         const SemaphoreCreateInfo semaphoreCreateInfo {
             .device = mContext.device()
         };
-        mImageAvailableSemaphore = Semaphore(semaphoreCreateInfo);
-        mComputeFinishedSemaphore = Semaphore(semaphoreCreateInfo);
         const FenceCreateInfo fenceCreateInfo {
             .device = mContext.device()
         };
-        mFence = Fence(fenceCreateInfo);
+        mImageAvailableSemaphores.resize(mFramesInFlight);
+        mComputeFinishedSemaphores.resize(mFramesInFlight);
+        mFences.resize(mFramesInFlight);
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mImageAvailableSemaphores[i]  = Semaphore(semaphoreCreateInfo);
+            mComputeFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
+            mFences[i] = Fence(fenceCreateInfo);
+        }
+    }
+
+    void PathTracer::createBuffers(const PathTracerCreateInfo& info) {
+        {
+            const uint32_t trianglesSize = sizeof(AlignedTriangle) * info.triangles.size();
+            const BufferCreateInfo triangleBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = trianglesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mTriangleBuffer = Buffer(triangleBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<AlignedTriangle*>(info.triangles.data()),
+                .size = trianglesSize,
+                .allocator = mContext.allocator(),
+                .buffer = mTriangleBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        {
+            const uint32_t nodesSize = sizeof(AlignedNode) * info.nodes.size();
+            const BufferCreateInfo nodeBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = nodesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mNodeBuffer = Buffer(nodeBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<AlignedNode*>(info.nodes.data()),
+                .size = nodesSize,
+                .allocator = mContext.allocator(),
+                .buffer = mNodeBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext.queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        {
+            const ImageCreateInfo imageCreateInfo {
+                .device = mContext.device(),
+                .allocator = mContext.allocator(),
+                .flags = 0,
+                .format = VK_FORMAT_R8G8B8A8_UNORM,
+                .extent = {mSwapchain.extent().width, mSwapchain.extent().height, 1},
+                .mipLevels = 1,
+                .arrayLayers = 1,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .tiling = VK_IMAGE_TILING_OPTIMAL,
+                .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                .memoryUsage = VMA_MEMORY_USAGE_AUTO
+            };
+            mdImage = Image(imageCreateInfo);
+
+            const ImageViewCreateInfo imageViewCreateInfo {
+                .device = mContext.device(),
+                .image = mdImage.get(),
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = VK_FORMAT_R8G8B8A8_UNORM,
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevels = 1,
+                .baseMipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            };
+            mdImageView = ImageView(imageViewCreateInfo);
+        }
+        mCameraBuffers.resize(mFramesInFlight);
     }
 
     void PathTracer::update() {
@@ -278,12 +359,12 @@ namespace crv::graphics::vulkan {
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
-            mCameraBuffer = Buffer(cameraBufferCreateInfo);
+            mCameraBuffers[mCurrentFrame] = Buffer(cameraBufferCreateInfo);
             CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
                 .data = &camera,
                 .size = sizeof(AlignedCamera),
                 .allocator = mContext.allocator(),
-                .buffer = mCameraBuffer.get(),
+                .buffer = mCameraBuffers[mCurrentFrame].get(),
                 .device = mContext.device(),
                 .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
                 .queue = mContext.queue(QueueFamilyType::COMPUTE)
@@ -291,78 +372,20 @@ namespace crv::graphics::vulkan {
             Buffer::copy(copyDataToGPUBufferInfo);
         }
         VkDescriptorBufferInfo cameraBufferInfo {
-            .buffer = mCameraBuffer.get(),
+            .buffer = mCameraBuffers[mCurrentFrame].get(),
             .offset = 0,
-            .range = mCameraBuffer.size()
+            .range = mCameraBuffers[mCurrentFrame].size()
         };
-
-        {
-            const uint32_t trianglesSize = sizeof(AlignedTriangle) * mTriangles.size();
-            const BufferCreateInfo triangleBufferCreateInfo {
-                .allocator = mContext.allocator(),
-                .size = trianglesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mTriangleBuffer = Buffer(triangleBufferCreateInfo);
-            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = mTriangles.data(),
-                .size = trianglesSize,
-                .allocator = mContext.allocator(),
-                .buffer = mTriangleBuffer.get(),
-                .device = mContext.device(),
-                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext.queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
         VkDescriptorBufferInfo trianglesBufferInfo {
             .buffer = mTriangleBuffer.get(),
             .offset = 0,
             .range = mTriangleBuffer.size()
         };
-        {
-            const uint32_t nodesSize = sizeof(AlignedNode) * mNodes.size();
-            const BufferCreateInfo nodeBufferCreateInfo {
-                .allocator = mContext.allocator(),
-                .size = nodesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mNodeBuffer = Buffer(nodeBufferCreateInfo);
-            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = mNodes.data(),
-                .size = nodesSize,
-                .allocator = mContext.allocator(),
-                .buffer = mNodeBuffer.get(),
-                .device = mContext.device(),
-                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext.queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
         VkDescriptorBufferInfo nodeBufferInfo {
             .buffer = mNodeBuffer.get(),
             .offset = 0,
             .range = mNodeBuffer.size()
         };
-
-        const ImageCreateInfo imageCreateInfo {
-            .device = mContext.device(),
-            .allocator = mContext.allocator(),
-            .flags = 0,
-            .format = VK_FORMAT_R8G8B8A8_UNORM,
-            .extent = {mSwapchain.extent().width, mSwapchain.extent().height, 1},
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            .memoryUsage = VMA_MEMORY_USAGE_AUTO
-        };
-        mdImage = Image(imageCreateInfo);
 
         auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
         VkCommandBuffer commandBuffer = (*commandBuffers)[0];
@@ -380,19 +403,6 @@ namespace crv::graphics::vulkan {
         Image::transit(imageTransitInfo);
 
         endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::COMPUTE));
-
-        ImageViewCreateInfo imageViewCreateInfo {
-            .device = mContext.device(),
-            .image = mdImage.get(),
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = imageCreateInfo.format,
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .mipLevels = 1,
-            .baseMipLevel = 0,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        };
-        mdImageView = ImageView(imageViewCreateInfo);
 
         VkDescriptorImageInfo imageInfo {
             .sampler = VK_NULL_HANDLE,
@@ -443,10 +453,14 @@ namespace crv::graphics::vulkan {
             .pBufferInfo = nullptr,
             .pTexelBufferView = nullptr
         };
-        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites{
-            {writeDescriptorSet0, writeDescriptorSet1,
-                writeDescriptorSet2, writeDescriptorSet3},
+        std::vector descriptorWrites{
+            writeDescriptorSet0, writeDescriptorSet1,
+            writeDescriptorSet2, writeDescriptorSet3
         };
+        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            descriptorsWrites.push_back(descriptorWrites);
+        }
 
         DescriptorSetsUpdateInfo updateInfo {
             .descriptorsWrites = descriptorsWrites
@@ -455,8 +469,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::record(const uint32_t imageIndex) {
-        const uint32_t currentFrame = 0;//recordInfo.currentFrame;
-        const auto& commandBuffer = mCommandBuffers[currentFrame];
+        const auto& commandBuffer = mCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         constexpr VkCommandBufferBeginInfo beginInfo {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -468,7 +481,7 @@ namespace crv::graphics::vulkan {
         }
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelines[0]);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
-                        0, 1, &mDescriptorSets[currentFrame], 0, nullptr);
+                        0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
         const uint32_t width  = mSwapchain.extent().width;
         const uint32_t height = mSwapchain.extent().height;
@@ -572,32 +585,31 @@ namespace crv::graphics::vulkan {
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to record command buffer!");
         }
-        vkResetFences(mContext.device(), 1, &mFence.get());
+        vkResetFences(mContext.device(), 1, &mFences[mCurrentFrame].get());
     }
 
     void PathTracer::submit(const uint32_t imageIndex) {
-        const uint32_t currentFrame = 0;
-        auto& commandBuffer = mCommandBuffers[currentFrame];
+        auto& commandBuffer = mCommandBuffers[mCurrentFrame];
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
         const VkSubmitInfo submitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &mImageAvailableSemaphore.get(),
+            .pWaitSemaphores = &mImageAvailableSemaphores[mCurrentFrame].get(),
             .pWaitDstStageMask = waitStages,
             .commandBufferCount = 1,
             .pCommandBuffers = &commandBuffer,
             .signalSemaphoreCount = 1,
-            .pSignalSemaphores = &mComputeFinishedSemaphore.get()
+            .pSignalSemaphores = &mComputeFinishedSemaphores[mCurrentFrame].get()
         };
 
         VkQueue queue = mContext.queue(QueueFamilyType::COMPUTE);
-        if (vkQueueSubmit(queue, 1, &submitInfo, mFence.get()) != VK_SUCCESS) {
+        if (vkQueueSubmit(queue, 1, &submitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
         const VkPresentInfoKHR presentInfo {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &mComputeFinishedSemaphore.get(),
+            .pWaitSemaphores = &mComputeFinishedSemaphores[mCurrentFrame].get(),
             .swapchainCount = 1,
             .pSwapchains = &mSwapchain.get(),
             .pImageIndices = &imageIndex,
@@ -611,7 +623,9 @@ namespace crv::graphics::vulkan {
 
     std::vector<VkDescriptorSetLayout> PathTracer::getDescriptorLayouts() const {
         std::vector<VkDescriptorSetLayout> layouts;
-        layouts.push_back(mDescriptorSetLayout.get());
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            layouts.push_back(mDescriptorSetLayout.get());
+        }
         return layouts;
     }
 
@@ -621,32 +635,3 @@ namespace crv::graphics::vulkan {
         return layouts;
     }
 }
-
-/* Plan
- * 1) Creating context
- *   1.1) window, surface
- *   1.2) instance
- *   1.3) devices
- *   1.4) queues
- *   1.5) allocator
- *
- * 2) Buffers - resources
- *   2.1) BVH
- *   2.2) Materials
- *   2.3) Lights
- *
- * 3) Bind resources
- *   3.1) Descriptor Set Layout
- *   3.2) Descriptor Set
- *
- * 4) Bind descriptor sets
- *   4.1) Write shaders, compile it
- *   4.2) Compute Pipeline Layout
- *   4.3) Compute Pipeline
- *
- * 5) Command buffers, recording
- *   5.1) Record command buffer
- *   5.2) Submit command buffer
- *
- * 6) Present the results
-*/

@@ -16,6 +16,7 @@ namespace crv::graphics::vulkan {
     public:
         using DefaultWrapper::DefaultWrapper;
         explicit Semaphore(const SemaphoreCreateInfo& info);
+        explicit Semaphore(Semaphore&&) = default;
         Semaphore& operator=(Semaphore&&) = default;
         ~Semaphore() override { Semaphore::destroy(); }
         void destroy() override;

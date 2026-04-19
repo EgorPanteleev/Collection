@@ -84,7 +84,8 @@ int main() {
     model = glm::rotate(model, glm::radians(180.f), glm::vec3(1, 0, 0));
     model = glm::scale(model, glm::vec3(100));
     std::vector<cvk::AlignedTriangle> triangles;
-    auto [tris, bvh] =  loadModel(model, DRAGON_PATH);
+    auto [tris, bvh] =
+        loadModel(model, DRAGON_PATH);
     for (int i = 0; i < tris.size(); ++i) {
         Tri& tri = tris[bvh.primIds()[i]];
         triangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
@@ -102,6 +103,7 @@ int main() {
         .cameraCreateInfo = cameraCreateInfo,
         .triangles = triangles,
         .nodes = nodes,
+        .framesInFlight = 2
     };
     cvk::PathTracer pathTracer(pathTracerCreateInfo);
     setCallBacks(pathTracer.window(), pathTracer.camera());

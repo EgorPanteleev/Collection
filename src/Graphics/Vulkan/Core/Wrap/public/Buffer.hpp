@@ -66,6 +66,7 @@ namespace crv::graphics::vulkan {
     public:
         using DefaultWrapper::DefaultWrapper;
         explicit Buffer(const BufferCreateInfo& info);
+        explicit Buffer(Buffer&&);
         Buffer& operator=(Buffer&&) = default;
         ~Buffer() override { Buffer::destroy(); }
         void destroy() override;

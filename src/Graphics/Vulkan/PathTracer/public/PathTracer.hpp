@@ -31,6 +31,7 @@ namespace crv::graphics::vulkan {
         scene::CameraCreateInfo cameraCreateInfo{};
         std::vector<AlignedTriangle> triangles{};
         std::vector<AlignedNode> nodes{};
+        uint32_t framesInFlight = 2;
     };
 
     class PathTracer {
@@ -52,6 +53,8 @@ namespace crv::graphics::vulkan {
         void createSwapChain();
         void createImages();
         void createSyncObjects();
+        void createBuffers(const PathTracerCreateInfo& info);
+        void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void update();
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
@@ -63,8 +66,8 @@ namespace crv::graphics::vulkan {
 #else
         bool mDebug = true;
 #endif
-        std::vector<AlignedTriangle> mTriangles{};
-        std::vector<AlignedNode> mNodes{};
+        uint32_t mFramesInFlight = 2;
+        uint32_t mCurrentFrame = 0;
         std::unique_ptr<scene::AbsCamera> mCamera{};
 
         Context mContext{};
@@ -76,7 +79,7 @@ namespace crv::graphics::vulkan {
         ComputePipelines mComputePipelines{};
         CommandPool mCommandPool{};
         CommandBuffers mCommandBuffers{};
-        Buffer mCameraBuffer{};
+        std::vector<Buffer> mCameraBuffers{};
         Buffer mTriangleBuffer{};
         Buffer mNodeBuffer{};
         Image mdImage{};
@@ -84,9 +87,9 @@ namespace crv::graphics::vulkan {
         Swapchain mSwapchain{};
         std::vector<VkImage> mImages{};
         std::vector<ImageView> mImageViews{};
-        Semaphore mImageAvailableSemaphore{};
-        Semaphore mComputeFinishedSemaphore{};
-        Fence mFence{};
+        std::vector<Semaphore> mImageAvailableSemaphores{};
+        std::vector<Semaphore> mComputeFinishedSemaphores{};
+        std::vector<Fence> mFences{};
     };
 }
 

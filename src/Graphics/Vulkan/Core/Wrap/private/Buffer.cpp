@@ -18,6 +18,15 @@ namespace crv::graphics::vulkan {
         mAllocation = Allocation(allocation);
     }
 
+    Buffer::Buffer(Buffer&& other) {
+        mAllocator = other.mAllocator;
+        mAllocation = std::move(other.mAllocation);
+        mSize = other.mSize;
+        other.mAllocator = VK_NULL_HANDLE;
+        other.mAllocation = {};
+        other.mSize = 0;
+    }
+
     void Buffer::destroy() {
         if (mHandle == VK_NULL_HANDLE) return;
         vmaDestroyBuffer(mAllocator, mHandle, mAllocation.get());
