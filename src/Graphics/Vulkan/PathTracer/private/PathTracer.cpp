@@ -9,7 +9,8 @@
 #include "Camera.hpp"
 
 namespace crv::graphics::vulkan {
-    PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight), mContext(info.context) {
+    PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight),
+    mTexturesSize(info.materials.size() * static_cast<uint32_t>(cm::Texture::UNKNOWN)), mContext(info.context) {
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -55,12 +56,12 @@ namespace crv::graphics::vulkan {
             .offset = 0,
             .range = cameraBuffer.size()
         };
-        VkDescriptorBufferInfo verticesBufferInfo {
+        VkDescriptorBufferInfo triangleBufferInfo {
             .buffer = mTriangleBuffer.get(),
             .offset = 0,
             .range = mTriangleBuffer.size()
         };
-        VkDescriptorBufferInfo indicesBufferInfo {
+        VkDescriptorBufferInfo triangleExtraBufferInfo {
             .buffer = mTriangleExtraBuffer.get(),
             .offset = 0,
             .range = mTriangleExtraBuffer.size()
@@ -70,12 +71,16 @@ namespace crv::graphics::vulkan {
             .offset = 0,
             .range = mNodeBuffer.size()
         };
+        VkDescriptorBufferInfo materialIndexBufferInfo {
+            .buffer = mMaterialIndexBuffer.get(),
+            .offset = 0,
+            .range = mMaterialIndexBuffer.size()
+        };
         std::vector<VkDescriptorImageInfo> textureInfos;
         for (size_t i = 0; i < mTextures.size(); i++) {
             auto& texturesByType = mTextures[i];
             for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
                 auto& texture = texturesByType[j];
-                if ( texture.view() == VK_NULL_HANDLE ) continue;
                 VkDescriptorImageInfo textureInfo {
                     .sampler = texture.sampler(),
                     .imageView = texture.view(),
@@ -126,7 +131,7 @@ namespace crv::graphics::vulkan {
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .pImageInfo = nullptr,
-            .pBufferInfo = &verticesBufferInfo,
+            .pBufferInfo = &triangleBufferInfo,
             .pTexelBufferView = nullptr
         };
 
@@ -137,7 +142,7 @@ namespace crv::graphics::vulkan {
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .pImageInfo = nullptr,
-            .pBufferInfo = &indicesBufferInfo,
+            .pBufferInfo = &triangleExtraBufferInfo,
             .pTexelBufferView = nullptr
         };
 
@@ -166,13 +171,24 @@ namespace crv::graphics::vulkan {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 5,
             .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &materialIndexBufferInfo,
+            .pTexelBufferView = nullptr
+        };
+        VkWriteDescriptorSet writeDescriptorSet6 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 6,
+            .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .pImageInfo = textureInfos.data()
         };
         std::vector descriptorWrites{
             writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2,
-            writeDescriptorSet3, writeDescriptorSet4, writeDescriptorSet5
+            writeDescriptorSet3, writeDescriptorSet4, writeDescriptorSet5,
+            writeDescriptorSet6
         };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
@@ -251,15 +267,22 @@ namespace crv::graphics::vulkan {
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
-        VkDescriptorSetLayoutBinding binding5 {
+        constexpr VkDescriptorSetLayoutBinding binding5 {
             .binding = 5,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr
+        };
+        VkDescriptorSetLayoutBinding binding6 {
+            .binding = 6,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 50, //TODO maxTextures
+            .descriptorCount = mTexturesSize,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
 
-        const std::vector bindings{binding0, binding1, binding2, binding3, binding4, binding5};
-        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0,
+        const std::vector bindings{binding0, binding1, binding2, binding3, binding4, binding5, binding6};
+        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0,
             VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
         };
@@ -278,7 +301,8 @@ namespace crv::graphics::vulkan {
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight * 50}, //TODO MAX TEXTURES
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight * mTexturesSize},
         };
 
         const DescriptorPoolCreateInfo createInfo {
@@ -290,7 +314,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSets() {
-        const std::vector<uint32_t> variableCounts(mFramesInFlight, 50); //todo MAX TEXTURES
+        const std::vector<uint32_t> variableCounts(mFramesInFlight, mTexturesSize);
         const DescriptorSetsCreateInfo createInfo {
             .device = mContext->device(),
             .layouts = getDescriptorLayouts(),
@@ -406,6 +430,27 @@ namespace crv::graphics::vulkan {
             };
             Buffer::copy(copyDataToGPUBufferInfo);
         }
+        {
+            const uint32_t indicesSize = sizeof(uint32_t) * info.materialIndices.size();
+            const BufferCreateInfo materialIndexBufferCreateInfo {
+                .allocator = mContext->allocator(),
+                .size = indicesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mMaterialIndexBuffer = Buffer(materialIndexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<uint32_t*>(info.materialIndices.data()),
+                .size = indicesSize,
+                .allocator = mContext->allocator(),
+                .buffer = mMaterialIndexBuffer.get(),
+                .device = mContext->device(),
+                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext->queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
         mCameraBuffers.resize(mFramesInFlight);
     }
 
@@ -416,7 +461,6 @@ namespace crv::graphics::vulkan {
             TexturesByType& texturesByType = mTextures[i];
             for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
                 const cm::Texture& texture = material.mTextures[texType];
-                Texture& vulkanTexture = texturesByType[texType];
                 TextureCreateInfo textureCreateInfo {
                     .device = mContext->device(),
                     .physicalDevice = mContext->physicalDevice(),
@@ -431,7 +475,7 @@ namespace crv::graphics::vulkan {
                     .tiling = VK_IMAGE_TILING_OPTIMAL,
                     .memoryUsage = VMA_MEMORY_USAGE_AUTO
                 };
-                vulkanTexture = Texture(textureCreateInfo);
+                texturesByType[texType] = Texture(textureCreateInfo);
             }
         }
     }

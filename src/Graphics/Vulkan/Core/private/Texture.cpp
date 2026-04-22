@@ -63,10 +63,9 @@ namespace crv::graphics::vulkan {
         const SamplerCreateInfo samplerCreateInfo {
             .device = info.device,
             .physicalDevice = info.physicalDevice,
-            .addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+            .addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .compareEnable = VK_FALSE,
             .mipLevels = info.mipLevels,
-            .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK
         };
         mSampler = Sampler(samplerCreateInfo);
     }

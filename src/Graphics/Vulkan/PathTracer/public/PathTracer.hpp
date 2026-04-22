@@ -33,6 +33,7 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedTriangleExtra> triangleExtras{};
         std::vector<AlignedNode> nodes{};
         std::vector<cm::Material> materials{};
+        std::vector<uint32_t> materialIndices{};
         uint32_t framesInFlight = 2;
     };
 
@@ -68,6 +69,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
         [[nodiscard]] std::vector<VkPipelineLayout> getPipelineLayouts() const;
         uint32_t mFramesInFlight = 2;
+        uint32_t mTexturesSize = 1;
 
         Context* mContext = nullptr;
         DescriptorSetLayout mDescriptorSetLayout{};
@@ -80,6 +82,7 @@ namespace crv::graphics::vulkan {
         Buffer mTriangleBuffer{};
         Buffer mTriangleExtraBuffer{};
         Buffer mNodeBuffer{};
+        Buffer mMaterialIndexBuffer{};
         std::vector<TexturesByType> mTextures{};
     };
 }

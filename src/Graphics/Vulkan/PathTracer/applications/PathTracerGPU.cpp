@@ -50,7 +50,7 @@ int main() {
         .windowCreateInfo = windowCreateInfo,
         .cameraCreateInfo = cameraCreateInfo,
         .modelMatrix = model,
-        .modelPath = DRAGON_PATH
+        .modelPath = ROOM_PATH
     };
     cvk::PathTracerApp app(createInfo);
     app.run();

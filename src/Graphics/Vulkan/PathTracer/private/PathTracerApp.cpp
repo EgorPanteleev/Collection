@@ -266,6 +266,7 @@ namespace crv::graphics::vulkan {
             .triangleExtras = triangleExtras,
             .nodes = nodes,
             .materials = materials,
+            .materialIndices = materialIndices,
             .framesInFlight = mFramesInFlight
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);

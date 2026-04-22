@@ -3,6 +3,9 @@
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
+#define TEXTURE_NUM 5
+#define PRIM_COUNT_BITS 4
+
 struct PrecomputedTriangle {
     vec4 p0, e1, e2, N;
 };
@@ -45,14 +48,17 @@ layout(binding = 3) buffer NodeBuffer {
 
 layout(binding = 4, rgba8) uniform writeonly image2D outImage;
 
-layout(binding = 5) uniform sampler2D textures[];
+layout(binding = 5) buffer MaterialIndexBuffer {
+    uint data[];
+} materialIndexBuffer;
+
+layout(binding = 6) uniform sampler2D textures[];
 
 struct Ray {
     vec3 pos, dir, invDir;
     float tmin, tmax;
 };
 
-const uint PRIM_COUNT_BITS = 4;
 const uint MAX_PRIM = (1u << PRIM_COUNT_BITS) - 1u;
 
 uint id(uint index) {
@@ -203,7 +209,7 @@ vec3 traceRay(Ray ray) {
     Hit hit = intersect(ray, 1e-6);
     if (hit.id == -1) return vec3(0.0);
     vec2 uv = getUV(hit.id, hit.u, hit.v);
-    vec3 texColor = texture(textures[nonuniformEXT(0)], uv).rgb;
+    vec3 texColor = texture(textures[nonuniformEXT(materialIndexBuffer.data[hit.id] * TEXTURE_NUM)], uv).rgb;
     return texColor;
 }
 
