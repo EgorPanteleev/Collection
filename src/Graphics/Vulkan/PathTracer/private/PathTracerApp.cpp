@@ -12,6 +12,7 @@
 namespace crv::graphics::vulkan {
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& info) {
         mCamera = std::make_unique<scene::FlyCamera>(info.cameraCreateInfo);
+        mDirectLight = info.directLight;
         createContext(info.windowCreateInfo);
         setCallBacks(mContext.window(), mCamera.get());
         createCommandPool();
@@ -46,6 +47,7 @@ namespace crv::graphics::vulkan {
             }
             PathTracerUpdateInfo pathTracerUpdateInfo {
                 .camera = mCamera.get(),
+                .directLight = mDirectLight,
                 .presentImage = mPresentImage.get(),
                 .presentImageView = mPresentImageView.get(),
                 .currentFrame = mCurrentFrame

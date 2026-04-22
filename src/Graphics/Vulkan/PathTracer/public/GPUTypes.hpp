@@ -39,6 +39,12 @@ namespace crv::graphics::vulkan {
         float FOV, aspectRatio, nearPlane, farPlane;
     };
 
+    struct alignas(16) AlignedDirectLight {
+        Vec4 dir;
+        float intensity;
+        float pad[3];
+    };
+
     struct PushConstants {
         uint32_t width;
         uint32_t height;

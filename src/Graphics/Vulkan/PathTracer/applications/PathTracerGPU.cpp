@@ -44,13 +44,14 @@ int main() {
     auto model = glm::mat4(1.);
     // model = glm::translate(model, glm::vec3(0, 0, 0));
     model = glm::rotate(model, glm::radians(180.f), glm::vec3(1, 0, 0));
-    model = glm::scale(model, glm::vec3(100));
+    model = glm::scale(model, glm::vec3(50));
 
     cvk::PathTracerAppCreateInfo createInfo {
         .windowCreateInfo = windowCreateInfo,
         .cameraCreateInfo = cameraCreateInfo,
         .modelMatrix = model,
-        .modelPath = ROOM_PATH
+        .modelPath = ROOM_PATH,
+        .directLight = cvk::AlignedDirectLight(Vec4(100, -20, -30, 1), 0.7)
     };
     cvk::PathTracerApp app(createInfo);
     app.run();

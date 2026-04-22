@@ -9,7 +9,7 @@ static double lastX = 0.0f, lastY = 0.0f;
 
 static void processKeyboard(GLFWwindow* window, void* cameraPtr, double deltaTime) {
     auto camera = static_cast<cs::AbsCamera*>(cameraPtr);
-    const float speed = 0.03f * deltaTime;
+    const float speed = 0.06f * deltaTime;
     //if (speed < 0) return;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera->move(speed, 0, 0);

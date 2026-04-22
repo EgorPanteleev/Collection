@@ -38,10 +38,11 @@ namespace crv::graphics::vulkan {
     };
 
     struct PathTracerUpdateInfo {
-        scene::AbsCamera* camera           = nullptr;
-        VkImage           presentImage     = VK_NULL_HANDLE;
-        VkImageView       presentImageView = VK_NULL_HANDLE;
-        uint32_t          currentFrame     = 0;
+        scene::AbsCamera*  camera           = nullptr;
+        AlignedDirectLight directLight{};
+        VkImage            presentImage     = VK_NULL_HANDLE;
+        VkImageView        presentImageView = VK_NULL_HANDLE;
+        uint32_t           currentFrame     = 0;
     };
 
     struct PathTracerRecordInfo {
@@ -83,6 +84,7 @@ namespace crv::graphics::vulkan {
         Buffer mTriangleExtraBuffer{};
         Buffer mNodeBuffer{};
         Buffer mMaterialIndexBuffer{};
+        std::vector<Buffer> mDirectLightBuffers{};
         std::vector<TexturesByType> mTextures{};
     };
 }

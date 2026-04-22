@@ -19,6 +19,7 @@ namespace crv::graphics::vulkan {
         scene::CameraCreateInfo cameraCreateInfo{};
         glm::mat4 modelMatrix;
         std::string modelPath;
+        AlignedDirectLight directLight{};
     };
 
     class PathTracerApp {
@@ -46,6 +47,7 @@ namespace crv::graphics::vulkan {
         uint32_t mFramesInFlight = 2;
         uint32_t mCurrentFrame = 0;
         std::unique_ptr<scene::AbsCamera> mCamera{};
+        AlignedDirectLight mDirectLight{};
 
         Context mContext{};
         CommandPool mCommandPool{};

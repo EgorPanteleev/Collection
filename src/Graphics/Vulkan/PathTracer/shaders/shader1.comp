@@ -5,6 +5,7 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 #define TEXTURE_NUM 5
 #define PRIM_COUNT_BITS 4
+#define FLT_MAX 3.402823e38
 
 struct PrecomputedTriangle {
     vec4 p0, e1, e2, N;
@@ -46,13 +47,19 @@ layout(binding = 3) buffer NodeBuffer {
     Node data[];
 } nodeBuffer;
 
-layout(binding = 4, rgba8) uniform writeonly image2D outImage;
-
-layout(binding = 5) buffer MaterialIndexBuffer {
+layout(binding = 4) buffer MaterialIndexBuffer {
     uint data[];
 } materialIndexBuffer;
 
-layout(binding = 6) uniform sampler2D textures[];
+layout(binding = 5) uniform DirectLight {
+    vec4 dir;
+    float intensity;
+    float pad[3];
+} directLight;
+
+layout(binding = 6, rgba8) uniform writeonly image2D outImage;
+
+layout(binding = 7) uniform sampler2D textures[];
 
 struct Ray {
     vec3 pos, dir, invDir;
@@ -134,7 +141,7 @@ bool isLeaf(Node node) {
 Hit intersect(Ray ray, float eps) {
     Hit closestHit = Hit(-1, 0, 0, 0);
     float closestT = 1e30;
-    uint stack[32];
+    uint stack[24];
     uint sp = 0;
     stack[sp++] = 0;
     while (sp != 0) {
@@ -174,25 +181,6 @@ Hit intersect(Ray ray, float eps) {
             } else if (hitRight) {
                 stack[sp++] = rightIdx;
             }
-            //            uint leftIdx  = id(node.index);
-            //            uint rightIdx = leftIdx + 1;
-            //
-            //            float tLeft  = -1.0;
-            //            float tRight = -1.0;
-            //
-            //            Node left  = nodeBuffer.data[leftIdx];
-            //            tLeft = intersect(left.bbox, ray);
-            //
-            //            if (tLeft != -1.0 && tLeft < closestT) {
-            //                stack[sp++] = leftIdx;
-            //            }
-            //
-            //            Node right = nodeBuffer.data[rightIdx];
-            //            tRight = intersect(right.bbox, ray);
-            //
-            //            if (tRight != -1.0 && tRight < closestT) {
-            //                stack[sp++] = rightIdx;
-            //            }
         }
     }
 
@@ -205,12 +193,25 @@ vec2 getUV(uint id, float u, float v) {
     w * triangleExtraBuffer.data[id].uv0;
 }
 
+struct Sample {
+    vec3 direction;
+    vec3 radiance;
+    float distance;
+};
+
 vec3 traceRay(Ray ray) {
     Hit hit = intersect(ray, 1e-6);
     if (hit.id == -1) return vec3(0.0);
     vec2 uv = getUV(hit.id, hit.u, hit.v);
-    vec3 texColor = texture(textures[nonuniformEXT(materialIndexBuffer.data[hit.id] * TEXTURE_NUM)], uv).rgb;
-    return texColor;
+    vec3 diffuseColor = texture(textures[nonuniformEXT(materialIndexBuffer.data[hit.id] * TEXTURE_NUM)], uv).rgb;
+    vec3 color = vec3(0);
+    vec3 P = ray.pos + ray.dir * hit.t;
+    Ray shadowRay = makeRay(P, directLight.dir.xyz, 1e-3, FLT_MAX);
+    Hit shadowHit = intersect(shadowRay, 1e-6);
+    if (shadowHit.id == -1) {
+        color += diffuseColor * directLight.intensity;
+    }
+    return color;
 }
 
 void main() {

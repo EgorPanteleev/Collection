@@ -50,7 +50,7 @@ int main() {
         .cameraCreateInfo = cameraCreateInfo,
         .model = model,
         .lights = lights,
-        .modelPath = MICRO_PATH,
+        .modelPath = ROOM_PATH,
         .width = WIDTH,
         .height = HEIGHT
     };
