@@ -22,6 +22,7 @@ namespace crv::graphics::vulkan {
     public:
         using DefaultWrapper::DefaultWrapper;
         explicit Sampler(const SamplerCreateInfo& info);
+        explicit Sampler(Sampler&&) = default;
         Sampler& operator=(Sampler&&) = default;
         ~Sampler() override { Sampler::destroy(); }
         void destroy() override;

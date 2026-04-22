@@ -35,6 +35,7 @@ namespace crv::graphics::vulkan {
     }
 
     void Sampler::destroy() {
+        if (mHandle == VK_NULL_HANDLE) return;
         vkDestroySampler(mDevice, mHandle, nullptr);
     }
 }

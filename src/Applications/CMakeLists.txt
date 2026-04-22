@@ -1,2 +1,1 @@
 add_subdirectory(CPUPathTracer)
-add_subdirectory(GPUPathTracer)

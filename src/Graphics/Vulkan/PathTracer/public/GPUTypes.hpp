@@ -10,11 +10,18 @@
 
 namespace crv::graphics::vulkan {
     using Scalar = float;
+    using Vec2 = glm::vec<2, Scalar>;
+    using Vec3 = glm::vec<3, Scalar>;
     using Vec4 = glm::vec<4, Scalar>;
     using Tri = PrecomputedTriangle<Scalar>;
     using BVH = BVH<Node<Scalar, 32, 4>, Tri>;
     struct alignas(16) AlignedTriangle {
         Vec4 p0, e1, e2, N;
+    };
+
+    struct alignas(16) AlignedTriangleExtra {
+        Vec2 uv0, uv1, uv2;
+        Vec2 padding;
     };
 
     struct alignas(16) AlignedBBox {

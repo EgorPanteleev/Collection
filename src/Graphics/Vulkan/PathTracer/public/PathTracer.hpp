@@ -12,84 +12,75 @@
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"
 #include "ComputePipelines.hpp"
-#include "CommandPool.hpp"
-#include "CommandBuffers.hpp"
 #include "Buffer.hpp"
 #include "Swapchain.hpp"
-#include "Image.hpp"
-#include "ImageView.hpp"
-#include "Semaphore.hpp"
-#include "Fence.hpp"
-#include "Triangle.hpp"
-#include "Camera.hpp"
 #include "GPUTypes.hpp"
-//#include "BVH.hpp"
+#include "Texture.hpp"
+
+namespace crv::scene {
+    class AbsCamera;
+}
 
 namespace crv::graphics::vulkan {
+    struct TexturesByType {
+        Texture& operator[](const int type) { return mTexturesByType[type]; }
+        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
+    };
+
     struct PathTracerCreateInfo {
-        WindowCreateInfo windowCreateInfo{};
-        scene::CameraCreateInfo cameraCreateInfo{};
+        Context* context;
         std::vector<AlignedTriangle> triangles{};
+        std::vector<AlignedTriangleExtra> triangleExtras{};
         std::vector<AlignedNode> nodes{};
+        std::vector<cm::Material> materials{};
         uint32_t framesInFlight = 2;
+    };
+
+    struct PathTracerUpdateInfo {
+        scene::AbsCamera* camera           = nullptr;
+        VkImage           presentImage     = VK_NULL_HANDLE;
+        VkImageView       presentImageView = VK_NULL_HANDLE;
+        uint32_t          currentFrame     = 0;
+    };
+
+    struct PathTracerRecordInfo {
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        VkExtent2D      extent{};
+        uint32_t        currentFrame     = 0;
     };
 
     class PathTracer {
     public:
+        PathTracer() = default;
         explicit PathTracer(const PathTracerCreateInfo& info);
-        void run();
-        Window& window() { return mContext.window(); }
-        scene::AbsCamera* camera() { return mCamera.get(); }
+        void update(const PathTracerUpdateInfo& info);
+        void record(const PathTracerRecordInfo& info);
     protected:
-        void createContext(const WindowCreateInfo& windowCreateInfo);
         void createDescriptorSetLayout();
         void createDescriptorPool();
         void createDescriptorSets();
         void createPipelineLayout();
         void createShaders();
         void createComputePipelines();
-        void createCommandPool();
-        void createCommandBuffers();
-        void createSwapChain();
-        void createImages();
-        void createSyncObjects();
         void createBuffers(const PathTracerCreateInfo& info);
-        void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
-        void update();
-        void record(uint32_t imageIndex);
-        void submit(uint32_t imageIndex);
+        void createTextures(const PathTracerCreateInfo& info);
 
         [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
         [[nodiscard]] std::vector<VkPipelineLayout> getPipelineLayouts() const;
-#ifdef NDEBUG
-        bool mDebug = false;
-#else
-        bool mDebug = true;
-#endif
         uint32_t mFramesInFlight = 2;
-        uint32_t mCurrentFrame = 0;
-        std::unique_ptr<scene::AbsCamera> mCamera{};
 
-        Context mContext{};
+        Context* mContext = nullptr;
         DescriptorSetLayout mDescriptorSetLayout{};
         DescriptorPool mDescriptorPool{};
         DescriptorSets mDescriptorSets{};
         PipelineLayout mPipelineLayout{};
         ShaderModule mShader{};
         ComputePipelines mComputePipelines{};
-        CommandPool mCommandPool{};
-        CommandBuffers mCommandBuffers{};
         std::vector<Buffer> mCameraBuffers{};
         Buffer mTriangleBuffer{};
+        Buffer mTriangleExtraBuffer{};
         Buffer mNodeBuffer{};
-        Image mdImage{};
-        ImageView mdImageView{};
-        Swapchain mSwapchain{};
-        std::vector<VkImage> mImages{};
-        std::vector<ImageView> mImageViews{};
-        std::vector<Semaphore> mImageAvailableSemaphores{};
-        std::vector<Semaphore> mComputeFinishedSemaphores{};
-        std::vector<Fence> mFences{};
+        std::vector<TexturesByType> mTextures{};
     };
 }
 

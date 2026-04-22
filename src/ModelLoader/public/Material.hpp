@@ -32,7 +32,7 @@ namespace crv::model {
             UNDEFINED = 5,
         };
 
-        Texture() : mDataByLevel() {}
+        Texture() = default;
 
         bool empty() const { return mDataByLevel.empty(); }
 
@@ -62,9 +62,9 @@ namespace crv::model {
 
         std::string mName;
 
-        glm::vec4 ambientColor;
-        glm::vec4 diffuseColor;
-        glm::vec4 specularColor;
+        glm::vec<4, float> ambientColor;
+        glm::vec<4, float> diffuseColor;
+        glm::vec<4, float> specularColor;
 
         float mTransparencyFactor;
         float mAlphaTest;

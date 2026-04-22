@@ -40,15 +40,27 @@ namespace crv::graphics::vulkan {
         VkPipelineStageFlags dstStage       = VK_PIPELINE_STAGE_NONE;
     };
 
+    struct CopyBufferToImageInfo {
+        VkCommandBuffer       commandBuffer  = VK_NULL_HANDLE;
+        VkBuffer              buffer         = VK_NULL_HANDLE;
+        VkImage               image          = VK_NULL_HANDLE;
+        VkExtent2D            extent{};
+        uint32_t              mipLevel       = 1;
+        uint32_t              baseArrayLayer = 0;
+        uint32_t              layerCount     = 1;
+    };
+
     class Image: public DefaultWrapper<VkImage> {
     public:
         using DefaultWrapper::DefaultWrapper;
         explicit Image(const ImageCreateInfo& info);
+        Image(Image&&) = default;
         Image& operator=(Image&&) = default;
         ~Image() override { Image::destroy(); }
         void destroy() override;
         [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         static void transit(const ImageTransitInfo& info);
+        static void copy(const CopyBufferToImageInfo& info);
     protected:
         void createImage(const ImageCreateInfo& info);
 

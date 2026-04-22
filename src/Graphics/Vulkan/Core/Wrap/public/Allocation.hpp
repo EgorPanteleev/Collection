@@ -13,6 +13,7 @@ namespace crv::graphics::vulkan {
     public:
         using DefaultWrapper::DefaultWrapper;
         Allocation() = default;
+        Allocation(Allocation&&) = default;
         Allocation& operator=(Allocation&&) = default;
         ~Allocation() override { Allocation::destroy(); }
         void destroy() override {}

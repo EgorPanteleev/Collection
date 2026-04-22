@@ -1,9 +1,15 @@
 #version 450
+#extension GL_EXT_nonuniform_qualifier : enable
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 struct PrecomputedTriangle {
     vec4 p0, e1, e2, N;
+};
+
+struct TriangleExtra {
+    vec2 uv0, uv1, uv2;
+    vec2 padding;
 };
 
 struct BBox {
@@ -29,11 +35,17 @@ layout(binding = 1) buffer TriangleBuffer {
     PrecomputedTriangle data[];
 } triangleBuffer;
 
-layout(binding = 2) buffer NodeBuffer {
+layout(binding = 2) buffer TriangleExtraBuffer {
+    TriangleExtra data[];
+} triangleExtraBuffer;
+
+layout(binding = 3) buffer NodeBuffer {
     Node data[];
 } nodeBuffer;
 
-layout(binding = 3, rgba8) uniform writeonly image2D outImage;
+layout(binding = 4, rgba8) uniform writeonly image2D outImage;
+
+layout(binding = 5) uniform sampler2D textures[];
 
 struct Ray {
     vec3 pos, dir, invDir;
@@ -85,7 +97,8 @@ float intersect(BBox bbox, Ray ray) {
     return -1.0;
 }
 
-TriHit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
+TriHit intersect(uint id, Ray ray, float eps) {
+    PrecomputedTriangle tri = triangleBuffer.data[id];
     vec3 p0 = tri.p0.xyz;
     vec3 e1 = tri.e1.xyz;
     vec3 e2 = tri.e2.xyz;
@@ -127,8 +140,7 @@ Hit intersect(Ray ray, float eps) {
         if (primCount != 0) {
             uint id = id(node.index);
             for (uint i = 0; i < primCount; ++i) {
-                PrecomputedTriangle tri = triangleBuffer.data[id + i];
-                TriHit triHit = intersect(tri, ray, eps);
+                TriHit triHit = intersect(id + i, ray, eps);
                 if (triHit.t > eps && triHit.t < closestT) {
                     closestT = triHit.t;
                     closestHit = Hit(id + i, triHit.t, triHit.u, triHit.v);
@@ -180,11 +192,19 @@ Hit intersect(Ray ray, float eps) {
 
     return closestHit;
 }
+vec2 getUV(uint id, float u, float v) {
+    const float w = 1.0 - u - v;
+    return u * triangleExtraBuffer.data[id].uv1 +
+    v * triangleExtraBuffer.data[id].uv2 +
+    w * triangleExtraBuffer.data[id].uv0;
+}
 
 vec3 traceRay(Ray ray) {
     Hit hit = intersect(ray, 1e-6);
     if (hit.id == -1) return vec3(0.0);
-    else return vec3(1.0, 0.0, 0.0);
+    vec2 uv = getUV(hit.id, hit.u, hit.v);
+    vec3 texColor = texture(textures[nonuniformEXT(0)], uv).rgb;
+    return texColor;
 }
 
 void main() {

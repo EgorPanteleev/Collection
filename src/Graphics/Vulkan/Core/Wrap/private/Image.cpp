@@ -69,4 +69,24 @@ namespace crv::graphics::vulkan {
             0,0, nullptr,0,
             nullptr,1, &barrier);
     }
+
+    void Image::copy(const CopyBufferToImageInfo &info) {
+        const VkBufferImageCopy region{
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = info.mipLevel,
+                .baseArrayLayer = info.baseArrayLayer,
+                .layerCount = info.layerCount
+            },
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {info.extent.width, info.extent.height, 1}
+        };
+        vkCmdCopyBufferToImage(
+                info.commandBuffer, info.buffer, info.image,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region
+        );
+    }
 }
