@@ -12,6 +12,7 @@
 #include "CommandBuffers.hpp"
 #include "Semaphore.hpp"
 #include "Fence.hpp"
+#include "ImGui.hpp"
 
 namespace crv::graphics::vulkan {
     struct PathTracerAppCreateInfo {
@@ -26,6 +27,9 @@ namespace crv::graphics::vulkan {
     public:
         PathTracerApp(const PathTracerAppCreateInfo& info);
         void run();
+        void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
+        [[nodiscard]] Window& window() { return mContext.window(); }
+        [[nodiscard]] scene::AbsCamera* camera() const { return mCamera.get(); }
     protected:
         void createContext(const WindowCreateInfo& windowCreateInfo);
         void createCommandPool();
@@ -35,6 +39,7 @@ namespace crv::graphics::vulkan {
         void createSyncObjects();
         void createPresentImage();
         void createPathTracer(const PathTracerAppCreateInfo& createInfo);
+        void createImGui();
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
@@ -48,6 +53,7 @@ namespace crv::graphics::vulkan {
         uint32_t mCurrentFrame = 0;
         std::unique_ptr<scene::AbsCamera> mCamera{};
         AlignedDirectLight mDirectLight{};
+        bool mRenderImGui = false;
 
         Context mContext{};
         CommandPool mCommandPool{};
@@ -61,6 +67,7 @@ namespace crv::graphics::vulkan {
         std::vector<Semaphore> mComputeFinishedSemaphores{};
         std::vector<Fence> mFences{};
         PathTracer mPathTracer{};
+        VkImGui mImGui{};
     };
 }
 

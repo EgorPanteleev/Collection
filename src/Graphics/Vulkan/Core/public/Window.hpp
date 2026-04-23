@@ -22,12 +22,12 @@ namespace crv::graphics::vulkan {
     class Window: public BaseWindow {
     public:
         using BaseWindow::BaseWindow;
-        using KeyboardCallBack = std::function<void(GLFWwindow*, void*, double)>;
+        using KeyboardCallBack = std::function<void(GLFWwindow*, double)>;
         explicit Window(const WindowCreateInfo& createInfo);
         Window& operator=(Window&&) noexcept = default;
         ~Window() override = default;
         void setKeyboardCallBack(const KeyboardCallBack& callBack) { mKeyboardCallBack = callBack; }
-        void keyboardCallBack(void* camera, double delta) const { mKeyboardCallBack(glfwWindow(), camera, delta); }
+        void keyboardCallBack(double delta) const { mKeyboardCallBack(glfwWindow(), delta); }
     protected:
         void init() override;
         KeyboardCallBack mKeyboardCallBack;

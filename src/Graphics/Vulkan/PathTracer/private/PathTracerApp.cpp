@@ -14,7 +14,7 @@ namespace crv::graphics::vulkan {
         mCamera = std::make_unique<scene::FlyCamera>(info.cameraCreateInfo);
         mDirectLight = info.directLight;
         createContext(info.windowCreateInfo);
-        setCallBacks(mContext.window(), mCamera.get());
+        setCallBacks(this);
         createCommandPool();
         createCommandBuffers();
         createSwapChain();
@@ -22,6 +22,7 @@ namespace crv::graphics::vulkan {
         createSyncObjects();
         createPresentImage();
         createPathTracer(info);
+        createImGui();
     }
 
     void PathTracerApp::run() {
@@ -30,7 +31,7 @@ namespace crv::graphics::vulkan {
         const Window& window = mContext.window();
         while (!window.shouldClose()) {
             glfwPollEvents();
-            window.keyboardCallBack(mCamera.get(), deltaTime);
+            window.keyboardCallBack(deltaTime);
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
@@ -53,6 +54,13 @@ namespace crv::graphics::vulkan {
                 .currentFrame = mCurrentFrame
             };
             mPathTracer.update(pathTracerUpdateInfo);
+
+            if (mRenderImGui) {
+                mImGui.beginFrame();
+                mImGui.demo();
+                mImGui.endFrame();
+            }
+
             record(imageIndex);
             submit(imageIndex);
             updateCurrentFrame();
@@ -273,7 +281,16 @@ namespace crv::graphics::vulkan {
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);
     }
-    
+
+    void PathTracerApp::createImGui() {
+        const ImGuiCreateInfo createInfo {
+            .context = &mContext,
+            .imageCount = static_cast<uint32_t>(mSwapchainImages.size()),
+            .format = mSwapchain.format()
+        };
+        mImGui = VkImGui(createInfo);
+    }
+
     void PathTracerApp::record(uint32_t imageIndex) {
         VkCommandBuffer commandBuffer = mCommandBuffers[mCurrentFrame]; 
         vkResetCommandBuffer(commandBuffer, 0);
@@ -308,7 +325,6 @@ namespace crv::graphics::vulkan {
                 .layerCount = 1
             }
         };
-
         const VkImageMemoryBarrier presentBarrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .srcAccessMask = 0,
@@ -329,7 +345,7 @@ namespace crv::graphics::vulkan {
         vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                              VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr,
                              0, nullptr, 2, barriers);
-        
+
         VkImageBlit blit{};
         blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.srcSubresource.layerCount = 1;
@@ -369,16 +385,45 @@ namespace crv::graphics::vulkan {
                 .layerCount = 1
             }
         };
+        VkPipelineStageFlagBits dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        if (mRenderImGui) {
+            presentBarrier1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            presentBarrier1.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
 
         vkCmdPipelineBarrier(
             commandBuffer,
             VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            dstStage,
             0,
             0, nullptr,
             0, nullptr,
             1, &presentBarrier1
         );
+
+        if (mRenderImGui) {
+            ImGuiRenderInfo renderInfo {
+                .commandBuffer = commandBuffer,
+                .imageView = mSwapchainImageViews[imageIndex].get(),
+                .extent = mSwapchain.extent()
+            };
+            mImGui.render(renderInfo);
+            presentBarrier1.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            presentBarrier1.dstAccessMask = 0;
+            presentBarrier1.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            presentBarrier1.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+            vkCmdPipelineBarrier(
+                commandBuffer,
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &presentBarrier1
+            );
+        }
         
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to record command buffer!");

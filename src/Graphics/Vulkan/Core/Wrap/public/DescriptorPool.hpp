@@ -12,9 +12,10 @@
 
 namespace crv::graphics::vulkan {
     struct DescriptorPoolCreateInfo {
-        VkDevice device = VK_NULL_HANDLE;
-        std::vector<VkDescriptorPoolSize> poolSizes;
-        uint32_t maxSets;
+        VkDevice                          device = VK_NULL_HANDLE;
+        VkDescriptorPoolCreateFlags       flags = 0;
+        std::vector<VkDescriptorPoolSize> poolSizes{};
+        uint32_t                          maxSets = 1;
     };
 
     class DescriptorPool: public DefaultWrapper<VkDescriptorPool> {

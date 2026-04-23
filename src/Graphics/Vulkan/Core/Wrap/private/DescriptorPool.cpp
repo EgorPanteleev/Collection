@@ -9,6 +9,7 @@ namespace crv::graphics::vulkan {
     DescriptorPool::DescriptorPool(const DescriptorPoolCreateInfo &info): mDevice(info.device) {
         VkDescriptorPoolCreateInfo poolInfo{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .flags = info.flags,
             .maxSets = info.maxSets,
             .poolSizeCount = static_cast<uint32_t>(info.poolSizes.size()),
             .pPoolSizes = info.poolSizes.data()

@@ -5,13 +5,12 @@
 #ifndef COLLECTION_CALLBACKS_HPP
 #define COLLECTION_CALLBACKS_HPP
 
-#include "Window.hpp"
-#include "Camera.hpp"
+#include "PathTracerApp.hpp"
 
-namespace cvk = crv::graphics::vulkan;
 namespace cs = crv::scene;
-
-void setCallBacks(cvk::Window& window, cs::AbsCamera* camera);
+namespace crv::graphics::vulkan {
+    void setCallBacks(PathTracerApp* app);
+}
 
 
 #endif //COLLECTION_CALLBACKS_HPP
