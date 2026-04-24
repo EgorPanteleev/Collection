@@ -7,6 +7,7 @@
 namespace crv::scene {
 
     FlyCamera::FlyCamera(const CameraCreateInfo &createInfo) : AbsCamera(createInfo) {
+        mType = CameraType::FLY;
     }
 
     void FlyCamera::move(float forward_, float right_, float up_) {

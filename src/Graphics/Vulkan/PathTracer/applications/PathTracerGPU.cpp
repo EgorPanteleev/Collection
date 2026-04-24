@@ -51,7 +51,7 @@ int main() {
         .cameraCreateInfo = cameraCreateInfo,
         .modelMatrix = model,
         .modelPath = ROOM_PATH,
-        .directLight = cvk::AlignedDirectLight(Vec4(100, -20, -30, 1), 0.7)
+        .directLight = cvk::AlignedDirectLight(Vec4(1, -0.2, -0.3, 1), 0.7)
     };
     cvk::PathTracerApp app(createInfo);
     app.run();

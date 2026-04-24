@@ -29,8 +29,9 @@ namespace crv::graphics::vulkan {
         void run();
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] Window& window() { return mContext.window(); }
-        [[nodiscard]] scene::AbsCamera* camera() const { return mCamera.get(); }
+        [[nodiscard]] scene::AbsCamera* camera() const { return mCamera; }
     protected:
+        void createCamera(const scene::CameraCreateInfo& createInfo);
         void createContext(const WindowCreateInfo& windowCreateInfo);
         void createCommandPool();
         void createCommandBuffers();
@@ -40,9 +41,14 @@ namespace crv::graphics::vulkan {
         void createPresentImage();
         void createPathTracer(const PathTracerAppCreateInfo& createInfo);
         void createImGui();
+        void update();
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
+        void acquireNextImage(uint32_t& imageIndex);
+        void drawFrame();
+        void drawControlPanel();
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
+        void setCamera(scene::CameraType type);
 
 #ifdef NDEBUG
         bool mDebug = false;
@@ -51,7 +57,9 @@ namespace crv::graphics::vulkan {
 #endif
         uint32_t mFramesInFlight = 2;
         uint32_t mCurrentFrame = 0;
-        std::unique_ptr<scene::AbsCamera> mCamera{};
+        scene::FlyCamera mFlyCamera{};
+        scene::OrbitalCamera mOrbitalCamera{};
+        scene::AbsCamera* mCamera = nullptr;
         AlignedDirectLight mDirectLight{};
         bool mRenderImGui = false;
 

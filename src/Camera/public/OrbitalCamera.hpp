@@ -11,6 +11,7 @@
 namespace crv::scene {
     class OrbitalCamera: public AbsCamera {
     public:
+        OrbitalCamera() = default;
         OrbitalCamera(const CameraCreateInfo& createInfo);
 
         glm::vec3 target() const override { return mTarget; }

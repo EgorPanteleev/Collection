@@ -9,6 +9,7 @@ namespace crv::scene {
     OrbitalCamera::OrbitalCamera(const CameraCreateInfo &createInfo) : AbsCamera(createInfo),
                                                                        mTarget(createInfo.target),
                                                                        mRadius(glm::length(mTarget - mPosition)) {
+        mType = CameraType::ORBITAL;
     }
 
     void OrbitalCamera::rotate(float pitch, float yaw, float roll) {

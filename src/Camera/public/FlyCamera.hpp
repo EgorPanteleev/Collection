@@ -12,6 +12,7 @@
 namespace crv::scene {
     class FlyCamera: public AbsCamera {
     public:
+        FlyCamera() = default;
         FlyCamera(const CameraCreateInfo& createInfo);
 
         void move(float forward_, float right_, float up_) override;

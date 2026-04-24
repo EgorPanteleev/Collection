@@ -48,7 +48,8 @@ namespace crv::graphics::vulkan {
     }
 
     static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-        auto camera = static_cast<cs::AbsCamera*>(glfwGetWindowUserPointer(window));
+        auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
+        auto camera = app->camera();
         float speed = 10.0f;
         camera->zoom(yoffset * speed);
     }

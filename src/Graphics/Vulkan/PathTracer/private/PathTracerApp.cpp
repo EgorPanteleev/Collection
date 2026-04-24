@@ -11,7 +11,7 @@
 
 namespace crv::graphics::vulkan {
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& info) {
-        mCamera = std::make_unique<scene::FlyCamera>(info.cameraCreateInfo);
+        createCamera(info.cameraCreateInfo);
         mDirectLight = info.directLight;
         createContext(info.windowCreateInfo);
         setCallBacks(this);
@@ -35,37 +35,20 @@ namespace crv::graphics::vulkan {
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
-
-            uint32_t imageIndex;
-            SwapchainAcquireInfo swapchainAcquireInfo {
-                .imageAvailableSemaphore = mImageAvailableSemaphores[mCurrentFrame].get(),
-                .fence = mFences[mCurrentFrame].get(),
-                .imageIndex = &imageIndex
-            };
-            const VkResult result = mSwapchain.acquireNextImage(swapchainAcquireInfo);
-            if (result != VK_SUCCESS) {
-                throw std::runtime_error("Failed to acquire image!");
-            }
-            PathTracerUpdateInfo pathTracerUpdateInfo {
-                .camera = mCamera.get(),
-                .directLight = mDirectLight,
-                .presentImage = mPresentImage.get(),
-                .presentImageView = mPresentImageView.get(),
-                .currentFrame = mCurrentFrame
-            };
-            mPathTracer.update(pathTracerUpdateInfo);
-
-            if (mRenderImGui) {
-                mImGui.beginFrame();
-                mImGui.demo();
-                mImGui.endFrame();
-            }
-
-            record(imageIndex);
-            submit(imageIndex);
+            drawFrame();
             updateCurrentFrame();
         }
         vkDeviceWaitIdle(mContext.device());
+    }
+
+    void PathTracerApp::createCamera(const scene::CameraCreateInfo& info) {
+        mFlyCamera = scene::FlyCamera(info);
+        mOrbitalCamera = scene::OrbitalCamera(info);
+        if (info.type == scene::CameraType::FLY) {
+            mCamera = &mFlyCamera;
+        } else {
+            mCamera = &mOrbitalCamera;
+        }
     }
 
     void PathTracerApp::createContext(const WindowCreateInfo& windowCreateInfo) {
@@ -291,6 +274,17 @@ namespace crv::graphics::vulkan {
         mImGui = VkImGui(createInfo);
     }
 
+    void PathTracerApp::update() {
+        const PathTracerUpdateInfo pathTracerUpdateInfo {
+            .camera = mCamera,
+            .directLight = mDirectLight,
+            .presentImage = mPresentImage.get(),
+            .presentImageView = mPresentImageView.get(),
+            .currentFrame = mCurrentFrame
+        };
+        mPathTracer.update(pathTracerUpdateInfo);
+    }
+
     void PathTracerApp::record(uint32_t imageIndex) {
         VkCommandBuffer commandBuffer = mCommandBuffers[mCurrentFrame]; 
         vkResetCommandBuffer(commandBuffer, 0);
@@ -461,6 +455,64 @@ namespace crv::graphics::vulkan {
         const VkResult result = vkQueuePresentKHR(mContext.queue(QueueFamilyType::PRESENT), &presentInfo);
         if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to present image!");
+        }
+    }
+
+    void PathTracerApp::acquireNextImage(uint32_t& imageIndex) {
+        SwapchainAcquireInfo swapchainAcquireInfo {
+            .imageAvailableSemaphore = mImageAvailableSemaphores[mCurrentFrame].get(),
+            .fence = mFences[mCurrentFrame].get(),
+            .imageIndex = &imageIndex
+        };
+        const VkResult result = mSwapchain.acquireNextImage(swapchainAcquireInfo);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("Failed to acquire image!");
+        }
+    }
+
+    void PathTracerApp::drawFrame() {
+        uint32_t imageIndex;
+        acquireNextImage(imageIndex);
+        drawControlPanel();
+        update();
+        record(imageIndex);
+        submit(imageIndex);
+    }
+
+    void PathTracerApp::drawControlPanel() {
+        if (!mRenderImGui) return;
+        const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
+        mImGui.beginFrame();
+        ImGui::Begin("Settings");
+        const ImVec2 mousePos = ImGui::GetMousePos();
+        ImGui::Text("Mouse pos: %.1f x %.1f", mousePos.x, mousePos.y);
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
+        ImGui::Separator();
+        ImGui::DragFloat3("Light direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f);
+
+        ImGui::Separator();
+        if (VkImGui::selectableButton("Fly", isFlyCamera)) {
+            setCamera(scene::CameraType::FLY);
+        }
+        ImGui::SameLine(0.0f, 5.0f);
+        if (VkImGui::selectableButton("Orbital", !isFlyCamera)) {
+            setCamera(scene::CameraType::ORBITAL);
+        }
+        ImGui::SameLine();
+        ImGui::Text("Camera type");
+        ImGui::Separator();
+        ImGui::End();
+        mImGui.endFrame();
+    }
+
+    void PathTracerApp::setCamera(const scene::CameraType type) {
+        if (type == scene::CameraType::FLY) {
+            mCamera = &mFlyCamera;
+            mCamera->setPosition(mOrbitalCamera.position());
+            mCamera->setOrientation(mOrbitalCamera.orientation());
+        } else {
+            mCamera = &mOrbitalCamera;
         }
     }
 }

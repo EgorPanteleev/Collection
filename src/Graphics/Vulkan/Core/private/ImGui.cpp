@@ -191,8 +191,9 @@ namespace crv::graphics::vulkan {
     }
 
     void VkImGui::render(const ImGuiRenderInfo& info) {
-         VkClearValue clearColor{};
-         clearColor.color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+         VkClearValue clearColor{
+            .color = { {0.0f, 0.0f, 0.0f, 1.0f} }
+         };
 
          VkRenderingAttachmentInfoKHR colorAttachment{};
          colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
