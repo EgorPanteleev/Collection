@@ -135,34 +135,70 @@ namespace crv::graphics {
         return imageBuffer;
     }
 
+    // auto hit = intersect(ray, 1e-6);
+    // if (!hit) return {0., 0., 0.};
+    // auto& [id, t, u, v] = *hit;
+    // Vec2 uv = getUV(id, u, v);
+    // Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
+    // const Primitive& primitive = mBvh->primitive(id);
+    // Vec3 N = primitive.normal();
+    // Vec3 P = ray.pos + ray.dir * t;
+    // Vec3 directColor{0};
+    // for (auto light: mLights) {
+    //     Sample sample = light->sample(P);
+    //     Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
+    //     auto shadowHit = intersect(shadowRay, 1e-6);
+    //     if (shadowHit) continue;
+    //     directColor += diffuseColor * sample.radiance;
+    // }
+    // if (depth == MAX_DEPTH) return directColor;
+    // Vec3 wo = mCamera->position() - P;
+    // Lambertian<Type> mat;
+    // Vec3 wi, brdf;
+    // Type pdf;
+    // mat.scatter(N, wo, wi, brdf, pdf);
+    // Ray nextRay(P, wi, 1e-3, mCamera->farPlane());
+    // Vec3 indirectColor = diffuseColor * brdf * traceRay(nextRay, depth + 1) * glm::dot(N, wi) / pdf;
+    //
+    // return directColor + indirectColor;
+
+
     template<typename Node, typename Primitive>
     PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray &ray, uint8_t depth) const {
-        auto hit = intersect(ray, 1e-6);
-        if (!hit) return {0., 0., 0.};
-        auto& [id, t, u, v] = *hit;
-        Vec2 uv = getUV(id, u, v);
-        Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
-        const Primitive& primitive = mBvh->primitive(id);
-        Vec3 N = primitive.normal();
-        Vec3 P = ray.pos + ray.dir * t;
-        Vec3 directColor{0};
-        for (auto light: mLights) {
-            Sample sample = light->sample(P);
-            Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
-            auto shadowHit = intersect(shadowRay, 1e-6);
-            if (shadowHit) continue;
-            directColor += diffuseColor * sample.radiance;
-        }
-        if (depth == MAX_DEPTH) return directColor;
-        Vec3 wo = mCamera->position() - P;
-        Lambertian<Type> mat;
-        Vec3 wi, brdf;
-        Type pdf;
-        mat.scatter(N, wo, wi, brdf, pdf);
-        Ray nextRay(P, wi, 1e-3, mCamera->farPlane());
-        Vec3 indirectColor = diffuseColor * brdf * traceRay(nextRay, depth + 1) * glm::dot(N, wi) / pdf;
+        Vec3 resultColor(0.0f);
+        Vec3 throughput(1.0f);
+        Ray currentRay = ray;
+        for (uint8_t d = depth; d <= MAX_DEPTH; d++) {
+            auto hit = intersect(currentRay, 1e-6);
+            if (!hit) break;
+            auto& [id, t, u, v] = *hit;
+            Vec2 uv = getUV(id, u, v);
+            Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
+            const Primitive& primitive = mBvh->primitive(id);
+            Vec3 N = primitive.normal();
+            Vec3 P = currentRay.pos + currentRay.dir * t;
 
-        return directColor + indirectColor;
+            Vec3 directColor(0.0f);
+            for (auto light : mLights) {
+                Sample sample = light->sample(P);
+                Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
+                if (intersect(shadowRay, 1e-6)) continue;
+                directColor += diffuseColor * sample.radiance;
+            }
+
+            resultColor += throughput * directColor;
+            if (d == MAX_DEPTH) break;
+            Vec3 wo = -currentRay.dir;
+            Lambertian<Type> material;
+            Vec3 wi, brdf;
+            Type pdf;
+            material.scatter(N, wo, wi, brdf, pdf);
+            Type cosTheta = glm::dot(N, wi);
+            if (pdf <= 0 || cosTheta <= 0) break;
+            throughput *= diffuseColor * brdf * cosTheta / pdf;
+            currentRay = Ray(P, wi, 1e-3, mCamera->farPlane());
+        }
+        return resultColor;
     }
 
     template<typename Node, typename Primitive>

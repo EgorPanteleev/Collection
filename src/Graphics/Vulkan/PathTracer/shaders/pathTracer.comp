@@ -1,0 +1,131 @@
+#version 450
+#extension GL_EXT_nonuniform_qualifier : enable
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+#include "layout.glsl"
+
+#define TEXTURE_NUM 5
+
+Hit intersect(Ray ray, float eps) {
+    Hit closestHit = Hit(-1, 0, 0, 0);
+    float closestT = 1e30;
+    uint stack[24];
+    uint sp = 0;
+    stack[sp++] = 0;
+    while (sp != 0) {
+        uint nodeIdx = stack[--sp];
+        Node node = nodeBuffer.data[nodeIdx];
+        float tNode = intersect(node.bbox, ray);
+        if (tNode == -1.0 || tNode >= closestT) continue;
+        uint primCount = primCount(node.index);
+        if (primCount != 0) {
+            uint id = id(node.index);
+            for (uint i = 0; i < primCount; ++i) {
+                PrecomputedTriangle tri = triangleBuffer.data[id + i];
+                TriHit triHit = intersect(tri, ray, eps);
+                if (triHit.t > eps && triHit.t < closestT) {
+                    closestT = triHit.t;
+                    closestHit = Hit(id + i, triHit.t, triHit.u, triHit.v);
+                }
+            }
+        } else {
+            uint leftIdx  = id(node.index);
+            uint rightIdx = leftIdx + 1;
+            Node left  = nodeBuffer.data[leftIdx];
+            Node right = nodeBuffer.data[rightIdx];
+            float tLeft  = intersect(left.bbox, ray);
+            float tRight = intersect(right.bbox, ray);
+            bool hitLeft  = (tLeft  != -1.0) && (tLeft  < closestT);
+            bool hitRight = (tRight != -1.0) && (tRight < closestT);
+            if (hitLeft && hitRight) {
+                if (tLeft < tRight) {
+                    stack[sp++] = rightIdx;
+                    stack[sp++] = leftIdx;
+                } else {
+                    stack[sp++] = leftIdx;
+                    stack[sp++] = rightIdx;
+                }
+            } else if (hitLeft) {
+                stack[sp++] = leftIdx;
+            } else if (hitRight) {
+                stack[sp++] = rightIdx;
+            }
+        }
+    }
+
+    return closestHit;
+}
+//struct Sample {
+//    vec3 direction;
+//    vec3 radiance;
+//    float distance;
+//};
+
+//    PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray &ray, uint8_t depth) const {
+//        Vec3 resultColor(0.0f);
+//        Vec3 throughput(1.0f);
+//        Ray currentRay = ray;
+//        for (uint8_t d = depth; d <= MAX_DEPTH; d++) {
+//            auto hit = intersect(currentRay, 1e-6);
+//            if (!hit) break;
+//            auto& [id, t, u, v] = *hit;
+//            Vec2 uv = getUV(id, u, v);
+//            Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
+//            const Primitive& primitive = mBvh->primitive(id);
+//            Vec3 N = primitive.normal();
+//            Vec3 P = currentRay.pos + currentRay.dir * t;
+//
+//            Vec3 directColor(0.0f);
+//            for (auto light : mLights) {
+//                Sample sample = light->sample(P);
+//                Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
+//                if (intersect(shadowRay, 1e-6)) continue;
+//                directColor += diffuseColor * sample.radiance;
+//            }
+//
+//            resultColor += throughput * directColor;
+//            if (d == MAX_DEPTH) break;
+//            Vec3 wo = -currentRay.dir;
+//            Lambertian<Type> material;
+//            Vec3 wi, brdf;
+//            Type pdf;
+//            material.scatter(N, wo, wi, brdf, pdf);
+//            Type cosTheta = glm::dot(N, wi);
+//            if (pdf <= 0 || cosTheta <= 0) break;
+//            throughput *= diffuseColor * brdf * cosTheta / pdf;
+//            currentRay = Ray(P, wi, 1e-3, mCamera->farPlane());
+//        }
+//        return resultColor;
+//    }
+
+vec3 traceRay(Ray ray) {
+    Hit hit = intersect(ray, 1e-6);
+    if (hit.id == -1) return vec3(0.0);
+    TriangleExtra triExtra = triangleExtraBuffer.data[hit.id];
+    vec2 uv = getUV(triExtra, hit.u, hit.v);
+    vec3 diffuseColor = texture(textures[nonuniformEXT(materialIndexBuffer.data[hit.id] * TEXTURE_NUM)], uv).rgb;
+    vec3 color = vec3(0);
+    vec3 P = ray.pos + ray.dir * hit.t;
+    Ray shadowRay = makeRay(P, directLight.dir.xyz, 1e-3, FLT_MAX);
+    Hit shadowHit = intersect(shadowRay, 1e-6);
+    if (shadowHit.id == -1) {
+        color += diffuseColor * directLight.intensity;
+    }
+    return color;
+}
+
+void main() {
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    const float imagePlaneHeight = 2.0 * tan(radians(camera.FOV * 0.5));
+    const float imagePlaneWidth  = imagePlaneHeight * camera.aspectRatio;
+
+    const float u  = (coord.x + 0.5) / pc.width;
+    const float px = (2.0 * u - 1.0) * imagePlaneWidth * 0.5;
+    const float v  = (coord.y + 0.5) / pc.height;
+    const float py = (2.0 * v - 1.0) * imagePlaneHeight * 0.5;
+    vec3 dir = normalize(px * vec3(camera.right) + py * vec3(camera.up) + vec3(camera.forward));
+    Ray ray = makeRay(vec3(camera.position), dir, camera.nearPlane, camera.farPlane);
+    vec3 color = traceRay(ray);
+    imageStore(outImage, coord, vec4(color, 1.0));
+}

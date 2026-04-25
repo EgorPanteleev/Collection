@@ -45,7 +45,7 @@ int main() {
     model = glm::scale(model, glm::vec3(100));
     std::vector<cg::Light<Type>*> lights;
     lights.emplace_back( new cg::DirectionalLight<Type>(0.7, {100, -20, -30}));
-    lights.emplace_back( new cg::PointLight<Type>(500, {-30, 10, 0}));
+    //lights.emplace_back( new cg::PointLight<Type>(500, {-30, 10, 0}));
     capp::PathTracerAppCreateInfo<Type> appCreateInfo {
         .cameraCreateInfo = cameraCreateInfo,
         .model = model,
