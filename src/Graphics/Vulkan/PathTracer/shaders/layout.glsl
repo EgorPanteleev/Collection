@@ -1,7 +1,10 @@
+#ifndef LAYOUT_GLSL
+#define LAYOUT_GLSL
+
 #include "bvh.glsl"
 
 layout(push_constant) uniform PushConstants {
-    int width, height;
+    uint width, height, frame;
 } pc;
 
 layout(binding = 0) uniform Camera {
@@ -34,3 +37,5 @@ layout(binding = 5) uniform DirectLight {
 layout(binding = 6, rgba8) uniform writeonly image2D outImage;
 
 layout(binding = 7) uniform sampler2D textures[];
+
+#endif

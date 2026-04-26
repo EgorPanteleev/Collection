@@ -245,7 +245,7 @@ namespace crv::graphics::vulkan {
 
         const uint32_t width  = info.extent.width;
         const uint32_t height = info.extent.height;
-        const PushConstants pc(width, height);
+        const PushConstants pc(width, height, info.frameCount);
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
             0, sizeof(PushConstants), &pc);
 
@@ -387,7 +387,7 @@ namespace crv::graphics::vulkan {
     void PathTracer::createShaders() {
         const ShaderModuleCreateInfo createInfo {
             .device = mContext->device(),
-            .fileName = COMPILED_SHADERS_DIR"/shader1.comp.spv"
+            .fileName = COMPILED_SHADERS_DIR"/pathTracer.comp.spv"
         };
         mShader = ShaderModule(createInfo);
     }

@@ -49,6 +49,7 @@ namespace crv::graphics::vulkan {
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
         VkExtent2D      extent{};
         uint32_t        currentFrame     = 0;
+        uint32_t        frameCount       = 0;
     };
 
     class PathTracer {

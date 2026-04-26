@@ -1,3 +1,6 @@
+#ifndef BVH_GLSL
+#define BVH_GLSL
+
 #include "triangle.glsl"
 
 #define PRIM_COUNT_BITS 4
@@ -25,3 +28,5 @@ struct Hit {
     uint id;
     float t, u, v;
 };
+
+#endif

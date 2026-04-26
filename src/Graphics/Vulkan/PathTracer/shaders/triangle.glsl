@@ -1,3 +1,6 @@
+#ifndef TRIANGLE_GLSL
+#define TRIANGLE_GLSL
+
 #include "utils.glsl"
 
 struct PrecomputedTriangle {
@@ -42,3 +45,5 @@ vec2 getUV(TriangleExtra triExtra, float u, float v) {
            v * triExtra.uv2 +
            w * triExtra.uv0;
 }
+
+#endif

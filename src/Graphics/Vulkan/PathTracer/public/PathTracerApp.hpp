@@ -57,6 +57,7 @@ namespace crv::graphics::vulkan {
 #endif
         uint32_t mFramesInFlight = 2;
         uint32_t mCurrentFrame = 0;
+        uint32_t mFrameCount = 0;
         scene::FlyCamera mFlyCamera{};
         scene::OrbitalCamera mOrbitalCamera{};
         scene::AbsCamera* mCamera = nullptr;

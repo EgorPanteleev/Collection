@@ -37,6 +37,7 @@ namespace crv::graphics::vulkan {
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
             drawFrame();
             updateCurrentFrame();
+            ++mFrameCount;
         }
         vkDeviceWaitIdle(mContext.device());
     }
@@ -275,6 +276,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::update() {
+        mDirectLight.dir = glm::normalize(mDirectLight.dir);
         const PathTracerUpdateInfo pathTracerUpdateInfo {
             .camera = mCamera,
             .directLight = mDirectLight,
@@ -300,7 +302,8 @@ namespace crv::graphics::vulkan {
         PathTracerRecordInfo pathTracerRecordInfo {
             .commandBuffer = commandBuffer,
             .extent = mSwapchain.extent(),
-            .currentFrame = mCurrentFrame
+            .currentFrame = mCurrentFrame,
+            .frameCount = mFrameCount
         };
         mPathTracer.record(pathTracerRecordInfo);
         

@@ -3,29 +3,86 @@
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-#include "layout.glsl"
-
 #define TEXTURE_NUM 5
+#define MAX_DEPTH 3
+
+#include "layout.glsl"
+#include "material.glsl"
+
+//__device__ void traverseIterative( CollisionList& list,
+//                                   BVH& bvh,
+//                                   AABB& queryAABB,
+//                                   int queryObjectIdx)
+//{
+//    // Allocate traversal stack from thread-local memory,
+//    // and push NULL to indicate that there are no postponed nodes.
+//    NodePtr stack[64];
+//    NodePtr* stackPtr = stack;
+//    *stackPtr++ = NULL; // push
+//
+//    // Traverse nodes starting from the root.
+//    NodePtr node = bvh.getRoot();
+//    do
+//    {
+//        // Check each child node for overlap.
+//        NodePtr childL = bvh.getLeftChild(node);
+//        NodePtr childR = bvh.getRightChild(node);
+//        bool overlapL = ( checkOverlap(queryAABB,
+//                                       bvh.getAABB(childL)) );
+//        bool overlapR = ( checkOverlap(queryAABB,
+//                                       bvh.getAABB(childR)) );
+//
+//        // Query overlaps a leaf node => report collision.
+//        if (overlapL && bvh.isLeaf(childL))
+//            list.add(queryObjectIdx, bvh.getObjectIdx(childL));
+//
+//        if (overlapR && bvh.isLeaf(childR))
+//            list.add(queryObjectIdx, bvh.getObjectIdx(childR));
+//
+//        // Query overlaps an internal node => traverse.
+//        bool traverseL = (overlapL && !bvh.isLeaf(childL));
+//        bool traverseR = (overlapR && !bvh.isLeaf(childR));
+//
+//        if (!traverseL && !traverseR)
+//            node = *--stackPtr; // pop
+//        else
+//        {
+//            node = (traverseL) ? childL : childR;
+//            if (traverseL && traverseR)
+//                *stackPtr++ = childR; // push
+//        }
+//    }
+//    while (node != NULL);
+//}
+
+Hit intersectLeafs(Ray ray, float eps, const uint id, const uint primCount, Hit closestHit) {
+    for (uint i = 0; i < primCount; ++i) {
+        PrecomputedTriangle tri = triangleBuffer.data[id + i];
+        TriHit triHit = intersect(tri, ray, eps);
+        if (triHit.t > eps && triHit.t < closestHit.t) {
+            closestHit = Hit(id + i, triHit.t, triHit.u, triHit.v);
+        }
+    }
+    return closestHit;
+}
 
 Hit intersect(Ray ray, float eps) {
-    Hit closestHit = Hit(-1, 0, 0, 0);
-    float closestT = 1e30;
-    uint stack[24];
+    Hit closestHit = Hit(UINT_MAX, FLT_MAX, 0, 0);
+    uint stack[16];
     uint sp = 0;
     stack[sp++] = 0;
     while (sp != 0) {
         uint nodeIdx = stack[--sp];
         Node node = nodeBuffer.data[nodeIdx];
         float tNode = intersect(node.bbox, ray);
-        if (tNode == -1.0 || tNode >= closestT) continue;
+        if (tNode == FLT_MAX || tNode >= closestHit.t) continue;
         uint primCount = primCount(node.index);
         if (primCount != 0) {
             uint id = id(node.index);
             for (uint i = 0; i < primCount; ++i) {
                 PrecomputedTriangle tri = triangleBuffer.data[id + i];
                 TriHit triHit = intersect(tri, ray, eps);
-                if (triHit.t > eps && triHit.t < closestT) {
-                    closestT = triHit.t;
+                if (triHit.t > eps && triHit.t < closestHit.t) {
                     closestHit = Hit(id + i, triHit.t, triHit.u, triHit.v);
                 }
             }
@@ -36,8 +93,8 @@ Hit intersect(Ray ray, float eps) {
             Node right = nodeBuffer.data[rightIdx];
             float tLeft  = intersect(left.bbox, ray);
             float tRight = intersect(right.bbox, ray);
-            bool hitLeft  = (tLeft  != -1.0) && (tLeft  < closestT);
-            bool hitRight = (tRight != -1.0) && (tRight < closestT);
+            bool hitLeft  = (tLeft  != FLT_MAX) && (tLeft  < closestHit.t);
+            bool hitRight = (tRight != FLT_MAX) && (tRight < closestHit.t);
             if (hitLeft && hitRight) {
                 if (tLeft < tRight) {
                     stack[sp++] = rightIdx;
@@ -56,63 +113,51 @@ Hit intersect(Ray ray, float eps) {
 
     return closestHit;
 }
-//struct Sample {
-//    vec3 direction;
-//    vec3 radiance;
-//    float distance;
-//};
 
-//    PathTracer<Node, Primitive>::Vec3 PathTracer<Node, Primitive>::traceRay(const Ray &ray, uint8_t depth) const {
-//        Vec3 resultColor(0.0f);
-//        Vec3 throughput(1.0f);
-//        Ray currentRay = ray;
-//        for (uint8_t d = depth; d <= MAX_DEPTH; d++) {
-//            auto hit = intersect(currentRay, 1e-6);
-//            if (!hit) break;
-//            auto& [id, t, u, v] = *hit;
-//            Vec2 uv = getUV(id, u, v);
-//            Vec3 diffuseColor = getColor(id, uv, cm::Texture::DIFFUSE);
-//            const Primitive& primitive = mBvh->primitive(id);
-//            Vec3 N = primitive.normal();
-//            Vec3 P = currentRay.pos + currentRay.dir * t;
-//
-//            Vec3 directColor(0.0f);
-//            for (auto light : mLights) {
-//                Sample sample = light->sample(P);
-//                Ray shadowRay(P, sample.direction, 1e-3, sample.distance);
-//                if (intersect(shadowRay, 1e-6)) continue;
-//                directColor += diffuseColor * sample.radiance;
-//            }
-//
-//            resultColor += throughput * directColor;
-//            if (d == MAX_DEPTH) break;
-//            Vec3 wo = -currentRay.dir;
-//            Lambertian<Type> material;
-//            Vec3 wi, brdf;
-//            Type pdf;
-//            material.scatter(N, wo, wi, brdf, pdf);
-//            Type cosTheta = glm::dot(N, wi);
-//            if (pdf <= 0 || cosTheta <= 0) break;
-//            throughput *= diffuseColor * brdf * cosTheta / pdf;
-//            currentRay = Ray(P, wi, 1e-3, mCamera->farPlane());
-//        }
-//        return resultColor;
-//    }
+#define skyColor vec3(0)
+
+float getShadow(vec3 P, vec3 dir) {
+    Ray shadowRay = makeRay(P, dir, 0.0, FLT_MAX);
+    Hit shadowHit = intersect(shadowRay, 1e-6);
+
+    if (shadowHit.id == UINT_MAX) return 1;
+    return 0;
+}
 
 vec3 traceRay(Ray ray) {
-    Hit hit = intersect(ray, 1e-6);
-    if (hit.id == -1) return vec3(0.0);
-    TriangleExtra triExtra = triangleExtraBuffer.data[hit.id];
-    vec2 uv = getUV(triExtra, hit.u, hit.v);
-    vec3 diffuseColor = texture(textures[nonuniformEXT(materialIndexBuffer.data[hit.id] * TEXTURE_NUM)], uv).rgb;
-    vec3 color = vec3(0);
-    vec3 P = ray.pos + ray.dir * hit.t;
-    Ray shadowRay = makeRay(P, directLight.dir.xyz, 1e-3, FLT_MAX);
-    Hit shadowHit = intersect(shadowRay, 1e-6);
-    if (shadowHit.id == -1) {
-        color += diffuseColor * directLight.intensity;
+    uint seed = uint(gl_GlobalInvocationID.x) + uint(gl_GlobalInvocationID.y) * 1973u + pc.frame * 9277u;
+    vec3 resultColor = vec3(0.0);
+    vec3 throughput = vec3(1.0);
+    Ray currentRay = ray;
+    for (uint depth = 0; depth < MAX_DEPTH; ++depth) {
+        Hit hit = intersect(currentRay, 1e-6);
+        if (hit.id == UINT_MAX) {
+            resultColor += throughput * skyColor;
+            break;
+        }
+        PrecomputedTriangle tri = triangleBuffer.data[hit.id];
+        TriangleExtra triExtra = triangleExtraBuffer.data[hit.id];
+        vec2 uv = getUV(triExtra, hit.u, hit.v);
+        vec3 albedo = texture(textures[nonuniformEXT(materialIndexBuffer.data[hit.id] * TEXTURE_NUM)], uv).rgb;
+        vec3 P = currentRay.pos + currentRay.dir * hit.t;
+        vec3 L = -directLight.dir.xyz;
+        vec3 N = normalize(tri.N.xyz);
+        N = faceforward(N, currentRay.dir, N);
+        vec3 wo = -currentRay.dir;
+        Scatter scatter = lambertianScatter(seed, albedo, N, wo);
+        float cosTheta = max(dot(N,L), 0);
+        vec3 directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(P + N * 1e-3, L);
+        resultColor += throughput * directColor;
+        throughput *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
+//        if (depth >= 3) {
+//            float p = max(throughput.r, max(throughput.g, throughput.b));
+//            p = clamp(p, 0.05, 1.0);
+//            if (rand01(seed) > p) break;
+//            throughput /= p;
+//        }
+        currentRay = makeRay(P, scatter.wi, 0.0, FLT_MAX);
     }
-    return color;
+    return resultColor;
 }
 
 void main() {
@@ -129,3 +174,10 @@ void main() {
     vec3 color = traceRay(ray);
     imageStore(outImage, coord, vec4(color, 1.0));
 }
+
+
+//      currBuffer = mPathTracer.render_parallel();
+//
+//            for (int i = 0; i < imageBuffer.size(); ++i) {
+//                imageBuffer[i] = (imageBuffer[i] * cnt + currBuffer[i]) / (cnt + 1);
+//            }
