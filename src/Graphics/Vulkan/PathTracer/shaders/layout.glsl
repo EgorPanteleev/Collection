@@ -34,7 +34,7 @@ layout(binding = 5) uniform DirectLight {
     float pad[3];
 } directLight;
 
-layout(binding = 6, rgba8) uniform writeonly image2D outImage;
+layout(binding = 6, rgba8) uniform image2D image;
 
 layout(binding = 7) uniform sampler2D textures[];
 

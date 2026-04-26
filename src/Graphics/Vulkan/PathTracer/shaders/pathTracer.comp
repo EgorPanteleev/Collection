@@ -171,13 +171,12 @@ void main() {
     const float py = (2.0 * v - 1.0) * imagePlaneHeight * 0.5;
     vec3 dir = normalize(px * vec3(camera.right) + py * vec3(camera.up) + vec3(camera.forward));
     Ray ray = makeRay(vec3(camera.position), dir, camera.nearPlane, camera.farPlane);
-    vec3 color = traceRay(ray);
-    imageStore(outImage, coord, vec4(color, 1.0));
+    vec3 tracedColor = traceRay(ray);
+    if (pc.frame == 0) {
+        imageStore(image, coord, vec4(tracedColor, 1.0));
+        return;
+    }
+    vec3 imageColor = imageLoad(image, coord).rgb;
+    vec3 newColor = (imageColor * pc.frame + tracedColor) / (pc.frame + 1);
+    imageStore(image, coord, vec4(newColor, 1.0));
 }
-
-
-//      currBuffer = mPathTracer.render_parallel();
-//
-//            for (int i = 0; i < imageBuffer.size(); ++i) {
-//                imageBuffer[i] = (imageBuffer[i] * cnt + currBuffer[i]) / (cnt + 1);
-//            }

@@ -483,16 +483,29 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::drawControlPanel() {
-        if (!mRenderImGui) return;
-        const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowBgAlpha(0.4);
         mImGui.beginFrame();
+        if (!mRenderImGui) {
+            mImGui.endFrame();
+            return;
+        }
+        const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
         ImGui::Begin("Settings");
         const ImVec2 mousePos = ImGui::GetMousePos();
         ImGui::Text("Mouse pos: %.1f x %.1f", mousePos.x, mousePos.y);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
-        ImGui::Separator();
-        ImGui::DragFloat3("Light direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f);
+        VkImGui::beginGroup("Direct Light");
+        if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
+            updateImage();
+        }
+
+        if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.2f, 0.0f, 10.0f)) {
+            updateImage();
+        }
+        VkImGui::endGroup();
 
         ImGui::Separator();
         if (VkImGui::selectableButton("Fly", isFlyCamera)) {

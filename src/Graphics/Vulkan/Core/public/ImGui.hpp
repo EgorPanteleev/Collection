@@ -37,6 +37,8 @@ namespace crv::graphics::vulkan {
         void render(const ImGuiRenderInfo& info);
         static void demo();
         static bool selectableButton(const char* label, bool cond);
+        static void beginGroup(const char* name);
+        static void endGroup();
         [[nodiscard]] ImDrawData* drawData() { return mDrawData; }
     private:
         void createDesriptorPool();

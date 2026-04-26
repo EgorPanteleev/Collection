@@ -15,35 +15,45 @@ namespace crv::graphics::vulkan {
         //if (speed < 0) return;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             camera->move(speed, 0, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             camera->move(-speed, 0, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
             camera->move(0, -speed, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
             camera->move(0, speed, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
             camera->move(0, 0, -speed);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
             camera->move(0, 0, speed);
+            app->updateImage();
         }
         float rotateSpeed = speed * 0.3f;
 
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
             camera->rotate(0, rotateSpeed, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             camera->rotate(0, -rotateSpeed, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
             camera->rotate(rotateSpeed, 0, 0);
+            app->updateImage();
         }
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
             camera->rotate(-rotateSpeed, 0, 0);
+            app->updateImage();
         }
     }
 
@@ -52,6 +62,7 @@ namespace crv::graphics::vulkan {
         auto camera = app->camera();
         float speed = 10.0f;
         camera->zoom(yoffset * speed);
+        app->updateImage();
     }
 
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -88,6 +99,7 @@ namespace crv::graphics::vulkan {
         lastY = ypos;
         camera->rotate(static_cast<float>(-offsetY * sensitivity),
                        static_cast<float>(-offsetX * sensitivity), 0.f);
+        app->updateImage();
     }
 
     void setCallBacks(PathTracerApp* app) {

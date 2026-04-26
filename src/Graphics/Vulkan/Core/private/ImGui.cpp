@@ -190,6 +190,20 @@ namespace crv::graphics::vulkan {
         return ret;
     }
 
+    void VkImGui::beginGroup(const char* name) {
+        ImGui::BeginGroup();
+        ImGui::TextUnformatted(name);
+        ImGui::Separator();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
+        ImGui::BeginChild(name, ImVec2(0, 80), true);
+    }
+
+    void VkImGui::endGroup() {
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
+        ImGui::EndGroup();
+    }
+
     void VkImGui::render(const ImGuiRenderInfo& info) {
          VkClearValue clearColor{
             .color = { {0.0f, 0.0f, 0.0f, 1.0f} }

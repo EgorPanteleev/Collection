@@ -28,6 +28,7 @@ namespace crv::graphics::vulkan {
         PathTracerApp(const PathTracerAppCreateInfo& info);
         void run();
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
+        void updateImage() { mFrameCount = 0; }
         [[nodiscard]] Window& window() { return mContext.window(); }
         [[nodiscard]] scene::AbsCamera* camera() const { return mCamera; }
     protected:
