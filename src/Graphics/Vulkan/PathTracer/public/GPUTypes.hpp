@@ -46,7 +46,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct PushConstants {
-        uint32_t width, height, frame;
+        uint32_t width, height, frame, maxDepth;
     };
 }
 

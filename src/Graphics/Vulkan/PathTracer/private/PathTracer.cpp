@@ -245,7 +245,7 @@ namespace crv::graphics::vulkan {
 
         const uint32_t width  = info.extent.width;
         const uint32_t height = info.extent.height;
-        const PushConstants pc(width, height, info.frameCount);
+        const PushConstants pc(width, height, info.frameCount, info.maxDepth);
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
             0, sizeof(PushConstants), &pc);
 

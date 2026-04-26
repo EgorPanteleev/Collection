@@ -64,6 +64,7 @@ namespace crv::graphics::vulkan {
         scene::AbsCamera* mCamera = nullptr;
         AlignedDirectLight mDirectLight{};
         bool mRenderImGui = false;
+        int mMaxDepth = 1;
 
         Context mContext{};
         CommandPool mCommandPool{};

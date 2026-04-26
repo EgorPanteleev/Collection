@@ -303,7 +303,8 @@ namespace crv::graphics::vulkan {
             .commandBuffer = commandBuffer,
             .extent = mSwapchain.extent(),
             .currentFrame = mCurrentFrame,
-            .frameCount = mFrameCount
+            .frameCount = mFrameCount,
+            .maxDepth = static_cast<uint32_t>(mMaxDepth)
         };
         mPathTracer.record(pathTracerRecordInfo);
         
@@ -497,12 +498,18 @@ namespace crv::graphics::vulkan {
         ImGui::Text("Mouse pos: %.1f x %.1f", mousePos.x, mousePos.y);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
+        VkImGui::beginGroup("PathTracer Settings");
+        if (ImGui::DragInt("Max Depth", &mMaxDepth, 0.05f, 1, 10)) {
+            updateImage();
+        }
+        VkImGui::endGroup();
+
         VkImGui::beginGroup("Direct Light");
         if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
             updateImage();
         }
 
-        if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.2f, 0.0f, 10.0f)) {
+        if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
             updateImage();
         }
         VkImGui::endGroup();
