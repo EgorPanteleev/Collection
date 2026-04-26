@@ -8,52 +8,6 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 #include "layout.glsl"
 #include "material.glsl"
 
-//__device__ void traverseIterative( CollisionList& list,
-//                                   BVH& bvh,
-//                                   AABB& queryAABB,
-//                                   int queryObjectIdx)
-//{
-//    // Allocate traversal stack from thread-local memory,
-//    // and push NULL to indicate that there are no postponed nodes.
-//    NodePtr stack[64];
-//    NodePtr* stackPtr = stack;
-//    *stackPtr++ = NULL; // push
-//
-//    // Traverse nodes starting from the root.
-//    NodePtr node = bvh.getRoot();
-//    do
-//    {
-//        // Check each child node for overlap.
-//        NodePtr childL = bvh.getLeftChild(node);
-//        NodePtr childR = bvh.getRightChild(node);
-//        bool overlapL = ( checkOverlap(queryAABB,
-//                                       bvh.getAABB(childL)) );
-//        bool overlapR = ( checkOverlap(queryAABB,
-//                                       bvh.getAABB(childR)) );
-//
-//        // Query overlaps a leaf node => report collision.
-//        if (overlapL && bvh.isLeaf(childL))
-//            list.add(queryObjectIdx, bvh.getObjectIdx(childL));
-//
-//        if (overlapR && bvh.isLeaf(childR))
-//            list.add(queryObjectIdx, bvh.getObjectIdx(childR));
-//
-//        // Query overlaps an internal node => traverse.
-//        bool traverseL = (overlapL && !bvh.isLeaf(childL));
-//        bool traverseR = (overlapR && !bvh.isLeaf(childR));
-//
-//        if (!traverseL && !traverseR)
-//            node = *--stackPtr; // pop
-//        else
-//        {
-//            node = (traverseL) ? childL : childR;
-//            if (traverseL && traverseR)
-//                *stackPtr++ = childR; // push
-//        }
-//    }
-//    while (node != NULL);
-//}
-
 Hit intersectLeafs(Ray ray, float eps, const uint id, const uint primCount, Hit closestHit) {
     for (uint i = 0; i < primCount; ++i) {
         PrecomputedTriangle tri = triangleBuffer.data[id + i];

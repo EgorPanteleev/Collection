@@ -13,26 +13,19 @@
 #include "ShaderModule.hpp"
 #include "ComputePipelines.hpp"
 #include "Buffer.hpp"
-#include "Swapchain.hpp"
 #include "GPUTypes.hpp"
-#include "Texture.hpp"
 
 namespace crv::scene {
     class AbsCamera;
 }
 
 namespace crv::graphics::vulkan {
-    struct TexturesByType {
-        Texture& operator[](const int type) { return mTexturesByType[type]; }
-        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
-    };
-
     struct PathTracerCreateInfo {
         Context* context;
         std::vector<AlignedTriangle> triangles{};
         std::vector<AlignedTriangleExtra> triangleExtras{};
         std::vector<AlignedNode> nodes{};
-        std::vector<cm::Material> materials{};
+        std::vector<TexturesByType>* textures = nullptr;
         std::vector<uint32_t> materialIndices{};
         uint32_t framesInFlight = 2;
     };
@@ -67,12 +60,9 @@ namespace crv::graphics::vulkan {
         void createShaders();
         void createComputePipelines();
         void createBuffers(const PathTracerCreateInfo& info);
-        void createTextures(const PathTracerCreateInfo& info);
 
         [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
-        [[nodiscard]] std::vector<VkPipelineLayout> getPipelineLayouts() const;
         uint32_t mFramesInFlight = 2;
-        uint32_t mTexturesSize = 1;
 
         Context* mContext = nullptr;
         DescriptorSetLayout mDescriptorSetLayout{};
@@ -87,7 +77,7 @@ namespace crv::graphics::vulkan {
         Buffer mNodeBuffer{};
         Buffer mMaterialIndexBuffer{};
         std::vector<Buffer> mDirectLightBuffers{};
-        std::vector<TexturesByType> mTextures{};
+        std::vector<TexturesByType>* mTextures = nullptr;
     };
 }
 

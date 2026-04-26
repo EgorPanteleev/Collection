@@ -21,8 +21,12 @@ namespace crv::graphics::vulkan {
         createSwapChainImages();
         createSyncObjects();
         createPresentImage();
-        createPathTracer(info);
+
+        loadModel(info);
+        createTextures();
+        createPathTracer();
         createImGui();
+        createRasterizer();
     }
 
     void PathTracerApp::run() {
@@ -184,6 +188,32 @@ namespace crv::graphics::vulkan {
         mPresentImageView = ImageView(imageViewCreateInfo);
     }
 
+    void PathTracerApp::createTextures() {
+        mTextures.resize(mMaterials.size());
+        for (size_t i = 0; i < mMaterials.size(); ++i) {
+            const cm::Material& material = mMaterials[i];
+            TexturesByType& texturesByType = mTextures[i];
+            for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
+                const cm::Texture& texture = material.mTextures[texType];
+                TextureCreateInfo textureCreateInfo {
+                    .device = mContext.device(),
+                    .physicalDevice = mContext.physicalDevice(),
+                    .allocator = mContext.allocator(),
+                    .queue = mContext.queue(QueueFamilyType::COMPUTE),
+                    .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                    .dataByLevel = texture.mDataByLevel,
+                    .texFormat = texture.mFormat,
+                    .mipLevels = 1,
+                    .arrayLayers = 1,
+                    .samples = VK_SAMPLE_COUNT_1_BIT,
+                    .tiling = VK_IMAGE_TILING_OPTIMAL,
+                    .memoryUsage = VMA_MEMORY_USAGE_AUTO
+                };
+                texturesByType[texType] = Texture(textureCreateInfo);
+            }
+        }
+    }
+
     static BVH buildBVH(std::span<Tri> tris) {
         utils::Timer timer;
         timer.start();
@@ -193,7 +223,7 @@ namespace crv::graphics::vulkan {
         return bvh;
     }
 
-    static auto loadModel(const PathTracerAppCreateInfo& info) {
+    void PathTracerApp::loadModel(const PathTracerAppCreateInfo& info) {
         auto loader = new cm::Loader;
         utils::Timer timer;
         timer.start();
@@ -207,8 +237,8 @@ namespace crv::graphics::vulkan {
         const auto& lVertices = loader->vertices();
         const auto& lMeshes = loader->meshes();
         std::vector<Tri> triangles;
-        std::vector<uint32_t> tmpIndices;
-        std::vector<uint32_t> tmpMaterialIndices;
+        std::vector<uint32_t> indices;
+        std::vector<uint32_t> materialIndices;
         for (size_t i = 0; i < lMeshes.size(); ++i) {
             const auto& mesh = lMeshes[i];
             for (size_t j = 0; j < mesh.numIndices; j += 3) {
@@ -216,51 +246,45 @@ namespace crv::graphics::vulkan {
                 triangles.emplace_back(lVertices[lIndices[idx + 0]].pos,
                                        lVertices[lIndices[idx + 1]].pos,
                                        lVertices[lIndices[idx + 2]].pos);
-                tmpIndices.emplace_back(lIndices[idx + 0]);
-                tmpIndices.emplace_back(lIndices[idx + 1]);
-                tmpIndices.emplace_back(lIndices[idx + 2]);
-                tmpMaterialIndices.emplace_back(mesh.materialIndex);
+                indices.emplace_back(lIndices[idx + 0]);
+                indices.emplace_back(lIndices[idx + 1]);
+                indices.emplace_back(lIndices[idx + 2]);
+                materialIndices.emplace_back(mesh.materialIndex);
             }
         }
         INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
         INFO << "Total number of primitives: " << triangles.size();
         auto bvh = buildBVH(std::span(triangles));
         //reorder after bvh
-        std::vector<AlignedTriangle> alignedTriangles;
-        std::vector<AlignedTriangleExtra> alignedTriangleExtras;
-        std::vector<uint32_t> materialIndices;
         for (int i = 0; i < triangles.size(); ++i) {
             const uint32_t idx = bvh.primIds()[i];
             Tri& tri = triangles[idx];
-            alignedTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
+            mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
                                           Vec4(tri.e2, 1), Vec4(tri.N, 1));
-            cm::Vertex v0 = lVertices[tmpIndices[idx * 3 + 0]];
-            cm::Vertex v1 = lVertices[tmpIndices[idx * 3 + 1]];
-            cm::Vertex v2 = lVertices[tmpIndices[idx * 3 + 2]];
-            alignedTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
-            materialIndices.push_back(tmpMaterialIndices[idx]);
+            cm::Vertex v0 = lVertices[indices[idx * 3 + 0]];
+            cm::Vertex v1 = lVertices[indices[idx * 3 + 1]];
+            cm::Vertex v2 = lVertices[indices[idx * 3 + 2]];
+            mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
+            mMaterialIndices.push_back(materialIndices[idx]);
         }
 
-        std::vector<AlignedNode> nodes;
         for (const auto& node: bvh.nodes()) {
             AlignedNode alignedNode{};
             alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
             alignedNode.index = node.index().value();
-            nodes.push_back(alignedNode);
+            mNodes.push_back(alignedNode);
         }
-        return std::make_tuple(alignedTriangles, alignedTriangleExtras, nodes, loader->materials(), materialIndices);
+        mMaterials = loader->materials();
     }
 
-    void PathTracerApp::createPathTracer(const PathTracerAppCreateInfo& createInfo) {
-        auto [triangles, triangleExtras, nodes, materials, materialIndices] =
-            loadModel(createInfo);
+    void PathTracerApp::createPathTracer() {
         const PathTracerCreateInfo pathTracerCreateInfo {
             .context = &mContext,
-            .triangles = triangles,
-            .triangleExtras = triangleExtras,
-            .nodes = nodes,
-            .materials = materials,
-            .materialIndices = materialIndices,
+            .triangles = mTriangles,
+            .triangleExtras = mTriangleExtras,
+            .nodes = mNodes,
+            .textures = &mTextures,
+            .materialIndices = mMaterialIndices,
             .framesInFlight = mFramesInFlight
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);
@@ -537,5 +561,16 @@ namespace crv::graphics::vulkan {
         } else {
             mCamera = &mOrbitalCamera;
         }
+    }
+
+    void PathTracerApp::createRasterizer() {
+        const auto [width, height] = mSwapchain.extent();
+        const RasterizerCreateInfo createInfo {
+            .context = &mContext,
+            .colorFormat = mSwapchain.format(),
+            .extent = {width, height, 1},
+            .textures = &mTextures
+        };
+        mRasterizer = Rasterizer(createInfo);
     }
 }

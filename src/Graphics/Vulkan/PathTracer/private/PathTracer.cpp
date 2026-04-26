@@ -10,7 +10,7 @@
 
 namespace crv::graphics::vulkan {
     PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight),
-    mTexturesSize(info.materials.size() * static_cast<uint32_t>(cm::Texture::UNKNOWN)), mContext(info.context) {
+    mTextures(info.textures), mContext(info.context) {
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -18,7 +18,6 @@ namespace crv::graphics::vulkan {
         createShaders();
         createComputePipelines();
         createBuffers(info);
-        createTextures(info);
     }
     
     void PathTracer::update(const PathTracerUpdateInfo& info) {
@@ -34,14 +33,6 @@ namespace crv::graphics::vulkan {
                 .nearPlane = info.camera->nearPlane(),
                 .farPlane = info.camera->farPlane()
             };
-            const BufferCreateInfo cameraBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = sizeof(AlignedCamera),
-                .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            cameraBuffer = Buffer(cameraBufferCreateInfo);
             CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
                 .data = &camera,
                 .size = sizeof(AlignedCamera),
@@ -55,14 +46,6 @@ namespace crv::graphics::vulkan {
         }
         Buffer& directLightBuffer = mDirectLightBuffers[info.currentFrame];
         {
-            const BufferCreateInfo directLightBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = sizeof(AlignedDirectLight),
-                .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            directLightBuffer = Buffer(directLightBufferCreateInfo);
             CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
                 .data = const_cast<void*>(static_cast<const void*>(&info.directLight)),
                 .size = sizeof(AlignedDirectLight),
@@ -105,8 +88,8 @@ namespace crv::graphics::vulkan {
             .range = mMaterialIndexBuffer.size()
         };
         std::vector<VkDescriptorImageInfo> textureInfos;
-        for (size_t i = 0; i < mTextures.size(); i++) {
-            auto& texturesByType = mTextures[i];
+        for (size_t i = 0; i < mTextures->size(); i++) {
+            auto& texturesByType = (*mTextures)[i];
             for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
                 auto& texture = texturesByType[j];
                 VkDescriptorImageInfo textureInfo {
@@ -232,7 +215,7 @@ namespace crv::graphics::vulkan {
             descriptorsWrites.push_back(descriptorWrites);
         }
 
-        DescriptorSetsUpdateInfo updateInfo {
+        const DescriptorSetsUpdateInfo updateInfo {
             .descriptorsWrites = descriptorsWrites
         };
         mDescriptorSets.update(updateInfo);
@@ -259,12 +242,6 @@ namespace crv::graphics::vulkan {
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             layouts.push_back(mDescriptorSetLayout.get());
         }
-        return layouts;
-    }
-
-    std::vector<VkPipelineLayout> PathTracer::getPipelineLayouts() const {
-        std::vector<VkPipelineLayout> layouts;
-        layouts.push_back(mPipelineLayout.get());
         return layouts;
     }
 
@@ -321,7 +298,7 @@ namespace crv::graphics::vulkan {
         VkDescriptorSetLayoutBinding binding7 {
             .binding = 7,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = mTexturesSize,
+            .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
 
@@ -348,7 +325,8 @@ namespace crv::graphics::vulkan {
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight * mTexturesSize},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight
+                * static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)},
         };
 
         const DescriptorPoolCreateInfo createInfo {
@@ -360,7 +338,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSets() {
-        const std::vector variableCounts(mFramesInFlight, mTexturesSize);
+        const std::vector variableCounts(mFramesInFlight, static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN));
         const DescriptorSetsCreateInfo createInfo {
             .device = mContext->device(),
             .layouts = getDescriptorLayouts(),
@@ -407,7 +385,7 @@ namespace crv::graphics::vulkan {
         const ComputePipelinesCreateInfo createInfo {
             .device = mContext->device(),
             .stages = stages,
-            .layouts = getPipelineLayouts(),
+            .layouts = {mPipelineLayout.get()},
         };
         mComputePipelines = ComputePipelines(createInfo);
     }
@@ -497,33 +475,27 @@ namespace crv::graphics::vulkan {
             };
             Buffer::copy(copyDataToGPUBufferInfo);
         }
+        const BufferCreateInfo cameraBufferCreateInfo {
+            .allocator = mContext->allocator(),
+            .size = sizeof(AlignedCamera),
+            .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+        };
         mCameraBuffers.resize(mFramesInFlight);
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mCameraBuffers[i] = Buffer(cameraBufferCreateInfo);
+        }
+        const BufferCreateInfo directLightBufferCreateInfo {
+            .allocator = mContext->allocator(),
+            .size = sizeof(AlignedDirectLight),
+            .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+        };
         mDirectLightBuffers.resize(mFramesInFlight);
-    }
-
-    void PathTracer::createTextures(const PathTracerCreateInfo& info) {
-        mTextures.resize(info.materials.size());
-        for (size_t i = 0; i < info.materials.size(); ++i) {
-            const cm::Material& material = info.materials[i];
-            TexturesByType& texturesByType = mTextures[i];
-            for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
-                const cm::Texture& texture = material.mTextures[texType];
-                TextureCreateInfo textureCreateInfo {
-                    .device = mContext->device(),
-                    .physicalDevice = mContext->physicalDevice(),
-                    .allocator = mContext->allocator(),
-                    .queue = mContext->queue(QueueFamilyType::COMPUTE),
-                    .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                    .dataByLevel = texture.mDataByLevel,
-                    .texFormat = texture.mFormat,
-                    .mipLevels = 1,
-                    .arrayLayers = 1,
-                    .samples = VK_SAMPLE_COUNT_1_BIT,
-                    .tiling = VK_IMAGE_TILING_OPTIMAL,
-                    .memoryUsage = VMA_MEMORY_USAGE_AUTO
-                };
-                texturesByType[texType] = Texture(textureCreateInfo);
-            }
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mDirectLightBuffers[i] = Buffer(directLightBufferCreateInfo);
         }
     }
 }

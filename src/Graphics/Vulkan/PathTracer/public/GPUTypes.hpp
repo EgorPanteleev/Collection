@@ -7,6 +7,7 @@
 
 #include "BVH.hpp"
 #include "Node.hpp"
+#include "Texture.hpp"
 
 namespace crv::graphics::vulkan {
     using Scalar = float;
@@ -47,6 +48,23 @@ namespace crv::graphics::vulkan {
 
     struct PushConstants {
         uint32_t width, height, frame, maxDepth;
+    };
+
+    struct TexturesByType {
+        Texture& operator[](const int type) { return mTexturesByType[type]; }
+        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
+    };
+
+    struct Vertex {
+        Vec3 pos;
+        Vec2 texCoord;
+        Vec3 normal;
+        Vec4 tangent;
+        uint32_t texIndex;
+    };
+
+    struct alignas(16) AlignedMVP {
+        glm::mat4 model, view, proj;
     };
 }
 

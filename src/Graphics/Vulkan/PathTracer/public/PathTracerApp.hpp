@@ -13,6 +13,7 @@
 #include "Semaphore.hpp"
 #include "Fence.hpp"
 #include "ImGui.hpp"
+#include "Rasterizer.hpp"
 
 namespace crv::graphics::vulkan {
     struct PathTracerAppCreateInfo {
@@ -40,7 +41,9 @@ namespace crv::graphics::vulkan {
         void createSwapChainImages();
         void createSyncObjects();
         void createPresentImage();
-        void createPathTracer(const PathTracerAppCreateInfo& createInfo);
+        void createTextures();
+        void loadModel(const PathTracerAppCreateInfo& info);
+        void createPathTracer();
         void createImGui();
         void update();
         void record(uint32_t imageIndex);
@@ -50,6 +53,7 @@ namespace crv::graphics::vulkan {
         void drawControlPanel();
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void setCamera(scene::CameraType type);
+        void createRasterizer();
 
 #ifdef NDEBUG
         bool mDebug = false;
@@ -77,8 +81,18 @@ namespace crv::graphics::vulkan {
         std::vector<Semaphore> mImageAvailableSemaphores{};
         std::vector<Semaphore> mComputeFinishedSemaphores{};
         std::vector<Fence> mFences{};
+
+        std::vector<AlignedTriangle> mTriangles{};
+        std::vector<AlignedTriangleExtra> mTriangleExtras{};
+        std::vector<AlignedNode> mNodes{};
+        std::vector<model::Material> mMaterials{};
+        std::vector<uint32_t> mMaterialIndices{};
+
+        std::vector<TexturesByType> mTextures{};
         PathTracer mPathTracer{};
         VkImGui mImGui{};
+
+        Rasterizer mRasterizer{};
     };
 }
 
