@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 namespace crv::scene {
     enum class CameraType {

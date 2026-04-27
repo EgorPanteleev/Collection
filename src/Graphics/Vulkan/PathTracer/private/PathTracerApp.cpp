@@ -68,21 +68,25 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::createCommandPool() {
-        const CommandPoolCreateInfo createInfo {
+        CommandPoolCreateInfo createInfo {
             .device = mContext.device(),
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value()
         };
-        mCommandPool = CommandPool(createInfo);
+        mComputeCommandPool = CommandPool(createInfo);
+        createInfo.queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value();
+        mGraphicsCommandPool = CommandPool(createInfo);
     }
 
     void PathTracerApp::createCommandBuffers() {
-        const CommandBuffersCreateInfo createInfo {
+        CommandBuffersCreateInfo createInfo {
             .device = mContext.device(),
-            .commandPool = mCommandPool.get(),
+            .commandPool = mComputeCommandPool.get(),
             .bufferCount = mFramesInFlight
         };
-        mCommandBuffers = CommandBuffers(createInfo);
+        mComputeCommandBuffers = CommandBuffers(createInfo);
+        createInfo.commandPool = mGraphicsCommandPool.get();
+        mGraphicsCommandBuffers = CommandBuffers(createInfo);
     }
 
     void PathTracerApp::createSwapChain() {
@@ -169,7 +173,7 @@ namespace crv::graphics::vulkan {
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .memoryUsage = VMA_MEMORY_USAGE_AUTO
         };
         mPresentImage = Image(imageCreateInfo);
@@ -186,6 +190,37 @@ namespace crv::graphics::vulkan {
             .layerCount = 1
         };
         mPresentImageView = ImageView(imageViewCreateInfo);
+
+        VkImageMemoryBarrier toColor{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .image = mPresentImage.get(),
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            0,
+            0,nullptr,
+            0,nullptr,
+            1,&toColor
+        );
+
+        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
     void PathTracerApp::createTextures() {
@@ -232,7 +267,6 @@ namespace crv::graphics::vulkan {
         INFO << "Model load time: " << timer.duration() / 1000 << " sec";
 
         timer.start();
-
         const auto& lIndices = loader->indices();
         const auto& lVertices = loader->vertices();
         const auto& lMeshes = loader->meshes();
@@ -251,6 +285,18 @@ namespace crv::graphics::vulkan {
                 indices.emplace_back(lIndices[idx + 2]);
                 materialIndices.emplace_back(mesh.materialIndex);
             }
+
+            for (size_t j = 0; j < mesh.numVertices; ++j) {
+                const cm::Vertex& modelVertex = lVertices[mesh.baseVertex + j];
+                Vertex vertex{
+                    .pos = modelVertex.pos,
+                    .texCoord = modelVertex.texCoord0,
+                    .normal = modelVertex.normal,
+                    .tangent = modelVertex.tangent,
+                    .texIndex = static_cast<uint32_t>(mesh.materialIndex * cm::Texture::UNKNOWN)
+                };
+                mVertices.push_back(vertex);
+            }
         }
         INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
         INFO << "Total number of primitives: " << triangles.size();
@@ -267,6 +313,7 @@ namespace crv::graphics::vulkan {
             mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
             mMaterialIndices.push_back(materialIndices[idx]);
         }
+        mIndices = loader->indices();
 
         for (const auto& node: bvh.nodes()) {
             AlignedNode alignedNode{};
@@ -301,18 +348,23 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::update() {
         mDirectLight.dir = glm::normalize(mDirectLight.dir);
-        const PathTracerUpdateInfo pathTracerUpdateInfo {
+        const RasterizerUpdateInfo rasterizerUpdateInfo {
             .camera = mCamera,
-            .directLight = mDirectLight,
-            .presentImage = mPresentImage.get(),
-            .presentImageView = mPresentImageView.get(),
             .currentFrame = mCurrentFrame
         };
-        mPathTracer.update(pathTracerUpdateInfo);
+        mRasterizer.update(rasterizerUpdateInfo);
+        // const PathTracerUpdateInfo pathTracerUpdateInfo {
+        //     .camera = mCamera,
+        //     .directLight = mDirectLight,
+        //     .presentImage = mPresentImage.get(),
+        //     .presentImageView = mPresentImageView.get(),
+        //     .currentFrame = mCurrentFrame
+        // };
+        // mPathTracer.update(pathTracerUpdateInfo);
     }
 
     void PathTracerApp::record(uint32_t imageIndex) {
-        VkCommandBuffer commandBuffer = mCommandBuffers[mCurrentFrame]; 
+        VkCommandBuffer commandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         constexpr VkCommandBufferBeginInfo beginInfo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -323,20 +375,52 @@ namespace crv::graphics::vulkan {
             throw std::runtime_error("Failed to begin recording command buffer!");
         }
 
-        PathTracerRecordInfo pathTracerRecordInfo {
-            .commandBuffer = commandBuffer,
-            .extent = mSwapchain.extent(),
-            .currentFrame = mCurrentFrame,
-            .frameCount = mFrameCount,
-            .maxDepth = static_cast<uint32_t>(mMaxDepth)
+        VkImageMemoryBarrier toColor{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .image = mPresentImage.get(),
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
         };
-        mPathTracer.record(pathTracerRecordInfo);
+
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            0, 0,nullptr, 0,nullptr,
+            1, &toColor
+        );
+
+        RasterizerRecordInfo rasterizerRecordInfo {
+            .commandBuffer = commandBuffer,
+            .imageView = mPresentImageView.get(),
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame
+        };
+        mRasterizer.record(rasterizerRecordInfo);
+
+        // PathTracerRecordInfo pathTracerRecordInfo {
+        //     .commandBuffer = commandBuffer,
+        //     .extent = mSwapchain.extent(),
+        //     .currentFrame = mCurrentFrame,
+        //     .frameCount = mFrameCount,
+        //     .maxDepth = static_cast<uint32_t>(mMaxDepth)
+        // };
+        // mPathTracer.record(pathTracerRecordInfo);
         
         const VkImageMemoryBarrier dataBarrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             .image = mPresentImage.get(),
             .subresourceRange = {
@@ -364,7 +448,7 @@ namespace crv::graphics::vulkan {
         };
 
         VkImageMemoryBarrier barriers[] = {dataBarrier, presentBarrier};
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                              VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr,
                              0, nullptr, 2, barriers);
 
@@ -454,8 +538,8 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::submit(const uint32_t imageIndex) {
-        auto& commandBuffer = mCommandBuffers[mCurrentFrame];
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
+        auto& commandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         const VkSubmitInfo submitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .waitSemaphoreCount = 1,
@@ -467,7 +551,7 @@ namespace crv::graphics::vulkan {
             .pSignalSemaphores = &mComputeFinishedSemaphores[mCurrentFrame].get()
         };
 
-        VkQueue queue = mContext.queue(QueueFamilyType::COMPUTE);
+        VkQueue queue = mContext.queue(QueueFamilyType::GRAPHICS);
         if (vkQueueSubmit(queue, 1, &submitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
@@ -567,8 +651,10 @@ namespace crv::graphics::vulkan {
         const auto [width, height] = mSwapchain.extent();
         const RasterizerCreateInfo createInfo {
             .context = &mContext,
-            .colorFormat = mSwapchain.format(),
+            .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {width, height, 1},
+            .vertices = mVertices,
+            .indices = mIndices,
             .textures = &mTextures
         };
         mRasterizer = Rasterizer(createInfo);

@@ -19,11 +19,13 @@
 
 namespace crv::graphics::vulkan {
     struct RasterizerCreateInfo {
-        Context*   context                    = nullptr;
-        VkFormat   colorFormat                = VK_FORMAT_UNDEFINED;
-        VkExtent3D extent{};
-        uint32_t   framesInFlight             = 2;
-        std::vector<TexturesByType>* textures = nullptr;
+        Context*                     context        = nullptr;
+        VkFormat                     colorFormat    = VK_FORMAT_UNDEFINED;
+        VkExtent3D                   extent{};
+        uint32_t                     framesInFlight = 2;
+        std::vector<Vertex>          vertices{};
+        std::vector<uint32_t>        indices{};
+        std::vector<TexturesByType>* textures       = nullptr;
     };
 
     struct RasterizerUpdateInfo {
@@ -32,7 +34,10 @@ namespace crv::graphics::vulkan {
     };
 
     struct RasterizerRecordInfo {
-
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        VkImageView     imageView     = VK_NULL_HANDLE;
+        VkExtent2D      extent{};
+        uint32_t        currentFrame  = 0;
     };
 
     class Rasterizer {
@@ -41,8 +46,10 @@ namespace crv::graphics::vulkan {
         explicit Rasterizer(const RasterizerCreateInfo& info);
         void update(const RasterizerUpdateInfo& info);
         void record(const RasterizerRecordInfo& info);
+        VkImage depthImage() { return mDepthImage.get(); }
     protected:
         void createColorBuffer(const RasterizerCreateInfo& info);
+        void createDepthBuffer(const RasterizerCreateInfo& info);
         void createDescriptorSetLayout();
         void createDescriptorPool();
         std::vector<VkDescriptorSetLayout>  getDescriptorLayouts();
@@ -54,9 +61,12 @@ namespace crv::graphics::vulkan {
 
         uint32_t mFramesInFlight = 1;
         VkFormat mColorFormat = VK_FORMAT_UNDEFINED;
+        uint32_t mIndexCount = 0;
 
         Context* mContext = nullptr;
         Image mColorBuffer{};
+        Image mDepthImage{};
+        ImageView mDepthView{};
         DescriptorSetLayout mDescriptorSetLayout{};
         DescriptorPool mDescriptorPool{};
         DescriptorSets mDescriptorSets{};
@@ -65,7 +75,9 @@ namespace crv::graphics::vulkan {
         ShaderModule mVertexShader{};
         ShaderModule mFragmentShader{};
         GraphicsPipelines mGraphicsPipelines{};
-        std::vector<Buffer> mMVPBuffers;
+        std::vector<Buffer> mMVPBuffers{};
+        Buffer mVertexBuffer{};
+        Buffer mIndexBuffer{};
     };
 }
 

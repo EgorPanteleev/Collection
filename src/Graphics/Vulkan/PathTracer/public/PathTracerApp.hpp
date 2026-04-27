@@ -71,8 +71,10 @@ namespace crv::graphics::vulkan {
         int mMaxDepth = 1;
 
         Context mContext{};
-        CommandPool mCommandPool{};
-        CommandBuffers mCommandBuffers{};
+        CommandPool mComputeCommandPool{};
+        CommandBuffers mComputeCommandBuffers{};
+        CommandPool mGraphicsCommandPool{};
+        CommandBuffers mGraphicsCommandBuffers{};
         Image mPresentImage{};
         ImageView mPresentImageView{};
         Swapchain mSwapchain{};
@@ -87,6 +89,8 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedNode> mNodes{};
         std::vector<model::Material> mMaterials{};
         std::vector<uint32_t> mMaterialIndices{};
+        std::vector<Vertex> mVertices{};
+        std::vector<uint32_t> mIndices{};
 
         std::vector<TexturesByType> mTextures{};
         PathTracer mPathTracer{};

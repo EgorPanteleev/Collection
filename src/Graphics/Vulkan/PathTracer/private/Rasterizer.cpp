@@ -3,11 +3,13 @@
 //
 
 #include "Rasterizer.hpp"
+#include "CoreUtils.hpp"
 
 namespace crv::graphics::vulkan {
     Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight), mColorFormat(info.colorFormat),
-    mContext(info.context), mTextures(info.textures) {
+    mIndexCount(info.indices.size()), mContext(info.context), mTextures(info.textures) {
         createColorBuffer(info);
+        createDepthBuffer(info);
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -21,7 +23,7 @@ namespace crv::graphics::vulkan {
         Buffer& MVPBuffer = mMVPBuffers[info.currentFrame];
         {
             AlignedMVP MVP {
-                .model = glm::rotate(glm::mat4(1.0f), glm::radians(-0.0f), glm::vec3(1, 0, 0)),
+                .model = glm::mat4(1.0f),
                 .view = info.camera->viewMatrix(),
                 .proj = info.camera->projectionMatrix()
             };
@@ -43,6 +45,20 @@ namespace crv::graphics::vulkan {
             .range = MVPBuffer.size()
         };
 
+        std::vector<VkDescriptorImageInfo> textureInfos;
+        for (size_t i = 0; i < mTextures->size(); i++) {
+            auto& texturesByType = (*mTextures)[i];
+            for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
+                auto& texture = texturesByType[j];
+                VkDescriptorImageInfo textureInfo {
+                    .sampler = texture.sampler(),
+                    .imageView = texture.view(),
+                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                };
+                textureInfos.push_back(textureInfo);
+            }
+        }
+
         const VkWriteDescriptorSet writeDescriptorSet0 {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 0,
@@ -54,8 +70,17 @@ namespace crv::graphics::vulkan {
             .pTexelBufferView = nullptr
         };
 
+        VkWriteDescriptorSet writeDescriptorSet1 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = textureInfos.data()
+        };
+
         std::vector descriptorWrites{
-            writeDescriptorSet0
+            writeDescriptorSet0, writeDescriptorSet1
         };
 
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
@@ -70,7 +95,73 @@ namespace crv::graphics::vulkan {
     }
 
     void Rasterizer::record(const RasterizerRecordInfo& info) {
-        //TODO create GBUFFER, next to..
+        std::vector<VkClearValue> clearValues = {
+        {.color = {{0.2f, 0.2f, 0.2f, 1.0f}},},
+        {.depthStencil = {1.0f, 0}}
+        };
+
+        VkRenderingAttachmentInfo colorAttachment = {
+                .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                .imageView = info.imageView,
+                .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .clearValue = clearValues[0],
+        };
+
+        VkRenderingAttachmentInfo depthAttachment = {
+                .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                .imageView = mDepthView.get(),
+                .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .clearValue = clearValues[1],
+        };
+
+        const VkRenderingInfo renderingInfo = {
+                .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+                .renderArea = {
+                        .offset = {0, 0},
+                        .extent = info.extent
+                },
+                .layerCount = 1,
+                .colorAttachmentCount = 1,
+                .pColorAttachments = &colorAttachment,
+                .pDepthAttachment = &depthAttachment,
+        };
+
+        vkCmdBeginRendering(info.commandBuffer, &renderingInfo);
+
+        vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipelines[0]);
+
+        VkViewport viewport{
+                .x = 0.0f,
+                .y = 0.0f,
+                .width = static_cast<float>(info.extent.width),
+                .height = static_cast<float>(info.extent.height),
+                .minDepth = 0.0f,
+                .maxDepth = 1.0f
+        };
+        vkCmdSetViewport(info.commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissor{
+                .offset = {0, 0},
+                .extent = info.extent,
+        };
+        vkCmdSetScissor(info.commandBuffer, 0, 1, &scissor);
+
+        vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout.get(),
+                                0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
+
+        VkBuffer vertexBuffers[] = {mVertexBuffer.get()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(info.commandBuffer, mIndexBuffer.get(), 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdDrawIndexed(info.commandBuffer, mIndexCount, 1, 0, 0, 0);
+
+        vkCmdEndRendering(info.commandBuffer);
     }
 
     void Rasterizer::createColorBuffer(const RasterizerCreateInfo& info) {
@@ -89,8 +180,69 @@ namespace crv::graphics::vulkan {
         mColorBuffer = Image(createInfo);
     }
 
+    void Rasterizer::createDepthBuffer(const RasterizerCreateInfo& info) {
+        const ImageCreateInfo imageCreateInfo {
+            .device = mContext->device(),
+            .allocator = mContext->allocator(),
+            .format = VK_FORMAT_D32_SFLOAT,
+            .extent = info.extent,
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        mDepthImage = Image(imageCreateInfo);
+        const ImageViewCreateInfo imageViewCreateInfo {
+            .device = mContext->device(),
+            .image = mDepthImage.get(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = VK_FORMAT_D32_SFLOAT,
+            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+            .mipLevels = 1,
+            .baseMipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        };
+        mDepthView = ImageView(imageViewCreateInfo);
+
+        VkImageMemoryBarrier barrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .image = mDepthImage.get(),
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext->device(),
+            mContext->familyIndex(QueueFamilyType::GRAPHICS).value());
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            0,
+            0,nullptr,
+            0,nullptr,
+            1, &barrier
+        );
+
+        endCommandBuffer(commandPool, commandBuffers, mContext->queue(QueueFamilyType::GRAPHICS));
+    }
+
     void Rasterizer::createDescriptorSetLayout() {
-        VkDescriptorSetLayoutBinding MVPBinding{
+        VkDescriptorSetLayoutBinding binding0{
             .binding = 0,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = 1,
@@ -98,10 +250,17 @@ namespace crv::graphics::vulkan {
             .pImmutableSamplers = nullptr
         };
 
-        std::vector bindings = {MVPBinding};
+        VkDescriptorSetLayoutBinding binding1 {
+            .binding = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
+            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+        };
+
+        std::vector bindings = {binding0, binding1};
 
         std::vector<VkDescriptorBindingFlags> bindingFlags = {
-                0,
+            0,  VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
         };
 
         const DescriptorSetLayoutCreateInfo createInfo {
@@ -115,6 +274,8 @@ namespace crv::graphics::vulkan {
     void Rasterizer::createDescriptorPool() {
         std::vector<VkDescriptorPoolSize> poolSizes{
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight *
+                static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)}
         };
 
         const DescriptorPoolCreateInfo createInfo {
@@ -135,7 +296,7 @@ namespace crv::graphics::vulkan {
     }
 
     void Rasterizer::createDescriptorSets() {
-        const std::vector variableCounts(mFramesInFlight, static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)); //mTexturesSize
+        const std::vector variableCounts(mFramesInFlight, static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN));
         const DescriptorSetsCreateInfo createInfo {
             .device = mContext->device(),
             .layouts = getDescriptorLayouts(),
@@ -244,6 +405,48 @@ namespace crv::graphics::vulkan {
         };
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             mMVPBuffers[i] = Buffer(MVPBufferCreateInfo);
+        }
+        {
+            const size_t verticesSize = sizeof(Vertex) * info.vertices.size();
+            const BufferCreateInfo vertexBufferCreateInfo {
+                .allocator = mContext->allocator(),
+                .size = verticesSize,
+                .bufferUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mVertexBuffer = Buffer(vertexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<Vertex*>(info.vertices.data()),
+                .size = verticesSize,
+                .allocator = mContext->allocator(),
+                .buffer = mVertexBuffer.get(),
+                .device = mContext->device(),
+                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+                .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        {
+            const size_t indicesSize = sizeof(uint32_t) * info.indices.size();
+            const BufferCreateInfo indexBufferCreateInfo {
+                .allocator = mContext->allocator(),
+                .size = indicesSize,
+                .bufferUsage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mIndexBuffer = Buffer(indexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<uint32_t*>(info.indices.data()),
+                .size = indicesSize,
+                .allocator = mContext->allocator(),
+                .buffer = mIndexBuffer.get(),
+                .device = mContext->device(),
+                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+                .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
         }
     }
 }

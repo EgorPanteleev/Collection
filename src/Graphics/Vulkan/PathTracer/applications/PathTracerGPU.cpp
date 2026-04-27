@@ -38,7 +38,7 @@ int main() {
         .zoom = 1,
         .FOV = 60,
         .aspectRatio = static_cast<float>(WIDTH) / HEIGHT,
-        .nearPlane = 0,
+        .nearPlane = 0.1f,
         .farPlane = 5000.0f,
     };
     auto model = glm::mat4(1.);

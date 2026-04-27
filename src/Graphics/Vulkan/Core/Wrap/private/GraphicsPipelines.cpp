@@ -38,7 +38,7 @@ namespace crv::graphics::vulkan {
             .pVertexAttributeDescriptions = info.attributeDescriptions.data()
         };
 
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
                 .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
                 .primitiveRestartEnable = VK_FALSE
@@ -52,28 +52,24 @@ namespace crv::graphics::vulkan {
                 .pScissors = nullptr
         };
 
-        VkPipelineRasterizationStateCreateInfo rasterizationInfo {
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-                .depthClampEnable = VK_FALSE,
-                .rasterizerDiscardEnable = VK_FALSE,
-                .polygonMode = VK_POLYGON_MODE_FILL,
-                .cullMode = VK_CULL_MODE_BACK_BIT,
-                .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-                .depthBiasEnable = VK_FALSE,
-                .depthBiasConstantFactor = 0.0f,
-                .depthBiasClamp = 0.0f,
-                .depthBiasSlopeFactor = 0.0f,
-                .lineWidth = 1.0f
+        VkPipelineRasterizationStateCreateInfo rasterizationInfo{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+            .depthClampEnable = VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = VK_POLYGON_MODE_FILL,
+            .cullMode = VK_CULL_MODE_BACK_BIT,
+            .frontFace = VK_FRONT_FACE_CLOCKWISE,
+            .depthBiasEnable = VK_FALSE,
+            .depthBiasConstantFactor = 0.0f,
+            .depthBiasClamp = 0.0f,
+            .depthBiasSlopeFactor = 0.0f,
+            .lineWidth = 1.0f
         };
 
         VkPipelineMultisampleStateCreateInfo multisampleInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
                 .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-                .sampleShadingEnable = VK_TRUE,
-                .minSampleShading = .2f,
-                .pSampleMask = nullptr,
-                .alphaToCoverageEnable = VK_FALSE,
-                .alphaToOneEnable = VK_FALSE
+                .sampleShadingEnable = VK_FALSE,
         };
 
         // VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -90,7 +86,7 @@ namespace crv::graphics::vulkan {
             .alphaBlendOp = VK_BLEND_OP_ADD,
             .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
-        };
+    };
 
         VkPipelineColorBlendStateCreateInfo colorBlendInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,

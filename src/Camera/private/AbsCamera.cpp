@@ -26,7 +26,6 @@ namespace crv::scene {
     void AbsCamera::calculateProjection() {
         mProjectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio,
                                              mNearPlane, mFarPlane);
-        mProjectionMatrix[1][1] *= -1;
     }
 
     void AbsCamera::calculateView() {
