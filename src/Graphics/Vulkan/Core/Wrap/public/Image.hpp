@@ -50,6 +50,26 @@ namespace crv::graphics::vulkan {
         uint32_t              layerCount     = 1;
     };
 
+    struct ImageBarrierInfo {
+        VkImage              image          = VK_NULL_HANDLE;
+        VkAccessFlags        srcAccessMask  = VK_ACCESS_NONE;
+        VkAccessFlags        dstAccessMask  = VK_ACCESS_NONE;
+        VkImageLayout        oldLayout      = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageLayout        newLayout      = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageAspectFlags   aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        uint32_t             baseMipLevel   = 0;
+        uint32_t             levelCount     = 1;
+        uint32_t             baseArrayLayer = 0;
+        uint32_t             layerCount     = 1;
+    };
+
+    struct ImagePipelineBarrierInfo {
+        VkCommandBuffer      commandBuffer = VK_NULL_HANDLE;
+        VkPipelineStageFlags srcStage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        VkPipelineStageFlags dstStage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        std::vector<VkImageMemoryBarrier> barriers{};
+    };
+
     class Image: public DefaultWrapper<VkImage> {
     public:
         using DefaultWrapper::DefaultWrapper;
@@ -60,7 +80,10 @@ namespace crv::graphics::vulkan {
         void destroy() override;
         [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         static void transit(const ImageTransitInfo& info);
+        static VkImageMemoryBarrier barrier(const ImageBarrierInfo& info);
         static void copy(const CopyBufferToImageInfo& info);
+        static void pipelineBarrier(const ImagePipelineBarrierInfo& info);
+        static VkImageMemoryBarrier inverseBarrier(VkImageMemoryBarrier barrier);
     protected:
         void createImage(const ImageCreateInfo& info);
 

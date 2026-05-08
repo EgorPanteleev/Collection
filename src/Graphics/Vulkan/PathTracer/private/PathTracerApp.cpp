@@ -24,9 +24,11 @@ namespace crv::graphics::vulkan {
 
         loadModel(info);
         createTextures();
+
+        createGBuffers();
+        createRasterizer();
         createPathTracer();
         createImGui();
-        createRasterizer();
     }
 
     void PathTracerApp::run() {
@@ -153,11 +155,13 @@ namespace crv::graphics::vulkan {
             .device = mContext.device()
         };
         mImageAvailableSemaphores.resize(mFramesInFlight);
-        mComputeFinishedSemaphores.resize(mFramesInFlight);
+        mRasterFinishedSemaphores.resize(mFramesInFlight);
+        mTracerFinishedSemaphores.resize(mFramesInFlight);
         mFences.resize(mFramesInFlight);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            mImageAvailableSemaphores[i]  = Semaphore(semaphoreCreateInfo);
-            mComputeFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
+            mImageAvailableSemaphores[i] = Semaphore(semaphoreCreateInfo);
+            mRasterFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
+            mTracerFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
             mFences[i] = Fence(fenceCreateInfo);
         }
     }
@@ -173,7 +177,7 @@ namespace crv::graphics::vulkan {
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
             .memoryUsage = VMA_MEMORY_USAGE_AUTO
         };
         mPresentImage = Image(imageCreateInfo);
@@ -190,37 +194,6 @@ namespace crv::graphics::vulkan {
             .layerCount = 1
         };
         mPresentImageView = ImageView(imageViewCreateInfo);
-
-        VkImageMemoryBarrier toColor{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .image = mPresentImage.get(),
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
-        };
-
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
-
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            0,
-            0,nullptr,
-            0,nullptr,
-            1,&toColor
-        );
-
-        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
     void PathTracerApp::createTextures() {
@@ -353,119 +326,105 @@ namespace crv::graphics::vulkan {
             .currentFrame = mCurrentFrame
         };
         mRasterizer.update(rasterizerUpdateInfo);
-        // const PathTracerUpdateInfo pathTracerUpdateInfo {
-        //     .camera = mCamera,
-        //     .directLight = mDirectLight,
-        //     .presentImage = mPresentImage.get(),
-        //     .presentImageView = mPresentImageView.get(),
-        //     .currentFrame = mCurrentFrame
-        // };
-        // mPathTracer.update(pathTracerUpdateInfo);
+        const PathTracerUpdateInfo pathTracerUpdateInfo {
+            .camera = mCamera,
+            .directLight = mDirectLight,
+            .gBuffer = &mGBuffers[mCurrentFrame],
+            .presentImage = mPresentImage.get(),
+            .presentImageView = mPresentImageView.get(),
+            .currentFrame = mCurrentFrame
+        };
+        mPathTracer.update(pathTracerUpdateInfo);
     }
 
-    void PathTracerApp::record(uint32_t imageIndex) {
+    void PathTracerApp::recordRaster() {
         VkCommandBuffer commandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
-        constexpr VkCommandBufferBeginInfo beginInfo {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-            .flags = 0,
-            .pInheritanceInfo = nullptr
-        };
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to begin recording command buffer!");
-        }
+        beginCommandBuffer(commandBuffer);
 
-        VkImageMemoryBarrier toColor{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .image = mPresentImage.get(),
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
-        };
-
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            0, 0,nullptr, 0,nullptr,
-            1, &toColor
-        );
-
-        RasterizerRecordInfo rasterizerRecordInfo {
+        const RasterizerRecordInfo rasterizerRecordInfo {
             .commandBuffer = commandBuffer,
-            .imageView = mPresentImageView.get(),
+            .gBuffer = &mGBuffers[mCurrentFrame],
             .extent = mSwapchain.extent(),
             .currentFrame = mCurrentFrame
         };
         mRasterizer.record(rasterizerRecordInfo);
 
-        // PathTracerRecordInfo pathTracerRecordInfo {
-        //     .commandBuffer = commandBuffer,
-        //     .extent = mSwapchain.extent(),
-        //     .currentFrame = mCurrentFrame,
-        //     .frameCount = mFrameCount,
-        //     .maxDepth = static_cast<uint32_t>(mMaxDepth)
-        // };
-        // mPathTracer.record(pathTracerRecordInfo);
-        
-        const VkImageMemoryBarrier dataBarrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        GBuffer& gBuffer = mGBuffers[mCurrentFrame];
+        const ImageBarrierInfo colorBarrierInfo {
+            .image = gBuffer.colorImage.get(),
             .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            .image = mPresentImage.get(),
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
-        const VkImageMemoryBarrier presentBarrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        const ImageBarrierInfo depthBarrierInfo {
+            .image = gBuffer.depthImage.get(),
+            .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+        };
+        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo)};
+        const ImagePipelineBarrierInfo pipelineBarrierInfo {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+            .dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .barriers = barriers
+        };
+        Image::pipelineBarrier(pipelineBarrierInfo);
+        endCommandBuffer(commandBuffer);
+    }
+
+     void PathTracerApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
+        const ImageBarrierInfo dataBarrierInfo {
+            .image = mPresentImage.get(),
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        const ImageBarrierInfo presentBarrierInfo {
+            .image = mSwapchainImages[imageIndex],
             .srcAccessMask = 0,
             .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .image = mSwapchainImages[imageIndex],
-            .subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        const VkImageMemoryBarrier dataBarrier    = Image::barrier(dataBarrierInfo);
+        const VkImageMemoryBarrier presentBarrier = Image::barrier(presentBarrierInfo);
+
+        ImagePipelineBarrierInfo pipelineBarrierInfo1 {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .barriers = {dataBarrier, presentBarrier}
+        };
+        Image::pipelineBarrier(pipelineBarrierInfo1);
+
+        auto [width, height]  = mSwapchain.extent();
+        VkImageBlit blit{
+            .srcSubresource = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
                 .layerCount = 1
+            },
+            .srcOffsets = {
+                {0, 0, 0},
+                {static_cast<int32_t>(width), static_cast<int32_t>(height), 1}
+            },
+            .dstSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .layerCount = 1
+            },
+            .dstOffsets = {
+                {0, 0, 0},
+                {static_cast<int32_t>(width), static_cast<int32_t>(height), 1}
             }
         };
-
-        VkImageMemoryBarrier barriers[] = {dataBarrier, presentBarrier};
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr,
-                             0, nullptr, 2, barriers);
-
-        VkImageBlit blit{};
-        blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        blit.srcSubresource.layerCount = 1;
-
-        blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        blit.dstSubresource.layerCount = 1;
-
-        const uint32_t width  = mSwapchain.extent().width;
-        const uint32_t height = mSwapchain.extent().height;
-        blit.srcOffsets[0] = {0, 0, 0};
-        blit.srcOffsets[1] = {static_cast<int32_t>(width), static_cast<int32_t>(height), 1};
-
-        blit.dstOffsets[0] = {0, 0, 0};
-        blit.dstOffsets[1] = {static_cast<int32_t>(width), static_cast<int32_t>(height), 1};
 
         vkCmdBlitImage(
             commandBuffer,
@@ -478,35 +437,21 @@ namespace crv::graphics::vulkan {
             VK_FILTER_NEAREST
         );
 
-        VkImageMemoryBarrier presentBarrier1{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .dstAccessMask = 0,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            .image = mSwapchainImages[imageIndex],
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .levelCount = 1,
-                .layerCount = 1
-            }
-        };
-        VkPipelineStageFlagBits dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        VkImageMemoryBarrier inversePresentBarrier = Image::inverseBarrier(presentBarrier);
+
+        VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
         if (mRenderImGui) {
-            presentBarrier1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            presentBarrier1.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            inversePresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            inversePresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         }
-
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            VK_PIPELINE_STAGE_TRANSFER_BIT,
-            dstStage,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &presentBarrier1
-        );
+        ImagePipelineBarrierInfo pipelineBarrierInfo2 {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .dstStage = dstStage,
+            .barriers = {inversePresentBarrier}
+        };
+        Image::pipelineBarrier(pipelineBarrierInfo2);
 
         if (mRenderImGui) {
             ImGuiRenderInfo renderInfo {
@@ -515,50 +460,111 @@ namespace crv::graphics::vulkan {
                 .extent = mSwapchain.extent()
             };
             mImGui.render(renderInfo);
-            presentBarrier1.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            presentBarrier1.dstAccessMask = 0;
-            presentBarrier1.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            presentBarrier1.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            inversePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            inversePresentBarrier.dstAccessMask = 0;
+            inversePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            inversePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-            vkCmdPipelineBarrier(
-                commandBuffer,
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                0,
-                0, nullptr,
-                0, nullptr,
-                1, &presentBarrier1
-            );
+            ImagePipelineBarrierInfo guiBarrierInfo {
+                .commandBuffer = commandBuffer,
+                .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                .dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                .barriers = {inversePresentBarrier}
+            };
+            Image::pipelineBarrier(guiBarrierInfo);
         }
-        
-        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to record command buffer!");
-        }
+    }
+
+    void PathTracerApp::recordTracer(uint32_t imageIndex) {
+        VkCommandBuffer commandBuffer = mComputeCommandBuffers[mCurrentFrame];
+        vkResetCommandBuffer(commandBuffer, 0);
+        beginCommandBuffer(commandBuffer);
+
+        const PathTracerRecordInfo pathTracerRecordInfo {
+            .commandBuffer = commandBuffer,
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame,
+            .frameCount = mFrameCount,
+            .maxDepth = static_cast<uint32_t>(mMaxDepth)
+        };
+        mPathTracer.record(pathTracerRecordInfo);
+
+        GBuffer& gBuffer = mGBuffers[mCurrentFrame];
+        const ImageBarrierInfo colorBarrierInfo {
+            .image = gBuffer.colorImage.get(),
+            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        const ImageBarrierInfo depthBarrierInfo {
+            .image = gBuffer.depthImage.get(),
+            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+        };
+        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo)};
+        const ImagePipelineBarrierInfo pipelineBarrierInfo {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+            .barriers = barriers
+        };
+        Image::pipelineBarrier(pipelineBarrierInfo);
+
+        recordPresent(imageIndex, commandBuffer);
+        endCommandBuffer(commandBuffer);
+    }
+
+    void PathTracerApp::record(uint32_t imageIndex) {
+        recordRaster();
+        recordTracer(imageIndex);
         vkResetFences(mContext.device(), 1, &mFences[mCurrentFrame].get());
     }
 
     void PathTracerApp::submit(const uint32_t imageIndex) {
-        auto& commandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        const VkSubmitInfo submitInfo{
+        auto& graphicsCommandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
+        VkPipelineStageFlags rasterWaitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        const VkSubmitInfo rasterSubmitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores = &mImageAvailableSemaphores[mCurrentFrame].get(),
-            .pWaitDstStageMask = waitStages,
+            .pWaitDstStageMask = rasterWaitStages,
             .commandBufferCount = 1,
-            .pCommandBuffers = &commandBuffer,
+            .pCommandBuffers = &graphicsCommandBuffer,
             .signalSemaphoreCount = 1,
-            .pSignalSemaphores = &mComputeFinishedSemaphores[mCurrentFrame].get()
+            .pSignalSemaphores = &mRasterFinishedSemaphores[mCurrentFrame].get()
         };
 
-        VkQueue queue = mContext.queue(QueueFamilyType::GRAPHICS);
-        if (vkQueueSubmit(queue, 1, &submitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
+        VkQueue graphicsQueue = mContext.queue(QueueFamilyType::GRAPHICS);
+        if (vkQueueSubmit(graphicsQueue, 1, &rasterSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
+
+        auto& computeCommandBuffer = mComputeCommandBuffers[mCurrentFrame];
+        VkPipelineStageFlags tracerWaitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
+        const VkSubmitInfo tracerSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &mRasterFinishedSemaphores[mCurrentFrame].get(),
+            .pWaitDstStageMask = tracerWaitStages,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &computeCommandBuffer,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get()
+        };
+        VkQueue computeQueue = mContext.queue(QueueFamilyType::COMPUTE);
+        if (vkQueueSubmit(computeQueue, 1, &tracerSubmitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to submit draw command buffer!");
+        }
+
         const VkPresentInfoKHR presentInfo {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &mComputeFinishedSemaphores[mCurrentFrame].get(),
+            .pWaitSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get(),
             .swapchainCount = 1,
             .pSwapchains = &mSwapchain.get(),
             .pImageIndices = &imageIndex,
@@ -645,6 +651,124 @@ namespace crv::graphics::vulkan {
         } else {
             mCamera = &mOrbitalCamera;
         }
+    }
+
+    void PathTracerApp::createGBuffers() {
+        const auto [width, height] = mSwapchain.extent();
+        VkExtent3D extent = {width, height, 1};
+        constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+        const ImageCreateInfo colorImageCreateInfo {
+            .device = mContext.device(),
+            .allocator = mContext.allocator(),
+            .format = colorFormat,
+            .extent = extent,
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        ImageViewCreateInfo colorViewCreateInfo {
+            .device = mContext.device(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = colorFormat,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevels = 1,
+            .baseMipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        };
+        const ImageCreateInfo depthImageCreateInfo {
+            .device = mContext.device(),
+            .allocator = mContext.allocator(),
+            .format = VK_FORMAT_D32_SFLOAT,
+            .extent = extent,
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        ImageViewCreateInfo depthViewCreateInfo {
+            .device = mContext.device(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = VK_FORMAT_D32_SFLOAT,
+            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+            .mipLevels = 1,
+            .baseMipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        };
+        const SamplerCreateInfo samplerCreateInfo {
+            .device = mContext.device(),
+            .physicalDevice = mContext.physicalDevice(),
+            .addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .compareEnable = VK_FALSE,
+            .compareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .mipLevels = 1,
+            .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK
+        };
+        constexpr ImageBarrierInfo colorBarrierInfo {
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        };
+        constexpr ImageBarrierInfo depthBarrierInfo {
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        };
+        VkImageMemoryBarrier colorBarrier = Image::barrier(colorBarrierInfo);
+        VkImageMemoryBarrier depthBarrier = Image::barrier(depthBarrierInfo);
+        std::vector<VkImageMemoryBarrier> colorBarriers;
+        std::vector<VkImageMemoryBarrier> depthBarriers;
+        mGBuffers.resize(mFramesInFlight);
+        for (int i = 0; i < mFramesInFlight; ++i) {
+            GBuffer& gBuffer = mGBuffers[i];
+            gBuffer.colorImage = Image(colorImageCreateInfo);
+            gBuffer.depthImage = Image(depthImageCreateInfo);
+            colorViewCreateInfo.image = gBuffer.colorImage.get();
+            depthViewCreateInfo.image = gBuffer.depthImage.get();
+            gBuffer.colorView = ImageView(colorViewCreateInfo);
+            gBuffer.depthView = ImageView(depthViewCreateInfo);
+            colorBarrier.image = gBuffer.colorImage.get();
+            depthBarrier.image = gBuffer.depthImage.get();
+            colorBarriers.push_back(colorBarrier);
+            depthBarriers.push_back(depthBarrier);
+            gBuffer.sampler = Sampler(samplerCreateInfo);
+        }
+        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        const ImagePipelineBarrierInfo colorPipelineBarrierInfo {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .barriers = colorBarriers
+        };
+        const ImagePipelineBarrierInfo depthPipelineBarrierInfo {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            .barriers = depthBarriers
+        };
+        Image::pipelineBarrier(colorPipelineBarrierInfo);
+        Image::pipelineBarrier(depthPipelineBarrierInfo);
+        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
     void PathTracerApp::createRasterizer() {

@@ -87,6 +87,16 @@ namespace crv::graphics::vulkan {
             .offset = 0,
             .range = mMaterialIndexBuffer.size()
         };
+        VkDescriptorImageInfo colorInfo {
+            .sampler = info.gBuffer->sampler.get(),
+            .imageView = info.gBuffer->colorView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        };
+        VkDescriptorImageInfo depthInfo {
+            .sampler = info.gBuffer->sampler.get(),
+            .imageView = info.gBuffer->depthView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        };
         std::vector<VkDescriptorImageInfo> textureInfos;
         for (size_t i = 0; i < mTextures->size(); i++) {
             auto& texturesByType = (*mTextures)[i];
@@ -201,6 +211,22 @@ namespace crv::graphics::vulkan {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 7,
             .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &colorInfo
+        };
+        VkWriteDescriptorSet writeDescriptorSet8 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 8,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &depthInfo
+        };
+        VkWriteDescriptorSet writeDescriptorSet9 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 9,
+            .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .pImageInfo = textureInfos.data()
@@ -208,7 +234,8 @@ namespace crv::graphics::vulkan {
         std::vector descriptorWrites{
             writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2,
             writeDescriptorSet3, writeDescriptorSet4, writeDescriptorSet5,
-            writeDescriptorSet6, writeDescriptorSet7
+            writeDescriptorSet6, writeDescriptorSet7, writeDescriptorSet8,
+            writeDescriptorSet9
         };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
@@ -226,12 +253,11 @@ namespace crv::graphics::vulkan {
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
 
-        const uint32_t width  = info.extent.width;
-        const uint32_t height = info.extent.height;
-        const PushConstants pc(width, height, info.frameCount, info.maxDepth);
+        const PushConstants pc(info.frameCount, info.maxDepth);
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
             0, sizeof(PushConstants), &pc);
 
+        auto [width, height]  = info.extent;
         const uint32_t groupX = 1 + (width - 1 ) / 8;
         const uint32_t groupY = 1 + (height - 1) / 8;
         vkCmdDispatch(info.commandBuffer, groupX, groupY, 1);
@@ -295,16 +321,29 @@ namespace crv::graphics::vulkan {
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
-        VkDescriptorSetLayoutBinding binding7 {
+        VkDescriptorSetLayoutBinding colorBinding {
             .binding = 7,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        };
+        VkDescriptorSetLayoutBinding depthBinding {
+            .binding = 8,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        };
+        VkDescriptorSetLayoutBinding binding9 {
+            .binding = 9,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
 
         const std::vector bindings{binding0, binding1, binding2, binding3,
-                                   binding4, binding5, binding6, binding7};
-        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0,
+                                   binding4, binding5, binding6, colorBinding,
+                                   depthBinding, binding9};
+        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0, 0, 0,
             VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
         };
@@ -318,14 +357,16 @@ namespace crv::graphics::vulkan {
 
     void PathTracer::createDescriptorPool() {
         const std::vector<VkDescriptorPoolSize> poolSizes{
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE , mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight
                 * static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)},
         };
 

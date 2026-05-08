@@ -8,8 +8,6 @@
 namespace crv::graphics::vulkan {
     Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight), mColorFormat(info.colorFormat),
     mIndexCount(info.indices.size()), mContext(info.context), mTextures(info.textures) {
-        createColorBuffer(info);
-        createDepthBuffer(info);
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -102,7 +100,7 @@ namespace crv::graphics::vulkan {
 
         VkRenderingAttachmentInfo colorAttachment = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-                .imageView = info.imageView,
+                .imageView =  info.gBuffer->colorView.get(),
                 .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -111,7 +109,7 @@ namespace crv::graphics::vulkan {
 
         VkRenderingAttachmentInfo depthAttachment = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-                .imageView = mDepthView.get(),
+                .imageView = info.gBuffer->depthView.get(),
                 .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -162,83 +160,6 @@ namespace crv::graphics::vulkan {
         vkCmdDrawIndexed(info.commandBuffer, mIndexCount, 1, 0, 0, 0);
 
         vkCmdEndRendering(info.commandBuffer);
-    }
-
-    void Rasterizer::createColorBuffer(const RasterizerCreateInfo& info) {
-        const ImageCreateInfo createInfo {
-            .device = mContext->device(),
-            .allocator = mContext->allocator(),
-            .format = mColorFormat,
-            .extent = info.extent,
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-            .memoryUsage = VMA_MEMORY_USAGE_AUTO
-        };
-        mColorBuffer = Image(createInfo);
-    }
-
-    void Rasterizer::createDepthBuffer(const RasterizerCreateInfo& info) {
-        const ImageCreateInfo imageCreateInfo {
-            .device = mContext->device(),
-            .allocator = mContext->allocator(),
-            .format = VK_FORMAT_D32_SFLOAT,
-            .extent = info.extent,
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            .memoryUsage = VMA_MEMORY_USAGE_AUTO
-        };
-        mDepthImage = Image(imageCreateInfo);
-        const ImageViewCreateInfo imageViewCreateInfo {
-            .device = mContext->device(),
-            .image = mDepthImage.get(),
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = VK_FORMAT_D32_SFLOAT,
-            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-            .mipLevels = 1,
-            .baseMipLevel = 0,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        };
-        mDepthView = ImageView(imageViewCreateInfo);
-
-        VkImageMemoryBarrier barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            .image = mDepthImage.get(),
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
-        };
-
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext->device(),
-            mContext->familyIndex(QueueFamilyType::GRAPHICS).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
-
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-            0,
-            0,nullptr,
-            0,nullptr,
-            1, &barrier
-        );
-
-        endCommandBuffer(commandPool, commandBuffers, mContext->queue(QueueFamilyType::GRAPHICS));
     }
 
     void Rasterizer::createDescriptorSetLayout() {

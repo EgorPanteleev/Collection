@@ -35,7 +35,7 @@ namespace crv::graphics::vulkan {
 
     struct RasterizerRecordInfo {
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-        VkImageView     imageView     = VK_NULL_HANDLE;
+        GBuffer*        gBuffer       = nullptr;
         VkExtent2D      extent{};
         uint32_t        currentFrame  = 0;
     };
@@ -46,10 +46,7 @@ namespace crv::graphics::vulkan {
         explicit Rasterizer(const RasterizerCreateInfo& info);
         void update(const RasterizerUpdateInfo& info);
         void record(const RasterizerRecordInfo& info);
-        VkImage depthImage() { return mDepthImage.get(); }
     protected:
-        void createColorBuffer(const RasterizerCreateInfo& info);
-        void createDepthBuffer(const RasterizerCreateInfo& info);
         void createDescriptorSetLayout();
         void createDescriptorPool();
         std::vector<VkDescriptorSetLayout>  getDescriptorLayouts();
@@ -64,9 +61,6 @@ namespace crv::graphics::vulkan {
         uint32_t mIndexCount = 0;
 
         Context* mContext = nullptr;
-        Image mColorBuffer{};
-        Image mDepthImage{};
-        ImageView mDepthView{};
         DescriptorSetLayout mDescriptorSetLayout{};
         DescriptorPool mDescriptorPool{};
         DescriptorSets mDescriptorSets{};

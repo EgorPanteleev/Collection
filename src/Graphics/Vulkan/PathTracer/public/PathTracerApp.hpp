@@ -46,6 +46,9 @@ namespace crv::graphics::vulkan {
         void createPathTracer();
         void createImGui();
         void update();
+        void recordRaster();
+        void recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer);
+        void recordTracer(uint32_t imageIndex);
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);
@@ -53,6 +56,7 @@ namespace crv::graphics::vulkan {
         void drawControlPanel();
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void setCamera(scene::CameraType type);
+        void createGBuffers();
         void createRasterizer();
 
 #ifdef NDEBUG
@@ -61,42 +65,43 @@ namespace crv::graphics::vulkan {
         bool mDebug = true;
 #endif
         uint32_t mFramesInFlight = 2;
-        uint32_t mCurrentFrame = 0;
-        uint32_t mFrameCount = 0;
-        scene::FlyCamera mFlyCamera{};
+        uint32_t mCurrentFrame   = 0;
+        uint32_t mFrameCount     = 0;
+        scene::FlyCamera     mFlyCamera{};
         scene::OrbitalCamera mOrbitalCamera{};
-        scene::AbsCamera* mCamera = nullptr;
-        AlignedDirectLight mDirectLight{};
+        scene::AbsCamera*    mCamera = nullptr;
+        AlignedDirectLight   mDirectLight{};
         bool mRenderImGui = false;
-        int mMaxDepth = 1;
+        int  mMaxDepth    = 1;
 
-        Context mContext{};
-        CommandPool mComputeCommandPool{};
-        CommandBuffers mComputeCommandBuffers{};
-        CommandPool mGraphicsCommandPool{};
-        CommandBuffers mGraphicsCommandBuffers{};
-        Image mPresentImage{};
-        ImageView mPresentImageView{};
-        Swapchain mSwapchain{};
-        std::vector<VkImage> mSwapchainImages{};
+        Context                mContext{};
+        CommandPool            mComputeCommandPool{};
+        CommandBuffers         mComputeCommandBuffers{};
+        CommandPool            mGraphicsCommandPool{};
+        CommandBuffers         mGraphicsCommandBuffers{};
+        Image                  mPresentImage{};
+        ImageView              mPresentImageView{};
+        Swapchain              mSwapchain{};
+        std::vector<VkImage>   mSwapchainImages{};
         std::vector<ImageView> mSwapchainImageViews{};
         std::vector<Semaphore> mImageAvailableSemaphores{};
-        std::vector<Semaphore> mComputeFinishedSemaphores{};
-        std::vector<Fence> mFences{};
+        std::vector<Semaphore> mRasterFinishedSemaphores{};
+        std::vector<Semaphore> mTracerFinishedSemaphores{};
+        std::vector<Fence>     mFences{};
 
-        std::vector<AlignedTriangle> mTriangles{};
+        std::vector<AlignedTriangle>      mTriangles{};
         std::vector<AlignedTriangleExtra> mTriangleExtras{};
-        std::vector<AlignedNode> mNodes{};
-        std::vector<model::Material> mMaterials{};
-        std::vector<uint32_t> mMaterialIndices{};
-        std::vector<Vertex> mVertices{};
-        std::vector<uint32_t> mIndices{};
+        std::vector<AlignedNode>          mNodes{};
+        std::vector<model::Material>      mMaterials{};
+        std::vector<uint32_t>             mMaterialIndices{};
+        std::vector<Vertex>               mVertices{};
+        std::vector<uint32_t>             mIndices{};
+        std::vector<TexturesByType>       mTextures{};
 
-        std::vector<TexturesByType> mTextures{};
-        PathTracer mPathTracer{};
-        VkImGui mImGui{};
-
+        std::vector<GBuffer> mGBuffers{};
         Rasterizer mRasterizer{};
+        PathTracer mPathTracer{};
+        VkImGui    mImGui{};
     };
 }
 

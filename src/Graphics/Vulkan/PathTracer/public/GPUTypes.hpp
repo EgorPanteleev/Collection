@@ -47,7 +47,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct PushConstants {
-        uint32_t width, height, frame, maxDepth;
+        uint32_t frame, maxDepth;
     };
 
     struct TexturesByType {
@@ -65,6 +65,14 @@ namespace crv::graphics::vulkan {
 
     struct alignas(16) AlignedMVP {
         glm::mat4 model, view, proj;
+    };
+
+    struct GBuffer {
+        Image     colorImage{};
+        ImageView colorView{};
+        Image     depthImage{};
+        ImageView depthView{};
+        Sampler   sampler{};
     };
 }
 

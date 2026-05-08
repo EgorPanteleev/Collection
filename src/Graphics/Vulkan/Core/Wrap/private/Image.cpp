@@ -70,6 +70,26 @@ namespace crv::graphics::vulkan {
             nullptr,1, &barrier);
     }
 
+    VkImageMemoryBarrier Image::barrier(const ImageBarrierInfo& info) {
+        return {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = info.srcAccessMask,
+            .dstAccessMask = info.dstAccessMask,
+            .oldLayout = info.oldLayout,
+            .newLayout = info.newLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = info.image,
+            .subresourceRange = {
+                .aspectMask = info.aspectMask,
+                .baseMipLevel = info.baseMipLevel,
+                .levelCount = info.levelCount,
+                .baseArrayLayer = info.baseArrayLayer,
+                .layerCount = info.layerCount
+            }
+        };
+    }
+
     void Image::copy(const CopyBufferToImageInfo &info) {
         const VkBufferImageCopy region{
             .bufferOffset = 0,
@@ -88,5 +108,18 @@ namespace crv::graphics::vulkan {
                 info.commandBuffer, info.buffer, info.image,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region
         );
+    }
+
+    void Image::pipelineBarrier(const ImagePipelineBarrierInfo& info) {
+        vkCmdPipelineBarrier(info.commandBuffer, info.srcStage, info.dstStage,
+    0,0, nullptr,0,
+    nullptr,info.barriers.size(), info.barriers.data());
+    }
+
+    VkImageMemoryBarrier Image::inverseBarrier(VkImageMemoryBarrier barrier) {
+        std::swap(barrier.oldLayout, barrier.newLayout);
+        std::swap(barrier.srcAccessMask, barrier.dstAccessMask);
+        std::swap(barrier.srcQueueFamilyIndex, barrier.dstQueueFamilyIndex);
+        return barrier;
     }
 }

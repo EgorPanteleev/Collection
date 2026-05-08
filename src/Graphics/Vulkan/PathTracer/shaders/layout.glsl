@@ -4,7 +4,7 @@
 #include "bvh.glsl"
 
 layout(push_constant) uniform PushConstants {
-    uint width, height, frame, maxDepth;
+    uint frame, maxDepth;
 } pc;
 
 layout(binding = 0) uniform Camera {
@@ -36,6 +36,9 @@ layout(binding = 5) uniform DirectLight {
 
 layout(binding = 6, rgba8) uniform image2D image;
 
-layout(binding = 7) uniform sampler2D textures[];
+layout(binding = 7) uniform sampler2D colorImage;
+layout(binding = 8) uniform sampler2D depthImage;
+
+layout(binding = 9) uniform sampler2D textures[];
 
 #endif

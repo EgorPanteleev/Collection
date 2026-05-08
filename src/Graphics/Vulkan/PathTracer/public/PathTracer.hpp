@@ -33,6 +33,7 @@ namespace crv::graphics::vulkan {
     struct PathTracerUpdateInfo {
         scene::AbsCamera*  camera           = nullptr;
         AlignedDirectLight directLight{};
+        GBuffer*           gBuffer          = nullptr;
         VkImage            presentImage     = VK_NULL_HANDLE;
         VkImageView        presentImageView = VK_NULL_HANDLE;
         uint32_t           currentFrame     = 0;

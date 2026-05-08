@@ -3,6 +3,7 @@
 //
 
 #include "CoreUtils.hpp"
+#include <stdexcept>
 
 namespace crv::graphics::vulkan {
     std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, const uint32_t queueFamilyIndex) {
@@ -41,5 +42,22 @@ namespace crv::graphics::vulkan {
         vkQueueWaitIdle(queue);
         commandBuffers->destroy();
         commandPool->destroy();
+    }
+
+    void beginCommandBuffer(VkCommandBuffer commandBuffer) {
+        constexpr VkCommandBufferBeginInfo beginInfo {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = 0,
+            .pInheritanceInfo = nullptr
+        };
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to begin recording command buffer!");
+        }
+    }
+
+    void endCommandBuffer(VkCommandBuffer commandBuffer) {
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to record command buffer!");
+        }
     }
 }

@@ -11,6 +11,8 @@
 namespace crv::graphics::vulkan {
     std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, uint32_t queueFamilyIndex);
     void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue);
+    void beginCommandBuffer(VkCommandBuffer commandBuffer);
+    void endCommandBuffer(VkCommandBuffer commandBuffer);
 }
 
 #endif //COLLECTION_COREUTILS_HPP
