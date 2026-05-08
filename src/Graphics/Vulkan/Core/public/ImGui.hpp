@@ -16,6 +16,7 @@ namespace crv::graphics::vulkan {
         Context*   context    = nullptr;
         uint32_t   imageCount = 1;
         VkFormat   format     = VK_FORMAT_UNDEFINED;
+        float      alpha = 1.0f;
     };
 
     struct ImGuiRenderInfo {
@@ -42,7 +43,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] ImDrawData* drawData() { return mDrawData; }
     private:
         void createDesriptorPool();
-        void setupStyle();
+        void setupStyle(float alpha);
 
         Context*       mContext  = nullptr;
         DescriptorPool mDescriptorPool{};

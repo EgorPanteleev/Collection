@@ -16,7 +16,7 @@ namespace crv::graphics::vulkan {
         (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.MouseDrawCursor = true;
-        setupStyle();
+        setupStyle(info.alpha);
         //init glfw backend
         bool installCallbacks = true;
         ImGui_ImplGlfw_InitForVulkan(mContext->glfwWindow(), installCallbacks);
@@ -103,15 +103,15 @@ namespace crv::graphics::vulkan {
         mDescriptorPool = DescriptorPool(createInfo);
     }
 
-    void VkImGui::setupStyle() {
+    void VkImGui::setupStyle(const float alpha) {
         ImGuiStyle& style = ImGui::GetStyle();
         ImVec4* colors = style.Colors;
         ImGuiIO& io = ImGui::GetIO();
 
         colors[ImGuiCol_Text]                  = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
         colors[ImGuiCol_TextDisabled]          = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-        colors[ImGuiCol_WindowBg]              = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
-        colors[ImGuiCol_ChildBg]               = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+        colors[ImGuiCol_WindowBg]              = ImVec4(0.08f, 0.08f, 0.08f, alpha);
+        colors[ImGuiCol_ChildBg]               = ImVec4(0.10f, 0.10f, 0.10f, alpha);
         colors[ImGuiCol_PopupBg]               = ImVec4(0.11f, 0.11f, 0.11f, 0.94f);
         colors[ImGuiCol_Border]                = ImVec4(0.25f, 0.25f, 0.25f, 0.50f);
         colors[ImGuiCol_BorderShadow]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);

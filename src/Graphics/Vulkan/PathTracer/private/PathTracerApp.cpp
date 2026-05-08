@@ -317,7 +317,8 @@ namespace crv::graphics::vulkan {
         const ImGuiCreateInfo createInfo {
             .context = &mContext,
             .imageCount = static_cast<uint32_t>(mSwapchainImages.size()),
-            .format = mSwapchain.format()
+            .format = mSwapchain.format(),
+            .alpha = 0.4f
         };
         mImGui = VkImGui(createInfo);
     }
@@ -609,7 +610,6 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::drawControlPanel() {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowBgAlpha(0.4);
         mImGui.beginFrame();
         if (!mRenderImGui) {
             mImGui.endFrame();
