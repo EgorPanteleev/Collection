@@ -88,10 +88,9 @@ namespace crv::graphics::vulkan {
     }
     
     VkResult Swapchain::acquireNextImage(const SwapchainAcquireInfo& info) const {
-        vkWaitForFences(mDevice, 1, &info.fence, VK_TRUE, UINT64_MAX);
         const VkResult result = vkAcquireNextImageKHR(mDevice, mHandle, UINT64_MAX,
                                                  info.imageAvailableSemaphore,
-                                                 VK_NULL_HANDLE, info.imageIndex);
+                                                 info.fence, info.imageIndex);
         return result;
     }
 

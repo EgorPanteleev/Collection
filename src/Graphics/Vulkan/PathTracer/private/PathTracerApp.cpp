@@ -587,9 +587,10 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::acquireNextImage(uint32_t& imageIndex) {
+        vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
         SwapchainAcquireInfo swapchainAcquireInfo {
             .imageAvailableSemaphore = mImageAvailableSemaphores[mCurrentFrame].get(),
-            .fence = mFences[mCurrentFrame].get(),
+            .fence = VK_NULL_HANDLE,
             .imageIndex = &imageIndex
         };
         const VkResult result = mSwapchain.acquireNextImage(swapchainAcquireInfo);

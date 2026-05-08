@@ -55,6 +55,7 @@ namespace crv::graphics::vulkan {
         void drawFrame();
         void drawControlPanel();
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
+        [[nodiscard]] uint32_t previousFrame() const { return (mCurrentFrame + mFramesInFlight - 1) % mFramesInFlight; }
         void setCamera(scene::CameraType type);
         void createGBuffers();
         void createRasterizer();
