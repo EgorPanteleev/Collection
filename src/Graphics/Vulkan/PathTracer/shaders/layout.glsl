@@ -8,8 +8,8 @@ layout(push_constant) uniform PushConstants {
 } pc;
 
 layout(binding = 0) uniform Camera {
-    vec4 position, forward, right, up;
-    float FOV, aspectRatio, nearPlane, farPlane;
+    vec4 pos;
+    mat4 invViewProj;
 } camera;
 
 layout(binding = 1) buffer TriangleBuffer {
@@ -34,11 +34,12 @@ layout(binding = 5) uniform DirectLight {
     float pad[3];
 } directLight;
 
-layout(binding = 6, rgba8) uniform image2D image;
+layout(binding = 6, rgba8) uniform image2D outputImage;
 
 layout(binding = 7) uniform sampler2D colorImage;
 layout(binding = 8) uniform sampler2D depthImage;
+layout(binding = 9) uniform sampler2D normalImage;
 
-layout(binding = 9) uniform sampler2D textures[];
+layout(binding = 10) uniform sampler2D textures[];
 
 #endif

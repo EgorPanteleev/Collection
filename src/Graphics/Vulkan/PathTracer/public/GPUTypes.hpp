@@ -36,8 +36,8 @@ namespace crv::graphics::vulkan {
     };
 
     struct alignas(16) AlignedCamera {
-        Vec4 position, forward, right, up;
-        float FOV, aspectRatio, nearPlane, farPlane;
+        Vec4 pos;
+        glm::mat4 invViewProj;
     };
 
     struct alignas(16) AlignedDirectLight {
@@ -72,6 +72,8 @@ namespace crv::graphics::vulkan {
         ImageView colorView{};
         Image     depthImage{};
         ImageView depthView{};
+        Image     normalImage{};
+        ImageView normalView{};
         Sampler   sampler{};
     };
 }

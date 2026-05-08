@@ -11,7 +11,7 @@ namespace crv::graphics::vulkan {
     struct GraphicsPipelinesCreateInfo {
         VkDevice device = VK_NULL_HANDLE;
         std::vector<VkPipelineLayout> layouts{};
-        VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+        std::vector<VkFormat> colorFormats{};
         VkVertexInputBindingDescription bindingDescription{};
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
         std::vector<VkPipelineShaderStageCreateInfo> stages{};

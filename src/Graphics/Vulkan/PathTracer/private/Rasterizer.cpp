@@ -7,7 +7,7 @@
 
 namespace crv::graphics::vulkan {
     Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight), mColorFormat(info.colorFormat),
-    mIndexCount(info.indices.size()), mContext(info.context), mTextures(info.textures) {
+    mNormalFormat(info.normalFormat), mIndexCount(info.indices.size()), mContext(info.context), mTextures(info.textures) {
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -98,7 +98,7 @@ namespace crv::graphics::vulkan {
         {.depthStencil = {1.0f, 0}}
         };
 
-        VkRenderingAttachmentInfo colorAttachment = {
+        VkRenderingAttachmentInfo albedoAttachment = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
                 .imageView =  info.gBuffer->colorView.get(),
                 .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -106,6 +106,17 @@ namespace crv::graphics::vulkan {
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .clearValue = clearValues[0],
         };
+
+        VkRenderingAttachmentInfo normalAttachment = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .imageView =  info.gBuffer->normalView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue = clearValues[0],
+        };
+
+        std::vector colorAttachments = {albedoAttachment, normalAttachment};
 
         VkRenderingAttachmentInfo depthAttachment = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -123,8 +134,8 @@ namespace crv::graphics::vulkan {
                         .extent = info.extent
                 },
                 .layerCount = 1,
-                .colorAttachmentCount = 1,
-                .pColorAttachments = &colorAttachment,
+                .colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size()),
+                .pColorAttachments = colorAttachments.data(),
                 .pDepthAttachment = &depthAttachment,
         };
 
@@ -307,7 +318,7 @@ namespace crv::graphics::vulkan {
         const GraphicsPipelinesCreateInfo createInfo {
             .device = mContext->device(),
             .layouts = {mPipelineLayout.get()},
-            .colorFormat = mColorFormat,
+            .colorFormats = {mColorFormat, mNormalFormat},
             .bindingDescription = bindingDescription,
             .attributeDescriptions = attributeDescriptions,
             .stages = stages,

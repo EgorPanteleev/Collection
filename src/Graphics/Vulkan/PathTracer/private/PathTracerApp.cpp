@@ -9,6 +9,9 @@
 #include "BinnedSAHBuilder.hpp"
 #include "CallBacks.hpp"
 
+#define COLOR_FORMAT VK_FORMAT_R8G8B8A8_UNORM
+#define NORMAL_FORMAT VK_FORMAT_R8G8B8A8_SNORM
+
 namespace crv::graphics::vulkan {
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& info) {
         createCamera(info.cameraCreateInfo);
@@ -367,7 +370,10 @@ namespace crv::graphics::vulkan {
             .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
         };
-        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo)};
+        ImageBarrierInfo normalBarrierInfo = colorBarrierInfo;
+        normalBarrierInfo.image = gBuffer.normalImage.get();
+        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo),
+                                      Image::barrier(normalBarrierInfo)};
         const ImagePipelineBarrierInfo pipelineBarrierInfo {
             .commandBuffer = commandBuffer,
             .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
@@ -506,7 +512,10 @@ namespace crv::graphics::vulkan {
             .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
         };
-        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo)};
+        ImageBarrierInfo normalBarrierInfo = colorBarrierInfo;
+        normalBarrierInfo.image = gBuffer.normalImage.get();
+        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo),
+                                      Image::barrier(normalBarrierInfo)};
         const ImagePipelineBarrierInfo pipelineBarrierInfo {
             .commandBuffer = commandBuffer,
             .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -656,14 +665,11 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::createGBuffers() {
         const auto [width, height] = mSwapchain.extent();
         VkExtent3D extent = {width, height, 1};
-        constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
         const ImageCreateInfo colorImageCreateInfo {
             .device = mContext.device(),
             .allocator = mContext.allocator(),
-            .format = colorFormat,
+            .format = COLOR_FORMAT,
             .extent = extent,
-            .mipLevels = 1,
-            .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -672,20 +678,14 @@ namespace crv::graphics::vulkan {
         ImageViewCreateInfo colorViewCreateInfo {
             .device = mContext.device(),
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = colorFormat,
+            .format = COLOR_FORMAT,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .mipLevels = 1,
-            .baseMipLevel = 0,
-            .baseArrayLayer = 0,
-            .layerCount = 1
         };
         const ImageCreateInfo depthImageCreateInfo {
             .device = mContext.device(),
             .allocator = mContext.allocator(),
             .format = VK_FORMAT_D32_SFLOAT,
             .extent = extent,
-            .mipLevels = 1,
-            .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .imageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -696,10 +696,22 @@ namespace crv::graphics::vulkan {
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = VK_FORMAT_D32_SFLOAT,
             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-            .mipLevels = 1,
-            .baseMipLevel = 0,
-            .baseArrayLayer = 0,
-            .layerCount = 1
+        };
+        const ImageCreateInfo normalImageCreateInfo {
+            .device = mContext.device(),
+            .allocator = mContext.allocator(),
+            .format = NORMAL_FORMAT,
+            .extent = extent,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        ImageViewCreateInfo normalViewCreateInfo {
+            .device = mContext.device(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = NORMAL_FORMAT,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
         const SamplerCreateInfo samplerCreateInfo {
             .device = mContext.device(),
@@ -716,10 +728,6 @@ namespace crv::graphics::vulkan {
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
         };
         constexpr ImageBarrierInfo depthBarrierInfo {
             .srcAccessMask = 0,
@@ -728,28 +736,30 @@ namespace crv::graphics::vulkan {
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
         };
         VkImageMemoryBarrier colorBarrier = Image::barrier(colorBarrierInfo);
         VkImageMemoryBarrier depthBarrier = Image::barrier(depthBarrierInfo);
+        VkImageMemoryBarrier normalBarrier = colorBarrier;
         std::vector<VkImageMemoryBarrier> colorBarriers;
         std::vector<VkImageMemoryBarrier> depthBarriers;
         mGBuffers.resize(mFramesInFlight);
         for (int i = 0; i < mFramesInFlight; ++i) {
             GBuffer& gBuffer = mGBuffers[i];
-            gBuffer.colorImage = Image(colorImageCreateInfo);
-            gBuffer.depthImage = Image(depthImageCreateInfo);
-            colorViewCreateInfo.image = gBuffer.colorImage.get();
-            depthViewCreateInfo.image = gBuffer.depthImage.get();
-            gBuffer.colorView = ImageView(colorViewCreateInfo);
-            gBuffer.depthView = ImageView(depthViewCreateInfo);
-            colorBarrier.image = gBuffer.colorImage.get();
-            depthBarrier.image = gBuffer.depthImage.get();
+            gBuffer.colorImage  = Image(colorImageCreateInfo);
+            gBuffer.depthImage  = Image(depthImageCreateInfo);
+            gBuffer.normalImage = Image(normalImageCreateInfo);
+            colorViewCreateInfo.image  = gBuffer.colorImage.get();
+            depthViewCreateInfo.image  = gBuffer.depthImage.get();
+            normalViewCreateInfo.image = gBuffer.normalImage.get();
+            gBuffer.colorView  = ImageView(colorViewCreateInfo);
+            gBuffer.depthView  = ImageView(depthViewCreateInfo);
+            gBuffer.normalView = ImageView(normalViewCreateInfo);
+            colorBarrier.image  = gBuffer.colorImage.get();
+            depthBarrier.image  = gBuffer.depthImage.get();
+            normalBarrier.image = gBuffer.normalImage.get();
             colorBarriers.push_back(colorBarrier);
             depthBarriers.push_back(depthBarrier);
+            colorBarriers.push_back(normalBarrier);
             gBuffer.sampler = Sampler(samplerCreateInfo);
         }
         auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
@@ -775,7 +785,8 @@ namespace crv::graphics::vulkan {
         const auto [width, height] = mSwapchain.extent();
         const RasterizerCreateInfo createInfo {
             .context = &mContext,
-            .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
+            .colorFormat = COLOR_FORMAT,
+            .normalFormat = NORMAL_FORMAT,
             .extent = {width, height, 1},
             .vertices = mVertices,
             .indices = mIndices,

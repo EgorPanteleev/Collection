@@ -21,6 +21,7 @@ namespace crv::graphics::vulkan {
     struct RasterizerCreateInfo {
         Context*                     context        = nullptr;
         VkFormat                     colorFormat    = VK_FORMAT_UNDEFINED;
+        VkFormat                     normalFormat   = VK_FORMAT_UNDEFINED;
         VkExtent3D                   extent{};
         uint32_t                     framesInFlight = 2;
         std::vector<Vertex>          vertices{};
@@ -57,7 +58,8 @@ namespace crv::graphics::vulkan {
         void createBuffers(const RasterizerCreateInfo& info);
 
         uint32_t mFramesInFlight = 1;
-        VkFormat mColorFormat = VK_FORMAT_UNDEFINED;
+        VkFormat mColorFormat  = VK_FORMAT_UNDEFINED;
+        VkFormat mNormalFormat = VK_FORMAT_UNDEFINED;
         uint32_t mIndexCount = 0;
 
         Context* mContext = nullptr;

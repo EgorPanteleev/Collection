@@ -20,12 +20,10 @@ namespace crv::graphics::vulkan {
                 .maxDepthBounds = 1.0f
         };
 
-        VkFormat colorFormats[] = { info.colorFormat };
-
         VkPipelineRenderingCreateInfo pipelineRenderingInfo {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-                .colorAttachmentCount = 1,
-                .pColorAttachmentFormats = colorFormats,
+                .colorAttachmentCount = static_cast<uint32_t>(info.colorFormats.size()),
+                .pColorAttachmentFormats = info.colorFormats.data(),
                 .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT,
                 .stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
         };
@@ -86,14 +84,15 @@ namespace crv::graphics::vulkan {
             .alphaBlendOp = VK_BLEND_OP_ADD,
             .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
-    };
+        };
+        std::vector colorBlendAttachments(info.colorFormats.size(), colorBlendAttachment);
 
         VkPipelineColorBlendStateCreateInfo colorBlendInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
                 .logicOpEnable = VK_FALSE,
                 .logicOp = VK_LOGIC_OP_COPY,
-                .attachmentCount = 1,
-                .pAttachments = &colorBlendAttachment,
+                .attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size()),
+                .pAttachments = colorBlendAttachments.data(),
                 .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
         };
 

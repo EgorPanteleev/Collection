@@ -24,14 +24,8 @@ namespace crv::graphics::vulkan {
         Buffer& cameraBuffer = mCameraBuffers[info.currentFrame];
         {
             AlignedCamera camera {
-                .position = Vec4(info.camera->position(), 1),
-                .forward = Vec4(info.camera->forward(), 1),
-                .right = Vec4(info.camera->right(), 1),
-                .up = Vec4(info.camera->up(), 1),
-                .FOV = info.camera->FOV(),
-                .aspectRatio = info.camera->aspectRatio(),
-                .nearPlane = info.camera->nearPlane(),
-                .farPlane = info.camera->farPlane()
+                .pos = Vec4(info.camera->position(), 1),
+                .invViewProj = glm::inverse(info.camera->projectionMatrix() * info.camera->viewMatrix())
             };
             CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
                 .data = &camera,
@@ -95,6 +89,11 @@ namespace crv::graphics::vulkan {
         VkDescriptorImageInfo depthInfo {
             .sampler = info.gBuffer->sampler.get(),
             .imageView = info.gBuffer->depthView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        };
+        VkDescriptorImageInfo normalInfo {
+            .sampler = info.gBuffer->sampler.get(),
+            .imageView = info.gBuffer->normalView.get(),
             .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
         std::vector<VkDescriptorImageInfo> textureInfos;
@@ -227,6 +226,14 @@ namespace crv::graphics::vulkan {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 9,
             .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &normalInfo
+        };
+        VkWriteDescriptorSet writeDescriptorSet10 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 10,
+            .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .pImageInfo = textureInfos.data()
@@ -235,7 +242,7 @@ namespace crv::graphics::vulkan {
             writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2,
             writeDescriptorSet3, writeDescriptorSet4, writeDescriptorSet5,
             writeDescriptorSet6, writeDescriptorSet7, writeDescriptorSet8,
-            writeDescriptorSet9
+            writeDescriptorSet9, writeDescriptorSet10
         };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
@@ -333,8 +340,14 @@ namespace crv::graphics::vulkan {
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
-        VkDescriptorSetLayoutBinding binding9 {
+        VkDescriptorSetLayoutBinding normalBinding {
             .binding = 9,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        };
+        VkDescriptorSetLayoutBinding binding10 {
+            .binding = 10,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
@@ -342,8 +355,8 @@ namespace crv::graphics::vulkan {
 
         const std::vector bindings{binding0, binding1, binding2, binding3,
                                    binding4, binding5, binding6, colorBinding,
-                                   depthBinding, binding9};
-        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                   depthBinding, normalBinding, binding10};
+        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
         };
@@ -364,6 +377,7 @@ namespace crv::graphics::vulkan {
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        , mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight
