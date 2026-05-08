@@ -20,10 +20,12 @@ namespace crv::graphics::vulkan {
     void Rasterizer::update(const RasterizerUpdateInfo& info) {
         Buffer& MVPBuffer = mMVPBuffers[info.currentFrame];
         {
+            glm::mat4 model = glm::mat4(1.0f);
             AlignedMVP MVP {
-                .model = glm::mat4(1.0f),
+                .model = model,
                 .view = info.camera->viewMatrix(),
-                .proj = info.camera->projectionMatrix()
+                .proj = info.camera->projectionMatrix(),
+                .trInvModel = glm::transpose(glm::inverse(model))
             };
             const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
                 .data = &MVP,

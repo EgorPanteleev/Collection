@@ -70,28 +70,31 @@ Hit intersect(Ray ray, float eps) {
 #define skyColor vec3(0)
 
 float getShadow(vec3 P, vec3 dir) {
-    Ray shadowRay = makeRay(P, dir, 0.1, FLT_MAX);
+    Ray shadowRay = makeRay(P, dir, 0.0, FLT_MAX);
     Hit shadowHit = intersect(shadowRay, 1e-6);
 
     if (shadowHit.id == UINT_MAX) return 1;
     return 0;
 }
 
-vec3 traceRay(vec3 rayDir, vec3 albedo, vec3 P, vec3 N) {
+vec3 traceRay(vec3 albedo, float depth, vec3 P, vec3 N) {
+    if (depth >= 1.0) { ;
+        return skyColor;
+    }
     uint seed = uint(gl_GlobalInvocationID.x) + uint(gl_GlobalInvocationID.y) * 1973u + pc.frame * 9277u;
     vec3 resultColor = vec3(0.0);
     vec3 throughput  = vec3(1.0);
 
-    vec3 wo = -rayDir;
+    //vec3 wo = -rayDir;
     vec3 L  = -directLight.dir.xyz;
-    Scatter scatter = lambertianScatter(seed, albedo, N, wo);
+    Scatter scatter = lambertianScatter(seed, albedo, N, vec3(1));
 
     float cosTheta   = max(dot(N, L), 0.0);
-    vec3  movedP     = P + N * 1e-3;
+    vec3  movedP     = P + N * 0.1;
     vec3  directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
     resultColor += directColor;
     throughput  *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
-    Ray currentRay = makeRay(movedP, scatter.wi, 0.1, FLT_MAX);
+    Ray currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
 
     for (uint depth = 1; depth < pc.maxDepth; ++depth) {
         Hit hit = intersect(currentRay, 1e-6);
@@ -114,12 +117,12 @@ vec3 traceRay(vec3 rayDir, vec3 albedo, vec3 P, vec3 N) {
         vec3 directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
         resultColor += throughput * directColor;
         throughput *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
-        //        if (depth >= 3) {
-        //            float p = max(throughput.r, max(throughput.g, throughput.b));
-        //            p = clamp(p, 0.05, 1.0);
-        //            if (rand01(seed) > p) break;
-        //            throughput /= p;
-        //        }
+        if (depth >= 3) {
+            float p = max(throughput.r, max(throughput.g, throughput.b));
+            p = clamp(p, 0.05, 1.0);
+            if (rand01(seed) > p) break;
+            throughput /= p;
+        }
         currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
     }
     return resultColor;
@@ -130,10 +133,6 @@ void main() {
     vec2 wh = imageSize(outputImage);
     vec2 uv = coord / wh;
     float depth = texture(depthImage, uv).r;
-    if (depth >= 1.0) {
-        imageStore(outputImage, coord, vec4(skyColor, 1));
-        return;
-    }
     vec2 ndc = uv * 2.0 - 1.0;
     vec4 clip = vec4(ndc, depth, 1.0);
     vec4 world = camera.invViewProj * clip;
@@ -142,10 +141,7 @@ void main() {
     vec3 albedo = texture(colorImage, uv).rgb;
     vec3 P = world.xyz;
     vec3 N = texture(normalImage, uv).rgb;
-    //vec3 N = texture(normalImage, uv).rgb * 2.0 - 1.0;
-    vec3 rayDir = P - camera.pos.xyz;
-    N = faceforward(N, rayDir, N);
-    vec3 tracedColor = traceRay(rayDir, albedo, P, N);
+    vec3 tracedColor = traceRay(albedo, depth, P, N);
     if (pc.frame == 0) {
         imageStore(outputImage, coord, vec4(tracedColor, 1.0));
         return;

@@ -64,7 +64,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct alignas(16) AlignedMVP {
-        glm::mat4 model, view, proj;
+        glm::mat4 model, view, proj, trInvModel;
     };
 
     struct GBuffer {
