@@ -39,4 +39,5 @@
 # Clion
 *.idea
 
-assets
+assets/meshes
+assets/scenes

@@ -29,7 +29,7 @@ namespace crv::graphics::vulkan {
         PathTracerApp(const PathTracerAppCreateInfo& info);
         void run();
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
-        void updateImage() { mFrameCount = 0; }
+        void updateImage();
         [[nodiscard]] Window& window() { return mContext.window(); }
         [[nodiscard]] scene::AbsCamera* camera() const { return mCamera; }
     protected:
@@ -59,6 +59,7 @@ namespace crv::graphics::vulkan {
         void setCamera(scene::CameraType type);
         void createGBuffers();
         void createRasterizer();
+        GBuffer& currentGBuffer() { return mGBuffers[mGBufferFrame]; }
 
 #ifdef NDEBUG
         bool mDebug = false;
@@ -67,12 +68,15 @@ namespace crv::graphics::vulkan {
 #endif
         uint32_t mFramesInFlight = 2;
         uint32_t mCurrentFrame   = 0;
+        uint32_t mGBufferFrame   = 0;
         uint32_t mFrameCount     = 0;
         scene::FlyCamera     mFlyCamera{};
         scene::OrbitalCamera mOrbitalCamera{};
         scene::AbsCamera*    mCamera = nullptr;
         AlignedDirectLight   mDirectLight{};
         bool mRenderImGui = false;
+        int  mSPP         = 1;
+        int  mMinDepth    = 0;
         int  mMaxDepth    = 1;
 
         Context                mContext{};

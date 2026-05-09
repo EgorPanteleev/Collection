@@ -24,7 +24,7 @@ namespace crv::scene {
     }
 
     void FlyCamera::zoom(float delta) {
-        mFOV = std::min(135.0f, std::max(1.0f, mFOV - delta));
+        mFOV = std::min(140.0f, std::max(10.0f, mFOV - delta));
         calculateProjection();
     }
 }

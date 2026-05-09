@@ -6,7 +6,23 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
+#include "IconsFontAwesome6.h"
+#include "fa_solid_900.h"
+
 namespace crv::graphics::vulkan {
+    static ImFontConfig makeDefaultFontConfig() {
+        ImFontConfig config{};
+        config.FontDataOwnedByAtlas = true;
+        config.OversampleH = 0;
+        config.OversampleV = 0;
+        config.ExtraSizeScale = 1.0f;
+        config.GlyphMaxAdvanceX = FLT_MAX;
+        config.RasterizerMultiply = 1.0f;
+        config.RasterizerDensity = 1.0f;
+        config.EllipsisChar = 0;
+        return config;
+    }
+
     VkImGui::VkImGui(const ImGuiCreateInfo &info) : mContext(info.context) {
         createDesriptorPool();
         //context setup
@@ -16,7 +32,7 @@ namespace crv::graphics::vulkan {
         (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.MouseDrawCursor = true;
-        setupStyle(info.alpha);
+        setupStyle(info.alpha, info.scale);
         //init glfw backend
         bool installCallbacks = true;
         ImGui_ImplGlfw_InitForVulkan(mContext->glfwWindow(), installCallbacks);
@@ -103,7 +119,7 @@ namespace crv::graphics::vulkan {
         mDescriptorPool = DescriptorPool(createInfo);
     }
 
-    void VkImGui::setupStyle(const float alpha) {
+    void VkImGui::setupStyle(const float alpha, const float scale) {
         ImGuiStyle& style = ImGui::GetStyle();
         ImVec4* colors = style.Colors;
         ImGuiIO& io = ImGui::GetIO();
@@ -127,8 +143,8 @@ namespace crv::graphics::vulkan {
         colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.35f, 0.35f, 0.35f, 0.90f);
         colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
         colors[ImGuiCol_CheckMark]             = ImVec4(0.56f, 0.90f, 0.69f, 1.00f);
-        colors[ImGuiCol_SliderGrab]            = ImVec4(0.42f, 0.75f, 0.58f, 1.00f);
-        colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.36f, 0.85f, 0.58f, 1.00f);
+        colors[ImGuiCol_SliderGrab]            = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
+        colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.55f, 0.55f, 0.55f, 1.00f);
         colors[ImGuiCol_Button]                = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
         colors[ImGuiCol_ButtonHovered]         = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
         colors[ImGuiCol_ButtonActive]          = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
@@ -143,7 +159,7 @@ namespace crv::graphics::vulkan {
         colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.40f, 0.40f, 0.40f, 0.90f);
         colors[ImGuiCol_Tab]                   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
         colors[ImGuiCol_TabHovered]            = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-        colors[ImGuiCol_TabActive]             = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
+        colors[ImGuiCol_TabActive]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
         colors[ImGuiCol_TabUnfocused]          = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
         colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
         colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.24f, 0.54f, 0.33f, 0.45f);
@@ -159,7 +175,27 @@ namespace crv::graphics::vulkan {
         style.GrabRounding      = 3.0f;
         style.TabRounding       = 4.0f;
 
-        io.Fonts->AddFontFromFileTTF(PROJECT_PATH"assets/fonts/JetBrainsMono-Regular.ttf", 15.0f);
+        ImFontConfig textConfig = makeDefaultFontConfig();
+        textConfig.FontDataOwnedByAtlas = false;
+        io.Fonts->AddFontFromFileTTF(
+            PROJECT_PATH"assets/fonts/JetBrainsMono-Regular.ttf",
+            15.0f * scale,
+            &textConfig,
+            nullptr
+        );
+
+        ImFontConfig iconConfig = makeDefaultFontConfig();
+        iconConfig.FontDataOwnedByAtlas = false;
+        iconConfig.MergeMode = true;
+        iconConfig.PixelSnapH = true;
+        static const ImWchar iconRanges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+        io.Fonts->AddFontFromMemoryTTF(
+        (void*)fa_solid_900,
+        fa_solid_900_len,
+        11.0f * scale,
+        &iconConfig,
+        iconRanges
+        );
     }
 
     void VkImGui::beginFrame() {
@@ -171,10 +207,6 @@ namespace crv::graphics::vulkan {
     void VkImGui::endFrame() {
         ImGui::Render();
         mDrawData = ImGui::GetDrawData();
-    }
-
-    void VkImGui::demo() {
-        ImGui::ShowDemoWindow(nullptr);
     }
 
     bool VkImGui::selectableButton(const char* label, bool cond) {
@@ -191,17 +223,111 @@ namespace crv::graphics::vulkan {
     }
 
     void VkImGui::beginGroup(const char* name) {
-        ImGui::BeginGroup();
-        ImGui::TextUnformatted(name);
-        ImGui::Separator();
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
-        ImGui::BeginChild(name, ImVec2(0, 80), true);
+        ImGui::Dummy({0.0f, 2.0f});
+        separatorText(name);
+        ImGui::Indent(4.0f);
     }
 
     void VkImGui::endGroup() {
-        ImGui::EndChild();
+        ImGui::Unindent(4.0f);
+    }
+
+    void VkImGui::separatorText(const char* label) {
+        ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextBorderSize, 0.5f);
+        ImGui::SeparatorText(label);
         ImGui::PopStyleVar();
-        ImGui::EndGroup();
+    }
+
+    static bool inspectorBeginKeyValueTableWithCellPadding(const char* tableId, ImVec2 cellPadding) {
+        if (!tableId) return false;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cellPadding);
+        ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings;
+        if (!ImGui::BeginTable(tableId, 2, flags, ImVec2(-1.0f, 0.0f), 0.0f)) {
+            ImGui::PopStyleVar();
+            return false;
+        }
+
+        const ImGuiStyle* style = &ImGui::GetStyle();
+        float labelWidth = ImGui::CalcTextSize("Accumulation").x;
+        if (style) {
+            labelWidth += style->CellPadding.x * 2.0f;
+        }
+        if (labelWidth < 86.0f) labelWidth = 86.0f;
+
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide, labelWidth, 0);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHide, 0.0f, 0);
+        return true;
+    }
+
+    bool VkImGui::beginCompactTable(const char* tableId, const float padding) {
+        if (!tableId) return false;
+
+        ImVec2 framePadding = ImGui::GetStyle().FramePadding;
+        framePadding.y = 2.0f;
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, framePadding);
+        if (!inspectorBeginKeyValueTableWithCellPadding(tableId, {padding, 0.0f})) {
+            ImGui::PopStyleVar();
+            return false;
+        }
+        return true;
+    }
+
+    void VkImGui::endCompactTable() {
+        ImGui::EndTable();
+        ImGui::PopStyleVar();
+        ImGui::PopStyleVar();
+    }
+
+    void VkImGui::row(const char* label, const char* value) {
+        if (!label || !value) return;
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextDisabled("%s", label);
+        ImGui::TableSetColumnIndex(1);
+        ImGui::AlignTextToFramePadding();
+        ImGui::PushTextWrapPos(0.0f);
+        ImGui::TextUnformatted(value);
+        ImGui::PopTextWrapPos();
+    }
+
+    bool VkImGui::tabButton(const char* label, bool selected, ImVec2 size) {
+        if (!label) return false;
+        const ImVec4* baseColor = &ImGui::GetStyleColorVec4((int)selected ? ImGuiCol_TabActive : ImGuiCol_Tab);
+        const ImVec4* hoveredColor = &ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
+        const ImVec4* activeColor = &ImGui::GetStyleColorVec4((int)selected ? ImGuiCol_TabActive : ImGuiCol_TabHovered);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, *baseColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, *hoveredColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, *activeColor);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, (ImVec2){10.0f, 5.0f});
+        ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, (ImVec2){0.5f, 0.5f});
+        bool pressed = ImGui::Button(label, size);
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+        return pressed;
+    }
+
+    void VkImGui::tabPanel(const TabPanel &panel, uint32_t& activeTabIndex) {
+        const ImGuiStyle* style = &ImGui::GetStyle();
+        const float spacing = style->ItemSpacing.x;
+        const float availableWidth = ImGui::GetContentRegionAvail().x;
+        const uint32_t tabCount = panel.size();
+        float buttonWidth = (availableWidth - spacing * static_cast<float>(tabCount - 1u)) / static_cast<float>(tabCount);
+        if (buttonWidth < 1.0f) buttonWidth = 1.0f;
+        const std::function<void()>* exFunc = nullptr;
+        for (uint32_t i = 0; i < tabCount; i++) {
+            if (i > 0) ImGui::SameLine();
+            const auto& [label, index, func] = panel[i];
+            const bool selected = index == activeTabIndex;
+            if (tabButton(label, selected, (ImVec2){buttonWidth, 0.0f})) {
+                activeTabIndex = index;
+            }
+            if (selected) exFunc = &func;
+        }
+        if (exFunc) (*exFunc)();
+        ImGui::Dummy((ImVec2){0.0f, 1.0f});
     }
 
     void VkImGui::render(const ImGuiRenderInfo& info) {
@@ -230,5 +356,13 @@ namespace crv::graphics::vulkan {
          ImGui_ImplVulkan_RenderDrawData(mDrawData, info.commandBuffer);
 
          vkCmdEndRendering(info.commandBuffer);
+    }
+
+    void VkImGui::loadConfigFile(const char *path) {
+        ImGui::LoadIniSettingsFromDisk(path);
+    }
+
+    void VkImGui::saveConfigFile(const char *path) {
+        ImGui::SaveIniSettingsToDisk(path);
     }
 }

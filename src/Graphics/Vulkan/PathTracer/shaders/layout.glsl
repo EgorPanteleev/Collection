@@ -4,7 +4,7 @@
 #include "bvh.glsl"
 
 layout(push_constant) uniform PushConstants {
-    uint frame, maxDepth;
+    uint frame, spp, minDepth, maxDepth;
 } pc;
 
 layout(binding = 0) uniform Camera {

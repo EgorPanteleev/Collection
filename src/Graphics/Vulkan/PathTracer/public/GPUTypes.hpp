@@ -47,7 +47,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct PushConstants {
-        uint32_t frame, maxDepth;
+        uint32_t frame, spp, minDepth, maxDepth;
     };
 
     struct TexturesByType {

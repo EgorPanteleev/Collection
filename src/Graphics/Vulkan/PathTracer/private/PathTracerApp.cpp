@@ -8,6 +8,7 @@
 #include "Loader.hpp"
 #include "BinnedSAHBuilder.hpp"
 #include "CallBacks.hpp"
+#include "IconsFontAwesome6.h"
 
 #define COLOR_FORMAT VK_FORMAT_R8G8B8A8_UNORM
 #define NORMAL_FORMAT VK_FORMAT_R8G8B8A8_SNORM
@@ -49,6 +50,11 @@ namespace crv::graphics::vulkan {
             ++mFrameCount;
         }
         vkDeviceWaitIdle(mContext.device());
+    }
+
+    void PathTracerApp::updateImage() {
+        mFrameCount = 0;
+        mGBufferFrame = mCurrentFrame;
     }
 
     void PathTracerApp::createCamera(const scene::CameraCreateInfo& info) {
@@ -318,9 +324,11 @@ namespace crv::graphics::vulkan {
             .context = &mContext,
             .imageCount = static_cast<uint32_t>(mSwapchainImages.size()),
             .format = mSwapchain.format(),
-            .alpha = 0.4f
+            .alpha = 0.4f,
+            .scale = 1.0f
         };
         mImGui = VkImGui(createInfo);
+        VkImGui::loadConfigFile(PROJECT_PATH"imgui.ini");
     }
 
     void PathTracerApp::update() {
@@ -333,7 +341,7 @@ namespace crv::graphics::vulkan {
         const PathTracerUpdateInfo pathTracerUpdateInfo {
             .camera = mCamera,
             .directLight = mDirectLight,
-            .gBuffer = &mGBuffers[mCurrentFrame],
+            .gBuffer = &currentGBuffer(),
             .presentImage = mPresentImage.get(),
             .presentImageView = mPresentImageView.get(),
             .currentFrame = mCurrentFrame
@@ -346,15 +354,17 @@ namespace crv::graphics::vulkan {
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
 
-        const RasterizerRecordInfo rasterizerRecordInfo {
-            .commandBuffer = commandBuffer,
-            .gBuffer = &mGBuffers[mCurrentFrame],
-            .extent = mSwapchain.extent(),
-            .currentFrame = mCurrentFrame
-        };
-        mRasterizer.record(rasterizerRecordInfo);
+        if (mFrameCount == 0) {
+            const RasterizerRecordInfo rasterizerRecordInfo {
+                .commandBuffer = commandBuffer,
+                .gBuffer = &mGBuffers[mCurrentFrame],
+                .extent = mSwapchain.extent(),
+                .currentFrame = mCurrentFrame
+            };
+            mRasterizer.record(rasterizerRecordInfo);
+        }
 
-        GBuffer& gBuffer = mGBuffers[mCurrentFrame];
+        GBuffer& gBuffer = currentGBuffer();
         const ImageBarrierInfo colorBarrierInfo {
             .image = gBuffer.colorImage.get(),
             .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -492,11 +502,13 @@ namespace crv::graphics::vulkan {
             .extent = mSwapchain.extent(),
             .currentFrame = mCurrentFrame,
             .frameCount = mFrameCount,
+            .spp      = static_cast<uint32_t>(mSPP),
+            .minDepth = static_cast<uint32_t>(mMinDepth),
             .maxDepth = static_cast<uint32_t>(mMaxDepth)
         };
         mPathTracer.record(pathTracerRecordInfo);
 
-        GBuffer& gBuffer = mGBuffers[mCurrentFrame];
+        GBuffer& gBuffer = currentGBuffer();
         const ImageBarrierInfo colorBarrierInfo {
             .image = gBuffer.colorImage.get(),
             .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
@@ -616,41 +628,95 @@ namespace crv::graphics::vulkan {
             mImGui.endFrame();
             return;
         }
-        const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
+        ImGui::Begin("Overview");
+        VkImGui::beginGroup(ICON_FA_GAUGE " Status");
+        std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
+        std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
+        std::string accumulation = std::format("{:1}", (mFrameCount + 1) * mSPP);
+
+        if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
+            VkImGui::row("FPS"         , fps.c_str());
+            VkImGui::row("Render Time" , renderTime.c_str());
+            VkImGui::row("SPP"         , "1");
+            VkImGui::row("Accumulation", accumulation.c_str());
+            VkImGui::endCompactTable();
+        }
+        VkImGui::endGroup();
+
+        VkImGui::beginGroup(ICON_FA_MICROCHIP " System");
+        auto properties = mContext.physicalDeviceProperties();
+        auto [width, height] = mSwapchain.extent();
+        std::string viewport = std::format("{:1}x{:2}", width, height);
+        if (VkImGui::beginCompactTable("##monitor_system", 2.0f)) {
+            VkImGui::row("GPU"     , properties.deviceName);
+            VkImGui::row("Viewport", viewport.c_str());
+            VkImGui::endCompactTable();
+        }
+        VkImGui::endGroup();
+
+        VkImGui::beginGroup(ICON_FA_CUBES " Scene");
+        VkImGui::endGroup();
+
+        ImGui::End();
+
         ImGui::Begin("Settings");
-        const ImVec2 mousePos = ImGui::GetMousePos();
-        ImGui::Text("Mouse pos: %.1f x %.1f", mousePos.x, mousePos.y);
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
-        VkImGui::beginGroup("PathTracer Settings");
-        if (ImGui::DragInt("Max Depth", &mMaxDepth, 0.05f, 1, 10)) {
-            updateImage();
-        }
-        VkImGui::endGroup();
+        auto cameraFunc = [this]() {
+            glm::vec3 position = mCamera->position();
+            if (ImGui::DragFloat3("Position", &position.x, 0.05f, -FLT_MAX, FLT_MAX)) {
+                mCamera->setPosition(position);
+                updateImage();
+            }
+            float fov = mCamera->FOV();
+            if (ImGui::SliderFloat("FOV", &fov, 10, 140, "%.2f deg")) {
+                mCamera->zoom(mCamera->FOV() - fov);
+                updateImage();
+            }
+            const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
+            if (VkImGui::selectableButton("Fly", isFlyCamera)) {
+                setCamera(scene::CameraType::FLY);
+            }
+            ImGui::SameLine(0.0f, 5.0f);
+            if (VkImGui::selectableButton("Orbital", !isFlyCamera)) {
+                setCamera(scene::CameraType::ORBITAL);
+                updateImage();
+            }
+            ImGui::SameLine();
+            ImGui::Text("Type");
+        };
+        auto renderFunc = [this]() {
+            ImGui::Indent(4.0f);
+            if (ImGui::CollapsingHeader("Direct Light"), ImGuiTreeNodeFlags_DefaultOpen) {
+                if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
+                    updateImage();
+                }
+                if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
+                    updateImage();
+                }
+            }
+            if (ImGui::CollapsingHeader("Performance"), ImGuiTreeNodeFlags_DefaultOpen) {
+                if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
+                    updateImage();
+                }
+                if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
+                    updateImage();
+                }
+                if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
+                    updateImage();
+                }
+            }
+            ImGui::Unindent(4.0f);
+        };
+        static TabPanel panel = {
+            {ICON_FA_IMAGES " Render", 0, renderFunc},
+            {ICON_FA_VIDEO  " Camera", 1, cameraFunc},
+        };
+        static uint32_t activeSettingsTabIndex = 0;
+        VkImGui::tabPanel(panel, activeSettingsTabIndex);
 
-        VkImGui::beginGroup("Direct Light");
-        if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
-            updateImage();
-        }
-
-        if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
-            updateImage();
-        }
-        VkImGui::endGroup();
-
-        ImGui::Separator();
-        if (VkImGui::selectableButton("Fly", isFlyCamera)) {
-            setCamera(scene::CameraType::FLY);
-        }
-        ImGui::SameLine(0.0f, 5.0f);
-        if (VkImGui::selectableButton("Orbital", !isFlyCamera)) {
-            setCamera(scene::CameraType::ORBITAL);
-        }
-        ImGui::SameLine();
-        ImGui::Text("Camera type");
-        ImGui::Separator();
         ImGui::End();
         mImGui.endFrame();
+        //VkImGui::saveConfigFile(PROJECT_PATH"imgui.ini");
     }
 
     void PathTracerApp::setCamera(const scene::CameraType type) {

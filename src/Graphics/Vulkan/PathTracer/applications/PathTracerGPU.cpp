@@ -17,12 +17,13 @@ using Vec4 = cvk::Vec4;
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;
 
-#define ROOM_PATH     ASSETS_PATH"room/scene.gltf"
-#define LIMINAL_PATH  ASSETS_PATH"liminal/scene.gltf"
-#define MICRO_PATH    ASSETS_PATH"microphone/scene.gltf"
-#define DRAGON_PATH   ASSETS_PATH"DragonAttenuation/glTF/DragonAttenuation.gltf"
-#define SWORD_PATH    ASSETS_PATH"Sword/sword.obj"
-#define SPONZA_PATH   ASSETS_PATH"Sponza/glTF/Sponza.gltf"
+#define ROOM_PATH     SCENES_PATH"room/scene.gltf"
+#define LIMINAL_PATH  SCENES_PATH"liminal/scene.gltf"
+#define MICRO_PATH    SCENES_PATH"microphone/scene.gltf"
+#define DRAGON_PATH   MESHES_PATH"dragon.glb"
+#define SPHERE_PATH   MESHES_PATH"sphere.glb"
+#define SWORD_PATH    SCENES_PATH"Sword/sword.obj"
+#define SPONZA_PATH   SCENES_PATH"Sponza/glTF/Sponza.gltf"
 
 int main() {
     const cvk::WindowCreateInfo windowCreateInfo{

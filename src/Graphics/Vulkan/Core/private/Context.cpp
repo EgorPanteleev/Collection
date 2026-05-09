@@ -95,6 +95,7 @@ namespace crv::graphics::vulkan {
         for (const auto& device: devices) {
             if ( !isDeviceSuitable(device)) continue;
             mPhysicalDevice = device;
+            vkGetPhysicalDeviceProperties(device, &mPhysicalDeviceProperties);
             break;
         }
 

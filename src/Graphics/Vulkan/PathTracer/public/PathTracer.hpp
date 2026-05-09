@@ -44,6 +44,8 @@ namespace crv::graphics::vulkan {
         VkExtent2D      extent{};
         uint32_t        currentFrame     = 0;
         uint32_t        frameCount       = 0;
+        uint32_t        spp              = 1;
+        uint32_t        minDepth         = 1;
         uint32_t        maxDepth         = 1;
     };
 

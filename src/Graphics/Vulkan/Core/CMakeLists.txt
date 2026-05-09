@@ -6,7 +6,7 @@ find_package(Vulkan REQUIRED)
 file(GLOB SOURCES "./Wrap/private/*.cpp" "./private/*.cpp")
 file(GLOB HEADERS "./Wrap/public/*.hpp" "./public/*.hpp" )
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
-target_include_directories(${PROJECT_NAME} PUBLIC ./Wrap/public/ ./public/)
+target_include_directories(${PROJECT_NAME} PUBLIC ./Wrap/public/ ./public/ ${CMAKE_SOURCE_DIR}/assets/fonts/)
 
 set(Libs Message BaseWindow ModelLoader)
 set(ThirdPartyLibs vma imgui)
