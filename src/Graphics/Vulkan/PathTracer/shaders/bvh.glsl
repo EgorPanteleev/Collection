@@ -3,7 +3,7 @@
 
 #include "triangle.glsl"
 
-#define PRIM_COUNT_BITS 4
+#define PRIM_COUNT_BITS 3
 const uint MAX_PRIM = (1u << PRIM_COUNT_BITS) - 1u;
 
 struct Node {

@@ -51,7 +51,7 @@ int main() {
         .windowCreateInfo = windowCreateInfo,
         .cameraCreateInfo = cameraCreateInfo,
         .modelMatrix = model,
-        .modelPath = ROOM_PATH,
+        .modelPath = SPONZA_PATH,
         .directLight = cvk::AlignedDirectLight(Vec4(-1, 0.2, 0.3, 1), 2.0)
     };
     cvk::PathTracerApp app(createInfo);

@@ -78,18 +78,16 @@ namespace crv::graphics {
                 size_t primSize = data.size();
                 stack.pop();
                 Node& node = bvh.mNodes[data.nodeId];
-                if (primSize < IndexType::maxPrim()) {
-                    node.setIndex(IndexType{data.begin, primSize});
-                    continue;
-                }
                 SplitData bestSplit = split(data, node);
-                if (bestSplit.cost > primSize * INTERSECTION_COST and primSize < IndexType::maxPrim() ) { //not sure
+                Type leafCost = primSize * INTERSECTION_COST;
+                if (primSize <= IndexType::maxPrim() and bestSplit.cost >= leafCost) {
                     node.setIndex(IndexType{data.begin, primSize});
                     continue;
                 }
                 Type min = node.bbox().min[bestSplit.axis];
                 Type max = node.bbox().max[bestSplit.axis];
                 Type binStep = (max - min) / BIN_COUNT;
+                if (binStep <= 0) continue;
 
                 auto beginIt = mPrimIds.begin() + data.begin;
                 auto endIt   = mPrimIds.begin() + data.end;
@@ -101,10 +99,19 @@ namespace crv::graphics {
                         return binId <= bestSplit.id;
                     });
                 size_t splitId = std::distance(mPrimIds.begin(), midIt);
+                if (splitId == data.begin || splitId == data.end) {
+                    if (primSize <= IndexType::maxPrim()) {
+                        node.setIndex(IndexType{data.begin, primSize});
+                        continue;
+                    }
+                    splitId = data.begin + primSize / 2;
+                    bestSplit.leftBox  = computeBBox(data.begin, splitId);
+                    bestSplit.rightBox = computeBBox(splitId, data.end);
+                }
 
                 std::pair<size_t, size_t> leftRange = {data.begin, splitId};
                 std::pair<size_t, size_t> rightRange = {splitId, data.end};
-                if (bestSplit.leftBox.getHalfArea() < bestSplit.rightBox.getHalfArea()) {
+                if (bestSplit.leftBox.getHalfArea() > bestSplit.rightBox.getHalfArea()) {
                     std::swap(bestSplit.leftBox, bestSplit.rightBox);
                     std::swap(leftRange, rightRange);
                 }
@@ -167,16 +174,11 @@ namespace crv::graphics {
                     bestSplit = {
                         .axis = axis,
                         .id = binId,
-                        .cost = cost
+                        .cost = cost,
+                        .leftBox = leftBin.bbox,
+                        .rightBox = rightBin.bbox
                     };
                 }
-                if (axis != bestSplit.axis) continue;
-
-                bestSplit.leftBox = prefix[bestSplit.id].bbox;
-                bestSplit.rightBox = suffix[bestSplit.id + 1].bbox;
-                Box res;
-
-                for (int i = 0; i < BIN_COUNT; ++i) { res += bins[i].bbox; }
             }
             return bestSplit;
         }

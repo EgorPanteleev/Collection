@@ -15,7 +15,7 @@ namespace crv::graphics::vulkan {
     using Vec3 = glm::vec<3, Scalar>;
     using Vec4 = glm::vec<4, Scalar>;
     using Tri = PrecomputedTriangle<Scalar>;
-    using BVH = BVH<Node<Scalar, 32, 4>, Tri>;
+    using BVH = BVH<Node<Scalar, 32, 3>, Tri>;
     struct alignas(16) AlignedTriangle {
         Vec4 p0, e1, e2, N;
     };
