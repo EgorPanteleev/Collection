@@ -20,7 +20,7 @@ for SHADER_FILE in "$SHADER_DIR"/*.vert "$SHADER_DIR"/*.frag "$SHADER_DIR"/*.com
 
         # Compile the shader
         #echo "Compiling $SHADER_FILE to $OUTPUT_FILE..."
-        if /usr/bin/glslc "$SHADER_FILE" -o "$OUTPUT_FILE"; then
+        if /usr/bin/glslc -O "$SHADER_FILE" -o "$OUTPUT_FILE"; then
           echo "Success: $SHADER_FILE compiled!"
         else
            echo "Error: Failed to compile $SHADER_FILE" >&2
