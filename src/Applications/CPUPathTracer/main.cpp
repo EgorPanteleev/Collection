@@ -21,10 +21,10 @@ using Type = float;
 static int constexpr WIDTH  = 800;
 static int constexpr HEIGHT = 600;
 
-#define ROOM_PATH     ASSETS_PATH"room/scene.gltf"
-#define LIMINAL_PATH  ASSETS_PATH"liminal/scene.gltf"
-#define MICRO_PATH    ASSETS_PATH"microphone/scene.gltf"
-#define DRAGON_PATH   ASSETS_PATH"DragonAttenuation/glTF/DragonAttenuation.gltf"
+#define ROOM_PATH     SCENES_PATH"room/scene.gltf"
+#define LIMINAL_PATH  SCENES_PATH"liminal/scene.gltf"
+#define MICRO_PATH    SCENES_PATH"microphone/scene.gltf"
+#define DRAGON_PATH   SCENES_PATH"DragonAttenuation/glTF/DragonAttenuation.gltf"
 
 int main() {
     cs::CameraCreateInfo cameraCreateInfo {

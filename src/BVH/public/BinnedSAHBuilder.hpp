@@ -125,7 +125,6 @@ namespace crv::graphics {
                 bvh.mNodes.emplace_back(bestSplit.rightBox);
             }
             bvh.mPrimIds = mPrimIds;
-            bvh.fillSimdTris();
             return bvh;
         }
 

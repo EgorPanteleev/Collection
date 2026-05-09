@@ -51,7 +51,7 @@ namespace crv::app {
         cm::Loader mLoader;
         std::vector<size_t> mMaterialIndices;
         std::vector<Primitive> mPrimitives;
-        cg::BVH<Node, Primitive> mBvh;
+        cg::BVH16<Node, Primitive> mBvh;
         std::unique_ptr<scene::AbsCamera> mCamera;
         cg::PathTracer<Node, Primitive> mPathTracer;
         cg::Window mWindow;

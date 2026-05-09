@@ -27,7 +27,7 @@ namespace crv::graphics {
     struct PathTracerCreateInfo {
         cs::AbsCamera* camera;
         cm::Loader* loader;
-        BVH<Node, Primitive>* bvh;
+        BVH16<Node, Primitive>* bvh;
         std::vector<Light<typename Node::Type>*> lights;
         std::vector<size_t>* materialIndices;
         int width;
@@ -37,7 +37,7 @@ namespace crv::graphics {
     template <typename Node, typename Primitive>
     class PathTracer {
     public:
-        using BvhType = BVH<Node, Primitive>;
+        using BvhType = BVH16<Node, Primitive>;
         using Type = BvhType::Node::Type;
         using Vec3 = glm::vec<3, Type, glm::defaultp>;
         using Vec2 = glm::vec<2, Type, glm::defaultp>;

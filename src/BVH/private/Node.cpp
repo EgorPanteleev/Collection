@@ -28,3 +28,13 @@
  * 7) create child nodes
  * 8) recurse for left and right child
 */
+
+/* BLAS - BVH, where leafs is triangles (nothing more)
+ *
+ * TLAS - BVH, where leafs is MeshInstance, where
+ * MeshInstance is struct described below:
+ * struct MeshInstance {
+ *     BVH* bvh; //(or bvh index)
+ *     Mat4 modelMatrix;
+ * };
+ */
