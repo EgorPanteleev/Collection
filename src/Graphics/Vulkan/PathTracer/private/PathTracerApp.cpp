@@ -246,10 +246,11 @@ namespace crv::graphics::vulkan {
         uint32_t texturesSize = 0;
         for (const auto& meshData: mMeshesData) texturesSize += meshData.materials.size();
         mTextures.resize(texturesSize);
+        size_t matBaseIndex = 0;
         for (const auto& meshData: mMeshesData) {
             for (size_t i = 0; i < meshData.materials.size(); ++i) {
                 const cm::Material& material = meshData.materials[i];
-                TexturesByType& texturesByType = mTextures[i];
+                TexturesByType& texturesByType = mTextures[matBaseIndex + i];
                 for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
                     const cm::Texture& texture = material.mTextures[texType];
                     TextureCreateInfo textureCreateInfo {
@@ -269,6 +270,7 @@ namespace crv::graphics::vulkan {
                     texturesByType[texType] = Texture(textureCreateInfo);
                 }
             }
+            matBaseIndex += meshData.materials.size();
         }
     }
 
@@ -286,6 +288,7 @@ namespace crv::graphics::vulkan {
         utils::Timer timer;
         std::vector<std::string> meshImports = mScene["meshImports"];
         mMeshesData.resize(meshImports.size());
+        size_t matBaseIndex = 0;
         for (size_t meshIdx = 0; meshIdx < meshImports.size(); ++meshIdx) {
             const std::string& modelPath = meshImports[meshIdx];
             MeshData& meshData = mMeshesData[meshIdx];
@@ -320,11 +323,12 @@ namespace crv::graphics::vulkan {
                         .texCoord = modelVertex.texCoord0,
                         .normal = modelVertex.normal,
                         .tangent = modelVertex.tangent,
-                        .texIndex = static_cast<uint32_t>(mesh.materialIndex * cm::Texture::UNKNOWN)
+                        .texIndex = static_cast<uint32_t>((matBaseIndex + mesh.materialIndex) * cm::Texture::UNKNOWN)
                     };
                     meshData.vertices.push_back(vertex);
                 }
             }
+            matBaseIndex += std::max(loader->materials().size(), static_cast<size_t>(1));
             meshData.indices = loaderIndices;
             meshData.materials = loader->materials();
             INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";

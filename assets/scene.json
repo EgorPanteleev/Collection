@@ -1,5 +1,5 @@
 {
-  "meshImports":	["meshes/dragon.glb", "meshes/sphere.glb"],
+  "meshImports":	["meshes/dragon.glb", "scenes/microphone/scene.gltf", "meshes/bunny.glb"],
   "textureImports":	[],
   "meshes":	[{
     "name":	"dragon1",
@@ -14,12 +14,18 @@
     "localRotation":	[0, 0, 180],
     "localScale":	[4, 4, 4]
   }, {
-    "name":	"sphere",
+    "name":	"microphone",
     "meshIndex":	1,
     "localPosition":	[0, 0, -10],
-    "localRotation":	[0, 0, 0],
-    "localScale":	[1, 1, 1]
-  }],
+    "localRotation":	[0, 0, 180],
+    "localScale":	[2, 2, 2]
+  }, {
+    "name":	"bunny",
+    "meshIndex":	2,
+    "localPosition":	[0, 0, -20],
+    "localRotation":	[0, 0, 180],
+    "localScale":	[4, 4, 4]
+    }],
   "window": {
     "name": "GPU Path Tracer",
     "width": 800,
