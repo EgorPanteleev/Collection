@@ -6,12 +6,35 @@
 #define COLLECTION_TYPES_HPP
 
 #include <vector>
+#include "CoreUtils.hpp"
+#include "GPUTypes.hpp"
 #include "Context.hpp"
 #include "Buffer.hpp"
 
 namespace crv::graphics::vulkan {
     using SSBOInfo = std::tuple<void*, uint32_t, Buffer&>;
     using UBOInfo = std::tuple<uint32_t, Buffer&>;
+
+    struct TexturesByType {
+        Texture& operator[](const int type) { return mTexturesByType[type]; }
+        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
+    };
+
+    struct GBuffer {
+        Image     colorImage{};
+        ImageView colorView{};
+        Image     depthImage{};
+        ImageView depthView{};
+        Image     normalImage{};
+        ImageView normalView{};
+        Sampler   sampler{};
+    };
+
+    struct MeshData {
+        std::vector<Vertex>   vertices{};
+        std::vector<uint32_t> indices{};
+        uint32_t              instanceCount = 0;
+    };
 
     struct SSBOData: std::vector<SSBOInfo> {
         SSBOData() = default;

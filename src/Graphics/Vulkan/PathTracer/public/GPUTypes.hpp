@@ -59,11 +59,6 @@ namespace crv::graphics::vulkan {
         uint32_t frame, spp, minDepth, maxDepth;
     };
 
-    struct TexturesByType {
-        Texture& operator[](const int type) { return mTexturesByType[type]; }
-        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
-    };
-
     struct Vertex {
         Vec3 pos;
         Vec2 texCoord;
@@ -80,16 +75,6 @@ namespace crv::graphics::vulkan {
         glm::mat4 model;
     };
 
-    struct GBuffer {
-        Image     colorImage{};
-        ImageView colorView{};
-        Image     depthImage{};
-        ImageView depthView{};
-        Image     normalImage{};
-        ImageView normalView{};
-        Sampler   sampler{};
-    };
-
     struct alignas(16) MeshInstance {
         glm::mat4 model;
         glm::mat4 invModel;
@@ -97,11 +82,6 @@ namespace crv::graphics::vulkan {
         uint32_t baseTri;
     };
 
-    struct MeshData {
-        std::vector<Vertex>   vertices{};
-        std::vector<uint32_t> indices{};
-        uint32_t              instanceCount = 0;
-    };
 }
 
 #endif //COLLECTION_GPUTYPES_HPP

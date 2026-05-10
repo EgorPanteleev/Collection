@@ -6,7 +6,7 @@
 #define COLLECTION_RASTERPASS_HPP
 
 #include "Context.hpp"
-#include "GPUTypes.hpp"
+#include "Types.hpp"
 #include "Image.hpp"
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorPool.hpp"

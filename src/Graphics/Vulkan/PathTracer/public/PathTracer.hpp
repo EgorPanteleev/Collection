@@ -13,7 +13,7 @@
 #include "ShaderModule.hpp"
 #include "ComputePipelines.hpp"
 #include "Buffer.hpp"
-#include "GPUTypes.hpp"
+#include "Types.hpp"
 
 namespace crv::scene {
     class AbsCamera;

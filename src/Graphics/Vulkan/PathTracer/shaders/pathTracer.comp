@@ -113,8 +113,8 @@ float getShadow(vec3 P, vec3 dir) {
     return 0;
 }
 
-vec3 traceRay(uint seed, vec3 albedo, float depth, vec3 P, vec3 N) {
-    if (depth >= 1.0) { ;
+vec3 traceRay(uint seed, vec3 albedo, float inDepth, vec3 P, vec3 N) {
+    if (inDepth >= 1.0) { ;
         return skyColor;
     }
     vec3 resultColor = vec3(0.0);
@@ -125,13 +125,18 @@ vec3 traceRay(uint seed, vec3 albedo, float depth, vec3 P, vec3 N) {
     Scatter scatter = lambertianScatter(seed, albedo, N, vec3(1));
 
     float cosTheta   = max(dot(N, L), 0.0);
-    vec3  movedP     = P + N * 0.1;
+    vec3  movedP     = P + N * 1e-2;
     vec3  directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
     resultColor += directColor;
     throughput  *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
     Ray currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
 
     for (uint depth = 1; depth < pc.maxDepth; ++depth) {
+        if (depth >= pc.minDepth) {
+            float p = clamp(luminance(throughput), 0.01, 1.0);
+            if (rand01(seed) > p) break;
+            throughput /= p;
+        }
         Hit hit = intersect(currentRay, 1e-3);
         if (hit.triId == UINT_MAX) {
             resultColor += throughput * skyColor;
@@ -145,21 +150,15 @@ vec3 traceRay(uint seed, vec3 albedo, float depth, vec3 P, vec3 N) {
         vec2 uv = getUV(triExtra, hit.u, hit.v);
         vec3 albedo = texture(textures[nonuniformEXT(triExtra.texIndex)], uv).rgb;
         vec3 L = -directLight.dir.xyz;
-        vec3 N = normalize(tri.N.xyz);
+        vec3 N = normalize(mat3(transpose(instance.invModel)) * tri.N.xyz);
         N = faceforward(N, currentRay.dir, N);
         vec3 wo = -currentRay.dir;
         Scatter scatter = lambertianScatter(seed, albedo, N, wo);
         float cosTheta = max(dot(N,L), 0);
-        vec3 movedP = P + N * 0.1;
+        vec3 movedP = P + N * 1e-3;
         vec3 directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
         resultColor += throughput * directColor;
         throughput *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
-        if (depth >= pc.minDepth) {
-            float p = max(throughput.r, max(throughput.g, throughput.b));
-            p = clamp(p, 0.05, 1.0);
-            if (rand01(seed) > p) break;
-            throughput /= p;
-        }
         currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
     }
     return resultColor;

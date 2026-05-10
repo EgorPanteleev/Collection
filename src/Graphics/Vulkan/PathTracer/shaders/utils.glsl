@@ -52,18 +52,6 @@ float rand01(uint seed){
     return float(seed) / 4294967296.0;
 }
 
-//uint hash(uint x) {
-//    x ^= x >> 16;
-//    x *= 0x7feb352d;
-//    x ^= x >> 15;
-//    x *= 0x846ca68b;
-//    x ^= x >> 16;
-//    return x;
-//}
-//
-//float rand01(uint seed) {
-//    seed = hash(seed);
-//    return float(seed) / 4294967295.0;
-//}
+float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
 #endif
