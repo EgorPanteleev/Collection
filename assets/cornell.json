@@ -7,6 +7,12 @@
     "localPosition":	[-0.6, -0.03, 1],
     "localRotation":	[0, -35, 180],
     "localScale":	[3, 3, 3]
+  },{
+    "name":	"dragon2",
+    "meshIndex":	0,
+    "localPosition":	[-0.6, -0.03, 4],
+    "localRotation":	[0, -35, 180],
+    "localScale":	[4, 4, 4]
   }, {
     "name":	"bottomPlane",
     "meshIndex":	1,

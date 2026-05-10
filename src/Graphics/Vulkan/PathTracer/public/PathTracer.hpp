@@ -25,6 +25,7 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedTriangle> triangles{};
         std::vector<AlignedTriangleExtra> triangleExtras{};
         std::vector<AlignedNode> nodes{};
+        std::vector<AlignedNode> TLASNodes{};
         std::vector<TexturesByType>* textures = nullptr;
         std::vector<MeshInstance> instances{};
         uint32_t framesInFlight = 2;
@@ -79,6 +80,7 @@ namespace crv::graphics::vulkan {
         Buffer mTriangleBuffer{};
         Buffer mTriangleExtraBuffer{};
         Buffer mNodeBuffer{};
+        Buffer mTLASNodeBuffer{};
         Buffer mInstanceBuffer{};
         std::vector<Buffer> mDirectLightBuffers{};
         std::vector<TexturesByType>* mTextures = nullptr;

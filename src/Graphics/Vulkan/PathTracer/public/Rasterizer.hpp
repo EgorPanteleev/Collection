@@ -25,6 +25,7 @@ namespace crv::graphics::vulkan {
         VkExtent3D                   extent{};
         uint32_t                     framesInFlight = 2;
         std::vector<MeshData>        meshesData{};
+        std::vector<MeshInstance>    instances{};
         std::vector<TexturesByType>* textures       = nullptr;
     };
 

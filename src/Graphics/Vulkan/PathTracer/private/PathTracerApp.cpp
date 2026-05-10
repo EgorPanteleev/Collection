@@ -10,7 +10,6 @@
 #include "CallBacks.hpp"
 #include "IconsFontAwesome6.h"
 #include <glm/gtx/string_cast.hpp>
-#include "BLAS.hpp"
 #include "TLAS.hpp"
 
 #include <fstream>
@@ -268,13 +267,22 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    static BVH buildBVH(std::span<Tri> tris) {
+    static BLAS buildBLAS(std::span<Tri> tris) {
         utils::Timer timer;
         timer.start();
-        BinnedSAHBuilder<BVH::Node, Tri> builder{ tris };
-        BVH bvh = builder.build();
-        INFO << "BVH build time: " << timer.duration() / 1000 << " sec";
-        return bvh;
+        BLASBuilder builder{tris};
+        BLAS blas = builder.build();
+        INFO << "BLAS build time: " << timer.duration() / 1000 << " sec";
+        return blas;
+    }
+
+    static TLAS buildTLAS(std::span<MeshPrimitive> prims) {
+        utils::Timer timer;
+        timer.start();
+        TLASBuilder builder{prims};
+        TLAS tlas = builder.build();
+        INFO << "TLAS build time: " << timer.duration() / 1000 << " sec";
+        return tlas;
     }
 
     void PathTracerApp::loadModel(const PathTracerAppCreateInfo& info) {
@@ -285,6 +293,7 @@ namespace crv::graphics::vulkan {
         size_t materialBaseIndex = 0;
         std::vector<uint32_t> nodeOffsets{};
         std::vector<uint32_t> triOffsets{};
+        std::vector<BLASNode> nodes;
         for (size_t meshIdx = 0; meshIdx < meshImports.size(); ++meshIdx) {
             const std::string& modelPath = meshImports[meshIdx];
             MeshData& meshData = mMeshesData[meshIdx];
@@ -330,11 +339,11 @@ namespace crv::graphics::vulkan {
             mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
             INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
             INFO << "Total number of primitives: " << triangles.size();
-            BVH bvh = buildBVH(std::span(triangles));
+            BVH blas = buildBLAS(std::span(triangles));
             nodeOffsets.push_back(mNodes.size());
             triOffsets.push_back(mTriangles.size());
             for (int i = 0; i < triangles.size(); ++i) {
-                const uint32_t idx = bvh.primIds()[i];
+                const uint32_t idx = blas.primIds()[i];
                 Tri& tri = triangles[idx];
                 mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
                                         Vec4(tri.e2, 1), Vec4(tri.N, 1));
@@ -343,7 +352,8 @@ namespace crv::graphics::vulkan {
                 cm::Vertex v2 = loaderVertices[indices[idx * 3 + 2]];
                 mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0, materialIndices[idx]);
             }
-            for (const auto& node: bvh.nodes()) {
+            for (const auto& node: blas.nodes()) {
+                nodes.push_back(node);
                 AlignedNode alignedNode{};
                 alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
                 alignedNode.index = node.index().value();
@@ -351,6 +361,7 @@ namespace crv::graphics::vulkan {
             }
         }
 
+        std::vector<MeshPrimitive> meshPrimitives;
         for (const auto& mesh: mScene["meshes"]) {
             glm::vec3 rot = toVec3(mesh["localRotation"]);
             glm::mat4 T = glm::translate(glm::mat4(1.0f), toVec3(mesh["localPosition"]));
@@ -361,23 +372,42 @@ namespace crv::graphics::vulkan {
             glm::mat4 S = glm::scale(glm::mat4(1.0f), toVec3(mesh["localScale"]));
 
             glm::mat4 model = T * R * S;
+            MESSAGE << glm::to_string(model);
             int meshIndex = mesh["meshIndex"];
-            mMeshesData[meshIndex].instances.emplace_back(model, glm::inverse(model),
+            ++mMeshesData[meshIndex].instanceCount;
+            mRasterInstances.emplace_back(model, glm::inverse(model),
                 nodeOffsets[meshIndex], triOffsets[meshIndex]);
+            meshPrimitives.emplace_back(model, meshIndex, nodes[nodeOffsets[meshIndex]].bbox());
         }
+        TLAS tlas = buildTLAS(std::span(meshPrimitives));
+        for (int i = 0; i < mRasterInstances.size(); ++i) {
+            const uint32_t idx = tlas.primIds()[i];
+            mTracerInstances.push_back(mRasterInstances[idx]);
+        }
+        for (const auto& node: tlas.nodes()) {
+            AlignedNode alignedNode{};
+            alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
+            alignedNode.index = node.index().value();
+            mTLASNodes.push_back(alignedNode);
+        }
+        MESSAGE << tlas.nodes().size();
+        MESSAGE << (Index<32,3>(mTLASNodes[0].index).primCount());
+        for (int i = 0; i < tlas.nodes()[0].index().primCount(); ++i) {
+            auto index = tlas.nodes()[0].index();
+            MESSAGE << "ID: " << index.id();
+        }
+        MESSAGE << tlas.nodes()[0].bbox();
     }
 
     void PathTracerApp::createPathTracer() {
-        std::vector<MeshInstance> instances;
-        for (auto meshData: mMeshesData)
-            instances.insert(instances.end(), meshData.instances.begin(), meshData.instances.end());
         const PathTracerCreateInfo pathTracerCreateInfo {
             .context = &mContext,
             .triangles = mTriangles,
             .triangleExtras = mTriangleExtras,
             .nodes = mNodes,
+            .TLASNodes = mTLASNodes,
             .textures = &mTextures,
-            .instances = instances,
+            .instances = mTracerInstances,
             .framesInFlight = mFramesInFlight
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);
@@ -920,6 +950,7 @@ namespace crv::graphics::vulkan {
             .normalFormat = NORMAL_FORMAT,
             .extent = {width, height, 1},
             .meshesData = mMeshesData,
+            .instances = mRasterInstances,
             .textures = &mTextures
         };
         mRasterizer = Rasterizer(createInfo);

@@ -98,7 +98,10 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedTriangle>      mTriangles{};
         std::vector<AlignedTriangleExtra> mTriangleExtras{};
         std::vector<AlignedNode>          mNodes{};
+        std::vector<AlignedNode>          mTLASNodes{};
         std::vector<MeshData>             mMeshesData{};
+        std::vector<MeshInstance>         mRasterInstances{};
+        std::vector<MeshInstance>         mTracerInstances{};
         std::vector<cm::Material>         mMaterials{};
         std::vector<TexturesByType>       mTextures{};
 

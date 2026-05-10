@@ -76,6 +76,11 @@ namespace crv::graphics::vulkan {
             .offset = 0,
             .range = mNodeBuffer.size()
         };
+        VkDescriptorBufferInfo TLASNodeBufferInfo {
+            .buffer = mTLASNodeBuffer.get(),
+            .offset = 0,
+            .range = mTLASNodeBuffer.size()
+        };
         VkDescriptorBufferInfo instanceBufferInfo {
             .buffer = mInstanceBuffer.get(),
             .offset = 0,
@@ -166,7 +171,6 @@ namespace crv::graphics::vulkan {
             .pBufferInfo = &triangleExtraBufferInfo,
             .pTexelBufferView = nullptr
         };
-
         VkWriteDescriptorSet writeDescriptorSet3 {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 3,
@@ -184,7 +188,7 @@ namespace crv::graphics::vulkan {
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .pImageInfo = nullptr,
-            .pBufferInfo = &instanceBufferInfo,
+            .pBufferInfo = &TLASNodeBufferInfo,
             .pTexelBufferView = nullptr
         };
         VkWriteDescriptorSet writeDescriptorSet5 {
@@ -192,9 +196,9 @@ namespace crv::graphics::vulkan {
             .dstBinding = 5,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .pImageInfo = nullptr,
-            .pBufferInfo = &directLightBufferInfo,
+            .pBufferInfo = &instanceBufferInfo,
             .pTexelBufferView = nullptr
         };
         VkWriteDescriptorSet writeDescriptorSet6 {
@@ -202,9 +206,9 @@ namespace crv::graphics::vulkan {
             .dstBinding = 6,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .pImageInfo = &imageInfo,
-            .pBufferInfo = nullptr,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &directLightBufferInfo,
             .pTexelBufferView = nullptr
         };
         VkWriteDescriptorSet writeDescriptorSet7 {
@@ -212,8 +216,10 @@ namespace crv::graphics::vulkan {
             .dstBinding = 7,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &colorInfo
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .pImageInfo = &imageInfo,
+            .pBufferInfo = nullptr,
+            .pTexelBufferView = nullptr
         };
         VkWriteDescriptorSet writeDescriptorSet8 {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -221,7 +227,7 @@ namespace crv::graphics::vulkan {
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &depthInfo
+            .pImageInfo = &colorInfo
         };
         VkWriteDescriptorSet writeDescriptorSet9 {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -229,21 +235,29 @@ namespace crv::graphics::vulkan {
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &normalInfo
+            .pImageInfo = &depthInfo
         };
         VkWriteDescriptorSet writeDescriptorSet10 {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 10,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &normalInfo
+        };
+        VkWriteDescriptorSet writeDescriptorSet11 {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 11,
             .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .pImageInfo = textureInfos.data()
         };
         std::vector descriptorWrites{
-            writeDescriptorSet0, writeDescriptorSet1, writeDescriptorSet2,
-            writeDescriptorSet3, writeDescriptorSet4, writeDescriptorSet5,
-            writeDescriptorSet6, writeDescriptorSet7, writeDescriptorSet8,
-            writeDescriptorSet9, writeDescriptorSet10
+            writeDescriptorSet0, writeDescriptorSet1 , writeDescriptorSet2,
+            writeDescriptorSet3, writeDescriptorSet4 , writeDescriptorSet5,
+            writeDescriptorSet6, writeDescriptorSet7 , writeDescriptorSet8,
+            writeDescriptorSet9, writeDescriptorSet10, writeDescriptorSet11
         };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
@@ -317,47 +331,55 @@ namespace crv::graphics::vulkan {
         };
         constexpr VkDescriptorSetLayoutBinding binding5 {
             .binding = 5,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
         constexpr VkDescriptorSetLayoutBinding binding6 {
             .binding = 6,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr
+        };
+        constexpr VkDescriptorSetLayoutBinding binding7 {
+            .binding = 7,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr
         };
         VkDescriptorSetLayoutBinding colorBinding {
-            .binding = 7,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-        };
-        VkDescriptorSetLayoutBinding depthBinding {
             .binding = 8,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
-        VkDescriptorSetLayoutBinding normalBinding {
+        VkDescriptorSetLayoutBinding depthBinding {
             .binding = 9,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
-        VkDescriptorSetLayoutBinding binding10 {
+        VkDescriptorSetLayoutBinding normalBinding {
             .binding = 10,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        };
+        VkDescriptorSetLayoutBinding binding11 {
+            .binding = 11,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
 
         const std::vector bindings{binding0, binding1, binding2, binding3,
-                                   binding4, binding5, binding6, colorBinding,
-                                   depthBinding, normalBinding, binding10};
-        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                   binding4, binding5, binding6, binding7,
+                                   colorBinding, depthBinding, normalBinding,
+                                   binding11};
+        const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
         };
@@ -372,6 +394,7 @@ namespace crv::graphics::vulkan {
     void PathTracer::createDescriptorPool() {
         const std::vector<VkDescriptorPoolSize> poolSizes{
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        , mFramesInFlight},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , mFramesInFlight},
@@ -504,6 +527,27 @@ namespace crv::graphics::vulkan {
                 .size = nodesSize,
                 .allocator = mContext->allocator(),
                 .buffer = mNodeBuffer.get(),
+                .device = mContext->device(),
+                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
+                .queue = mContext->queue(QueueFamilyType::COMPUTE)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+        {
+            const uint32_t nodesSize = sizeof(AlignedNode) * info.TLASNodes.size();
+            const BufferCreateInfo nodeBufferCreateInfo {
+                .allocator = mContext->allocator(),
+                .size = nodesSize,
+                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mTLASNodeBuffer = Buffer(nodeBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<AlignedNode*>(info.TLASNodes.data()),
+                .size = nodesSize,
+                .allocator = mContext->allocator(),
+                .buffer = mTLASNodeBuffer.get(),
                 .device = mContext->device(),
                 .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
                 .queue = mContext->queue(QueueFamilyType::COMPUTE)

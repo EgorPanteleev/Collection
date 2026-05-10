@@ -5,8 +5,6 @@
 #ifndef COLLECTION_TLAS_HPP
 #define COLLECTION_TLAS_HPP
 
-#include "BLAS.hpp"
-
 namespace crv::graphics {
     template <typename T>
     struct MeshPrimitive {
@@ -39,22 +37,6 @@ namespace crv::graphics {
         Vec3 mCenter;
     };
 
-    template <typename NodeType, typename Primitive>
-    class TLAS: public BVH<NodeType, MeshPrimitive<typename NodeType::Type>> {
-    public:
-        using BLASType = BLAS<NodeType, Primitive>;
-        using Type = NodeType::Type;
-        using MeshPrimitive = MeshPrimitive<Type>;
-        using BvhType = BVH<NodeType, MeshPrimitive>;
-
-        explicit TLAS(const BvhType& bvh): BvhType(bvh) {}
-        TLAS& operator=(const BvhType& bvh) {
-            BvhType::operator=(bvh);
-            return *this;
-        }
-    protected:
-        std::span<BLASType> mMeshes;
-    };
 }
 
 #endif //COLLECTION_TLAS_HPP

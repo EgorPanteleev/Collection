@@ -50,23 +50,72 @@ BLASHit intersect(Ray ray, uint rootNode, uint baseTri, float eps) {
             }
         }
     }
-
     return closestHit;
 }
 
+//Hit intersect(Ray ray, float eps) {
+//    Hit closestHit = Hit(UINT_MAX, UINT_MAX, FLT_MAX, 0, 0);
+//    for (int i = 0; i < pc.instanceCount; ++i) {
+//        Instance instance = instanceBuffer.data[i];
+//
+//        vec3 localPos = vec3(instance.invModel * vec4(ray.pos, 1.0));
+//        vec3 localDir = normalize(vec3(instance.invModel * vec4(ray.dir, 0.0)));
+//        Ray localRay = makeRay(localPos, localDir, 0.0, FLT_MAX);
+//
+//        BLASHit instanceHit = intersect(localRay, instance.baseNode, instance.baseTri, eps);
+//
+//        if (instanceHit.t > eps && instanceHit.t < closestHit.t) {
+//            closestHit = Hit(instanceHit.id, i, instanceHit.t, instanceHit.u, instanceHit.v);
+//        }
+//    }
+//    return closestHit;
+//}
+
 Hit intersect(Ray ray, float eps) {
     Hit closestHit = Hit(UINT_MAX, UINT_MAX, FLT_MAX, 0, 0);
-    for (int i = 0; i < pc.instanceCount; ++i) {
-        Instance instance = instanceBuffer.data[i];
-
-        vec3 localPos = vec3(instance.invModel * vec4(ray.pos, 1.0));
-        vec3 localDir = normalize(vec3(instance.invModel * vec4(ray.dir, 0.0)));
-        Ray localRay = makeRay(localPos, localDir, 0.0, FLT_MAX);
-
-        BLASHit instanceHit = intersect(localRay, instance.baseNode, instance.baseTri, eps);
-
-        if (instanceHit.id != UINT_MAX && instanceHit.t < closestHit.t) {
-            closestHit = Hit(instanceHit.id, i, instanceHit.t, instanceHit.u, instanceHit.v);
+    uint stack[16];
+    uint sp = 0;
+    stack[sp++] = 0;
+    while (sp != 0) {
+        uint nodeIdx = stack[--sp];
+        Node node = TLASNodeBuffer.data[nodeIdx];
+        float tNode = intersect(node.bbox, ray);
+        if (tNode == FLT_MAX || tNode >= closestHit.t) continue;
+        uint primCount = primCount(node.index);
+        if (primCount != 0) {
+            uint id = id(node.index);
+            for (uint i = 0; i < primCount; ++i) {
+                Instance instance = instanceBuffer.data[id + i];
+                vec3 localPos = vec3(instance.invModel * vec4(ray.pos, 1.0));
+                vec3 localDir = normalize(vec3(instance.invModel * vec4(ray.dir, 0.0)));
+                Ray localRay = makeRay(localPos, localDir, 0.0, FLT_MAX);
+                BLASHit instanceHit = intersect(localRay, instance.baseNode, instance.baseTri, eps);
+                if (instanceHit.t > eps && instanceHit.t < closestHit.t) {
+                    closestHit = Hit(instanceHit.id, id + i, instanceHit.t, instanceHit.u, instanceHit.v);
+                }
+            }
+        } else {
+            uint leftIdx  = id(node.index);
+            uint rightIdx = leftIdx + 1;
+            Node left  = TLASNodeBuffer.data[leftIdx];
+            Node right = TLASNodeBuffer.data[rightIdx];
+            float tLeft  = intersect(left.bbox, ray);
+            float tRight = intersect(right.bbox, ray);
+            bool hitLeft  = (tLeft  != FLT_MAX) && (tLeft  < closestHit.t);
+            bool hitRight = (tRight != FLT_MAX) && (tRight < closestHit.t);
+            if (hitLeft && hitRight) {
+                if (tLeft < tRight) {
+                    stack[sp++] = rightIdx;
+                    stack[sp++] = leftIdx;
+                } else {
+                    stack[sp++] = leftIdx;
+                    stack[sp++] = rightIdx;
+                }
+            } else if (hitLeft) {
+                stack[sp++] = leftIdx;
+            } else if (hitRight) {
+                stack[sp++] = rightIdx;
+            }
         }
     }
     return closestHit;

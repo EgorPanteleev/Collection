@@ -6,7 +6,6 @@
 #define COLLECTION_GPUTYPES_HPP
 
 #include "BVH.hpp"
-#include "BLAS.hpp"
 #include "TLAS.hpp"
 #include "Node.hpp"
 #include "Texture.hpp"
@@ -17,11 +16,14 @@ namespace crv::graphics::vulkan {
     using Vec3 = glm::vec<3, Scalar>;
     using Vec4 = glm::vec<4, Scalar>;
     using Tri = PrecomputedTriangle<Scalar>;
-    using Node = Node<Scalar, 32, 3>;
-    using BVH = BVH<Node, Tri>;
-    using BLAS = BLAS<Node, Tri>;
-    using TLAS = TLAS<Node, Tri>;
+    using BLASNode = Node<Scalar, 32, 3>;
+    using TLASNode = Node<Scalar, 32, 3>;
     using MeshPrimitive = MeshPrimitive<float>;
+    using BLAS = BVH<BLASNode, Tri>;
+    using TLAS = BVH<TLASNode, MeshPrimitive>;
+    using BLASBuilder = BinnedSAHBuilder<BLASNode, Tri>;
+    using TLASBuilder = BinnedSAHBuilder<TLASNode, MeshPrimitive>;
+
     struct alignas(16) AlignedTriangle {
         Vec4 p0, e1, e2, N;
     };
@@ -96,9 +98,9 @@ namespace crv::graphics::vulkan {
     };
 
     struct MeshData {
-        std::vector<Vertex>          vertices{};
-        std::vector<uint32_t>        indices{};
-        std::vector<MeshInstance>    instances{};
+        std::vector<Vertex>   vertices{};
+        std::vector<uint32_t> indices{};
+        uint32_t              instanceCount = 0;
     };
 }
 

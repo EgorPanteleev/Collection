@@ -371,7 +371,7 @@ namespace crv::graphics::vulkan {
             mMVPBuffers[i] = Buffer(MVPBufferCreateInfo);
         }
         mMeshBuffers.resize(info.meshesData.size());
-        std::vector<glm::mat4> instanceModels;
+        uint32_t instanceOffset = 0;
         for (size_t i = 0; i < info.meshesData.size(); ++i) {
             auto& meshBuffer = mMeshBuffers[i];
             auto& meshData = info.meshesData[i];
@@ -398,7 +398,7 @@ namespace crv::graphics::vulkan {
             }
             {
                 meshBuffer.indexCount = meshData.indices.size();
-                meshBuffer.instanceCount = meshData.instances.size();
+                meshBuffer.instanceCount = meshData.instanceCount;
                 const size_t indicesSize = sizeof(uint32_t) * meshData.indices.size();
                 const BufferCreateInfo indexBufferCreateInfo {
                     .allocator = mContext->allocator(),
@@ -419,10 +419,12 @@ namespace crv::graphics::vulkan {
                 };
                 Buffer::copy(copyDataToGPUBufferInfo);
             }
-            meshBuffer.firstInstance = instanceModels.size();
-            for (auto instance: meshData.instances) instanceModels.push_back(instance.model);
+            meshBuffer.firstInstance = instanceOffset;
+            instanceOffset += meshData.instanceCount;
         }
         {
+            std::vector<glm::mat4> instanceModels;
+            for (auto instance: info.instances) instanceModels.push_back(instance.model);
             const size_t instancesSize = sizeof(glm::mat4) * instanceModels.size();
             const BufferCreateInfo instanceBufferCreateInfo {
                 .allocator = mContext->allocator(),

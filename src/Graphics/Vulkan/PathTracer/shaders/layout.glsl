@@ -24,22 +24,26 @@ layout(binding = 3) buffer NodeBuffer {
     Node data[];
 } nodeBuffer;
 
-layout(binding = 4) buffer InstanceBuffer {
+layout(binding = 4) buffer TLASNodeBuffer_ {
+    Node data[];
+} TLASNodeBuffer;
+
+layout(binding = 5) buffer InstanceBuffer {
     Instance data[];
 } instanceBuffer;
 
-layout(binding = 5) uniform DirectLight {
+layout(binding = 6) uniform DirectLight {
     vec4 dir;
     float intensity;
     float pad[3];
 } directLight;
 
-layout(binding = 6, rgba8) uniform image2D outputImage;
+layout(binding = 7, rgba8) uniform image2D outputImage;
 
-layout(binding = 7) uniform sampler2D colorImage;
-layout(binding = 8) uniform sampler2D depthImage;
-layout(binding = 9) uniform sampler2D normalImage;
+layout(binding = 8) uniform sampler2D colorImage;
+layout(binding = 9) uniform sampler2D depthImage;
+layout(binding = 10) uniform sampler2D normalImage;
 
-layout(binding = 10) uniform sampler2D textures[];
+layout(binding = 11) uniform sampler2D textures[];
 
 #endif
