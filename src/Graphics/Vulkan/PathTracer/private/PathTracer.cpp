@@ -7,6 +7,7 @@
 #include "CoreUtils.hpp"
 #include "Timer.hpp"
 #include "Camera.hpp"
+#include "Types.hpp"
 
 namespace crv::graphics::vulkan {
     PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight),
@@ -22,85 +23,15 @@ namespace crv::graphics::vulkan {
     
     void PathTracer::update(const PathTracerUpdateInfo& info) {
         Buffer& cameraBuffer = mCameraBuffers[info.currentFrame];
-        {
-            AlignedCamera camera {
-                .pos = Vec4(info.camera->position(), 1),
-                .invViewProj = glm::inverse(info.camera->projectionMatrix() * info.camera->viewMatrix())
-            };
-            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = &camera,
-                .size = sizeof(AlignedCamera),
-                .allocator = mContext->allocator(),
-                .buffer = cameraBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
+        AlignedCamera camera {
+            .pos = Vec4(info.camera->position(), 1),
+            .invViewProj = glm::inverse(info.camera->projectionMatrix() * info.camera->viewMatrix())
+        };
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &camera, sizeof(AlignedCamera), cameraBuffer);
+
         Buffer& directLightBuffer = mDirectLightBuffers[info.currentFrame];
-        {
-            CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<void*>(static_cast<const void*>(&info.directLight)),
-                .size = sizeof(AlignedDirectLight),
-                .allocator = mContext->allocator(),
-                .buffer = directLightBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-        VkDescriptorBufferInfo cameraBufferInfo {
-            .buffer = cameraBuffer.get(),
-            .offset = 0,
-            .range = cameraBuffer.size()
-        };
-        VkDescriptorBufferInfo directLightBufferInfo {
-            .buffer = directLightBuffer.get(),
-            .offset = 0,
-            .range = directLightBuffer.size()
-        };
-        VkDescriptorBufferInfo triangleBufferInfo {
-            .buffer = mTriangleBuffer.get(),
-            .offset = 0,
-            .range = mTriangleBuffer.size()
-        };
-        VkDescriptorBufferInfo triangleExtraBufferInfo {
-            .buffer = mTriangleExtraBuffer.get(),
-            .offset = 0,
-            .range = mTriangleExtraBuffer.size()
-        };
-        VkDescriptorBufferInfo nodeBufferInfo {
-            .buffer = mNodeBuffer.get(),
-            .offset = 0,
-            .range = mNodeBuffer.size()
-        };
-        VkDescriptorBufferInfo TLASNodeBufferInfo {
-            .buffer = mTLASNodeBuffer.get(),
-            .offset = 0,
-            .range = mTLASNodeBuffer.size()
-        };
-        VkDescriptorBufferInfo instanceBufferInfo {
-            .buffer = mInstanceBuffer.get(),
-            .offset = 0,
-            .range = mInstanceBuffer.size()
-        };
-        VkDescriptorImageInfo colorInfo {
-            .sampler = info.gBuffer->sampler.get(),
-            .imageView = info.gBuffer->colorView.get(),
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        };
-        VkDescriptorImageInfo depthInfo {
-            .sampler = info.gBuffer->sampler.get(),
-            .imageView = info.gBuffer->depthView.get(),
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        };
-        VkDescriptorImageInfo normalInfo {
-            .sampler = info.gBuffer->sampler.get(),
-            .imageView = info.gBuffer->normalView.get(),
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        };
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, const_cast<AlignedDirectLight*>(&info.directLight), sizeof(AlignedDirectLight), directLightBuffer);
+
         std::vector<VkDescriptorImageInfo> textureInfos;
         for (size_t i = 0; i < mTextures->size(); i++) {
             auto& texturesByType = (*mTextures)[i];
@@ -133,119 +64,7 @@ namespace crv::graphics::vulkan {
 
         endCommandBuffer(commandPool, commandBuffers, mContext->queue(QueueFamilyType::COMPUTE));
 
-        VkDescriptorImageInfo imageInfo {
-            .sampler = VK_NULL_HANDLE,
-            .imageView = info.presentImageView,
-            .imageLayout = VK_IMAGE_LAYOUT_GENERAL
-        };
-
-        VkWriteDescriptorSet writeDescriptorSet0 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &cameraBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-
-        VkWriteDescriptorSet writeDescriptorSet1 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &triangleBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-
-        VkWriteDescriptorSet writeDescriptorSet2 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 2,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &triangleExtraBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-        VkWriteDescriptorSet writeDescriptorSet3 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 3,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &nodeBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-        VkWriteDescriptorSet writeDescriptorSet4 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 4,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &TLASNodeBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-        VkWriteDescriptorSet writeDescriptorSet5 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 5,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &instanceBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-        VkWriteDescriptorSet writeDescriptorSet6 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 6,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &directLightBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-        VkWriteDescriptorSet writeDescriptorSet7 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 7,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .pImageInfo = &imageInfo,
-            .pBufferInfo = nullptr,
-            .pTexelBufferView = nullptr
-        };
-        VkWriteDescriptorSet writeDescriptorSet8 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 8,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &colorInfo
-        };
-        VkWriteDescriptorSet writeDescriptorSet9 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 9,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &depthInfo
-        };
-        VkWriteDescriptorSet writeDescriptorSet10 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 10,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &normalInfo
-        };
-        VkWriteDescriptorSet writeDescriptorSet11 {
+        VkWriteDescriptorSet texturesWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 11,
             .dstArrayElement = 0,
@@ -253,17 +72,31 @@ namespace crv::graphics::vulkan {
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .pImageInfo = textureInfos.data()
         };
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        std::vector<VkDescriptorImageInfo> imageInfos;
+        bufferInfos.reserve(20);
+        imageInfos.reserve(20);
         std::vector descriptorWrites{
-            writeDescriptorSet0, writeDescriptorSet1 , writeDescriptorSet2,
-            writeDescriptorSet3, writeDescriptorSet4 , writeDescriptorSet5,
-            writeDescriptorSet6, writeDescriptorSet7 , writeDescriptorSet8,
-            writeDescriptorSet9, writeDescriptorSet10, writeDescriptorSet11
+            getUBODescriptorWrite (cameraBuffer        , 0, bufferInfos),
+            getSSBODescriptorWrite(mTriangleBuffer     , 1, bufferInfos),
+            getSSBODescriptorWrite(mTriangleExtraBuffer, 2, bufferInfos),
+            getSSBODescriptorWrite(mNodeBuffer         , 3, bufferInfos),
+            getSSBODescriptorWrite(mTLASNodeBuffer     , 4, bufferInfos),
+            getSSBODescriptorWrite(mInstanceBuffer     , 5, bufferInfos),
+            getUBODescriptorWrite (directLightBuffer   , 6, bufferInfos),
+            getStorageImageDescriptorWrite(info.presentImageView, VK_IMAGE_LAYOUT_GENERAL, 7, imageInfos),
+            getSamplerImageDescriptorWrite(info.gBuffer->sampler.get(), info.gBuffer->colorView.get(),
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 8, imageInfos),
+            getSamplerImageDescriptorWrite(info.gBuffer->sampler.get(), info.gBuffer->depthView.get(),
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 9, imageInfos),
+            getSamplerImageDescriptorWrite(info.gBuffer->sampler.get(), info.gBuffer->normalView.get(),
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 10, imageInfos),
+            texturesWriteDescriptorSet
         };
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             descriptorsWrites.push_back(descriptorWrites);
         }
-
         const DescriptorSetsUpdateInfo updateInfo {
             .descriptorsWrites = descriptorsWrites
         };
@@ -275,13 +108,13 @@ namespace crv::graphics::vulkan {
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
 
-        const PushConstants pc(info.frameCount, info.spp, info.minDepth, info.maxDepth, mInstanceCount);
+        const PushConstants pc(info.frameCount, info.spp, info.minDepth, info.maxDepth);
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
             0, sizeof(PushConstants), &pc);
 
         auto [width, height]  = info.extent;
-        const uint32_t groupX = 1 + (width  - 1) / 8;
-        const uint32_t groupY = 1 + (height - 1) / 8;
+        const uint32_t groupX = 1 + (width  - 1) / 16;
+        const uint32_t groupY = 1 + (height - 1) / 16;
         vkCmdDispatch(info.commandBuffer, groupX, groupY, 1);
     }
 
@@ -294,91 +127,26 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createDescriptorSetLayout() {
-        constexpr VkDescriptorSetLayoutBinding binding0 {
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding1 {
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding2 {
-            .binding = 2,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding3 {
-            .binding = 3,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding4 {
-            .binding = 4,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding5 {
-            .binding = 5,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding6 {
-            .binding = 6,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        constexpr VkDescriptorSetLayoutBinding binding7 {
-            .binding = 7,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr
-        };
-        VkDescriptorSetLayoutBinding colorBinding {
-            .binding = 8,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-        };
-        VkDescriptorSetLayoutBinding depthBinding {
-            .binding = 9,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-        };
-        VkDescriptorSetLayoutBinding normalBinding {
-            .binding = 10,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-        };
-        VkDescriptorSetLayoutBinding binding11 {
+        VkDescriptorSetLayoutBinding texturesBinding {
             .binding = 11,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
         };
-
-        const std::vector bindings{binding0, binding1, binding2, binding3,
-                                   binding4, binding5, binding6, binding7,
-                                   colorBinding, depthBinding, normalBinding,
-                                   binding11};
+        const std::vector bindings{
+            getLayoutBinding(0 , VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(1 , VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(2 , VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(3 , VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(4 , VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(5 , VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(6 , VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(7 , VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(8 , VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(9 , VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT),
+            getLayoutBinding(10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT),
+            texturesBinding
+        };
         const std::vector<VkDescriptorBindingFlags> bindingFlags{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
@@ -470,132 +238,21 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracer::createBuffers(const PathTracerCreateInfo& info) {
-        {
-            const uint32_t trianglesSize = sizeof(AlignedTriangle) * info.triangles.size();
-            const BufferCreateInfo triangleBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = trianglesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mTriangleBuffer = Buffer(triangleBufferCreateInfo);
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<AlignedTriangle*>(info.triangles.data()),
-                .size = trianglesSize,
-                .allocator = mContext->allocator(),
-                .buffer = mTriangleBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-        {
-            const uint32_t triangleExtrasSize = sizeof(AlignedTriangleExtra) * info.triangleExtras.size();
-            const BufferCreateInfo vertexBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = triangleExtrasSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mTriangleExtraBuffer = Buffer(vertexBufferCreateInfo);
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<AlignedTriangleExtra*>(info.triangleExtras.data()),
-                .size = triangleExtrasSize,
-                .allocator = mContext->allocator(),
-                .buffer = mTriangleExtraBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-        {
-            const uint32_t nodesSize = sizeof(AlignedNode) * info.nodes.size();
-            const BufferCreateInfo nodeBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = nodesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mNodeBuffer = Buffer(nodeBufferCreateInfo);
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<AlignedNode*>(info.nodes.data()),
-                .size = nodesSize,
-                .allocator = mContext->allocator(),
-                .buffer = mNodeBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-        {
-            const uint32_t nodesSize = sizeof(AlignedNode) * info.TLASNodes.size();
-            const BufferCreateInfo nodeBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = nodesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mTLASNodeBuffer = Buffer(nodeBufferCreateInfo);
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<AlignedNode*>(info.TLASNodes.data()),
-                .size = nodesSize,
-                .allocator = mContext->allocator(),
-                .buffer = mTLASNodeBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-        {
-            const uint32_t instancesSize = sizeof(MeshInstance) * info.instances.size();
-            const BufferCreateInfo instanceBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = instancesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mInstanceBuffer = Buffer(instanceBufferCreateInfo);
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<MeshInstance*>(info.instances.data()),
-                .size = instancesSize,
-                .allocator = mContext->allocator(),
-                .buffer = mInstanceBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
-                .queue = mContext->queue(QueueFamilyType::COMPUTE)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-        const BufferCreateInfo cameraBufferCreateInfo {
-            .allocator = mContext->allocator(),
-            .size = sizeof(AlignedCamera),
-            .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-        };
+        SSBOData ssboData{};
+        ssboData.add(info.triangles     , mTriangleBuffer     );
+        ssboData.add(info.triangleExtras, mTriangleExtraBuffer);
+        ssboData.add(info.nodes         , mNodeBuffer         );
+        ssboData.add(info.TLASNodes     , mTLASNodeBuffer     );
+        ssboData.add(info.instances     , mInstanceBuffer     );
+        ssboData.createAll(mContext, QueueFamilyType::COMPUTE);
+
         mCameraBuffers.resize(mFramesInFlight);
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            mCameraBuffers[i] = Buffer(cameraBufferCreateInfo);
-        }
-        const BufferCreateInfo directLightBufferCreateInfo {
-            .allocator = mContext->allocator(),
-            .size = sizeof(AlignedDirectLight),
-            .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-        };
         mDirectLightBuffers.resize(mFramesInFlight);
+        UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            mDirectLightBuffers[i] = Buffer(directLightBufferCreateInfo);
+            uboData.add<AlignedCamera     >(mCameraBuffers[i]     );
+            uboData.add<AlignedDirectLight>(mDirectLightBuffers[i]);
         }
+        uboData.createAll(mContext, QueueFamilyType::COMPUTE);
     }
 }

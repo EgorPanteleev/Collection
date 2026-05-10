@@ -7,12 +7,22 @@
 
 #include "CommandPool.hpp"
 #include "CommandBuffers.hpp"
+#include "Context.hpp"
+#include "Buffer.hpp"
+#include "ImageView.hpp"
 
 namespace crv::graphics::vulkan {
     std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, uint32_t queueFamilyIndex);
     void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue);
     void beginCommandBuffer(VkCommandBuffer commandBuffer);
     void endCommandBuffer(VkCommandBuffer commandBuffer);
+    void copyDataToBuffer(Context* context, QueueFamilyType familyType, void* data, uint32_t size, Buffer& buffer);
+    void createSSBO(VmaAllocator allocator, uint32_t size, Buffer& buffer);
+    void createUBO(VmaAllocator allocator, uint32_t size, Buffer& buffer);
+    VkWriteDescriptorSet getSSBODescriptorWrite(const Buffer& buffer, uint32_t binding, std::vector<VkDescriptorBufferInfo>& infos);
+    VkWriteDescriptorSet getUBODescriptorWrite(const Buffer& buffer, uint32_t binding, std::vector<VkDescriptorBufferInfo>& infos);
+    VkWriteDescriptorSet getStorageImageDescriptorWrite(VkImageView view, VkImageLayout layout, uint32_t binding, std::vector<VkDescriptorImageInfo>& infos);
+    VkWriteDescriptorSet getSamplerImageDescriptorWrite(VkSampler sampler, VkImageView view, VkImageLayout layout, uint32_t binding, std::vector<VkDescriptorImageInfo>& infos);
+    VkDescriptorSetLayoutBinding getLayoutBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags);
 }
-
 #endif //COLLECTION_COREUTILS_HPP

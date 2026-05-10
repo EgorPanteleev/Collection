@@ -4,6 +4,7 @@
 
 #include "Rasterizer.hpp"
 #include "CoreUtils.hpp"
+#include "Types.hpp"
 
 namespace crv::graphics::vulkan {
     Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight), mColorFormat(info.colorFormat),
@@ -19,37 +20,14 @@ namespace crv::graphics::vulkan {
 
     void Rasterizer::update(const RasterizerUpdateInfo& info) {
         Buffer& MVPBuffer = mMVPBuffers[info.currentFrame];
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            AlignedMVP MVP {
-                .model = model,
-                .view = info.camera->viewMatrix(),
-                .proj = info.camera->projectionMatrix(),
-                .trInvModel = glm::transpose(glm::inverse(model))
-            };
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = &MVP,
-                .size = sizeof(AlignedMVP),
-                .allocator = mContext->allocator(),
-                .buffer = MVPBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-                .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
-        }
-
-        VkDescriptorBufferInfo MVPBufferInfo {
-            .buffer = MVPBuffer.get(),
-            .offset = 0,
-            .range = MVPBuffer.size()
+        glm::mat4 model = glm::mat4(1.0f);
+        AlignedMVP MVP {
+            .model = model,
+            .view = info.camera->viewMatrix(),
+            .proj = info.camera->projectionMatrix(),
+            .trInvModel = glm::transpose(glm::inverse(model))
         };
-
-        VkDescriptorBufferInfo instanceBufferInfo {
-            .buffer = mInstanceBuffer.get(),
-            .offset = 0,
-            .range = mInstanceBuffer.size()
-        };
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(AlignedMVP), MVPBuffer);
 
         std::vector<VkDescriptorImageInfo> textureInfos;
         for (size_t i = 0; i < mTextures->size(); i++) {
@@ -65,26 +43,7 @@ namespace crv::graphics::vulkan {
             }
         }
 
-        const VkWriteDescriptorSet writeDescriptorSet0 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &MVPBufferInfo,
-            .pTexelBufferView = nullptr
-        };
-
-        VkWriteDescriptorSet writeDescriptorSet1 {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 1,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pBufferInfo = &instanceBufferInfo
-        };
-
-        VkWriteDescriptorSet writeDescriptorSet2 {
+        VkWriteDescriptorSet texturesDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = 2,
             .dstArrayElement = 0,
@@ -92,10 +51,12 @@ namespace crv::graphics::vulkan {
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .pImageInfo = textureInfos.data()
         };
-
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        bufferInfos.reserve(20);
         std::vector descriptorWrites{
-            writeDescriptorSet0, writeDescriptorSet1,
-            writeDescriptorSet2
+            getUBODescriptorWrite (MVPBuffer      , 0, bufferInfos),
+            getSSBODescriptorWrite(mInstanceBuffer, 1, bufferInfos),
+            texturesDescriptorSet
         };
 
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
@@ -197,30 +158,18 @@ namespace crv::graphics::vulkan {
     }
 
     void Rasterizer::createDescriptorSetLayout() {
-        VkDescriptorSetLayoutBinding binding0{
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .pImmutableSamplers = nullptr
-        };
-
-        VkDescriptorSetLayoutBinding binding1{
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .pImmutableSamplers = nullptr
-        };
-
-        VkDescriptorSetLayoutBinding binding2 {
+        const VkDescriptorSetLayoutBinding texturesBinding {
             .binding = 2,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         };
 
-        std::vector bindings = {binding0, binding1, binding2};
+        std::vector bindings = {
+            getLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT),
+            getLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT),
+            texturesBinding
+        };
 
         std::vector<VkDescriptorBindingFlags> bindingFlags = {
             0, 0,  VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
@@ -359,17 +308,6 @@ namespace crv::graphics::vulkan {
     }
 
     void Rasterizer::createBuffers(const RasterizerCreateInfo &info) {
-        mMVPBuffers.resize(mFramesInFlight);
-        const BufferCreateInfo MVPBufferCreateInfo {
-            .allocator = mContext->allocator(),
-            .size = sizeof(AlignedMVP),
-            .bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-        };
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            mMVPBuffers[i] = Buffer(MVPBufferCreateInfo);
-        }
         mMeshBuffers.resize(info.meshesData.size());
         uint32_t instanceOffset = 0;
         for (size_t i = 0; i < info.meshesData.size(); ++i) {
@@ -422,28 +360,17 @@ namespace crv::graphics::vulkan {
             meshBuffer.firstInstance = instanceOffset;
             instanceOffset += meshData.instanceCount;
         }
-        {
-            std::vector<glm::mat4> instanceModels;
-            for (auto instance: info.instances) instanceModels.push_back(instance.model);
-            const size_t instancesSize = sizeof(glm::mat4) * instanceModels.size();
-            const BufferCreateInfo instanceBufferCreateInfo {
-                .allocator = mContext->allocator(),
-                .size = instancesSize,
-                .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            mInstanceBuffer = Buffer(instanceBufferCreateInfo);
-            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<glm::mat4*>(instanceModels.data()),
-                .size = instancesSize,
-                .allocator = mContext->allocator(),
-                .buffer = mInstanceBuffer.get(),
-                .device = mContext->device(),
-                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-                .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-            };
-            Buffer::copy(copyDataToGPUBufferInfo);
+        std::vector<glm::mat4> instanceModels;
+        for (auto instance: info.instances) instanceModels.push_back(instance.model);
+        SSBOData ssboData{};
+        ssboData.add(instanceModels     , mInstanceBuffer     );
+        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+
+        mMVPBuffers.resize(mFramesInFlight);
+        UBOData uboData{};
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            uboData.add<AlignedMVP     >(mMVPBuffers[i]     );
         }
+        uboData.createAll(mContext, QueueFamilyType::GRAPHICS);
     }
 }
