@@ -10,7 +10,7 @@
 
 namespace crv::graphics::vulkan {
     PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight),
-    mTextures(info.textures), mContext(info.context) {
+    mInstanceCount(info.instances.size()), mTextures(info.textures), mContext(info.context) {
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
@@ -76,10 +76,10 @@ namespace crv::graphics::vulkan {
             .offset = 0,
             .range = mNodeBuffer.size()
         };
-        VkDescriptorBufferInfo materialIndexBufferInfo {
-            .buffer = mMaterialIndexBuffer.get(),
+        VkDescriptorBufferInfo instanceBufferInfo {
+            .buffer = mInstanceBuffer.get(),
             .offset = 0,
-            .range = mMaterialIndexBuffer.size()
+            .range = mInstanceBuffer.size()
         };
         VkDescriptorImageInfo colorInfo {
             .sampler = info.gBuffer->sampler.get(),
@@ -184,7 +184,7 @@ namespace crv::graphics::vulkan {
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .pImageInfo = nullptr,
-            .pBufferInfo = &materialIndexBufferInfo,
+            .pBufferInfo = &instanceBufferInfo,
             .pTexelBufferView = nullptr
         };
         VkWriteDescriptorSet writeDescriptorSet5 {
@@ -261,7 +261,7 @@ namespace crv::graphics::vulkan {
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
 
-        const PushConstants pc(info.frameCount, info.spp, info.minDepth, info.maxDepth);
+        const PushConstants pc(info.frameCount, info.spp, info.minDepth, info.maxDepth, mInstanceCount);
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
             0, sizeof(PushConstants), &pc);
 
@@ -511,20 +511,20 @@ namespace crv::graphics::vulkan {
             Buffer::copy(copyDataToGPUBufferInfo);
         }
         {
-            const uint32_t indicesSize = sizeof(uint32_t) * info.materialIndices.size();
-            const BufferCreateInfo materialIndexBufferCreateInfo {
+            const uint32_t instancesSize = sizeof(MeshInstance) * info.instances.size();
+            const BufferCreateInfo instanceBufferCreateInfo {
                 .allocator = mContext->allocator(),
-                .size = indicesSize,
+                .size = instancesSize,
                 .bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
-            mMaterialIndexBuffer = Buffer(materialIndexBufferCreateInfo);
+            mInstanceBuffer = Buffer(instanceBufferCreateInfo);
             const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                .data = const_cast<uint32_t*>(info.materialIndices.data()),
-                .size = indicesSize,
+                .data = const_cast<MeshInstance*>(info.instances.data()),
+                .size = instancesSize,
                 .allocator = mContext->allocator(),
-                .buffer = mMaterialIndexBuffer.get(),
+                .buffer = mInstanceBuffer.get(),
                 .device = mContext->device(),
                 .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::COMPUTE).value(),
                 .queue = mContext->queue(QueueFamilyType::COMPUTE)

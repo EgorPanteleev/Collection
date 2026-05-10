@@ -28,7 +28,8 @@ namespace crv::graphics::vulkan {
 
     struct alignas(16) AlignedTriangleExtra {
         Vec2 uv0, uv1, uv2;
-        Vec2 padding;
+        uint32_t texIndex;
+        float padding;
     };
 
     struct alignas(16) AlignedBBox {
@@ -53,7 +54,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct PushConstants {
-        uint32_t frame, spp, minDepth, maxDepth;
+        uint32_t frame, spp, minDepth, maxDepth, instanceCount;
     };
 
     struct TexturesByType {
@@ -87,12 +88,17 @@ namespace crv::graphics::vulkan {
         Sampler   sampler{};
     };
 
+    struct alignas(16) MeshInstance {
+        glm::mat4 model;
+        glm::mat4 invModel;
+        uint32_t baseNode;
+        uint32_t baseTri;
+    };
+
     struct MeshData {
         std::vector<Vertex>          vertices{};
         std::vector<uint32_t>        indices{};
-        std::vector<model::Material> materials{};
-        std::vector<uint32_t>        materialIndices{};
-        std::vector<glm::mat4>       instanceModels{};
+        std::vector<MeshInstance>    instances{};
     };
 }
 

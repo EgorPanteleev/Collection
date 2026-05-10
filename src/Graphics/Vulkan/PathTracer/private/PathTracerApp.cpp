@@ -243,34 +243,28 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::createTextures() {
-        uint32_t texturesSize = 0;
-        for (const auto& meshData: mMeshesData) texturesSize += meshData.materials.size();
-        mTextures.resize(texturesSize);
-        size_t matBaseIndex = 0;
-        for (const auto& meshData: mMeshesData) {
-            for (size_t i = 0; i < meshData.materials.size(); ++i) {
-                const cm::Material& material = meshData.materials[i];
-                TexturesByType& texturesByType = mTextures[matBaseIndex + i];
-                for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
-                    const cm::Texture& texture = material.mTextures[texType];
-                    TextureCreateInfo textureCreateInfo {
-                        .device = mContext.device(),
-                        .physicalDevice = mContext.physicalDevice(),
-                        .allocator = mContext.allocator(),
-                        .queue = mContext.queue(QueueFamilyType::COMPUTE),
-                        .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-                        .dataByLevel = texture.mDataByLevel,
-                        .texFormat = texture.mFormat,
-                        .mipLevels = 1,
-                        .arrayLayers = 1,
-                        .samples = VK_SAMPLE_COUNT_1_BIT,
-                        .tiling = VK_IMAGE_TILING_OPTIMAL,
-                        .memoryUsage = VMA_MEMORY_USAGE_AUTO
-                    };
-                    texturesByType[texType] = Texture(textureCreateInfo);
-                }
+        mTextures.resize(mMaterials.size());
+        for (size_t i = 0; i < mMaterials.size(); ++i) {
+            const cm::Material& material = mMaterials[i];
+            TexturesByType& texturesByType = mTextures[i];
+            for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
+                const cm::Texture& texture = material.mTextures[texType];
+                TextureCreateInfo textureCreateInfo {
+                    .device = mContext.device(),
+                    .physicalDevice = mContext.physicalDevice(),
+                    .allocator = mContext.allocator(),
+                    .queue = mContext.queue(QueueFamilyType::COMPUTE),
+                    .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                    .dataByLevel = texture.mDataByLevel,
+                    .texFormat = texture.mFormat,
+                    .mipLevels = 1,
+                    .arrayLayers = 1,
+                    .samples = VK_SAMPLE_COUNT_1_BIT,
+                    .tiling = VK_IMAGE_TILING_OPTIMAL,
+                    .memoryUsage = VMA_MEMORY_USAGE_AUTO
+                };
+                texturesByType[texType] = Texture(textureCreateInfo);
             }
-            matBaseIndex += meshData.materials.size();
         }
     }
 
@@ -288,7 +282,9 @@ namespace crv::graphics::vulkan {
         utils::Timer timer;
         std::vector<std::string> meshImports = mScene["meshImports"];
         mMeshesData.resize(meshImports.size());
-        size_t matBaseIndex = 0;
+        size_t materialBaseIndex = 0;
+        std::vector<uint32_t> nodeOffsets{};
+        std::vector<uint32_t> triOffsets{};
         for (size_t meshIdx = 0; meshIdx < meshImports.size(); ++meshIdx) {
             const std::string& modelPath = meshImports[meshIdx];
             MeshData& meshData = mMeshesData[meshIdx];
@@ -313,7 +309,7 @@ namespace crv::graphics::vulkan {
                     indices.emplace_back(loaderIndices[idx + 0]);
                     indices.emplace_back(loaderIndices[idx + 1]);
                     indices.emplace_back(loaderIndices[idx + 2]);
-                    materialIndices.emplace_back(mesh.materialIndex);
+                    materialIndices.emplace_back((materialBaseIndex + mesh.materialIndex) * cm::Texture::UNKNOWN);
                 }
 
                 for (size_t j = 0; j < mesh.numVertices; ++j) {
@@ -323,27 +319,29 @@ namespace crv::graphics::vulkan {
                         .texCoord = modelVertex.texCoord0,
                         .normal = modelVertex.normal,
                         .tangent = modelVertex.tangent,
-                        .texIndex = static_cast<uint32_t>((matBaseIndex + mesh.materialIndex) * cm::Texture::UNKNOWN)
+                        .texIndex = static_cast<uint32_t>((materialBaseIndex + mesh.materialIndex) * cm::Texture::UNKNOWN)
                     };
                     meshData.vertices.push_back(vertex);
                 }
             }
-            matBaseIndex += std::max(loader->materials().size(), static_cast<size_t>(1));
+            materialBaseIndex += std::max(loader->materials().size(), static_cast<size_t>(1));
             meshData.indices = loaderIndices;
-            meshData.materials = loader->materials();
+
+            mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
             INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
             INFO << "Total number of primitives: " << triangles.size();
             BVH bvh = buildBVH(std::span(triangles));
+            nodeOffsets.push_back(mNodes.size());
+            triOffsets.push_back(mTriangles.size());
             for (int i = 0; i < triangles.size(); ++i) {
                 const uint32_t idx = bvh.primIds()[i];
                 Tri& tri = triangles[idx];
                 mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
-                                              Vec4(tri.e2, 1), Vec4(tri.N, 1));
+                                        Vec4(tri.e2, 1), Vec4(tri.N, 1));
                 cm::Vertex v0 = loaderVertices[indices[idx * 3 + 0]];
                 cm::Vertex v1 = loaderVertices[indices[idx * 3 + 1]];
                 cm::Vertex v2 = loaderVertices[indices[idx * 3 + 2]];
-                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
-                meshData.materialIndices.push_back(materialIndices[idx]);
+                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0, materialIndices[idx]);
             }
             for (const auto& node: bvh.nodes()) {
                 AlignedNode alignedNode{};
@@ -364,32 +362,22 @@ namespace crv::graphics::vulkan {
 
             glm::mat4 model = T * R * S;
             int meshIndex = mesh["meshIndex"];
-            mMeshesData[meshIndex].instanceModels.push_back(model);
+            mMeshesData[meshIndex].instances.emplace_back(model, glm::inverse(model),
+                nodeOffsets[meshIndex], triOffsets[meshIndex]);
         }
-
-        // std::vector<MeshPrimitive> meshPrimitives;
-        // meshPrimitives.emplace_back(glm::mat4(1.0f), 0, blas.bbox());
-        // BinnedSAHBuilder<TLAS::Node, MeshPrimitive> builder{ std::span(meshPrimitives) };
-        // auto tlas = TLAS(builder.build());
-
-        //TODO scene description, mb improve tlas, blas idk. i think mmb use json
-        //TODO 0) scene descriptior
-        //TODO 1) for every mesh calc bvh.
-        //TODO 2) for every bvh + model matrix calc bbox and center
-        //TODO 3) compute new bvh - tlas
-        //TODO 4) write it to gpu
-        //reorder after bvh
-
     }
 
     void PathTracerApp::createPathTracer() {
+        std::vector<MeshInstance> instances;
+        for (auto meshData: mMeshesData)
+            instances.insert(instances.end(), meshData.instances.begin(), meshData.instances.end());
         const PathTracerCreateInfo pathTracerCreateInfo {
             .context = &mContext,
             .triangles = mTriangles,
             .triangleExtras = mTriangleExtras,
             .nodes = mNodes,
             .textures = &mTextures,
-            .materialIndices = mMeshesData[0].materialIndices, //TODO
+            .instances = instances,
             .framesInFlight = mFramesInFlight
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);

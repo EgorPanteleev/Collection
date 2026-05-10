@@ -24,9 +24,22 @@ bool isLeaf(Node node) {
     return primCount(node.index) != 0;
 }
 
-struct Hit {
+struct BLASHit {
     uint id;
     float t, u, v;
+};
+
+struct Hit {
+    uint triId;
+    uint instanceId;
+    float t, u, v;
+};
+
+struct Instance {
+    mat4 model;
+    mat4 invModel;
+    uint baseNode;
+    uint baseTri;
 };
 
 #endif

@@ -26,7 +26,7 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedTriangleExtra> triangleExtras{};
         std::vector<AlignedNode> nodes{};
         std::vector<TexturesByType>* textures = nullptr;
-        std::vector<uint32_t> materialIndices{};
+        std::vector<MeshInstance> instances{};
         uint32_t framesInFlight = 2;
     };
 
@@ -66,6 +66,7 @@ namespace crv::graphics::vulkan {
 
         [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
         uint32_t mFramesInFlight = 2;
+        uint32_t mInstanceCount = 1;
 
         Context* mContext = nullptr;
         DescriptorSetLayout mDescriptorSetLayout{};
@@ -78,7 +79,7 @@ namespace crv::graphics::vulkan {
         Buffer mTriangleBuffer{};
         Buffer mTriangleExtraBuffer{};
         Buffer mNodeBuffer{};
-        Buffer mMaterialIndexBuffer{};
+        Buffer mInstanceBuffer{};
         std::vector<Buffer> mDirectLightBuffers{};
         std::vector<TexturesByType>* mTextures = nullptr;
     };

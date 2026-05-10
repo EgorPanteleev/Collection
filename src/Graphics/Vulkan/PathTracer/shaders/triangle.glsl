@@ -9,7 +9,8 @@ struct PrecomputedTriangle {
 
 struct TriangleExtra {
     vec2 uv0, uv1, uv2;
-    vec2 padding;
+    uint texIndex;
+    float padding;
 };
 
 struct TriHit {

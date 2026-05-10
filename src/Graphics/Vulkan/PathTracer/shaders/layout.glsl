@@ -4,7 +4,7 @@
 #include "bvh.glsl"
 
 layout(push_constant) uniform PushConstants {
-    uint frame, spp, minDepth, maxDepth;
+    uint frame, spp, minDepth, maxDepth, instanceCount;
 } pc;
 
 layout(binding = 0) uniform Camera {
@@ -24,9 +24,9 @@ layout(binding = 3) buffer NodeBuffer {
     Node data[];
 } nodeBuffer;
 
-layout(binding = 4) buffer MaterialIndexBuffer {
-    uint data[];
-} materialIndexBuffer;
+layout(binding = 4) buffer InstanceBuffer {
+    Instance data[];
+} instanceBuffer;
 
 layout(binding = 5) uniform DirectLight {
     vec4 dir;

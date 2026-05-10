@@ -398,7 +398,7 @@ namespace crv::graphics::vulkan {
             }
             {
                 meshBuffer.indexCount = meshData.indices.size();
-                meshBuffer.instanceCount = meshData.instanceModels.size();
+                meshBuffer.instanceCount = meshData.instances.size();
                 const size_t indicesSize = sizeof(uint32_t) * meshData.indices.size();
                 const BufferCreateInfo indexBufferCreateInfo {
                     .allocator = mContext->allocator(),
@@ -420,7 +420,7 @@ namespace crv::graphics::vulkan {
                 Buffer::copy(copyDataToGPUBufferInfo);
             }
             meshBuffer.firstInstance = instanceModels.size();
-            instanceModels.insert(instanceModels.end(), meshData.instanceModels.begin(), meshData.instanceModels.end());
+            for (auto instance: meshData.instances) instanceModels.push_back(instance.model);
         }
         {
             const size_t instancesSize = sizeof(glm::mat4) * instanceModels.size();
