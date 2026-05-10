@@ -65,6 +65,7 @@ namespace crv::model {
     AssimpLoader::AssimpLoader(std::string modelPath) : AbsLoader(std::move(modelPath)) {}
 
     bool AssimpLoader::load(const glm::mat4& model) {
+        clear();
         Assimp::Importer importer;
         mScene = importer.ReadFile(mModelPath, ASSIMP_LOAD_FLAGS);
         if (!mScene) {

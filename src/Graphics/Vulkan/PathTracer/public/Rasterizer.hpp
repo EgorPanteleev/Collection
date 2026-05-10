@@ -24,8 +24,7 @@ namespace crv::graphics::vulkan {
         VkFormat                     normalFormat   = VK_FORMAT_UNDEFINED;
         VkExtent3D                   extent{};
         uint32_t                     framesInFlight = 2;
-        std::vector<Vertex>          vertices{};
-        std::vector<uint32_t>        indices{};
+        std::vector<MeshData>        meshesData{};
         std::vector<TexturesByType>* textures       = nullptr;
     };
 
@@ -39,6 +38,14 @@ namespace crv::graphics::vulkan {
         GBuffer*        gBuffer       = nullptr;
         VkExtent2D      extent{};
         uint32_t        currentFrame  = 0;
+    };
+
+    struct MeshBuffer {
+        Buffer vertexBuffer{};
+        Buffer indexBuffer{};
+        uint32_t indexCount = 0;
+        uint32_t firstInstance = 0;
+        uint32_t instanceCount = 0;
     };
 
     class Rasterizer {
@@ -60,7 +67,6 @@ namespace crv::graphics::vulkan {
         uint32_t mFramesInFlight = 1;
         VkFormat mColorFormat  = VK_FORMAT_UNDEFINED;
         VkFormat mNormalFormat = VK_FORMAT_UNDEFINED;
-        uint32_t mIndexCount = 0;
 
         Context* mContext = nullptr;
         DescriptorSetLayout mDescriptorSetLayout{};
@@ -72,8 +78,8 @@ namespace crv::graphics::vulkan {
         ShaderModule mFragmentShader{};
         GraphicsPipelines mGraphicsPipelines{};
         std::vector<Buffer> mMVPBuffers{};
-        Buffer mVertexBuffer{};
-        Buffer mIndexBuffer{};
+        std::vector<MeshBuffer> mMeshBuffers{};
+        Buffer mInstanceBuffer{};
     };
 }
 

@@ -27,6 +27,7 @@ namespace crv::model {
         [[nodiscard]] const std::vector<Material>& materials() const { return mMaterials; }
         [[nodiscard]] const std::vector<Vertex>& vertices() const { return mVertices; }
         [[nodiscard]] const std::vector<uint32_t>& indices() const { return mIndices; }
+        void clear();
 
         virtual bool load(const glm::mat4& model) = 0;
     protected:

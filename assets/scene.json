@@ -1,0 +1,38 @@
+{
+  "meshImports":	["meshes/dragon.glb", "meshes/sphere.glb"],
+  "textureImports":	[],
+  "meshes":	[{
+    "name":	"dragon1",
+    "meshIndex":	0,
+    "localPosition":	[0, 0, 0],
+    "localRotation":	[0, 0, 180],
+    "localScale":	[2, 2, 2]
+  }, {
+    "name":	"dragon2",
+    "meshIndex":	0,
+    "localPosition":	[0, 0, 10],
+    "localRotation":	[0, 0, 180],
+    "localScale":	[4, 4, 4]
+  }, {
+    "name":	"sphere",
+    "meshIndex":	1,
+    "localPosition":	[0, 0, -10],
+    "localRotation":	[0, 0, 0],
+    "localScale":	[1, 1, 1]
+  }],
+  "window": {
+    "name": "GPU Path Tracer",
+    "width": 800,
+    "height": 600
+  },
+  "camera":	{
+    "type": "Fly",
+    "position":	[20, -2, 0],
+    "target":	[-100, 10, 0],
+    "up":	[0, 1, 0],
+    "zoom": 1,
+    "fov": 60,
+    "nearPlane": 0.1,
+    "farPlane": 5000.0
+  }
+}

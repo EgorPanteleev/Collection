@@ -15,12 +15,12 @@
 #include "ImGui.hpp"
 #include "Rasterizer.hpp"
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 namespace crv::graphics::vulkan {
     struct PathTracerAppCreateInfo {
-        WindowCreateInfo windowCreateInfo{};
-        scene::CameraCreateInfo cameraCreateInfo{};
-        glm::mat4 modelMatrix;
-        std::string modelPath;
+        std::string scenePath;
         AlignedDirectLight directLight{};
     };
 
@@ -33,8 +33,8 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Window& window() { return mContext.window(); }
         [[nodiscard]] scene::AbsCamera* camera() const { return mCamera; }
     protected:
-        void createCamera(const scene::CameraCreateInfo& createInfo);
-        void createContext(const WindowCreateInfo& windowCreateInfo);
+        void createCamera();
+        void createContext();
         void createCommandPool();
         void createCommandBuffers();
         void createSwapChain();
@@ -79,6 +79,7 @@ namespace crv::graphics::vulkan {
         int  mMinDepth    = 0;
         int  mMaxDepth    = 1;
 
+        json                   mScene{};
         Context                mContext{};
         CommandPool            mComputeCommandPool{};
         CommandBuffers         mComputeCommandBuffers{};
@@ -97,10 +98,7 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedTriangle>      mTriangles{};
         std::vector<AlignedTriangleExtra> mTriangleExtras{};
         std::vector<AlignedNode>          mNodes{};
-        std::vector<model::Material>      mMaterials{};
-        std::vector<uint32_t>             mMaterialIndices{};
-        std::vector<Vertex>               mVertices{};
-        std::vector<uint32_t>             mIndices{};
+        std::vector<MeshData>             mMeshesData{};
         std::vector<TexturesByType>       mTextures{};
 
         std::vector<GBuffer> mGBuffers{};

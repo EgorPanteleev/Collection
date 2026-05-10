@@ -41,6 +41,10 @@ namespace crv::graphics {
         friend class BinnedSAHBuilder<Node, Primitive>;
         friend class BVH16<Node, Primitive>;
 
+        BVH() = default;
+        BVH& operator=(const BVH& other) = default;
+        BVH(const BVH& other) = default;
+
         std::optional<HitType> intersect(const Ray<Type>& ray, Type eps) const {
             std::optional<HitType> closestHit;
             Type closestT = std::numeric_limits<Type>::max();
@@ -81,9 +85,6 @@ namespace crv::graphics {
         std::span<Primitive> mPrimitives;
         std::vector<uint32_t> mPrimIds;
     };
-
-
-
 
     template <typename NodeType, typename Primitive>
     class BVH16: public BVH<NodeType, Primitive> {

@@ -9,15 +9,33 @@
 #include "BinnedSAHBuilder.hpp"
 #include "CallBacks.hpp"
 #include "IconsFontAwesome6.h"
+#include <glm/gtx/string_cast.hpp>
+#include "BLAS.hpp"
+#include "TLAS.hpp"
+
+#include <fstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #define COLOR_FORMAT VK_FORMAT_R8G8B8A8_UNORM
 #define NORMAL_FORMAT VK_FORMAT_R8G8B8A8_SNORM
 
+static glm::vec3 toVec3(const nlohmann::json& json) {
+    return {
+        json[0].get<float>(),
+        json[1].get<float>(),
+        json[2].get<float>()
+    };
+}
+
 namespace crv::graphics::vulkan {
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& info) {
-        createCamera(info.cameraCreateInfo);
+        std::ifstream file(info.scenePath);
+        file >> mScene;
+        createCamera();
         mDirectLight = info.directLight;
-        createContext(info.windowCreateInfo);
+        createContext();
         setCallBacks(this);
         createCommandPool();
         createCommandBuffers();
@@ -57,7 +75,20 @@ namespace crv::graphics::vulkan {
         mGBufferFrame = mCurrentFrame;
     }
 
-    void PathTracerApp::createCamera(const scene::CameraCreateInfo& info) {
+    void PathTracerApp::createCamera() {
+        auto camera = mScene["camera"];
+        auto window = mScene["window"];
+        const cs::CameraCreateInfo info {
+            .type = camera["type"] == "Fly" ? cs::CameraType::FLY : cs::CameraType::ORBITAL,
+            .pos = toVec3(camera["position"]),
+            .target = toVec3(camera["target"]),
+            .up = toVec3(camera["up"]),
+            .zoom = camera["zoom"],
+            .FOV = camera["fov"],
+            .aspectRatio = static_cast<float>(window["width"]) / static_cast<float>(window["height"]),
+            .nearPlane = camera["nearPlane"],
+            .farPlane = camera["farPlane"]
+        };
         mFlyCamera = scene::FlyCamera(info);
         mOrbitalCamera = scene::OrbitalCamera(info);
         if (info.type == scene::CameraType::FLY) {
@@ -67,7 +98,13 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::createContext(const WindowCreateInfo& windowCreateInfo) {
+    void PathTracerApp::createContext() {
+        auto window = mScene["window"];
+        const WindowCreateInfo windowCreateInfo {
+            .width = window["width"],
+            .height = window["height"],
+            .name = window["name"]
+        };
         const ContextCreateInfo createInfo {
             .windowCreateInfo = windowCreateInfo,
             .validationLayers = { "VK_LAYER_KHRONOS_validation" },
@@ -206,27 +243,31 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::createTextures() {
-        mTextures.resize(mMaterials.size());
-        for (size_t i = 0; i < mMaterials.size(); ++i) {
-            const cm::Material& material = mMaterials[i];
-            TexturesByType& texturesByType = mTextures[i];
-            for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
-                const cm::Texture& texture = material.mTextures[texType];
-                TextureCreateInfo textureCreateInfo {
-                    .device = mContext.device(),
-                    .physicalDevice = mContext.physicalDevice(),
-                    .allocator = mContext.allocator(),
-                    .queue = mContext.queue(QueueFamilyType::COMPUTE),
-                    .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-                    .dataByLevel = texture.mDataByLevel,
-                    .texFormat = texture.mFormat,
-                    .mipLevels = 1,
-                    .arrayLayers = 1,
-                    .samples = VK_SAMPLE_COUNT_1_BIT,
-                    .tiling = VK_IMAGE_TILING_OPTIMAL,
-                    .memoryUsage = VMA_MEMORY_USAGE_AUTO
-                };
-                texturesByType[texType] = Texture(textureCreateInfo);
+        uint32_t texturesSize = 0;
+        for (const auto& meshData: mMeshesData) texturesSize += meshData.materials.size();
+        mTextures.resize(texturesSize);
+        for (const auto& meshData: mMeshesData) {
+            for (size_t i = 0; i < meshData.materials.size(); ++i) {
+                const cm::Material& material = meshData.materials[i];
+                TexturesByType& texturesByType = mTextures[i];
+                for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
+                    const cm::Texture& texture = material.mTextures[texType];
+                    TextureCreateInfo textureCreateInfo {
+                        .device = mContext.device(),
+                        .physicalDevice = mContext.physicalDevice(),
+                        .allocator = mContext.allocator(),
+                        .queue = mContext.queue(QueueFamilyType::COMPUTE),
+                        .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                        .dataByLevel = texture.mDataByLevel,
+                        .texFormat = texture.mFormat,
+                        .mipLevels = 1,
+                        .arrayLayers = 1,
+                        .samples = VK_SAMPLE_COUNT_1_BIT,
+                        .tiling = VK_IMAGE_TILING_OPTIMAL,
+                        .memoryUsage = VMA_MEMORY_USAGE_AUTO
+                    };
+                    texturesByType[texType] = Texture(textureCreateInfo);
+                }
             }
         }
     }
@@ -243,67 +284,98 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::loadModel(const PathTracerAppCreateInfo& info) {
         auto loader = new cm::Loader;
         utils::Timer timer;
-        timer.start();
-        loader->setModel(info.modelPath);
-        loader->load(info.modelMatrix);
-        INFO << "Model load time: " << timer.duration() / 1000 << " sec";
+        std::vector<std::string> meshImports = mScene["meshImports"];
+        mMeshesData.resize(meshImports.size());
+        for (size_t meshIdx = 0; meshIdx < meshImports.size(); ++meshIdx) {
+            const std::string& modelPath = meshImports[meshIdx];
+            MeshData& meshData = mMeshesData[meshIdx];
+            timer.start();
+            loader->setModel(ASSETS_PATH + modelPath);
+            loader->load(glm::mat4(1.0f));
+            INFO << "Model (" << fs::path(modelPath).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
+            timer.start();
+            const auto& loaderIndices = loader->indices();
+            const auto& loaderVertices = loader->vertices();
+            const auto& loaderMeshes = loader->meshes();
+            std::vector<Tri> triangles;
+            std::vector<uint32_t> indices;
+            std::vector<uint32_t> materialIndices;
+            for (size_t i = 0; i < loaderMeshes.size(); ++i) {
+                const auto& mesh = loaderMeshes[i];
+                for (size_t j = 0; j < mesh.numIndices; j += 3) {
+                    const size_t idx = mesh.baseIndex + j;
+                    triangles.emplace_back(loaderVertices[loaderIndices[idx + 0]].pos,
+                                           loaderVertices[loaderIndices[idx + 1]].pos,
+                                           loaderVertices[loaderIndices[idx + 2]].pos);
+                    indices.emplace_back(loaderIndices[idx + 0]);
+                    indices.emplace_back(loaderIndices[idx + 1]);
+                    indices.emplace_back(loaderIndices[idx + 2]);
+                    materialIndices.emplace_back(mesh.materialIndex);
+                }
 
-        timer.start();
-        const auto& lIndices = loader->indices();
-        const auto& lVertices = loader->vertices();
-        const auto& lMeshes = loader->meshes();
-        std::vector<Tri> triangles;
-        std::vector<uint32_t> indices;
-        std::vector<uint32_t> materialIndices;
-        for (size_t i = 0; i < lMeshes.size(); ++i) {
-            const auto& mesh = lMeshes[i];
-            for (size_t j = 0; j < mesh.numIndices; j += 3) {
-                const size_t idx = mesh.baseIndex + j;
-                triangles.emplace_back(lVertices[lIndices[idx + 0]].pos,
-                                       lVertices[lIndices[idx + 1]].pos,
-                                       lVertices[lIndices[idx + 2]].pos);
-                indices.emplace_back(lIndices[idx + 0]);
-                indices.emplace_back(lIndices[idx + 1]);
-                indices.emplace_back(lIndices[idx + 2]);
-                materialIndices.emplace_back(mesh.materialIndex);
+                for (size_t j = 0; j < mesh.numVertices; ++j) {
+                    const cm::Vertex& modelVertex = loaderVertices[mesh.baseVertex + j];
+                    Vertex vertex{
+                        .pos = modelVertex.pos,
+                        .texCoord = modelVertex.texCoord0,
+                        .normal = modelVertex.normal,
+                        .tangent = modelVertex.tangent,
+                        .texIndex = static_cast<uint32_t>(mesh.materialIndex * cm::Texture::UNKNOWN)
+                    };
+                    meshData.vertices.push_back(vertex);
+                }
             }
-
-            for (size_t j = 0; j < mesh.numVertices; ++j) {
-                const cm::Vertex& modelVertex = lVertices[mesh.baseVertex + j];
-                Vertex vertex{
-                    .pos = modelVertex.pos,
-                    .texCoord = modelVertex.texCoord0,
-                    .normal = modelVertex.normal,
-                    .tangent = modelVertex.tangent,
-                    .texIndex = static_cast<uint32_t>(mesh.materialIndex * cm::Texture::UNKNOWN)
-                };
-                mVertices.push_back(vertex);
+            meshData.indices = loaderIndices;
+            meshData.materials = loader->materials();
+            INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
+            INFO << "Total number of primitives: " << triangles.size();
+            BVH bvh = buildBVH(std::span(triangles));
+            for (int i = 0; i < triangles.size(); ++i) {
+                const uint32_t idx = bvh.primIds()[i];
+                Tri& tri = triangles[idx];
+                mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
+                                              Vec4(tri.e2, 1), Vec4(tri.N, 1));
+                cm::Vertex v0 = loaderVertices[indices[idx * 3 + 0]];
+                cm::Vertex v1 = loaderVertices[indices[idx * 3 + 1]];
+                cm::Vertex v2 = loaderVertices[indices[idx * 3 + 2]];
+                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
+                meshData.materialIndices.push_back(materialIndices[idx]);
+            }
+            for (const auto& node: bvh.nodes()) {
+                AlignedNode alignedNode{};
+                alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
+                alignedNode.index = node.index().value();
+                mNodes.push_back(alignedNode);
             }
         }
-        INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
-        INFO << "Total number of primitives: " << triangles.size();
-        auto bvh = buildBVH(std::span(triangles));
+
+        for (const auto& mesh: mScene["meshes"]) {
+            glm::vec3 rot = toVec3(mesh["localRotation"]);
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), toVec3(mesh["localPosition"]));
+            glm::mat4 R = glm::mat4(1.0f);
+            R = glm::rotate(R, glm::radians(rot.y), glm::vec3(0, 1, 0));
+            R = glm::rotate(R, glm::radians(rot.x), glm::vec3(1, 0, 0));
+            R = glm::rotate(R, glm::radians(rot.z), glm::vec3(0, 0, 1));
+            glm::mat4 S = glm::scale(glm::mat4(1.0f), toVec3(mesh["localScale"]));
+
+            glm::mat4 model = T * R * S;
+            int meshIndex = mesh["meshIndex"];
+            mMeshesData[meshIndex].instanceModels.push_back(model);
+        }
+
+        // std::vector<MeshPrimitive> meshPrimitives;
+        // meshPrimitives.emplace_back(glm::mat4(1.0f), 0, blas.bbox());
+        // BinnedSAHBuilder<TLAS::Node, MeshPrimitive> builder{ std::span(meshPrimitives) };
+        // auto tlas = TLAS(builder.build());
+
+        //TODO scene description, mb improve tlas, blas idk. i think mmb use json
+        //TODO 0) scene descriptior
+        //TODO 1) for every mesh calc bvh.
+        //TODO 2) for every bvh + model matrix calc bbox and center
+        //TODO 3) compute new bvh - tlas
+        //TODO 4) write it to gpu
         //reorder after bvh
-        for (int i = 0; i < triangles.size(); ++i) {
-            const uint32_t idx = bvh.primIds()[i];
-            Tri& tri = triangles[idx];
-            mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
-                                          Vec4(tri.e2, 1), Vec4(tri.N, 1));
-            cm::Vertex v0 = lVertices[indices[idx * 3 + 0]];
-            cm::Vertex v1 = lVertices[indices[idx * 3 + 1]];
-            cm::Vertex v2 = lVertices[indices[idx * 3 + 2]];
-            mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
-            mMaterialIndices.push_back(materialIndices[idx]);
-        }
-        mIndices = loader->indices();
 
-        for (const auto& node: bvh.nodes()) {
-            AlignedNode alignedNode{};
-            alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
-            alignedNode.index = node.index().value();
-            mNodes.push_back(alignedNode);
-        }
-        mMaterials = loader->materials();
     }
 
     void PathTracerApp::createPathTracer() {
@@ -313,7 +385,7 @@ namespace crv::graphics::vulkan {
             .triangleExtras = mTriangleExtras,
             .nodes = mNodes,
             .textures = &mTextures,
-            .materialIndices = mMaterialIndices,
+            .materialIndices = mMeshesData[0].materialIndices, //TODO
             .framesInFlight = mFramesInFlight
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);
@@ -855,8 +927,7 @@ namespace crv::graphics::vulkan {
             .colorFormat = COLOR_FORMAT,
             .normalFormat = NORMAL_FORMAT,
             .extent = {width, height, 1},
-            .vertices = mVertices,
-            .indices = mIndices,
+            .meshesData = mMeshesData,
             .textures = &mTextures
         };
         mRasterizer = Rasterizer(createInfo);

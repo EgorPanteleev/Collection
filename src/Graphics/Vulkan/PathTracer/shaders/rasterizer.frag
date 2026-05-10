@@ -10,7 +10,7 @@ layout(location = 5) flat in uint fragNormalIndex;
 layout(location = 0) out vec4 outAlbedo;
 layout(location = 1) out vec4 outNormal;
 
-layout(binding = 1) uniform sampler2D textures[];
+layout(binding = 2) uniform sampler2D textures[];
 
 //layout(set = 1, binding = 0) uniform sampler2D albedoMap;
 
@@ -23,6 +23,7 @@ void main() {
     texNormal = TBN * texNormal;
 
     vec3 texColor = texture(nonuniformEXT(textures[fragDiffuseIndex]), fragUV).rgb;
-    outNormal = vec4(texNormal, 1.0);
+//    outNormal = vec4(texNormal, 1.0);
+    outNormal = vec4(fragNormal, 1.0);
     outAlbedo = vec4(texColor, 1.0);
 }

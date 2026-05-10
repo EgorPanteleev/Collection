@@ -14,9 +14,6 @@ using Vec2 = cvk::Vec2;
 using Vec3 = cvk::Vec3;
 using Vec4 = cvk::Vec4;
 
-static int constexpr WIDTH  = 800;
-static int constexpr HEIGHT = 600;
-
 #define ROOM_PATH     SCENES_PATH"room/scene.gltf"
 #define LIMINAL_PATH  SCENES_PATH"liminal/scene.gltf"
 #define MICRO_PATH    SCENES_PATH"microphone/scene.gltf"
@@ -24,35 +21,12 @@ static int constexpr HEIGHT = 600;
 #define SPHERE_PATH   MESHES_PATH"sphere.glb"
 #define SWORD_PATH    SCENES_PATH"Sword/sword.obj"
 #define SPONZA_PATH   SCENES_PATH"Sponza/glTF/Sponza.gltf"
+#define FORD_PATH     MESHES_PATH"ford.obj"
 
 int main() {
-    const cvk::WindowCreateInfo windowCreateInfo{
-        .width = WIDTH,
-        .height = HEIGHT,
-        .name = "GPU Path Tracer"
-    };
-    const cs::CameraCreateInfo cameraCreateInfo{
-        .type = cs::CameraType::FLY,
-        .pos = glm::vec3(80, 10, 0),
-        .target = glm::vec3(-100, 10, 0),
-        .up = glm::vec3(0, 1, 0),
-        .zoom = 1,
-        .FOV = 60,
-        .aspectRatio = static_cast<float>(WIDTH) / HEIGHT,
-        .nearPlane = 0.1f,
-        .farPlane = 5000.0f,
-    };
-    auto model = glm::mat4(1.);
-    // model = glm::translate(model, glm::vec3(0, 0, 0));
-    model = glm::rotate(model, glm::radians(180.f), glm::vec3(1, 0, 0));
-    model = glm::scale(model, glm::vec3(50));
-
     cvk::PathTracerAppCreateInfo createInfo {
-        .windowCreateInfo = windowCreateInfo,
-        .cameraCreateInfo = cameraCreateInfo,
-        .modelMatrix = model,
-        .modelPath = SPONZA_PATH,
-        .directLight = cvk::AlignedDirectLight(Vec4(-1, 0.2, 0.3, 1), 2.0)
+        .scenePath = ASSETS_PATH"scene.json",
+        .directLight = cvk::AlignedDirectLight(Vec4(0.132, 0.066, 0.970, 1), 2.0)
     };
     cvk::PathTracerApp app(createInfo);
     app.run();

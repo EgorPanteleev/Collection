@@ -31,4 +31,11 @@ namespace crv::model {
             mBBox.max = max(mBBox.max, vert.pos);
         }
     }
+
+    void AbsLoader::clear() {
+        mMeshes.clear();
+        mMaterials.clear();
+        mVertices.clear();
+        mIndices.clear();
+    }
 }

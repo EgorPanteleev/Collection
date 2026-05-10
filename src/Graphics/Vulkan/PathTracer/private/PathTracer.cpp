@@ -101,6 +101,7 @@ namespace crv::graphics::vulkan {
             auto& texturesByType = (*mTextures)[i];
             for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
                 auto& texture = texturesByType[j];
+                if (texture.view() == VK_NULL_HANDLE) continue;
                 VkDescriptorImageInfo textureInfo {
                     .sampler = texture.sampler(),
                     .imageView = texture.view(),

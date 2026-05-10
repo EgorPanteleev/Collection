@@ -22,6 +22,7 @@ namespace crv::graphics {
         BBox(): min(std::numeric_limits<Type>::max()), max(-std::numeric_limits<Type>::max()) {}
         BBox(const Vec3& min, const Vec3& max): min(min), max(max) {}
 
+        Vec3 center() const { return (min + max) * static_cast<T>(0.5); }
         Type width()  const { return max.x - min.x; }
         Type height() const { return max.y - min.y; }
         Type depth()  const { return max.z - min.z; }

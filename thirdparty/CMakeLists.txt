@@ -27,4 +27,7 @@ add_subdirectory(./assimp)
 add_library(vma INTERFACE)
 target_include_directories(vma INTERFACE ./VulkanMemoryAllocator/include/)
 
+#json
+add_subdirectory(./json)
+
 

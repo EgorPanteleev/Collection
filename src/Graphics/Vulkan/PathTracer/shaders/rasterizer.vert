@@ -10,8 +10,8 @@ layout(location = 0) out vec2 fragUV;
 layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec3 fragTangent;
 layout(location = 3) out vec3 fragBitangent;
-layout(location = 4) out flat uint fragDiffuseIndex;
-layout(location = 5) out flat uint fragNormalIndex;
+layout(location = 4) flat out uint fragDiffuseIndex;
+layout(location = 5) flat out uint fragNormalIndex;
 
 layout(binding = 0) uniform MVPBuffer {
     mat4 model;
@@ -20,8 +20,13 @@ layout(binding = 0) uniform MVPBuffer {
     mat4 trInvModel;
 } mvp;
 
+layout(binding = 1) readonly buffer InstanceBuffer {
+    mat4 instances[];
+};
+
 void main() {
-    gl_Position = mvp.proj * mvp.view * mvp.model * vec4(inPosition, 1.0);
+    mat4 instanceModel = instances[gl_InstanceIndex];
+    gl_Position = mvp.proj * mvp.view * mvp.model * instanceModel * vec4(inPosition, 1.0);
     fragUV = inUV;
     fragNormal = normalize(mat3(mvp.trInvModel) * inNormal);
     fragTangent = normalize(mat3(mvp.trInvModel) * inTangent.xyz);
