@@ -5,10 +5,12 @@ layout(location = 0) in vec2 fragUV;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec3 fragTangent;
 layout(location = 3) in vec3 fragBitangent;
-layout(location = 4) flat in uint fragDiffuseIndex;
-layout(location = 5) flat in uint fragNormalIndex;
+layout(location = 4) flat in uint fragInstanceId;
+layout(location = 5) flat in uint fragDiffuseIndex;
+layout(location = 6) flat in uint fragNormalIndex;
 layout(location = 0) out vec4 outAlbedo;
 layout(location = 1) out vec4 outNormal;
+layout(location = 2) out uint outInstanceId;
 
 layout(binding = 2) uniform sampler2D textures[];
 
@@ -26,4 +28,5 @@ void main() {
 //    outNormal = vec4(texNormal, 1.0);
     //outAlbedo = vec4(normal * 0.5 + 0.5, 1.0);
     outAlbedo = vec4(texColor, 1.0);
+    outInstanceId = fragInstanceId + 1;
 }

@@ -14,6 +14,7 @@
 namespace crv::graphics::vulkan {
     using SSBOInfo = std::tuple<void*, uint32_t, Buffer&>;
     using UBOInfo = std::tuple<uint32_t, Buffer&>;
+    using UIVec2 = glm::vec<2, uint32_t>;
 
     struct TexturesByType {
         Texture& operator[](const int type) { return mTexturesByType[type]; }
@@ -27,6 +28,8 @@ namespace crv::graphics::vulkan {
         ImageView depthView{};
         Image     normalImage{};
         ImageView normalView{};
+        Image     selectedInstanceImage{};
+        ImageView selectedInstanceView{};
         Sampler   sampler{};
     };
 

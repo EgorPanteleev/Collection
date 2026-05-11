@@ -8,9 +8,9 @@
 #include "DefaultWrapper.hpp"
 
 namespace crv::graphics::vulkan {
-    struct GraphicsPipelinesCreateInfo {
+    struct GraphicsPipelineCreateInfo {
         VkDevice device = VK_NULL_HANDLE;
-        std::vector<VkPipelineLayout> layouts{};
+        VkPipelineLayout layout{};
         std::vector<VkFormat> colorFormats{};
         VkVertexInputBindingDescription bindingDescription{};
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
@@ -20,7 +20,8 @@ namespace crv::graphics::vulkan {
     class GraphicsPipelines: public VectorWrapper<VkPipeline> {
     public:
         using VectorWrapper::VectorWrapper;
-        explicit GraphicsPipelines(const GraphicsPipelinesCreateInfo& info);
+        explicit GraphicsPipelines(const GraphicsPipelineCreateInfo& info);
+        explicit GraphicsPipelines(const std::vector<GraphicsPipelineCreateInfo>& infos);
         GraphicsPipelines& operator=(GraphicsPipelines&&) = default;
         ~GraphicsPipelines() override { GraphicsPipelines::destroy(); }
         void destroy() override;

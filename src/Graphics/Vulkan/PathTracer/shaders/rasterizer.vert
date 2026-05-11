@@ -11,8 +11,9 @@ layout(location = 0) out vec2 fragUV;
 layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec3 fragTangent;
 layout(location = 3) out vec3 fragBitangent;
-layout(location = 4) flat out uint fragDiffuseIndex;
-layout(location = 5) flat out uint fragNormalIndex;
+layout(location = 4) flat out uint fragInstanceId;
+layout(location = 5) flat out uint fragDiffuseIndex;
+layout(location = 6) flat out uint fragNormalIndex;
 
 layout(binding = 0) uniform MVPBuffer {
     mat4 model;
@@ -35,6 +36,7 @@ void main() {
     fragNormal       = normalize(normalMatrix * inNormal);
     fragTangent      = normalize(normalMatrix * inTangent.xyz);
     fragBitangent    = cross(fragNormal, fragTangent) * inTangent.w;
+    fragInstanceId   = gl_InstanceIndex;
     fragDiffuseIndex = inTexIndex;
     fragNormalIndex  = inTexIndex + 4;
 }

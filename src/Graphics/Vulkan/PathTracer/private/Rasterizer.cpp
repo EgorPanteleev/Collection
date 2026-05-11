@@ -7,19 +7,20 @@
 #include "Types.hpp"
 
 namespace crv::graphics::vulkan {
-    Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight), mColorFormat(info.colorFormat),
-    mNormalFormat(info.normalFormat), mContext(info.context), mTextures(info.textures) {
+    Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight),
+    mColorFormat(info.colorFormat), mNormalFormat(info.normalFormat), mInstanceIdFormat(info.instanceIdFormat),
+    mContext(info.context), mTextures(info.textures) {
+        createImages(info.extent);
+        createBuffers(info);
         createDescriptorSetLayout();
         createDescriptorPool();
         createDescriptorSets();
         createPipelineLayout();
         createShaders();
         createGraphicsPipelines();
-        createBuffers(info);
     }
 
     void Rasterizer::update(const RasterizerUpdateInfo& info) {
-        Buffer& MVPBuffer = mMVPBuffers[info.currentFrame];
         glm::mat4 model = glm::mat4(1.0f);
         AlignedMVP MVP {
             .model = model,
@@ -27,55 +28,27 @@ namespace crv::graphics::vulkan {
             .proj = info.camera->projectionMatrix(),
             .trInvModel = glm::transpose(glm::inverse(model))
         };
-        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(AlignedMVP), MVPBuffer);
-
-        std::vector<VkDescriptorImageInfo> textureInfos;
-        for (size_t i = 0; i < mTextures->size(); i++) {
-            auto& texturesByType = (*mTextures)[i];
-            for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
-                auto& texture = texturesByType[j];
-                VkDescriptorImageInfo textureInfo {
-                    .sampler = texture.sampler(),
-                    .imageView = texture.view(),
-                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                };
-                textureInfos.push_back(textureInfo);
-            }
-        }
-
-        VkWriteDescriptorSet texturesDescriptorSet {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 2,
-            .dstArrayElement = 0,
-            .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = textureInfos.data()
-        };
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
-        bufferInfos.reserve(20);
-        std::vector descriptorWrites{
-            getUBODescriptorWrite (MVPBuffer      , 0, bufferInfos),
-            getSSBODescriptorWrite(mInstanceBuffer, 1, bufferInfos),
-            texturesDescriptorSet
-        };
-
-        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            descriptorsWrites.push_back(descriptorWrites);
-        }
-
-        const DescriptorSetsUpdateInfo updateInfo {
-            .descriptorsWrites = descriptorsWrites
-        };
-        mDescriptorSets.update(updateInfo);
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(AlignedMVP), mMVPBuffers[info.currentFrame]);
     }
 
     void Rasterizer::record(const RasterizerRecordInfo& info) {
+        recordMainPass(info);
+        recordSelectedInstancePass(info);
+        recordPixelRead(info);
+    }
+
+    void Rasterizer::updateSelectedInstance() {
+        uint32_t* data = nullptr;
+        vmaMapMemory(mContext->allocator(), mReadbackBuffer.allocation(), (void**)&data);
+        mSelectedInstanceId = *data;
+        vmaUnmapMemory(mContext->allocator(), mReadbackBuffer.allocation());
+    }
+
+    void Rasterizer::recordMainPass(const RasterizerRecordInfo& info) {
         std::vector<VkClearValue> clearValues = {
         {.color = {{0.2f, 0.2f, 0.2f, 1.0f}},},
         {.depthStencil = {1.0f, 0}}
         };
-
         VkRenderingAttachmentInfo albedoAttachment = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
                 .imageView =  info.gBuffer->colorView.get(),
@@ -84,7 +57,6 @@ namespace crv::graphics::vulkan {
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .clearValue = clearValues[0],
         };
-
         VkRenderingAttachmentInfo normalAttachment = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
             .imageView =  info.gBuffer->normalView.get(),
@@ -93,18 +65,23 @@ namespace crv::graphics::vulkan {
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .clearValue = clearValues[0],
         };
-
-        std::vector colorAttachments = {albedoAttachment, normalAttachment};
-
+        VkRenderingAttachmentInfo instanceIdAttachment = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .imageView = mInstanceIdView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue = {.color = {.uint32 = {0, 0, 0, 0}}},
+        };
+        std::vector colorAttachments = {albedoAttachment, normalAttachment, instanceIdAttachment};
         VkRenderingAttachmentInfo depthAttachment = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
                 .imageView = info.gBuffer->depthView.get(),
                 .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .clearValue = clearValues[1],
         };
-
         const VkRenderingInfo renderingInfo = {
                 .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
                 .renderArea = {
@@ -118,28 +95,15 @@ namespace crv::graphics::vulkan {
         };
 
         vkCmdBeginRendering(info.commandBuffer, &renderingInfo);
-
         vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipelines[0]);
 
-        VkViewport viewport{
-                .x = 0.0f,
-                .y = 0.0f,
-                .width = static_cast<float>(info.extent.width),
-                .height = static_cast<float>(info.extent.height),
-                .minDepth = 0.0f,
-                .maxDepth = 1.0f
-        };
+        VkViewport viewport = getDefaultViewport(info.extent);
         vkCmdSetViewport(info.commandBuffer, 0, 1, &viewport);
-
-        VkRect2D scissor{
-                .offset = {0, 0},
-                .extent = info.extent,
-        };
+        VkRect2D scissor = getDefaultScissor(info.extent);
         vkCmdSetScissor(info.commandBuffer, 0, 1, &scissor);
 
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout.get(),
                                 0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
-
         for (const auto& meshBuffer : mMeshBuffers) {
             VkBuffer vertexBuffers[] = { meshBuffer.vertexBuffer.get() };
             VkDeviceSize offsets[] = { 0 };
@@ -148,13 +112,119 @@ namespace crv::graphics::vulkan {
             vkCmdBindIndexBuffer(info.commandBuffer, meshBuffer.indexBuffer.get(),
                                  0, VK_INDEX_TYPE_UINT32);
 
-            vkCmdDrawIndexed(info.commandBuffer,
-                             meshBuffer.indexCount,
-                             meshBuffer.instanceCount,
-                             0, 0, meshBuffer.firstInstance);
+            vkCmdDrawIndexed(info.commandBuffer, meshBuffer.indexCount, meshBuffer.instanceCount,
+                0, 0, meshBuffer.firstInstance);
         }
-
         vkCmdEndRendering(info.commandBuffer);
+    }
+
+    void Rasterizer::recordSelectedInstancePass(const RasterizerRecordInfo& info) {
+        VkRenderingAttachmentInfo selectedInstanceAttachment = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .imageView =  info.gBuffer->selectedInstanceView.get(),
+            .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue = {.color = {.uint32 = {0, 0, 0, 0}}},
+        };
+        const VkRenderingInfo renderingInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+            .renderArea = {
+                .offset = {0, 0},
+                .extent = info.extent
+            },
+            .layerCount = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &selectedInstanceAttachment,
+            .pDepthAttachment = nullptr,
+        };
+
+        vkCmdBeginRendering(info.commandBuffer, &renderingInfo);
+        vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipelines[1]);
+
+        VkViewport viewport = getDefaultViewport(info.extent);
+        vkCmdSetViewport(info.commandBuffer, 0, 1, &viewport);
+        VkRect2D scissor = getDefaultScissor(info.extent);
+        vkCmdSetScissor(info.commandBuffer, 0, 1, &scissor);
+
+        uint32_t selectedInstanceId = mSelectedInstanceId - 1;
+        uint32_t instanceCount = mSelectedInstanceId ? 1 : 0;
+        for (const auto& meshBuffer : mMeshBuffers) {
+            if (selectedInstanceId < meshBuffer.firstInstance or
+                selectedInstanceId >= meshBuffer.firstInstance + meshBuffer.instanceCount) continue;
+            VkBuffer vertexBuffers[] = { meshBuffer.vertexBuffer.get() };
+            VkDeviceSize offsets[] = { 0 };
+            vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
+
+            vkCmdBindIndexBuffer(info.commandBuffer, meshBuffer.indexBuffer.get(),
+                0, VK_INDEX_TYPE_UINT32);
+
+            vkCmdDrawIndexed(info.commandBuffer, meshBuffer.indexCount, instanceCount,
+                0, 0, selectedInstanceId);
+        }
+        vkCmdEndRendering(info.commandBuffer);
+    }
+
+    void Rasterizer::recordPixelRead(const RasterizerRecordInfo& info) {
+        if (info.clickPos.x == UINT32_MAX) return;
+        const ImageBarrierInfo readbackBarrierInfo {
+            .image = mInstanceIdImage.get(),
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        VkImageMemoryBarrier readbackBarrier = Image::barrier(readbackBarrierInfo);
+
+        ImagePipelineBarrierInfo readbackPipelineBarrierInfo {
+            .commandBuffer = info.commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .barriers = {readbackBarrier}
+        };
+        Image::pipelineBarrier(readbackPipelineBarrierInfo);
+
+        VkBufferImageCopy region {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .imageOffset = {static_cast<int32_t>(info.clickPos.x), static_cast<int32_t>(info.clickPos.y), 0},
+            .imageExtent = {1, 1, 1}
+        };
+        vkCmdCopyImageToBuffer(info.commandBuffer,
+            mInstanceIdImage.get(),
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            mReadbackBuffer.get(),
+            1, &region);
+
+        VkImageMemoryBarrier invReadbackBarrier = Image::inverseBarrier(readbackBarrier);
+        std::swap(readbackPipelineBarrierInfo.srcStage, readbackPipelineBarrierInfo.dstStage);
+        readbackPipelineBarrierInfo.barriers = {invReadbackBarrier};
+        Image::pipelineBarrier(readbackPipelineBarrierInfo);
+    }
+
+    void Rasterizer::createImages(VkExtent3D extent) {
+        const ImageCreateInfo imageCreateInfo {
+            .device = mContext->device(),
+            .allocator = mContext->allocator(),
+            .flags = 0,
+            .format = VK_FORMAT_R32_UINT,
+            .extent = extent,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        mInstanceIdImage = Image(imageCreateInfo);
+
+        const ImageViewCreateInfo imageViewCreateInfo {
+            .device = mContext->device(),
+            .image = mInstanceIdImage.get(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = VK_FORMAT_R32_UINT,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        mInstanceIdView = ImageView(imageViewCreateInfo);
     }
 
     void Rasterizer::createDescriptorSetLayout() {
@@ -217,6 +287,46 @@ namespace crv::graphics::vulkan {
             .variableCounts = variableCounts
         };
         mDescriptorSets = DescriptorSets(createInfo);
+
+        std::vector<VkDescriptorImageInfo> textureInfos;
+        for (size_t i = 0; i < mTextures->size(); i++) {
+            auto& texturesByType = (*mTextures)[i];
+            for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
+                auto& texture = texturesByType[j];
+                VkDescriptorImageInfo textureInfo {
+                    .sampler = texture.sampler(),
+                    .imageView = texture.view(),
+                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                };
+                textureInfos.push_back(textureInfo);
+            }
+        }
+
+        VkWriteDescriptorSet texturesDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 2,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = textureInfos.data()
+        };
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        bufferInfos.reserve(20);
+
+        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            std::vector descriptorWrites{
+                getUBODescriptorWrite (mMVPBuffers[i] , 0, bufferInfos),
+                getSSBODescriptorWrite(mInstanceBuffer, 1, bufferInfos),
+                texturesDescriptorSet
+            };
+            descriptorsWrites.push_back(descriptorWrites);
+        }
+
+        const DescriptorSetsUpdateInfo updateInfo {
+            .descriptorsWrites = descriptorsWrites
+        };
+        mDescriptorSets.update(updateInfo);
     }
 
     void Rasterizer::createPipelineLayout() {
@@ -235,6 +345,8 @@ namespace crv::graphics::vulkan {
         mVertexShader = ShaderModule(createInfo);
         createInfo.fileName = COMPILED_SHADERS_DIR"/rasterizer.frag.spv";
         mFragmentShader = ShaderModule(createInfo);
+        createInfo.fileName = COMPILED_SHADERS_DIR"/rasterizerSelected.frag.spv";
+        mSelectedFragmentShader = ShaderModule(createInfo);
     }
 
     void Rasterizer::createGraphicsPipelines() {
@@ -275,7 +387,7 @@ namespace crv::graphics::vulkan {
         };
         std::vector attributeDescriptions{desc1, desc2, desc3, desc4, desc5};
 
-        std::vector<VkPipelineShaderStageCreateInfo> stages = {
+        std::vector<VkPipelineShaderStageCreateInfo> pass1Stages = {
             {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = nullptr,
@@ -296,15 +408,45 @@ namespace crv::graphics::vulkan {
             }
         };
 
-        const GraphicsPipelinesCreateInfo createInfo {
+        std::vector<VkPipelineShaderStageCreateInfo> pass2Stages = {
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_VERTEX_BIT,
+                .module = mVertexShader.get(),
+                .pName = "main",
+                .pSpecializationInfo = nullptr
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .module = mSelectedFragmentShader.get(),
+                .pName = "main",
+                .pSpecializationInfo = nullptr
+            }
+        };
+
+        const GraphicsPipelineCreateInfo pass1Info {
             .device = mContext->device(),
-            .layouts = {mPipelineLayout.get()},
-            .colorFormats = {mColorFormat, mNormalFormat},
+            .layout = mPipelineLayout.get(),
+            .colorFormats = {mColorFormat, mNormalFormat, mInstanceIdFormat},
             .bindingDescription = bindingDescription,
             .attributeDescriptions = attributeDescriptions,
-            .stages = stages,
+            .stages = pass1Stages,
         };
-        mGraphicsPipelines = GraphicsPipelines(createInfo);
+
+        const GraphicsPipelineCreateInfo pass2Info {
+            .device = mContext->device(),
+            .layout = mPipelineLayout.get(),
+            .colorFormats = {mInstanceIdFormat},
+            .bindingDescription = bindingDescription,
+            .attributeDescriptions = attributeDescriptions,
+            .stages = pass2Stages,
+        };
+        mGraphicsPipelines = GraphicsPipelines({pass1Info, pass2Info});
     }
 
     void Rasterizer::createBuffers(const RasterizerCreateInfo &info) {
@@ -372,5 +514,14 @@ namespace crv::graphics::vulkan {
             uboData.add<AlignedMVP     >(mMVPBuffers[i]     );
         }
         uboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+
+        const BufferCreateInfo readbackInfo {
+            .allocator = mContext->allocator(),
+            .size = sizeof(uint32_t),
+            .bufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY
+        };
+        mReadbackBuffer = Buffer(readbackInfo);
     }
 }

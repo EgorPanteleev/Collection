@@ -24,5 +24,7 @@ namespace crv::graphics::vulkan {
     VkWriteDescriptorSet getStorageImageDescriptorWrite(VkImageView view, VkImageLayout layout, uint32_t binding, std::vector<VkDescriptorImageInfo>& infos);
     VkWriteDescriptorSet getSamplerImageDescriptorWrite(VkSampler sampler, VkImageView view, VkImageLayout layout, uint32_t binding, std::vector<VkDescriptorImageInfo>& infos);
     VkDescriptorSetLayoutBinding getLayoutBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags);
+    VkViewport getDefaultViewport(VkExtent2D extent);
+    VkRect2D getDefaultScissor(VkExtent2D extent);
 }
 #endif //COLLECTION_COREUTILS_HPP

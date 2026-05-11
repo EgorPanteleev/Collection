@@ -19,6 +19,7 @@ namespace fs = std::filesystem;
 
 #define COLOR_FORMAT VK_FORMAT_R8G8B8A8_UNORM
 #define NORMAL_FORMAT VK_FORMAT_R8G8B8A8_SNORM
+#define INSTANCE_ID_FORMAT VK_FORMAT_R32_UINT
 
 static glm::vec3 toVec3(const nlohmann::json& json) {
     return {
@@ -41,14 +42,15 @@ namespace crv::graphics::vulkan {
         createSwapChain();
         createSwapChainImages();
         createSyncObjects();
-        createPresentImage();
+        createImages();
 
-        loadModel(info);
+        loadModel();
         createTextures();
 
         createGBuffers();
         createRasterizer();
         createPathTracer();
+        createOutliner();
         createImGui();
     }
 
@@ -71,7 +73,13 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::updateImage() {
         mFrameCount = 0;
-        mGBufferFrame = mCurrentFrame;
+    }
+
+    void PathTracerApp::pixelClicked(uint32_t x, uint32_t y) {
+        if (!mRenderImGui) return;
+        auto [width, height] = mSwapchain.extent();
+        if (x > width or y > height) return;
+        mPixel = {x, y};
     }
 
     void PathTracerApp::createCamera() {
@@ -120,20 +128,23 @@ namespace crv::graphics::vulkan {
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value()
         };
-        mComputeCommandPool = CommandPool(createInfo);
+        mTracerCommandPool = CommandPool(createInfo);
         createInfo.queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value();
-        mGraphicsCommandPool = CommandPool(createInfo);
+        mRasterCommandPool = CommandPool(createInfo);
+        mOutlinerCommandPool = CommandPool(createInfo);
     }
 
     void PathTracerApp::createCommandBuffers() {
         CommandBuffersCreateInfo createInfo {
             .device = mContext.device(),
-            .commandPool = mComputeCommandPool.get(),
+            .commandPool = mTracerCommandPool.get(),
             .bufferCount = mFramesInFlight
         };
-        mComputeCommandBuffers = CommandBuffers(createInfo);
-        createInfo.commandPool = mGraphicsCommandPool.get();
-        mGraphicsCommandBuffers = CommandBuffers(createInfo);
+        mTracerCommandBuffers = CommandBuffers(createInfo);
+        createInfo.commandPool = mRasterCommandPool.get();
+        mRasterCommandBuffers = CommandBuffers(createInfo);
+        createInfo.commandPool = mOutlinerCommandPool.get();
+        mOutlinerCommandBuffers = CommandBuffers(createInfo);
     }
 
     void PathTracerApp::createSwapChain() {
@@ -202,17 +213,19 @@ namespace crv::graphics::vulkan {
         mImageAvailableSemaphores.resize(mFramesInFlight);
         mRasterFinishedSemaphores.resize(mFramesInFlight);
         mTracerFinishedSemaphores.resize(mFramesInFlight);
+        mOutlinerFinishedSemaphores.resize(mFramesInFlight);
         mFences.resize(mFramesInFlight);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             mImageAvailableSemaphores[i] = Semaphore(semaphoreCreateInfo);
             mRasterFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
             mTracerFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
+            mOutlinerFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
             mFences[i] = Fence(fenceCreateInfo);
         }
     }
 
-    void PathTracerApp::createPresentImage() {
-        const ImageCreateInfo imageCreateInfo {
+    void PathTracerApp::createImages() {
+        ImageCreateInfo imageCreateInfo {
             .device = mContext.device(),
             .allocator = mContext.allocator(),
             .flags = 0,
@@ -222,14 +235,15 @@ namespace crv::graphics::vulkan {
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
             .memoryUsage = VMA_MEMORY_USAGE_AUTO
         };
-        mPresentImage = Image(imageCreateInfo);
-
-        const ImageViewCreateInfo imageViewCreateInfo {
+        mPresentImage  = Image(imageCreateInfo);
+        imageCreateInfo.imageUsage = VK_IMAGE_USAGE_STORAGE_BIT;
+        mTracerImage   = Image(imageCreateInfo);
+        ImageViewCreateInfo imageViewCreateInfo {
             .device = mContext.device(),
-            .image = mPresentImage.get(),
+            .image = mTracerImage.get(),
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -238,7 +252,9 @@ namespace crv::graphics::vulkan {
             .baseArrayLayer = 0,
             .layerCount = 1
         };
-        mPresentImageView = ImageView(imageViewCreateInfo);
+        mTracerView   = ImageView(imageViewCreateInfo);
+        imageViewCreateInfo.image = mPresentImage.get();
+        mPresentView  = ImageView(imageViewCreateInfo);
     }
 
     void PathTracerApp::createTextures() {
@@ -285,7 +301,7 @@ namespace crv::graphics::vulkan {
         return tlas;
     }
 
-    void PathTracerApp::loadModel(const PathTracerAppCreateInfo& info) {
+    void PathTracerApp::loadModel() {
         auto loader = new cm::Loader;
         utils::Timer timer;
         std::vector<std::string> meshImports = mScene["meshImports"];
@@ -372,7 +388,6 @@ namespace crv::graphics::vulkan {
             glm::mat4 S = glm::scale(glm::mat4(1.0f), toVec3(mesh["localScale"]));
 
             glm::mat4 model = T * R * S;
-            MESSAGE << glm::to_string(model);
             int meshIndex = mesh["meshIndex"];
             ++mMeshesData[meshIndex].instanceCount;
             mRasterInstances.emplace_back(model, glm::inverse(model),
@@ -390,13 +405,6 @@ namespace crv::graphics::vulkan {
             alignedNode.index = node.index().value();
             mTLASNodes.push_back(alignedNode);
         }
-        MESSAGE << tlas.nodes().size();
-        MESSAGE << (Index<32,3>(mTLASNodes[0].index).primCount());
-        for (int i = 0; i < tlas.nodes()[0].index().primCount(); ++i) {
-            auto index = tlas.nodes()[0].index();
-            MESSAGE << "ID: " << index.id();
-        }
-        MESSAGE << tlas.nodes()[0].bbox();
     }
 
     void PathTracerApp::createPathTracer() {
@@ -408,9 +416,20 @@ namespace crv::graphics::vulkan {
             .TLASNodes = mTLASNodes,
             .textures = &mTextures,
             .instances = mTracerInstances,
+            .outImage = mTracerImage.get(),
+            .outImageView = mTracerView.get(),
+            .gBuffers = &mGBuffers,
             .framesInFlight = mFramesInFlight
         };
         mPathTracer = PathTracer(pathTracerCreateInfo);
+    }
+
+    void PathTracerApp::createOutliner() {
+        const OutlinerCreateInfo outlinerCreateInfo {
+            .context = &mContext,
+            .framesInFlight = mFramesInFlight
+        };
+        mOutliner = Outliner(outlinerCreateInfo);
     }
 
     void PathTracerApp::createImGui() {
@@ -435,28 +454,30 @@ namespace crv::graphics::vulkan {
         const PathTracerUpdateInfo pathTracerUpdateInfo {
             .camera = mCamera,
             .directLight = mDirectLight,
-            .gBuffer = &currentGBuffer(),
-            .presentImage = mPresentImage.get(),
-            .presentImageView = mPresentImageView.get(),
             .currentFrame = mCurrentFrame
         };
         mPathTracer.update(pathTracerUpdateInfo);
+        const OutlinerUpdateInfo outlinerUpdateInfo {
+            .tracerImageView = mTracerView.get(),
+            .instanceIdImageView = currentGBuffer().selectedInstanceView.get(),
+            .sampler = currentGBuffer().sampler.get()
+        };
+        mOutliner.update(outlinerUpdateInfo);
     }
 
     void PathTracerApp::recordRaster() {
-        VkCommandBuffer commandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
+        VkCommandBuffer commandBuffer = mRasterCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
-
-        if (mFrameCount == 0) {
-            const RasterizerRecordInfo rasterizerRecordInfo {
-                .commandBuffer = commandBuffer,
-                .gBuffer = &mGBuffers[mCurrentFrame],
-                .extent = mSwapchain.extent(),
-                .currentFrame = mCurrentFrame
-            };
-            mRasterizer.record(rasterizerRecordInfo);
-        }
+        const RasterizerRecordInfo rasterizerRecordInfo {
+            .commandBuffer = commandBuffer,
+            .gBuffer = &mGBuffers[mCurrentFrame],
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame,
+            .clickPos = mPixel
+        };
+        mPixel = {UINT32_MAX, UINT32_MAX};
+        mRasterizer.record(rasterizerRecordInfo);
 
         GBuffer& gBuffer = currentGBuffer();
         const ImageBarrierInfo colorBarrierInfo {
@@ -489,7 +510,69 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandBuffer);
     }
 
-     void PathTracerApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
+    void PathTracerApp::recordTracer() {
+        VkCommandBuffer commandBuffer = mTracerCommandBuffers[mCurrentFrame];
+        vkResetCommandBuffer(commandBuffer, 0);
+        beginCommandBuffer(commandBuffer);
+
+        const PathTracerRecordInfo pathTracerRecordInfo {
+            .commandBuffer = commandBuffer,
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame,
+            .frameCount = mFrameCount,
+            .spp      = static_cast<uint32_t>(mSPP),
+            .minDepth = static_cast<uint32_t>(mMinDepth),
+            .maxDepth = static_cast<uint32_t>(mMaxDepth)
+        };
+        mPathTracer.record(pathTracerRecordInfo);
+
+        GBuffer& gBuffer = currentGBuffer();
+        const ImageBarrierInfo colorBarrierInfo {
+            .image = gBuffer.colorImage.get(),
+            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        const ImageBarrierInfo depthBarrierInfo {
+            .image = gBuffer.depthImage.get(),
+            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+        };
+        ImageBarrierInfo normalBarrierInfo = colorBarrierInfo;
+        normalBarrierInfo.image = gBuffer.normalImage.get();
+        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo),
+                                      Image::barrier(normalBarrierInfo)};
+        const ImagePipelineBarrierInfo pipelineBarrierInfo {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+            .barriers = barriers
+        };
+        Image::pipelineBarrier(pipelineBarrierInfo);
+        endCommandBuffer(commandBuffer);
+    }
+
+    void PathTracerApp::recordOutliner(const uint32_t imageIndex) {
+        VkCommandBuffer commandBuffer = mOutlinerCommandBuffers[mCurrentFrame];
+        vkResetCommandBuffer(commandBuffer, 0);
+        beginCommandBuffer(commandBuffer);
+        const OutlinerRecordInfo recordInfo {
+            .commandBuffer = commandBuffer,
+            .outImageView = mPresentView.get(),
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame
+        };
+        mOutliner.record(recordInfo);
+        recordPresent(imageIndex, commandBuffer);
+        endCommandBuffer(commandBuffer);
+    }
+
+    void PathTracerApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
         const ImageBarrierInfo dataBarrierInfo {
             .image = mPresentImage.get(),
             .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
@@ -586,63 +669,15 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::recordTracer(uint32_t imageIndex) {
-        VkCommandBuffer commandBuffer = mComputeCommandBuffers[mCurrentFrame];
-        vkResetCommandBuffer(commandBuffer, 0);
-        beginCommandBuffer(commandBuffer);
-
-        const PathTracerRecordInfo pathTracerRecordInfo {
-            .commandBuffer = commandBuffer,
-            .extent = mSwapchain.extent(),
-            .currentFrame = mCurrentFrame,
-            .frameCount = mFrameCount,
-            .spp      = static_cast<uint32_t>(mSPP),
-            .minDepth = static_cast<uint32_t>(mMinDepth),
-            .maxDepth = static_cast<uint32_t>(mMaxDepth)
-        };
-        mPathTracer.record(pathTracerRecordInfo);
-
-        GBuffer& gBuffer = currentGBuffer();
-        const ImageBarrierInfo colorBarrierInfo {
-            .image = gBuffer.colorImage.get(),
-            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        };
-        const ImageBarrierInfo depthBarrierInfo {
-            .image = gBuffer.depthImage.get(),
-            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-            .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-        };
-        ImageBarrierInfo normalBarrierInfo = colorBarrierInfo;
-        normalBarrierInfo.image = gBuffer.normalImage.get();
-        const std::vector barriers = {Image::barrier(colorBarrierInfo), Image::barrier(depthBarrierInfo),
-                                      Image::barrier(normalBarrierInfo)};
-        const ImagePipelineBarrierInfo pipelineBarrierInfo {
-            .commandBuffer = commandBuffer,
-            .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-            .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-            .barriers = barriers
-        };
-        Image::pipelineBarrier(pipelineBarrierInfo);
-
-        recordPresent(imageIndex, commandBuffer);
-        endCommandBuffer(commandBuffer);
-    }
-
     void PathTracerApp::record(uint32_t imageIndex) {
         recordRaster();
-        recordTracer(imageIndex);
+        recordTracer();
+        recordOutliner(imageIndex);
         vkResetFences(mContext.device(), 1, &mFences[mCurrentFrame].get());
     }
 
     void PathTracerApp::submit(const uint32_t imageIndex) {
-        auto& graphicsCommandBuffer = mGraphicsCommandBuffers[mCurrentFrame];
+        auto& rasterCommandBuffer = mRasterCommandBuffers[mCurrentFrame];
         VkPipelineStageFlags rasterWaitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         const VkSubmitInfo rasterSubmitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -650,7 +685,7 @@ namespace crv::graphics::vulkan {
             .pWaitSemaphores = &mImageAvailableSemaphores[mCurrentFrame].get(),
             .pWaitDstStageMask = rasterWaitStages,
             .commandBufferCount = 1,
-            .pCommandBuffers = &graphicsCommandBuffer,
+            .pCommandBuffers = &rasterCommandBuffer,
             .signalSemaphoreCount = 1,
             .pSignalSemaphores = &mRasterFinishedSemaphores[mCurrentFrame].get()
         };
@@ -660,7 +695,7 @@ namespace crv::graphics::vulkan {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
 
-        auto& computeCommandBuffer = mComputeCommandBuffers[mCurrentFrame];
+        auto& tracerCommandBuffer = mTracerCommandBuffers[mCurrentFrame];
         VkPipelineStageFlags tracerWaitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
         const VkSubmitInfo tracerSubmitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -668,19 +703,34 @@ namespace crv::graphics::vulkan {
             .pWaitSemaphores = &mRasterFinishedSemaphores[mCurrentFrame].get(),
             .pWaitDstStageMask = tracerWaitStages,
             .commandBufferCount = 1,
-            .pCommandBuffers = &computeCommandBuffer,
+            .pCommandBuffers = &tracerCommandBuffer,
             .signalSemaphoreCount = 1,
             .pSignalSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get()
         };
         VkQueue computeQueue = mContext.queue(QueueFamilyType::COMPUTE);
-        if (vkQueueSubmit(computeQueue, 1, &tracerSubmitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
+        if (vkQueueSubmit(computeQueue, 1, &tracerSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
 
+        auto& outlinerCommandBuffer = mOutlinerCommandBuffers[mCurrentFrame];
+        VkPipelineStageFlags outlinerWaitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
+        const VkSubmitInfo outlinerSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get(),
+            .pWaitDstStageMask = outlinerWaitStages,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &outlinerCommandBuffer,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &mOutlinerFinishedSemaphores[mCurrentFrame].get()
+        };
+        if (vkQueueSubmit(computeQueue, 1, &outlinerSubmitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to submit draw command buffer!");
+        }
         const VkPresentInfoKHR presentInfo {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get(),
+            .pWaitSemaphores = &mOutlinerFinishedSemaphores[mCurrentFrame].get(),
             .swapchainCount = 1,
             .pSwapchains = &mSwapchain.get(),
             .pImageIndices = &imageIndex,
@@ -693,7 +743,6 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::acquireNextImage(uint32_t& imageIndex) {
-        vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
         SwapchainAcquireInfo swapchainAcquireInfo {
             .imageAvailableSemaphore = mImageAvailableSemaphores[mCurrentFrame].get(),
             .fence = VK_NULL_HANDLE,
@@ -707,6 +756,8 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::drawFrame() {
         uint32_t imageIndex;
+        vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
+        mRasterizer.updateSelectedInstance();
         acquireNextImage(imageIndex);
         drawControlPanel();
         update();
@@ -874,6 +925,22 @@ namespace crv::graphics::vulkan {
             .format = NORMAL_FORMAT,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
+        const ImageCreateInfo selectedInstanceImageCreateInfo {
+            .device = mContext.device(),
+            .allocator = mContext.allocator(),
+            .format = INSTANCE_ID_FORMAT,
+            .extent = extent,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        ImageViewCreateInfo selectedInstanceViewCreateInfo {
+            .device = mContext.device(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = INSTANCE_ID_FORMAT,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
         const SamplerCreateInfo samplerCreateInfo {
             .device = mContext.device(),
             .physicalDevice = mContext.physicalDevice(),
@@ -900,27 +967,43 @@ namespace crv::graphics::vulkan {
         };
         VkImageMemoryBarrier colorBarrier = Image::barrier(colorBarrierInfo);
         VkImageMemoryBarrier depthBarrier = Image::barrier(depthBarrierInfo);
-        VkImageMemoryBarrier normalBarrier = colorBarrier;
+        std::vector isDepthBarrier = {
+            false, true,
+            false, false
+        };
         std::vector<VkImageMemoryBarrier> colorBarriers;
         std::vector<VkImageMemoryBarrier> depthBarriers;
         mGBuffers.resize(mFramesInFlight);
         for (int i = 0; i < mFramesInFlight; ++i) {
             GBuffer& gBuffer = mGBuffers[i];
-            gBuffer.colorImage  = Image(colorImageCreateInfo);
-            gBuffer.depthImage  = Image(depthImageCreateInfo);
-            gBuffer.normalImage = Image(normalImageCreateInfo);
-            colorViewCreateInfo.image  = gBuffer.colorImage.get();
-            depthViewCreateInfo.image  = gBuffer.depthImage.get();
-            normalViewCreateInfo.image = gBuffer.normalImage.get();
-            gBuffer.colorView  = ImageView(colorViewCreateInfo);
-            gBuffer.depthView  = ImageView(depthViewCreateInfo);
-            gBuffer.normalView = ImageView(normalViewCreateInfo);
-            colorBarrier.image  = gBuffer.colorImage.get();
-            depthBarrier.image  = gBuffer.depthImage.get();
-            normalBarrier.image = gBuffer.normalImage.get();
-            colorBarriers.push_back(colorBarrier);
-            depthBarriers.push_back(depthBarrier);
-            colorBarriers.push_back(normalBarrier);
+            std::vector images = {
+                &gBuffer.colorImage , &gBuffer.depthImage,
+                &gBuffer.normalImage, &gBuffer.selectedInstanceImage
+            };
+            std::vector views = {
+                &gBuffer.colorView , &gBuffer.depthView,
+                &gBuffer.normalView, &gBuffer.selectedInstanceView
+            };
+            std::vector imageInfos = {
+                colorImageCreateInfo, depthImageCreateInfo,
+                normalImageCreateInfo, selectedInstanceImageCreateInfo
+            };
+            std::vector viewInfos = {
+                colorViewCreateInfo, depthViewCreateInfo,
+                normalViewCreateInfo, selectedInstanceViewCreateInfo
+            };
+            for (size_t j = 0; j < images.size(); ++j) {
+                *images[j] = Image(imageInfos[j]);
+                viewInfos[j].image = images[j]->get();
+                *views[j] = ImageView(viewInfos[j]);
+                if (isDepthBarrier[j]) {
+                    depthBarrier.image = images[j]->get();
+                    depthBarriers.push_back(depthBarrier);
+                } else {
+                    colorBarrier.image = images[j]->get();
+                    colorBarriers.push_back(colorBarrier);
+                }
+            }
             gBuffer.sampler = Sampler(samplerCreateInfo);
         }
         auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
@@ -948,7 +1031,9 @@ namespace crv::graphics::vulkan {
             .context = &mContext,
             .colorFormat = COLOR_FORMAT,
             .normalFormat = NORMAL_FORMAT,
+            .instanceIdFormat = INSTANCE_ID_FORMAT,
             .extent = {width, height, 1},
+            .framesInFlight = mFramesInFlight,
             .meshesData = mMeshesData,
             .instances = mRasterInstances,
             .textures = &mTextures

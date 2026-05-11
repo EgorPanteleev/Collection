@@ -6,7 +6,8 @@
 #include "Message.hpp"
 
 namespace crv::graphics::vulkan {
-    GraphicsPipelines::GraphicsPipelines(const GraphicsPipelinesCreateInfo &info): mDevice(info.device) {
+    GraphicsPipelines::GraphicsPipelines(const GraphicsPipelineCreateInfo& info): GraphicsPipelines(std::vector{info}) {}
+    GraphicsPipelines::GraphicsPipelines(const std::vector<GraphicsPipelineCreateInfo>& infos): mDevice(infos[0].device) {
         VkPipelineDepthStencilStateCreateInfo depthStencil {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
                 .depthTestEnable = VK_TRUE,
@@ -20,34 +21,18 @@ namespace crv::graphics::vulkan {
                 .maxDepthBounds = 1.0f
         };
 
-        VkPipelineRenderingCreateInfo pipelineRenderingInfo {
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-                .colorAttachmentCount = static_cast<uint32_t>(info.colorFormats.size()),
-                .pColorAttachmentFormats = info.colorFormats.data(),
-                .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT,
-                .stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
-        };
-
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo{
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &info.bindingDescription,
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(info.attributeDescriptions.size()),
-            .pVertexAttributeDescriptions = info.attributeDescriptions.data()
-        };
-
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo {
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-                .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-                .primitiveRestartEnable = VK_FALSE
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+            .primitiveRestartEnable = VK_FALSE
         };
 
         VkPipelineViewportStateCreateInfo viewportInfo{
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-                .viewportCount = 1,
-                .pViewports = nullptr,
-                .scissorCount = 1,
-                .pScissors = nullptr
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+            .viewportCount = 1,
+            .pViewports = nullptr,
+            .scissorCount = 1,
+            .pScissors = nullptr
         };
 
         VkPipelineRasterizationStateCreateInfo rasterizationInfo{
@@ -64,35 +49,9 @@ namespace crv::graphics::vulkan {
         };
 
         VkPipelineMultisampleStateCreateInfo multisampleInfo{
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-                .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-                .sampleShadingEnable = VK_FALSE,
-        };
-
-        // VkPipelineColorBlendAttachmentState colorBlendAttachment{
-        //         .blendEnable = VK_FALSE,
-        // };
-
-        VkPipelineColorBlendAttachmentState colorBlendAttachment{
-            .blendEnable = VK_TRUE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
-        };
-        std::vector colorBlendAttachments(info.colorFormats.size(), colorBlendAttachment);
-
-        VkPipelineColorBlendStateCreateInfo colorBlendInfo{
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-                .logicOpEnable = VK_FALSE,
-                .logicOp = VK_LOGIC_OP_COPY,
-                .attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size()),
-                .pAttachments = colorBlendAttachments.data(),
-                .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable = VK_FALSE,
         };
 
         std::vector dynamicStateEnables = {
@@ -101,13 +60,45 @@ namespace crv::graphics::vulkan {
         };
 
         VkPipelineDynamicStateCreateInfo dynamicStateInfo{
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-                .dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size()),
-                .pDynamicStates = dynamicStateEnables.data()
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+            .dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size()),
+            .pDynamicStates = dynamicStateEnables.data()
         };
 
-        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos;
-        for (size_t i = 0; i < info.layouts.size(); ++i) {
+        mVec.resize(infos.size());
+        for (size_t i = 0; i < infos.size(); ++i) {
+            const auto& info = infos[i];
+            VkPipelineRenderingCreateInfo pipelineRenderingInfo {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+                .colorAttachmentCount = static_cast<uint32_t>(info.colorFormats.size()),
+                .pColorAttachmentFormats = info.colorFormats.data(),
+                .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT,
+                .stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
+            };
+
+            VkPipelineVertexInputStateCreateInfo vertexInputInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+                .vertexBindingDescriptionCount = 1,
+                .pVertexBindingDescriptions = &info.bindingDescription,
+                .vertexAttributeDescriptionCount = static_cast<uint32_t>(info.attributeDescriptions.size()),
+                .pVertexAttributeDescriptions = info.attributeDescriptions.data()
+            };
+
+            VkPipelineColorBlendAttachmentState colorBlendAttachment{
+                .blendEnable = VK_FALSE,
+                .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                  VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+            };
+            std::vector colorBlendAttachments(info.colorFormats.size(), colorBlendAttachment);
+
+            VkPipelineColorBlendStateCreateInfo colorBlendInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                .logicOpEnable = VK_FALSE,
+                .logicOp = VK_LOGIC_OP_COPY,
+                .attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size()),
+                .pAttachments = colorBlendAttachments.data(),
+                .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
+            };
             VkGraphicsPipelineCreateInfo pipelineInfo{
                 .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                 .pNext = &pipelineRenderingInfo,
@@ -121,26 +112,17 @@ namespace crv::graphics::vulkan {
                 .pDepthStencilState = &depthStencil,
                 .pColorBlendState = &colorBlendInfo,
                 .pDynamicState = &dynamicStateInfo,
-                .layout = info.layouts[i],
+                .layout = info.layout,
                 .renderPass = VK_NULL_HANDLE,
                 .subpass = 0,
                 .basePipelineHandle = VK_NULL_HANDLE,
                 .basePipelineIndex = -1
             };
-            pipelineInfos.push_back(pipelineInfo);
+            if (vkCreateGraphicsPipelines(mDevice, nullptr, 1, &pipelineInfo, nullptr, &mVec[i]) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create graphics pipeline!");
+            }
         }
 
-    // VkPipelineCacheCreateInfo cacheCreateInfo = {
-    //         .sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,
-    //         .initialDataSize = 0,
-    //         .pInitialData = nullptr,
-    // };
-    // vkCreatePipelineCache(mContext->device(), &cacheCreateInfo, nullptr, &mPipelineCache);
-
-        mVec.resize(info.layouts.size());
-        if (vkCreateGraphicsPipelines(info.device, nullptr, pipelineInfos.size(), pipelineInfos.data(), nullptr, mVec.data()) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create graphics pipeline!");
-        }
         INFO << "Created graphics pipeline!";
     }
 

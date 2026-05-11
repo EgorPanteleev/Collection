@@ -28,16 +28,16 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedNode> TLASNodes{};
         std::vector<TexturesByType>* textures = nullptr;
         std::vector<MeshInstance> instances{};
+        VkImage            outImage       = VK_NULL_HANDLE;
+        VkImageView        outImageView   = VK_NULL_HANDLE;
+        std::vector<GBuffer>* gBuffers{};
         uint32_t framesInFlight = 2;
     };
 
     struct PathTracerUpdateInfo {
-        scene::AbsCamera*  camera           = nullptr;
+        scene::AbsCamera*  camera         = nullptr;
         AlignedDirectLight directLight{};
-        GBuffer*           gBuffer          = nullptr;
-        VkImage            presentImage     = VK_NULL_HANDLE;
-        VkImageView        presentImageView = VK_NULL_HANDLE;
-        uint32_t           currentFrame     = 0;
+        uint32_t           currentFrame   = 0;
     };
 
     struct PathTracerRecordInfo {
@@ -59,7 +59,7 @@ namespace crv::graphics::vulkan {
     protected:
         void createDescriptorSetLayout();
         void createDescriptorPool();
-        void createDescriptorSets();
+        void createDescriptorSets(const PathTracerCreateInfo& info);
         void createPipelineLayout();
         void createShaders();
         void createComputePipelines();

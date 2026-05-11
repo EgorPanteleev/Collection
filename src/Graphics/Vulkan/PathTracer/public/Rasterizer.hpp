@@ -7,7 +7,6 @@
 
 #include "Context.hpp"
 #include "Types.hpp"
-#include "Image.hpp"
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorPool.hpp"
 #include "DescriptorSets.hpp"
@@ -22,6 +21,7 @@ namespace crv::graphics::vulkan {
         Context*                     context        = nullptr;
         VkFormat                     colorFormat    = VK_FORMAT_UNDEFINED;
         VkFormat                     normalFormat   = VK_FORMAT_UNDEFINED;
+        VkFormat                     instanceIdFormat = VK_FORMAT_UNDEFINED;
         VkExtent3D                   extent{};
         uint32_t                     framesInFlight = 2;
         std::vector<MeshData>        meshesData{};
@@ -39,6 +39,7 @@ namespace crv::graphics::vulkan {
         GBuffer*        gBuffer       = nullptr;
         VkExtent2D      extent{};
         uint32_t        currentFrame  = 0;
+        glm::vec<2, uint32_t> clickPos{UINT32_MAX, UINT32_MAX};
     };
 
     struct MeshBuffer {
@@ -55,19 +56,26 @@ namespace crv::graphics::vulkan {
         explicit Rasterizer(const RasterizerCreateInfo& info);
         void update(const RasterizerUpdateInfo& info);
         void record(const RasterizerRecordInfo& info);
+        void updateSelectedInstance();
     protected:
+        void createImages(VkExtent3D extent);
         void createDescriptorSetLayout();
         void createDescriptorPool();
-        std::vector<VkDescriptorSetLayout>  getDescriptorLayouts();
+        std::vector<VkDescriptorSetLayout> getDescriptorLayouts();
         void createDescriptorSets();
         void createPipelineLayout();
         void createShaders();
         void createGraphicsPipelines();
         void createBuffers(const RasterizerCreateInfo& info);
+        void recordMainPass(const RasterizerRecordInfo& info);
+        void recordSelectedInstancePass(const RasterizerRecordInfo& info);
+        void recordPixelRead(const RasterizerRecordInfo& info);
 
         uint32_t mFramesInFlight = 1;
+        uint32_t mSelectedInstanceId = 0;
         VkFormat mColorFormat  = VK_FORMAT_UNDEFINED;
         VkFormat mNormalFormat = VK_FORMAT_UNDEFINED;
+        VkFormat mInstanceIdFormat = VK_FORMAT_UNDEFINED;
 
         Context* mContext = nullptr;
         DescriptorSetLayout mDescriptorSetLayout{};
@@ -77,10 +85,14 @@ namespace crv::graphics::vulkan {
         PipelineLayout mPipelineLayout{};
         ShaderModule mVertexShader{};
         ShaderModule mFragmentShader{};
+        ShaderModule mSelectedFragmentShader{};
         GraphicsPipelines mGraphicsPipelines{};
         std::vector<Buffer> mMVPBuffers{};
         std::vector<MeshBuffer> mMeshBuffers{};
         Buffer mInstanceBuffer{};
+        Image     mInstanceIdImage{};
+        ImageView mInstanceIdView{};
+        Buffer    mReadbackBuffer{};
     };
 }
 

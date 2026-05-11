@@ -76,12 +76,28 @@ namespace crv::graphics::vulkan {
     }
 
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
             if (action == GLFW_PRESS) {
                 rightMouseButtonPressed = true;
                 glfwGetCursorPos(window, &lastX, &lastY);
             } else if (action == GLFW_RELEASE) {
                 rightMouseButtonPressed = false;
+            }
+        }
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+            if (action == GLFW_RELEASE) {
+                double mouseX, mouseY;
+                glfwGetCursorPos(window, &mouseX, &mouseY);
+                int winWidth, winHeight;
+                int fbWidth, fbHeight;
+                glfwGetWindowSize(window, &winWidth, &winHeight);
+                glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+                float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
+                float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
+                auto x = static_cast<uint32_t>(mouseX * scaleX);
+                auto y = static_cast<uint32_t>(mouseY * scaleY);
+                app->pixelClicked(x, y);
             }
         }
     }
