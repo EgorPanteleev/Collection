@@ -31,6 +31,7 @@ namespace crv::graphics::vulkan {
         Image     selectedInstanceImage{};
         ImageView selectedInstanceView{};
         Sampler   sampler{};
+        Sampler   intSampler{};
     };
 
     struct MeshData {

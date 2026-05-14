@@ -16,6 +16,9 @@ namespace crv::graphics::vulkan {
         VkCompareOp          compareOp      = VK_COMPARE_OP_LESS_OR_EQUAL;
         uint32_t             mipLevels      = 1;
         VkBorderColor        borderColor    = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+        VkFilter             magFilter      = VK_FILTER_LINEAR;
+        VkFilter             minFilter      = VK_FILTER_LINEAR;
+        VkSamplerMipmapMode  mipmapMode     = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     };
 
     class Sampler: public DefaultWrapper<VkSampler> {

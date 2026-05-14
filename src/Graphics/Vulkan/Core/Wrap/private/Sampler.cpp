@@ -13,9 +13,9 @@ namespace crv::graphics::vulkan {
 
         const VkSamplerCreateInfo samplerInfo {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            .magFilter = info.magFilter,
+            .minFilter = info.minFilter,
+            .mipmapMode = info.mipmapMode,
             .addressModeU = info.addressMode,
             .addressModeV = info.addressMode,
             .addressModeW = info.addressMode,

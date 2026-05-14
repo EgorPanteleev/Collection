@@ -80,10 +80,12 @@ namespace crv::graphics::vulkan {
         void destroy() override;
         [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         static void transit(const ImageTransitInfo& info);
+        static void inverseTransit(const ImageTransitInfo& info);
         static VkImageMemoryBarrier barrier(const ImageBarrierInfo& info);
+        static VkImageMemoryBarrier inverseBarrier(const ImageBarrierInfo& info);
         static void copy(const CopyBufferToImageInfo& info);
         static void pipelineBarrier(const ImagePipelineBarrierInfo& info);
-        static VkImageMemoryBarrier inverseBarrier(VkImageMemoryBarrier barrier);
+        static void inversePipelineBarrier(const ImagePipelineBarrierInfo& info);
     protected:
         void createImage(const ImageCreateInfo& info);
 

@@ -19,8 +19,8 @@ namespace crv::graphics::vulkan {
         std::vector<VkDescriptorImageInfo> imageInfos;
         imageInfos.reserve(6);
         std::vector descriptorWrites{
-            getSamplerImageDescriptorWrite (info.sampler, info.tracerImageView    , VK_IMAGE_LAYOUT_GENERAL, 0, imageInfos),
-            getSamplerImageDescriptorWrite (info.sampler, info.instanceIdImageView, VK_IMAGE_LAYOUT_GENERAL, 1, imageInfos),
+            getSamplerImageDescriptorWrite (info.tracerSampler    , info.tracerImageView    , VK_IMAGE_LAYOUT_GENERAL, 0, imageInfos),
+            getSamplerImageDescriptorWrite (info.instanceIdSampler, info.instanceIdImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, imageInfos),
         };
 
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;

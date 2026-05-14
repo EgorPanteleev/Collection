@@ -239,7 +239,7 @@ namespace crv::graphics::vulkan {
             .memoryUsage = VMA_MEMORY_USAGE_AUTO
         };
         mPresentImage  = Image(imageCreateInfo);
-        imageCreateInfo.imageUsage = VK_IMAGE_USAGE_STORAGE_BIT;
+        imageCreateInfo.imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         mTracerImage   = Image(imageCreateInfo);
         ImageViewCreateInfo imageViewCreateInfo {
             .device = mContext.device(),
@@ -255,6 +255,27 @@ namespace crv::graphics::vulkan {
         mTracerView   = ImageView(imageViewCreateInfo);
         imageViewCreateInfo.image = mPresentImage.get();
         mPresentView  = ImageView(imageViewCreateInfo);
+
+        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
+        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        const ImageTransitInfo presentTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mPresentImage.get(),
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+        };
+        Image::transit(presentTransitInfo);
+        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
+
+        #ifndef NDEBUG
+            DEBUG << "Tracer image: " << mTracerImage.get();
+            DEBUG << "Present image: " << mPresentImage.get();
+        #endif
     }
 
     void PathTracerApp::createTextures() {
@@ -457,10 +478,12 @@ namespace crv::graphics::vulkan {
             .currentFrame = mCurrentFrame
         };
         mPathTracer.update(pathTracerUpdateInfo);
+
         const OutlinerUpdateInfo outlinerUpdateInfo {
             .tracerImageView = mTracerView.get(),
             .instanceIdImageView = currentGBuffer().selectedInstanceView.get(),
-            .sampler = currentGBuffer().sampler.get()
+            .tracerSampler = currentGBuffer().sampler.get(),
+            .instanceIdSampler = currentGBuffer().intSampler.get()
         };
         mOutliner.update(outlinerUpdateInfo);
     }
@@ -477,7 +500,21 @@ namespace crv::graphics::vulkan {
             .clickPos = mPixel
         };
         mPixel = {UINT32_MAX, UINT32_MAX};
+        const ImageTransitInfo selectedInstanceTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = currentGBuffer().selectedInstanceImage.get(),
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+        };
+
+        Image::inverseTransit(selectedInstanceTransitInfo);
         mRasterizer.record(rasterizerRecordInfo);
+        Image::transit(selectedInstanceTransitInfo);
 
         GBuffer& gBuffer = currentGBuffer();
         const ImageBarrierInfo colorBarrierInfo {
@@ -575,9 +612,9 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
         const ImageBarrierInfo dataBarrierInfo {
             .image = mPresentImage.get(),
-            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
@@ -594,7 +631,7 @@ namespace crv::graphics::vulkan {
 
         ImagePipelineBarrierInfo pipelineBarrierInfo1 {
             .commandBuffer = commandBuffer,
-            .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             .dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
             .barriers = {dataBarrier, presentBarrier}
         };
@@ -631,7 +668,11 @@ namespace crv::graphics::vulkan {
             VK_FILTER_NEAREST
         );
 
-        VkImageMemoryBarrier inversePresentBarrier = Image::inverseBarrier(presentBarrier);
+        VkImageMemoryBarrier inverseDataBarrier = Image::inverseBarrier(dataBarrierInfo);
+        pipelineBarrierInfo1.barriers = {inverseDataBarrier};
+        Image::inversePipelineBarrier(pipelineBarrierInfo1);
+
+        VkImageMemoryBarrier inversePresentBarrier = Image::inverseBarrier(presentBarrierInfo);
 
         VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
         if (mRenderImGui) {
@@ -950,6 +991,20 @@ namespace crv::graphics::vulkan {
             .mipLevels = 1,
             .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK
         };
+
+        const SamplerCreateInfo intSamplerCreateInfo {
+            .device = mContext.device(),
+            .physicalDevice = mContext.physicalDevice(),
+            .addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .compareEnable = VK_FALSE,
+            .compareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .mipLevels = 1,
+            .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+            .magFilter = VK_FILTER_NEAREST,
+            .minFilter = VK_FILTER_NEAREST,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST
+        };
+
         constexpr ImageBarrierInfo colorBarrierInfo {
             .srcAccessMask = 0,
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -965,14 +1020,20 @@ namespace crv::graphics::vulkan {
             .newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
         };
+        constexpr ImageBarrierInfo shaderBarrierInfo {
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
         VkImageMemoryBarrier colorBarrier = Image::barrier(colorBarrierInfo);
         VkImageMemoryBarrier depthBarrier = Image::barrier(depthBarrierInfo);
-        std::vector isDepthBarrier = {
-            false, true,
-            false, false
-        };
+        VkImageMemoryBarrier shaderBarrier = Image::barrier(shaderBarrierInfo);
+
         std::vector<VkImageMemoryBarrier> colorBarriers;
         std::vector<VkImageMemoryBarrier> depthBarriers;
+        std::vector<VkImageMemoryBarrier> shaderBarriers;
         mGBuffers.resize(mFramesInFlight);
         for (int i = 0; i < mFramesInFlight; ++i) {
             GBuffer& gBuffer = mGBuffers[i];
@@ -992,19 +1053,30 @@ namespace crv::graphics::vulkan {
                 colorViewCreateInfo, depthViewCreateInfo,
                 normalViewCreateInfo, selectedInstanceViewCreateInfo
             };
+            #ifndef NDEBUG
+                std::vector<std::string> names = {"Color", "Depth", "Normal", "Selected instance"};
+                DEBUG << "Frame in flight: " << i;
+            #endif
             for (size_t j = 0; j < images.size(); ++j) {
                 *images[j] = Image(imageInfos[j]);
                 viewInfos[j].image = images[j]->get();
                 *views[j] = ImageView(viewInfos[j]);
-                if (isDepthBarrier[j]) {
-                    depthBarrier.image = images[j]->get();
-                    depthBarriers.push_back(depthBarrier);
-                } else {
-                    colorBarrier.image = images[j]->get();
-                    colorBarriers.push_back(colorBarrier);
-                }
+                #ifndef NDEBUG
+                    DEBUG << names[j] + " image: " << images[j]->get();
+                    DEBUG << names[j] + " view: " << views[j]->get();
+                #endif
             }
             gBuffer.sampler = Sampler(samplerCreateInfo);
+            gBuffer.intSampler = Sampler(intSamplerCreateInfo);
+
+            depthBarrier.image = gBuffer.depthImage.get();
+            depthBarriers.push_back(depthBarrier);
+            colorBarrier.image = gBuffer.colorImage.get();
+            colorBarriers.push_back(colorBarrier);
+            colorBarrier.image = gBuffer.normalImage.get();
+            colorBarriers.push_back(colorBarrier);
+            shaderBarrier.image = gBuffer.selectedInstanceImage.get();
+            shaderBarriers.push_back(shaderBarrier);
         }
         auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
         VkCommandBuffer commandBuffer = (*commandBuffers)[0];
@@ -1020,8 +1092,15 @@ namespace crv::graphics::vulkan {
             .dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             .barriers = depthBarriers
         };
+        const ImagePipelineBarrierInfo shaderPipelineBarrierInfo {
+            .commandBuffer = commandBuffer,
+            .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            .barriers = shaderBarriers
+        };
         Image::pipelineBarrier(colorPipelineBarrierInfo);
         Image::pipelineBarrier(depthPipelineBarrierInfo);
+        Image::pipelineBarrier(shaderPipelineBarrierInfo);
         endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 

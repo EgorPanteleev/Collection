@@ -70,6 +70,30 @@ namespace crv::graphics::vulkan {
             nullptr,1, &barrier);
     }
 
+    void Image::inverseTransit(const ImageTransitInfo& info) {
+        const VkImageMemoryBarrier barrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = info.dstAccessMask,
+            .dstAccessMask = info.srcAccessMask,
+            .oldLayout = info.newLayout,
+            .newLayout = info.oldLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = info.image,
+            .subresourceRange = {
+                .aspectMask = info.aspectMask,
+                .baseMipLevel = info.baseMipLevel,
+                .levelCount = info.levelCount,
+                .baseArrayLayer = info.baseArrayLayer,
+                .layerCount = info.layerCount
+            }
+        };
+
+        vkCmdPipelineBarrier(info.commandBuffer, info.dstStage, info.srcStage,
+            0,0, nullptr,0,
+            nullptr,1, &barrier);
+    }
+
     VkImageMemoryBarrier Image::barrier(const ImageBarrierInfo& info) {
         return {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -77,6 +101,26 @@ namespace crv::graphics::vulkan {
             .dstAccessMask = info.dstAccessMask,
             .oldLayout = info.oldLayout,
             .newLayout = info.newLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = info.image,
+            .subresourceRange = {
+                .aspectMask = info.aspectMask,
+                .baseMipLevel = info.baseMipLevel,
+                .levelCount = info.levelCount,
+                .baseArrayLayer = info.baseArrayLayer,
+                .layerCount = info.layerCount
+            }
+        };
+    }
+
+    VkImageMemoryBarrier Image::inverseBarrier(const ImageBarrierInfo& info) {
+        return {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = info.dstAccessMask,
+            .dstAccessMask = info.srcAccessMask,
+            .oldLayout = info.newLayout,
+            .newLayout = info.oldLayout,
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = info.image,
@@ -116,10 +160,9 @@ namespace crv::graphics::vulkan {
     nullptr,info.barriers.size(), info.barriers.data());
     }
 
-    VkImageMemoryBarrier Image::inverseBarrier(VkImageMemoryBarrier barrier) {
-        std::swap(barrier.oldLayout, barrier.newLayout);
-        std::swap(barrier.srcAccessMask, barrier.dstAccessMask);
-        std::swap(barrier.srcQueueFamilyIndex, barrier.dstQueueFamilyIndex);
-        return barrier;
+    void Image::inversePipelineBarrier(const ImagePipelineBarrierInfo& info) {
+        vkCmdPipelineBarrier(info.commandBuffer, info.dstStage, info.srcStage,
+    0,0, nullptr,0,
+    nullptr,info.barriers.size(), info.barriers.data());
     }
 }

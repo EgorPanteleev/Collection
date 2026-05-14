@@ -22,7 +22,8 @@ namespace crv::graphics::vulkan {
     struct OutlinerUpdateInfo {
         VkImageView tracerImageView     = VK_NULL_HANDLE;
         VkImageView instanceIdImageView = VK_NULL_HANDLE;
-        VkSampler   sampler             = VK_NULL_HANDLE;
+        VkSampler   tracerSampler       = VK_NULL_HANDLE;
+        VkSampler   instanceIdSampler   = VK_NULL_HANDLE;
     };
 
     struct OutlinerRecordInfo {
