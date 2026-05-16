@@ -22,15 +22,20 @@ layout(binding = 0) uniform MVPBuffer {
     mat4 trInvModel;
 } mvp;
 
+struct Instance {
+    mat4 model;
+    mat4 invModel;
+    float texIndex;
+};
+
 layout(binding = 1) readonly buffer InstanceBuffer {
-    mat4 instances[];
+    Instance instances[];
 };
 
 void main() {
-    mat4 instanceModel = instances[gl_InstanceIndex];
-    mat4 worldMatrix   = mvp.model * instanceModel;
-    gl_Position = mvp.proj * mvp.view * worldMatrix * vec4(inPosition, 1.0);
-    mat3 normalMatrix = mat3(transpose(inverse(worldMatrix)));
+    Instance instance = instances[gl_InstanceIndex];
+    gl_Position = mvp.proj * mvp.view * instance.model * vec4(inPosition, 1.0);
+    mat3 normalMatrix = mat3(transpose(instance.invModel));
 
     fragUV           = inUV;
     fragNormal       = normalize(normalMatrix * inNormal);

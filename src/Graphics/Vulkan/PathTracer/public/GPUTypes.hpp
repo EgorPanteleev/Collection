@@ -71,17 +71,32 @@ namespace crv::graphics::vulkan {
         glm::mat4 model, view, proj, trInvModel;
     };
 
-    struct alignas(16) AlignedInstance {
-        glm::mat4 model;
-    };
-
-    struct alignas(16) MeshInstance {
+    struct MeshInstance {
+        std::string name;
         glm::mat4 model;
         glm::mat4 invModel;
         uint32_t baseNode;
-        uint32_t baseTri;
+        uint32_t baseTri; //can be removed
+        uint32_t texIndex;
     };
 
+    struct alignas(16) RasterInstance {
+        explicit RasterInstance(const MeshInstance& instance): model(instance.model), invModel(instance.invModel),
+        texIndex(instance.texIndex) {}
+        glm::mat4 model;
+        glm::mat4 invModel;
+        uint32_t texIndex;
+    };
+
+    struct alignas(16) TracerInstance {
+        explicit TracerInstance(const MeshInstance& instance): model(instance.model), invModel(instance.invModel),
+        baseNode(instance.baseNode), baseTri(instance.baseTri), texIndex(instance.texIndex) {}
+        glm::mat4 model;
+        glm::mat4 invModel;
+        uint32_t baseNode;
+        uint32_t baseTri; //can be removed
+        uint32_t texIndex;
+    };
 }
 
 #endif //COLLECTION_GPUTYPES_HPP

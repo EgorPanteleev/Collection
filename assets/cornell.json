@@ -4,36 +4,42 @@
   "meshes":	[{
     "name":	"dragon1",
     "meshIndex":	0,
+    "texIndex": -1,
     "localPosition":	[-6, 0, 8],
     "localRotation":	[0, -35, 180],
     "localScale":	[30, 30, -30]
   }, {
     "name":	"bottomPlane",
     "meshIndex":	1,
+    "texIndex": -1,
     "localPosition":	[0, 0, 0],
     "localRotation":	[0, 0, 0],
     "localScale":	[30, 30, 30]
   }, {
     "name":	"leftPlane",
     "meshIndex":	1,
+    "texIndex": -1,
     "localPosition":	[0, -30, 30],
     "localRotation":	[0, 90, 90],
     "localScale":	[30, 30, 30]
   }, {
     "name":	"rightPlane",
     "meshIndex":	1,
+    "texIndex": -1,
     "localPosition":	[0, -30, -30],
     "localRotation":	[0, 90, 90],
     "localScale":	[30, 30, 30]
     }, {
     "name":	"forwardPlane",
     "meshIndex":	1,
+    "texIndex": -1,
     "localPosition":	[-30, -30, 0],
     "localRotation":	[0, 0, 90],
     "localScale":	[30, 30, 30]
   }, {
     "name":	"topPlane",
     "meshIndex":	1,
+    "texIndex": -1,
     "localPosition":	[0, -60, 0],
     "localRotation":	[0, 0, 0],
     "localScale":	[30, 30, 30]

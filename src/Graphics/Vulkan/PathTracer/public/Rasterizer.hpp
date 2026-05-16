@@ -57,6 +57,7 @@ namespace crv::graphics::vulkan {
         void update(const RasterizerUpdateInfo& info);
         void record(const RasterizerRecordInfo& info);
         void updateSelectedInstance();
+        uint32_t selectedInstanceIdx() const { return mSelectedInstanceId - 1; }
     protected:
         void createImages(VkExtent3D extent);
         void createDescriptorSetLayout();

@@ -521,10 +521,10 @@ namespace crv::graphics::vulkan {
             meshBuffer.firstInstance = instanceOffset;
             instanceOffset += meshData.instanceCount;
         }
-        std::vector<glm::mat4> instanceModels;
-        for (auto instance: info.instances) instanceModels.push_back(instance.model);
+        std::vector<RasterInstance> instances;
+        for (auto instance: info.instances) instances.emplace_back(instance);
         SSBOData ssboData{};
-        ssboData.add(instanceModels     , mInstanceBuffer     );
+        ssboData.add(instances     , mInstanceBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
 
         mMVPBuffers.resize(mFramesInFlight);
@@ -542,5 +542,14 @@ namespace crv::graphics::vulkan {
             .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY
         };
         mReadbackBuffer = Buffer(readbackInfo);
+
+        uint32_t data = 0;
+        const CopyDataToCPUBufferInfo copyInfo {
+            .data = &data,
+            .size = sizeof(uint32_t),
+            .allocator = mContext->allocator(),
+            .allocation = mReadbackBuffer.allocation()
+        };
+        Buffer::copy(copyInfo);
     }
 }

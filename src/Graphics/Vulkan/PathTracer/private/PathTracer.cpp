@@ -242,11 +242,13 @@ namespace crv::graphics::vulkan {
 
     void PathTracer::createBuffers(const PathTracerCreateInfo& info) {
         SSBOData ssboData{};
+        std::vector<TracerInstance> instances;
+        for (const auto& instance: info.instances) instances.emplace_back(instance);
         ssboData.add(info.triangles     , mTriangleBuffer     );
         ssboData.add(info.triangleExtras, mTriangleExtraBuffer);
         ssboData.add(info.nodes         , mNodeBuffer         );
         ssboData.add(info.TLASNodes     , mTLASNodeBuffer     );
-        ssboData.add(info.instances     , mInstanceBuffer     );
+        ssboData.add(instances          , mInstanceBuffer     );
         ssboData.createAll(mContext, QueueFamilyType::COMPUTE);
 
         mCameraBuffers.resize(mFramesInFlight);

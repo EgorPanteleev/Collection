@@ -411,8 +411,15 @@ namespace crv::graphics::vulkan {
             glm::mat4 model = T * R * S;
             int meshIndex = mesh["meshIndex"];
             ++mMeshesData[meshIndex].instanceCount;
-            mRasterInstances.emplace_back(model, glm::inverse(model),
-                nodeOffsets[meshIndex], triOffsets[meshIndex]);
+            MeshInstance instance = {
+                .name = mesh["name"],
+                .model = model,
+                .invModel = glm::inverse(model),
+                .baseNode = nodeOffsets[meshIndex],
+                .baseTri = triOffsets[meshIndex],
+                .texIndex = mesh["texIndex"]
+            };
+            mRasterInstances.push_back(instance);
             meshPrimitives.emplace_back(model, meshIndex, nodes[nodeOffsets[meshIndex]].bbox());
         }
         TLAS tlas = buildTLAS(std::span(meshPrimitives));
@@ -893,11 +900,30 @@ namespace crv::graphics::vulkan {
             }
             ImGui::Unindent(4.0f);
         };
-        static TabPanel panel = {
-            {ICON_FA_IMAGES " Render", 0, renderFunc},
-            {ICON_FA_VIDEO  " Camera", 1, cameraFunc},
+
+        auto objectFunc = [this]() {
+            uint32_t selectedInstanceIdx = mRasterizer.selectedInstanceIdx();
+            if (selectedInstanceIdx == UINT32_MAX) {
+                ImGui::Text("Click a mesh in the viewport");
+                return;
+            }
+            MeshInstance& instance = mRasterInstances[selectedInstanceIdx];
+            VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object"); //ICON_FA_CUBE
+            if (VkImGui::beginCompactTable("##object_status", 2.0f)) {
+                VkImGui::row("Name"         , instance.name.c_str());
+                //VkImGui::row("Render Time" , renderTime.c_str());
+                //VkImGui::row("SPP"         , "1");
+                //VkImGui::row("Accumulation", accumulation.c_str());
+                VkImGui::endCompactTable();
+            }
+            VkImGui::endGroup();
         };
-        static uint32_t activeSettingsTabIndex = 0;
+        static TabPanel panel = {
+            {ICON_FA_CUBE   " Object", 0, objectFunc},
+            {ICON_FA_IMAGES " Render", 1, renderFunc},
+            {ICON_FA_VIDEO  " Camera", 2, cameraFunc},
+        };
+        static uint32_t activeSettingsTabIndex = 1;
         VkImGui::tabPanel(panel, activeSettingsTabIndex);
 
         ImGui::End();
