@@ -44,6 +44,13 @@ namespace crv::graphics::vulkan {
         vmaUnmapMemory(mContext->allocator(), mReadbackBuffer.allocation());
     }
 
+    void Rasterizer::updateInstanceBuffer(const std::vector<MeshInstance>& instances) {
+        std::vector<RasterInstance> rasterInstances;
+        for (const auto& instance: instances) rasterInstances.emplace_back(instance);
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, rasterInstances.data(),
+            rasterInstances.size() * sizeof(RasterInstance), mInstanceBuffer);
+    }
+
     void Rasterizer::recordMainPass(const RasterizerRecordInfo& info) {
         std::vector<VkClearValue> clearValues = {
         {.color = {{0.2f, 0.2f, 0.2f, 1.0f}},},

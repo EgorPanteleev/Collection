@@ -61,7 +61,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void copyDataToBuffer(Context* context, QueueFamilyType familyType, void* data, uint32_t size, Buffer& buffer) {
+    void copyDataToBuffer(Context* context, QueueFamilyType familyType, const void* data, uint32_t size, Buffer& buffer) {
         const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
             .data = data,
             .size = size,

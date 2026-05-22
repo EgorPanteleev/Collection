@@ -53,9 +53,11 @@ namespace crv::graphics::vulkan {
         explicit PathTracer(const PathTracerCreateInfo& info);
         void update(const PathTracerUpdateInfo& info);
         void record(const PathTracerRecordInfo& info);
+        void updateTLAS(const std::vector<AlignedNode>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers);
     protected:
         void createDescriptorSetLayout();
         void createDescriptorPool();
+        void updateDescriptorSets(const std::vector<GBuffer>& gBuffers);
         void createDescriptorSets(const PathTracerCreateInfo& info);
         void createPipelineLayout();
         void createShaders();
@@ -81,6 +83,7 @@ namespace crv::graphics::vulkan {
         Buffer mInstanceBuffer{};
         std::vector<Buffer> mDirectLightBuffers{};
         std::vector<TexturesByType>* mTextures = nullptr;
+        VkImageView mOutImageView = VK_NULL_HANDLE;
     };
 }
 

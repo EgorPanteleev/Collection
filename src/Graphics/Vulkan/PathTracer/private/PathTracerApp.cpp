@@ -305,20 +305,14 @@ namespace crv::graphics::vulkan {
     }
 
     static BLAS buildBLAS(std::span<Tri> tris) {
-        utils::Timer timer;
-        timer.start();
         BLASBuilder builder{tris};
         BLAS blas = builder.build();
-        INFO << "BLAS build time: " << timer.duration() / 1000 << " sec";
         return blas;
     }
 
     static TLAS buildTLAS(std::span<MeshPrimitive> prims) {
-        utils::Timer timer;
-        timer.start();
         TLASBuilder builder{prims};
         TLAS tlas = builder.build();
-        INFO << "TLAS build time: " << timer.duration() / 1000 << " sec";
         return tlas;
     }
 
@@ -328,13 +322,12 @@ namespace crv::graphics::vulkan {
             loadModel(modelIndex, models[modelIndex]);
         }
 
-        std::vector<MeshPrimitive> meshPrimitives;
         for (const auto& instance: mRasterInstances) {
             AlignedBBox bbox = mNodes[instance.baseNode].bbox;
-            meshPrimitives.emplace_back(instance.model, bbox.min, bbox.max);
+            mMeshPrimitives.emplace_back(instance.transform.matrix(), bbox.min, bbox.max);
         }
 
-        TLAS tlas = buildTLAS(std::span(meshPrimitives));
+        TLAS tlas = buildTLAS(std::span(mMeshPrimitives));
         for (int i = 0; i < mRasterInstances.size(); ++i) {
             const uint32_t idx = tlas.primIds()[i];
             mTracerInstances.push_back(mRasterInstances[idx]);
@@ -352,14 +345,7 @@ namespace crv::graphics::vulkan {
         timer.start();
         auto loader = new cm::Loader;
         loader->setModel(ASSETS_PATH + path);
-        glm::mat4 T = glm::mat4(1.0f);
-        glm::mat4 R = glm::mat4(1.0f);
-        R = glm::rotate(R, glm::radians(0.0f), glm::vec3(0, 1, 0));
-        R = glm::rotate(R, glm::radians(0.0f), glm::vec3(1, 0, 0));
-        R = glm::rotate(R, glm::radians(0.0f), glm::vec3(0, 0, 1));
-        glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, 1));
-        glm::mat4 model = T * R * S;
-        loader->load(model); //glm::mat4(1.0f)
+        loader->load(glm::mat4(1.0f));
         INFO << "Model (" << fs::path(path).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
         timer.start();
 
@@ -429,20 +415,20 @@ namespace crv::graphics::vulkan {
 
             for (const auto& instance: instances) {
                 glm::vec3 rot = toVec3(instance["localRotation"]);
-                glm::mat4 T = glm::translate(glm::mat4(1.0f), toVec3(instance["localPosition"]));
-                glm::mat4 R = glm::mat4(1.0f);
-                R = glm::rotate(R, glm::radians(rot.y), glm::vec3(0, 1, 0));
-                R = glm::rotate(R, glm::radians(rot.x), glm::vec3(1, 0, 0));
-                R = glm::rotate(R, glm::radians(rot.z), glm::vec3(0, 0, 1));
-                glm::mat4 S = glm::scale(glm::mat4(1.0f), toVec3(instance["localScale"]));
-                glm::mat4 model = T * R * S;
+                Transform transform;
+                transform.position = toVec3(instance["localPosition"]);
+                transform.scale = toVec3(instance["localScale"]);
+                glm::quat qx = glm::angleAxis(glm::radians(rot.x), glm::vec3(1,0,0));
+                glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0,1,0));
+                glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0,0,1));
+                transform.rotation = glm::normalize(qy * qx * qz);
 
                 uint32_t texIndex = instance["texIndex"];
                 if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
                 MeshInstance meshInstance = {
                     .name = instance["name"],
-                    .model = model,
-                    .invModel = glm::inverse(model),
+                    .meshName = mesh.name,
+                    .transform = transform,
                     .baseNode = baseNode,
                     .baseTri = baseTriangle,
                     .texIndex = texIndex
@@ -836,6 +822,16 @@ namespace crv::graphics::vulkan {
         submit(imageIndex);
     }
 
+    static float clampAngle(float deg) {
+        deg = std::fmod(deg + 180.0f, 360.0f);
+        if (deg < 0.0f) deg += 360.0f;
+        return deg - 180.0f;
+    }
+
+    static glm::vec3 clampRotation(const glm::vec3& e) {
+        return {clampAngle(e.x), clampAngle(e.y), clampAngle(e.z)};
+    }
+
     void PathTracerApp::drawControlPanel() {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
@@ -936,7 +932,7 @@ namespace crv::graphics::vulkan {
                     }
                 }
                 if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    const char* modes[] = {"Albedo", "Depth", "Normal", "Rendered"};
+                    const char* modes[] = {"Albedo", "Depth", "Normal", "TracedAlbedo", "Rendered"};
                     if (ImGui::Combo("Display mode", &mDisplayMode, modes, IM_ARRAYSIZE(modes))) {
                         updateImage();
                     }
@@ -950,14 +946,44 @@ namespace crv::graphics::vulkan {
                     ImGui::Text("Click a mesh in the viewport");
                     return;
                 }
+
                 MeshInstance& instance = mRasterInstances[selectedInstanceIdx];
                 if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
                     if (VkImGui::beginCompactTable("##object_status", 2.0f)) {
                         VkImGui::row("Name"         , instance.name.c_str());
-                        //VkImGui::row("Render Time" , renderTime.c_str());
-                        //VkImGui::row("SPP"         , "1");
-                        //VkImGui::row("Accumulation", accumulation.c_str());
+                        VkImGui::row("Mesh Name"    , instance.meshName.c_str());
                         VkImGui::endCompactTable();
+                    }
+                    VkImGui::endGroup();
+                }
+
+                if (VkImGui::beginGroup(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform")) {
+                    bool changed = false;
+                    Transform transform = instance.transform;
+                    if (ImGui::DragFloat3("Position", &transform.position[0], 0.1f))
+                        changed = true;
+
+                    static glm::vec3 uiRotation{FLT_MAX};
+                    if (uiRotation[0] == FLT_MAX)
+                        uiRotation = glm::degrees(glm::eulerAngles(instance.transform.rotation));
+                    glm::vec3 prevRotation = uiRotation;
+                    if (ImGui::DragFloat3("Rotation", &uiRotation[0], 0.5f)) {
+                        uiRotation = clampRotation(uiRotation);
+                        glm::vec3 delta = uiRotation - prevRotation;
+                        glm::quat qx = glm::angleAxis(glm::radians(delta.x), glm::vec3(1,0,0));
+                        glm::quat qy = glm::angleAxis(glm::radians(delta.y), glm::vec3(0,1,0));
+                        glm::quat qz = glm::angleAxis(glm::radians(delta.z), glm::vec3(0,0,1));
+                        glm::quat deltaRot = qz * qy * qx;
+                        transform.rotation = glm::normalize(deltaRot * transform.rotation);
+                        changed = true;
+                    }
+
+                    if (ImGui::DragFloat3("Scale", &transform.scale[0], 0.05f))
+                        changed = true;
+
+                    if (changed) {
+                        updateInstanceModel(selectedInstanceIdx, transform);
+                        updateImage();
                     }
                     VkImGui::endGroup();
                 }
@@ -1191,5 +1217,30 @@ namespace crv::graphics::vulkan {
             .textures = &mTextures
         };
         mRasterizer = Rasterizer(createInfo);
+    }
+
+    void PathTracerApp::updateInstanceModel(const uint32_t instanceIndex, const Transform& transform) {
+        MeshInstance& instance = mRasterInstances[instanceIndex];
+        instance.transform = transform;
+        mRasterizer.updateInstanceBuffer(mRasterInstances);
+        glm::mat4 model = transform.matrix();
+
+        AlignedBBox bbox = mNodes[instance.baseNode].bbox;
+        mMeshPrimitives[instanceIndex] = MeshPrimitive(model, bbox.min, bbox.max);
+
+        TLAS tlas = buildTLAS(std::span(mMeshPrimitives));
+        mTracerInstances.clear();
+        for (int i = 0; i < mRasterInstances.size(); ++i) {
+            const uint32_t idx = tlas.primIds()[i];
+            mTracerInstances.push_back(mRasterInstances[idx]);
+        }
+        mTLASNodes.clear();
+        for (const auto& node: tlas.nodes()) {
+            AlignedNode alignedNode{};
+            alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
+            alignedNode.index = node.index().value();
+            mTLASNodes.push_back(alignedNode);
+        }
+        mPathTracer.updateTLAS(mTLASNodes, mTracerInstances, mGBuffers);
     }
 }

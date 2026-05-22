@@ -67,6 +67,32 @@ vec3 traceRay(uint seed, vec3 albedo, float inDepth, vec3 P, vec3 N) {
     return resultColor;
 }
 
+vec3 tracedAlbedo() {
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    vec2 wh = imageSize(outputImage);
+    vec2 uv = coord / wh;
+    float depth = texture(depthImage, uv).r;
+    vec2 ndc = uv * 2.0 - 1.0;
+    vec4 clip = vec4(ndc, depth, 1.0);
+    vec4 world = camera.invViewProj * clip;
+    world /= world.w;
+
+    vec3 rayOrigin = camera.pos.xyz;
+    vec3 rayDir = normalize(world.xyz - rayOrigin);
+    Ray currentRay = makeRay(rayOrigin, rayDir, 0.0, FLT_MAX);
+    Hit hit = intersect(currentRay, 1e-6);
+    if (hit.triId == UINT_MAX) {
+        return skyColor;
+    }
+    PrecomputedTriangle tri = triangleBuffer.data[hit.triId];
+    TriangleExtra triExtra = triangleExtraBuffer.data[hit.triId];
+    Instance instance = instanceBuffer.data[hit.instanceId];
+    vec3 localP = vec3(tri.p0 + hit.u * tri.e1 + hit.v * tri.e2);
+    vec3 P = vec3(instance.model * vec4(localP, 1.0));
+    vec3 albedo = texture(textures[nonuniformEXT(triExtra.texIndex)], getUV(triExtra, hit.u, hit.v)).rgb;
+    return albedo;
+}
+
 vec3 tracedColor() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 wh = imageSize(outputImage);
@@ -110,7 +136,8 @@ void main() {
         case 0: outColor = texture(colorImage, uv).rgb; break;
         case 1: outColor = depthColor(); break;
         case 2: outColor = texture(normalImage, uv).rgb * 0.5 + 0.5; break;
-        case 3: outColor = tracedColor(); break;
+        case 3: outColor = tracedAlbedo(); break;
+        case 4: outColor = tracedColor(); break;
     }
     if (pc.frame == 0) {
         imageStore(outputImage, coord, vec4(outColor, 1.0));

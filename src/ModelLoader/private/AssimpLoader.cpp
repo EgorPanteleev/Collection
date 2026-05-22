@@ -121,6 +121,7 @@ namespace crv::model {
 
             std::vector<Vertex> vertices;
             std::vector<uint32_t> indices;
+            mesh.name = mScene->mMeshes[meshIndex]->mName.C_Str();
             processMesh<Vertex>(vertices, indices, meshIndex, transform);
             mesh.baseVertex = mVertices.size();
             mesh.baseIndex  = mIndices.size();

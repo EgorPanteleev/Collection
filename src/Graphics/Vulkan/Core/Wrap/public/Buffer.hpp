@@ -20,14 +20,14 @@ namespace crv::graphics::vulkan {
     };
 
     struct CopyDataToCPUBufferInfo {
-        void* data = nullptr;
+        const void* data = nullptr;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
     };
 
     struct CopyCPUBufferToDataInfo {
-        void* data = nullptr;
+        const void* data = nullptr;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
@@ -43,7 +43,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct CopyDataToGPUBufferInfo {
-        void* data = nullptr;
+        const void* data = nullptr;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VkBuffer buffer = VK_NULL_HANDLE;
@@ -53,7 +53,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct CopyGPUBufferToDataInfo {
-        void* data = nullptr;
+        const void* data = nullptr;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VkBuffer buffer = VK_NULL_HANDLE;

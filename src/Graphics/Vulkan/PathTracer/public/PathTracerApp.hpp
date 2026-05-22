@@ -64,6 +64,7 @@ namespace crv::graphics::vulkan {
         void setCamera(scene::CameraType type);
         void createGBuffers();
         void createRasterizer();
+        void updateInstanceModel(uint32_t instanceIndex, const Transform& transform);
         GBuffer& currentGBuffer() { return mGBuffers[mCurrentFrame]; }
 
 #ifdef NDEBUG
@@ -82,7 +83,7 @@ namespace crv::graphics::vulkan {
         int  mSPP         = 1;
         int  mMinDepth    = 0;
         int  mMaxDepth    = 1;
-        int  mDisplayMode = static_cast<int>(DisplayMode::RENDERED);
+        int  mDisplayMode = 4;
         UIVec2 mPixel{UINT32_MAX, UINT32_MAX};
 
         json                   mScene{};
@@ -113,6 +114,7 @@ namespace crv::graphics::vulkan {
         std::vector<AlignedNode>          mNodes{};
         std::vector<AlignedNode>          mTLASNodes{};
         std::vector<MeshData>             mMeshesData{};
+        std::vector<MeshPrimitive>        mMeshPrimitives{};
         std::vector<MeshInstance>         mRasterInstances{};
         std::vector<MeshInstance>         mTracerInstances{};
         std::vector<cm::Material>         mMaterials{};

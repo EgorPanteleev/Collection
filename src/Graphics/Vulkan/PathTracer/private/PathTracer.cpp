@@ -11,7 +11,8 @@
 
 namespace crv::graphics::vulkan {
     PathTracer::PathTracer(const PathTracerCreateInfo& info): mFramesInFlight(info.framesInFlight),
-    mInstanceCount(info.instances.size()), mTextures(info.textures), mContext(info.context) {
+    mInstanceCount(info.instances.size()), mTextures(info.textures), mContext(info.context),
+    mOutImageView(info.outImageView) {
         createBuffers(info);
         createDescriptorSetLayout();
         createDescriptorPool();
@@ -45,6 +46,21 @@ namespace crv::graphics::vulkan {
         const uint32_t groupX = 1 + (width  - 1) / 16;
         const uint32_t groupY = 1 + (height - 1) / 16;
         vkCmdDispatch(info.commandBuffer, groupX, groupY, 1);
+    }
+
+    void PathTracer::updateTLAS(const std::vector<AlignedNode>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers) {
+        std::vector<TracerInstance> tracerInstances;
+        for (const auto& instance: instances) tracerInstances.emplace_back(instance);
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, tracerInstances.data(),
+            tracerInstances.size() * sizeof(TracerInstance), mInstanceBuffer);
+
+        uint32_t newSize = nodes.size() * sizeof(AlignedNode);
+        if (mTLASNodeBuffer.size() != newSize) {
+            createSSBO(mContext->allocator(), newSize, mTLASNodeBuffer);
+            updateDescriptorSets(gBuffers);
+        }
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, nodes.data(),
+            newSize, mTLASNodeBuffer);
     }
 
     std::vector<VkDescriptorSetLayout> PathTracer::getDescriptorLayouts() const {
@@ -113,16 +129,7 @@ namespace crv::graphics::vulkan {
         mDescriptorPool = DescriptorPool(createInfo);
     }
 
-    void PathTracer::createDescriptorSets(const PathTracerCreateInfo& info) {
-        const std::vector variableCounts(mFramesInFlight, static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN));
-        const DescriptorSetsCreateInfo createInfo {
-            .device = mContext->device(),
-            .layouts = getDescriptorLayouts(),
-            .pool = mDescriptorPool.get(),
-            .variableCounts =variableCounts
-        };
-        mDescriptorSets = DescriptorSets(createInfo);
-
+    void PathTracer::updateDescriptorSets(const std::vector<GBuffer>& gBuffers) {
         std::vector<VkDescriptorImageInfo> textureInfos;
         for (size_t i = 0; i < mTextures->size(); i++) {
             auto& texturesByType = (*mTextures)[i];
@@ -137,6 +144,58 @@ namespace crv::graphics::vulkan {
                 textureInfos.push_back(textureInfo);
             }
         }
+
+        VkWriteDescriptorSet texturesWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 11,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = textureInfos.data()
+        };
+
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        std::vector<VkDescriptorImageInfo> imageInfos;
+        bufferInfos.reserve(60);
+        imageInfos.reserve(60);
+        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            const GBuffer& gBuffer = gBuffers[i];
+            std::vector descriptorWrites{
+                getUBODescriptorWrite (mCameraBuffers[i]   , 0, bufferInfos),
+                getSSBODescriptorWrite(mTriangleBuffer     , 1, bufferInfos),
+                getSSBODescriptorWrite(mTriangleExtraBuffer, 2, bufferInfos),
+                getSSBODescriptorWrite(mNodeBuffer         , 3, bufferInfos),
+                getSSBODescriptorWrite(mTLASNodeBuffer     , 4, bufferInfos),
+                getSSBODescriptorWrite(mInstanceBuffer     , 5, bufferInfos),
+                getUBODescriptorWrite (mDirectLightBuffers[i], 6, bufferInfos),
+                getStorageImageDescriptorWrite(mOutImageView, VK_IMAGE_LAYOUT_GENERAL, 7, imageInfos),
+                getSamplerImageDescriptorWrite(gBuffer.sampler.get(), gBuffer.colorView.get(),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 8, imageInfos),
+                getSamplerImageDescriptorWrite(gBuffer.sampler.get(), gBuffer.depthView.get(),
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 9, imageInfos),
+                getSamplerImageDescriptorWrite(gBuffer.sampler.get(), gBuffer.normalView.get(),
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 10, imageInfos),
+                texturesWriteDescriptorSet
+            };
+            descriptorsWrites.push_back(descriptorWrites);
+        }
+
+        const DescriptorSetsUpdateInfo updateInfo {
+            .descriptorsWrites = descriptorsWrites
+        };
+        mDescriptorSets.update(updateInfo);
+    }
+
+    void PathTracer::createDescriptorSets(const PathTracerCreateInfo& info) {
+        const std::vector variableCounts(mFramesInFlight, static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN));
+        const DescriptorSetsCreateInfo createInfo {
+            .device = mContext->device(),
+            .layouts = getDescriptorLayouts(),
+            .pool = mDescriptorPool.get(),
+            .variableCounts =variableCounts
+        };
+        mDescriptorSets = DescriptorSets(createInfo);
 
         auto [commandPool, commandBuffers] = beginCommandBuffer(mContext->device(), mContext->familyIndex(QueueFamilyType::COMPUTE).value());
         VkCommandBuffer commandBuffer = (*commandBuffers)[0];
@@ -154,47 +213,7 @@ namespace crv::graphics::vulkan {
         Image::transit(imageTransitInfo);
 
         endCommandBuffer(commandPool, commandBuffers, mContext->queue(QueueFamilyType::COMPUTE));
-
-        VkWriteDescriptorSet texturesWriteDescriptorSet {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 11,
-            .dstArrayElement = 0,
-            .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = textureInfos.data()
-        };
-
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
-        std::vector<VkDescriptorImageInfo> imageInfos;
-        bufferInfos.reserve(60);
-        imageInfos.reserve(60);
-        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            GBuffer& gBuffer = (*info.gBuffers)[i];
-            std::vector descriptorWrites{
-                getUBODescriptorWrite (mCameraBuffers[i]   , 0, bufferInfos),
-                getSSBODescriptorWrite(mTriangleBuffer     , 1, bufferInfos),
-                getSSBODescriptorWrite(mTriangleExtraBuffer, 2, bufferInfos),
-                getSSBODescriptorWrite(mNodeBuffer         , 3, bufferInfos),
-                getSSBODescriptorWrite(mTLASNodeBuffer     , 4, bufferInfos),
-                getSSBODescriptorWrite(mInstanceBuffer     , 5, bufferInfos),
-                getUBODescriptorWrite (mDirectLightBuffers[i], 6, bufferInfos),
-                getStorageImageDescriptorWrite(info.outImageView, VK_IMAGE_LAYOUT_GENERAL, 7, imageInfos),
-                getSamplerImageDescriptorWrite(gBuffer.sampler.get(), gBuffer.colorView.get(),
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 8, imageInfos),
-                getSamplerImageDescriptorWrite(gBuffer.sampler.get(), gBuffer.depthView.get(),
-                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 9, imageInfos),
-                getSamplerImageDescriptorWrite(gBuffer.sampler.get(), gBuffer.normalView.get(),
-                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 10, imageInfos),
-                texturesWriteDescriptorSet
-            };
-            descriptorsWrites.push_back(descriptorWrites);
-        }
-
-        const DescriptorSetsUpdateInfo updateInfo {
-            .descriptorsWrites = descriptorsWrites
-        };
-        mDescriptorSets.update(updateInfo);
+        updateDescriptorSets(*info.gBuffers);
     }
 
     void PathTracer::createPipelineLayout() {

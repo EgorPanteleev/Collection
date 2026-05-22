@@ -6,9 +6,11 @@
 #define VULKAN_MODELMESH_H
 
 #include <glm/glm.hpp>
+#include <string>
 
 namespace crv::model {
     struct Mesh {
+        std::string name{};
         uint32_t numIndices = 0;
         uint32_t numVertices = 0;
         uint32_t baseVertex = 0;

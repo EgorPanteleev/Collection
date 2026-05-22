@@ -63,7 +63,7 @@ namespace crv::graphics::vulkan {
     void Buffer::copy(const CopyCPUBufferToDataInfo& info) {
         void* mapped;
         vmaMapMemory(info.allocator, info.allocation, &mapped);
-        memcpy(info.data, mapped, info.size);
+        memcpy(const_cast<void*>(info.data), mapped, info.size);
         vmaUnmapMemory(info.allocator, info.allocation);
     }
 

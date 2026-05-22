@@ -16,7 +16,7 @@ namespace crv::graphics::vulkan {
     void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue);
     void beginCommandBuffer(VkCommandBuffer commandBuffer);
     void endCommandBuffer(VkCommandBuffer commandBuffer);
-    void copyDataToBuffer(Context* context, QueueFamilyType familyType, void* data, uint32_t size, Buffer& buffer);
+    void copyDataToBuffer(Context* context, QueueFamilyType familyType, const void* data, uint32_t size, Buffer& buffer);
     void createSSBO(VmaAllocator allocator, uint32_t size, Buffer& buffer);
     void createUBO(VmaAllocator allocator, uint32_t size, Buffer& buffer);
     VkWriteDescriptorSet getSSBODescriptorWrite(const Buffer& buffer, uint32_t binding, std::vector<VkDescriptorBufferInfo>& infos);
