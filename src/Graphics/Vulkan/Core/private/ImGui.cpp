@@ -198,10 +198,11 @@ namespace crv::graphics::vulkan {
         );
     }
 
-    void VkImGui::beginFrame() {
+    bool VkImGui::beginFrame() {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        return true;
     }
 
     void VkImGui::endFrame() {
@@ -222,10 +223,11 @@ namespace crv::graphics::vulkan {
         return ret;
     }
 
-    void VkImGui::beginGroup(const char* name) {
+    bool VkImGui::beginGroup(const char* name) {
         ImGui::Dummy({0.0f, 2.0f});
         separatorText(name);
         ImGui::Indent(4.0f);
+        return true;
     }
 
     void VkImGui::endGroup() {

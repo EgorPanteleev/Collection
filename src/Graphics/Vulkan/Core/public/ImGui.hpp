@@ -42,13 +42,13 @@ namespace crv::graphics::vulkan {
         VkImGui& operator=(VkImGui&&) noexcept;
         [[nodiscard]] ImDrawData* drawData() { return mDrawData; }
         void destroy();
-        void beginFrame();
+        bool beginFrame();
         void endFrame();
         void render(const ImGuiRenderInfo& info);
         static void loadConfigFile(const char* path);
         static void saveConfigFile(const char* path);
         static bool selectableButton(const char* label, bool cond);
-        static void beginGroup(const char* name);
+        static bool beginGroup(const char* name);
         static void endGroup();
         static void separatorText(const char* label);
         static bool beginCompactTable(const char* tableId, float padding);

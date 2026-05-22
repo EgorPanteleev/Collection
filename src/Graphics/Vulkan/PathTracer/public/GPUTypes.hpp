@@ -55,8 +55,19 @@ namespace crv::graphics::vulkan {
         float pad[3];
     };
 
+    enum class DisplayMode {
+        ALBEDO,
+        DEPTH,
+        NORMAL,
+        RENDERED
+    };
+
     struct PushConstants {
-        uint32_t frame, spp, minDepth, maxDepth;
+        uint32_t frameCount  = 0;
+        uint32_t spp         = 1;
+        uint32_t minDepth    = 1;
+        uint32_t maxDepth    = 1;
+        uint32_t displayMode = static_cast<uint32_t>(DisplayMode::RENDERED);
     };
 
     struct Vertex {

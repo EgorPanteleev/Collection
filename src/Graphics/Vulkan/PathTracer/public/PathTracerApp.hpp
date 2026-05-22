@@ -82,6 +82,7 @@ namespace crv::graphics::vulkan {
         int  mSPP         = 1;
         int  mMinDepth    = 0;
         int  mMaxDepth    = 1;
+        int  mDisplayMode = static_cast<int>(DisplayMode::RENDERED);
         UIVec2 mPixel{UINT32_MAX, UINT32_MAX};
 
         json                   mScene{};

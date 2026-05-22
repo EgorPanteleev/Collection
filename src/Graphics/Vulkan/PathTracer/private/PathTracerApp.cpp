@@ -583,10 +583,13 @@ namespace crv::graphics::vulkan {
             .commandBuffer = commandBuffer,
             .extent = mSwapchain.extent(),
             .currentFrame = mCurrentFrame,
-            .frameCount = mFrameCount,
-            .spp      = static_cast<uint32_t>(mSPP),
-            .minDepth = static_cast<uint32_t>(mMinDepth),
-            .maxDepth = static_cast<uint32_t>(mMaxDepth)
+            .constants = {
+                .frameCount = mFrameCount,
+                .spp = static_cast<uint32_t>(mSPP),
+                .minDepth = static_cast<uint32_t>(mMinDepth),
+                .maxDepth = static_cast<uint32_t>(mMaxDepth),
+                .displayMode = static_cast<uint32_t>(mDisplayMode)
+            }
         };
         mPathTracer.record(pathTracerRecordInfo);
 
@@ -841,40 +844,54 @@ namespace crv::graphics::vulkan {
             mImGui.endFrame();
             return;
         }
-        ImGui::Begin("Overview");
-        VkImGui::beginGroup(ICON_FA_GAUGE " Status");
-        std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
-        std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
-        std::string accumulation = std::format("{:1}", (mFrameCount + 1) * mSPP);
 
-        if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
-            VkImGui::row("FPS"         , fps.c_str());
-            VkImGui::row("Render Time" , renderTime.c_str());
-            VkImGui::row("SPP"         , "1");
-            VkImGui::row("Accumulation", accumulation.c_str());
-            VkImGui::endCompactTable();
+        if (ImGui::Begin("Overview", nullptr, ImGuiWindowFlags_MenuBar)) {
+            if (ImGui::BeginMenuBar()) {
+                if (ImGui::BeginMenu("File")) {
+                    if (ImGui::MenuItem("Save Panel Configuration")) {
+                        VkImGui::saveConfigFile(PROJECT_PATH"imgui.ini");
+                    }
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenuBar();
+            }
+
+            if (VkImGui::beginGroup(ICON_FA_GAUGE " Status")) {
+                std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
+                std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
+                std::string accumulation = std::format("{:1}", (mFrameCount + 1) * mSPP);
+
+                if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
+                    VkImGui::row("FPS"         , fps.c_str());
+                    VkImGui::row("Render Time" , renderTime.c_str());
+                    VkImGui::row("SPP"         , "1");
+                    VkImGui::row("Accumulation", accumulation.c_str());
+                    VkImGui::endCompactTable();
+                }
+                VkImGui::endGroup();
+            }
+
+            if (VkImGui::beginGroup(ICON_FA_MICROCHIP " System")) {
+                auto properties = mContext.physicalDeviceProperties();
+                auto [width, height] = mSwapchain.extent();
+                std::string viewport = std::format("{:1}x{:2}", width, height);
+                if (VkImGui::beginCompactTable("##monitor_system", 2.0f)) {
+                    VkImGui::row("GPU"     , properties.deviceName);
+                    VkImGui::row("Viewport", viewport.c_str());
+                    VkImGui::endCompactTable();
+                }
+                VkImGui::endGroup();
+            }
+
+            if (VkImGui::beginGroup(ICON_FA_CUBES " Scene")) {
+                VkImGui::endGroup();
+            }
+
         }
-        VkImGui::endGroup();
-
-        VkImGui::beginGroup(ICON_FA_MICROCHIP " System");
-        auto properties = mContext.physicalDeviceProperties();
-        auto [width, height] = mSwapchain.extent();
-        std::string viewport = std::format("{:1}x{:2}", width, height);
-        if (VkImGui::beginCompactTable("##monitor_system", 2.0f)) {
-            VkImGui::row("GPU"     , properties.deviceName);
-            VkImGui::row("Viewport", viewport.c_str());
-            VkImGui::endCompactTable();
-        }
-        VkImGui::endGroup();
-
-        VkImGui::beginGroup(ICON_FA_CUBES " Scene");
-        VkImGui::endGroup();
-
         ImGui::End();
 
-        ImGui::Begin("Settings");
-
-        auto cameraFunc = [this]() {
+        if (ImGui::Begin("Settings")) {
+            auto cameraFunc = [this] {
             glm::vec3 position = mCamera->position();
             if (ImGui::DragFloat3("Position", &position.x, 0.05f, -FLT_MAX, FLT_MAX)) {
                 mCamera->setPosition(position);
@@ -896,59 +913,67 @@ namespace crv::graphics::vulkan {
             }
             ImGui::SameLine();
             ImGui::Text("Type");
-        };
-        auto renderFunc = [this]() {
-            ImGui::Indent(4.0f);
-            if (ImGui::CollapsingHeader("Direct Light"), ImGuiTreeNodeFlags_DefaultOpen) {
-                if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
-                    updateImage();
+            };
+            auto renderFunc = [this] {
+                ImGui::Indent(4.0f);
+                if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
+                        updateImage();
+                    }
+                    if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
+                        updateImage();
+                    }
                 }
-                if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
-                    updateImage();
+                if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
+                        updateImage();
+                    }
+                    if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
+                        updateImage();
+                    }
+                    if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
+                        updateImage();
+                    }
                 }
-            }
-            if (ImGui::CollapsingHeader("Performance"), ImGuiTreeNodeFlags_DefaultOpen) {
-                if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
-                    updateImage();
+                if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    const char* modes[] = {"Albedo", "Depth", "Normal", "Rendered"};
+                    if (ImGui::Combo("Display mode", &mDisplayMode, modes, IM_ARRAYSIZE(modes))) {
+                        updateImage();
+                    }
                 }
-                if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
-                    updateImage();
-                }
-                if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
-                    updateImage();
-                }
-            }
-            ImGui::Unindent(4.0f);
-        };
+                ImGui::Unindent(4.0f);
+            };
 
-        auto objectFunc = [this]() {
-            uint32_t selectedInstanceIdx = mRasterizer.selectedInstanceIdx();
-            if (selectedInstanceIdx == UINT32_MAX) {
-                ImGui::Text("Click a mesh in the viewport");
-                return;
-            }
-            MeshInstance& instance = mRasterInstances[selectedInstanceIdx];
-            VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object"); //ICON_FA_CUBE
-            if (VkImGui::beginCompactTable("##object_status", 2.0f)) {
-                VkImGui::row("Name"         , instance.name.c_str());
-                //VkImGui::row("Render Time" , renderTime.c_str());
-                //VkImGui::row("SPP"         , "1");
-                //VkImGui::row("Accumulation", accumulation.c_str());
-                VkImGui::endCompactTable();
-            }
-            VkImGui::endGroup();
-        };
-        static TabPanel panel = {
-            {ICON_FA_CUBE   " Object", 0, objectFunc},
-            {ICON_FA_IMAGES " Render", 1, renderFunc},
-            {ICON_FA_VIDEO  " Camera", 2, cameraFunc},
-        };
-        static uint32_t activeSettingsTabIndex = 1;
-        VkImGui::tabPanel(panel, activeSettingsTabIndex);
+            auto objectFunc = [this] {
+                uint32_t selectedInstanceIdx = mRasterizer.selectedInstanceIdx();
+                if (selectedInstanceIdx == UINT32_MAX) {
+                    ImGui::Text("Click a mesh in the viewport");
+                    return;
+                }
+                MeshInstance& instance = mRasterInstances[selectedInstanceIdx];
+                if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
+                    if (VkImGui::beginCompactTable("##object_status", 2.0f)) {
+                        VkImGui::row("Name"         , instance.name.c_str());
+                        //VkImGui::row("Render Time" , renderTime.c_str());
+                        //VkImGui::row("SPP"         , "1");
+                        //VkImGui::row("Accumulation", accumulation.c_str());
+                        VkImGui::endCompactTable();
+                    }
+                    VkImGui::endGroup();
+                }
+            };
 
+            static TabPanel panel = {
+                {ICON_FA_CUBE   " Object", 0, objectFunc},
+                {ICON_FA_IMAGES " Render", 1, renderFunc},
+                {ICON_FA_VIDEO  " Camera", 2, cameraFunc},
+            };
+            static uint32_t activeSettingsTabIndex = 1;
+            VkImGui::tabPanel(panel, activeSettingsTabIndex);
+        }
         ImGui::End();
+
         mImGui.endFrame();
-        //VkImGui::saveConfigFile(PROJECT_PATH"imgui.ini");
     }
 
     void PathTracerApp::setCamera(const scene::CameraType type) {

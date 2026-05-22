@@ -6,103 +6,6 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 #include "layout.glsl"
 #include "material.glsl"
 
-BLASHit intersect(Ray ray, uint rootNode, uint baseTri, float eps) {
-    BLASHit closestHit = BLASHit(UINT_MAX, FLT_MAX, 0, 0);
-    uint stack[32];
-    uint sp = 0;
-    stack[sp++] = rootNode;
-    while (sp != 0) {
-        uint nodeIdx = stack[--sp];
-        Node node = nodeBuffer.data[nodeIdx];
-        float tNode = intersect(node.bbox, ray);
-        if (tNode == FLT_MAX || tNode >= closestHit.t) continue;
-        uint primCount = primCount(node.index);
-        if (primCount != 0) {
-            uint id = baseTri + id(node.index);
-            for (uint i = 0; i < primCount; ++i) {
-                PrecomputedTriangle tri = triangleBuffer.data[id + i];
-                TriHit triHit = intersect(tri, ray, eps);
-                if (triHit.t > eps && triHit.t < closestHit.t) {
-                    closestHit = BLASHit(id + i, triHit.t, triHit.u, triHit.v);
-                }
-            }
-        } else {
-            uint leftIdx  = rootNode + id(node.index);
-            uint rightIdx = leftIdx + 1;
-            Node left  = nodeBuffer.data[leftIdx];
-            Node right = nodeBuffer.data[rightIdx];
-            float tLeft  = intersect(left.bbox, ray);
-            float tRight = intersect(right.bbox, ray);
-            bool hitLeft  = (tLeft  != FLT_MAX) && (tLeft  < closestHit.t);
-            bool hitRight = (tRight != FLT_MAX) && (tRight < closestHit.t);
-            if (hitLeft && hitRight) {
-                if (tLeft < tRight) {
-                    stack[sp++] = rightIdx;
-                    stack[sp++] = leftIdx;
-                } else {
-                    stack[sp++] = leftIdx;
-                    stack[sp++] = rightIdx;
-                }
-            } else if (hitLeft) {
-                stack[sp++] = leftIdx;
-            } else if (hitRight) {
-                stack[sp++] = rightIdx;
-            }
-        }
-    }
-    return closestHit;
-}
-
-Hit intersect(Ray ray, float eps) {
-    Hit closestHit = Hit(UINT_MAX, UINT_MAX, FLT_MAX, 0, 0);
-    uint stack[32];
-    uint sp = 0;
-    stack[sp++] = 0;
-    while (sp != 0) {
-        uint nodeIdx = stack[--sp];
-        Node node = TLASNodeBuffer.data[nodeIdx];
-        float tNode = intersect(node.bbox, ray);
-        if (tNode == FLT_MAX || tNode >= closestHit.t) continue;
-        uint primCount = primCount(node.index);
-        if (primCount != 0) {
-            uint id = id(node.index);
-            for (uint i = 0; i < primCount; ++i) {
-                Instance instance = instanceBuffer.data[id + i];
-                vec3 localPos = vec3(instance.invModel * vec4(ray.pos, 1.0));
-                vec3 localDir = vec3(instance.invModel * vec4(ray.dir, 0.0));
-                Ray localRay = makeRay(localPos, localDir, 0.0, FLT_MAX);
-                BLASHit instanceHit = intersect(localRay, instance.baseNode, instance.baseTri, eps);
-                if (instanceHit.t > eps && instanceHit.t < closestHit.t) {
-                    closestHit = Hit(instanceHit.id, id + i, instanceHit.t, instanceHit.u, instanceHit.v);
-                }
-            }
-        } else {
-            uint leftIdx  = id(node.index);
-            uint rightIdx = leftIdx + 1;
-            Node left  = TLASNodeBuffer.data[leftIdx];
-            Node right = TLASNodeBuffer.data[rightIdx];
-            float tLeft  = intersect(left.bbox, ray);
-            float tRight = intersect(right.bbox, ray);
-            bool hitLeft  = (tLeft  != FLT_MAX) && (tLeft  < closestHit.t);
-            bool hitRight = (tRight != FLT_MAX) && (tRight < closestHit.t);
-            if (hitLeft && hitRight) {
-                if (tLeft < tRight) {
-                    stack[sp++] = rightIdx;
-                    stack[sp++] = leftIdx;
-                } else {
-                    stack[sp++] = leftIdx;
-                    stack[sp++] = rightIdx;
-                }
-            } else if (hitLeft) {
-                stack[sp++] = leftIdx;
-            } else if (hitRight) {
-                stack[sp++] = rightIdx;
-            }
-        }
-    }
-    return closestHit;
-}
-
 #define skyColor vec3(0.2)
 
 float getShadow(vec3 P, vec3 dir) {
@@ -137,13 +40,18 @@ vec3 traceRay(uint seed, vec3 albedo, float inDepth, vec3 P, vec3 N) {
             resultColor += throughput * skyColor;
             break;
         }
+        if (depth >= pc.minDepth) {
+            float p = clamp(luminance(throughput), 0.01, 1.0);
+            if (rand01(seed) > p) break;
+            throughput /= p;
+        }
         PrecomputedTriangle tri = triangleBuffer.data[hit.triId];
         TriangleExtra triExtra = triangleExtraBuffer.data[hit.triId];
         Instance instance = instanceBuffer.data[hit.instanceId];
         vec3 localP = vec3(tri.p0 + hit.u * tri.e1 + hit.v * tri.e2);
         vec3 P = vec3(instance.model * vec4(localP, 1.0));
         vec2 uv = getUV(triExtra, hit.u, hit.v);
-        vec3 albedo = texture(textures[nonuniformEXT(triExtra.texIndex)], uv).rgb;
+        vec3 albedo = textureLod(textures[nonuniformEXT(triExtra.texIndex)], uv, 0).rgb;
         vec3 L = -directLight.dir.xyz;
         vec3 N = normalize(mat3(transpose(instance.invModel)) * tri.N.xyz);
         N = faceforward(N, currentRay.dir, N);
@@ -153,18 +61,13 @@ vec3 traceRay(uint seed, vec3 albedo, float inDepth, vec3 P, vec3 N) {
         vec3 movedP = P + N * 1e-3;
         vec3 directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
         resultColor += throughput * directColor;
-        if (depth >= pc.minDepth) {
-            float p = clamp(luminance(throughput), 0.01, 1.0);
-            if (rand01(seed) > p) break;
-            throughput /= p;
-        }
         throughput *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
         currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
     }
     return resultColor;
 }
 
-void main() {
+vec3 tracedColor() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 wh = imageSize(outputImage);
     vec2 uv = coord / wh;
@@ -178,19 +81,42 @@ void main() {
     vec3 P = world.xyz;
     vec3 N = texture(normalImage, uv).rgb;
     N = faceforward(N, P - camera.pos.xyz, N);
-    vec3 tracedColor = vec3(0.0);
-
+    vec3 color = vec3(0.0);
     for (uint i = 0; i < pc.spp; i++) {
         uint seed = coord.x + coord.y * 1973u + pc.frame * 9277u + i * 26699u;
-        tracedColor += traceRay(seed, albedo, depth, P, N);
+        color += traceRay(seed, albedo, depth, P, N);
     }
-    tracedColor /= float(pc.spp);
+    color /= float(pc.spp);
+    return color;
+}
 
+vec3 depthColor() {
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    vec2 wh = imageSize(outputImage);
+    vec2 uv = coord / wh;
+    float depth = texture(depthImage, uv).r;
+    float near = 0.1;
+    float far  = 100.0;
+    float linearDepth = (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
+    return vec3(linearDepth / far);
+}
+
+void main() {
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    vec2 wh = imageSize(outputImage);
+    vec2 uv = coord / wh;
+    vec3 outColor = vec3(0.0);
+    switch (pc.displayMode) {
+        case 0: outColor = texture(colorImage, uv).rgb; break;
+        case 1: outColor = depthColor(); break;
+        case 2: outColor = texture(normalImage, uv).rgb * 0.5 + 0.5; break;
+        case 3: outColor = tracedColor(); break;
+    }
     if (pc.frame == 0) {
-        imageStore(outputImage, coord, vec4(tracedColor, 1.0));
+        imageStore(outputImage, coord, vec4(outColor, 1.0));
         return;
     }
     vec3 imageColor = imageLoad(outputImage, coord).rgb;
-    vec3 newColor = (imageColor * pc.frame + tracedColor) / (pc.frame + 1);
+    vec3 newColor = (imageColor * pc.frame + outColor) / (pc.frame + 1);
     imageStore(outputImage, coord, vec4(newColor, 1.0));
 }

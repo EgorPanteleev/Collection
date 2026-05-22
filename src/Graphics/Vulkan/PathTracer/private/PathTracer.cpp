@@ -38,9 +38,8 @@ namespace crv::graphics::vulkan {
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
 
-        const PushConstants pc(info.frameCount, info.spp, info.minDepth, info.maxDepth);
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
-            0, sizeof(PushConstants), &pc);
+            0, sizeof(PushConstants), &info.constants);
 
         auto [width, height]  = info.extent;
         const uint32_t groupX = 1 + (width  - 1) / 16;
