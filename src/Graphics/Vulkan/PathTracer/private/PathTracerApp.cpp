@@ -44,7 +44,7 @@ namespace crv::graphics::vulkan {
         createSyncObjects();
         createImages();
 
-        loadModel();
+        loadScene();
         createTextures();
 
         createGBuffers();
@@ -322,106 +322,18 @@ namespace crv::graphics::vulkan {
         return tlas;
     }
 
-    void PathTracerApp::loadModel() {
-        auto loader = new cm::Loader;
-        utils::Timer timer;
-        std::vector<std::string> meshImports = mScene["meshImports"];
-        mMeshesData.resize(meshImports.size());
-        size_t materialBaseIndex = 0;
-        std::vector<uint32_t> nodeOffsets{};
-        std::vector<uint32_t> triOffsets{};
-        std::vector<BLASNode> nodes;
-        for (size_t meshIdx = 0; meshIdx < meshImports.size(); ++meshIdx) {
-            const std::string& modelPath = meshImports[meshIdx];
-            MeshData& meshData = mMeshesData[meshIdx];
-            timer.start();
-            loader->setModel(ASSETS_PATH + modelPath);
-            loader->load(glm::mat4(1.0f));
-            INFO << "Model (" << fs::path(modelPath).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
-            timer.start();
-            const auto& loaderIndices = loader->indices();
-            const auto& loaderVertices = loader->vertices();
-            const auto& loaderMeshes = loader->meshes();
-            std::vector<Tri> triangles;
-            std::vector<uint32_t> indices;
-            std::vector<uint32_t> materialIndices;
-            for (size_t i = 0; i < loaderMeshes.size(); ++i) {
-                const auto& mesh = loaderMeshes[i];
-                for (size_t j = 0; j < mesh.numIndices; j += 3) {
-                    const size_t idx = mesh.baseIndex + j;
-                    triangles.emplace_back(loaderVertices[loaderIndices[idx + 0]].pos,
-                                           loaderVertices[loaderIndices[idx + 1]].pos,
-                                           loaderVertices[loaderIndices[idx + 2]].pos);
-                    indices.emplace_back(loaderIndices[idx + 0]);
-                    indices.emplace_back(loaderIndices[idx + 1]);
-                    indices.emplace_back(loaderIndices[idx + 2]);
-                    materialIndices.emplace_back((materialBaseIndex + mesh.materialIndex) * cm::Texture::UNKNOWN);
-                }
-
-                for (size_t j = 0; j < mesh.numVertices; ++j) {
-                    const cm::Vertex& modelVertex = loaderVertices[mesh.baseVertex + j];
-                    Vertex vertex{
-                        .pos = modelVertex.pos,
-                        .texCoord = modelVertex.texCoord0,
-                        .normal = modelVertex.normal,
-                        .tangent = modelVertex.tangent,
-                        .texIndex = static_cast<uint32_t>((materialBaseIndex + mesh.materialIndex) * cm::Texture::UNKNOWN)
-                    };
-                    meshData.vertices.push_back(vertex);
-                }
-            }
-            materialBaseIndex += std::max(loader->materials().size(), static_cast<size_t>(1));
-            meshData.indices = loaderIndices;
-
-            mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
-            INFO << "Primitive creation time: " << timer.duration() / 1000 << " sec";
-            INFO << "Total number of primitives: " << triangles.size();
-            BVH blas = buildBLAS(std::span(triangles));
-            nodeOffsets.push_back(mNodes.size());
-            triOffsets.push_back(mTriangles.size());
-            for (int i = 0; i < triangles.size(); ++i) {
-                const uint32_t idx = blas.primIds()[i];
-                Tri& tri = triangles[idx];
-                mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
-                                        Vec4(tri.e2, 1), Vec4(tri.N, 1));
-                cm::Vertex v0 = loaderVertices[indices[idx * 3 + 0]];
-                cm::Vertex v1 = loaderVertices[indices[idx * 3 + 1]];
-                cm::Vertex v2 = loaderVertices[indices[idx * 3 + 2]];
-                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0, materialIndices[idx]);
-            }
-            for (const auto& node: blas.nodes()) {
-                nodes.push_back(node);
-                AlignedNode alignedNode{};
-                alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
-                alignedNode.index = node.index().value();
-                mNodes.push_back(alignedNode);
-            }
+    void PathTracerApp::loadScene() {
+        std::vector<std::string> models = mScene["modelImports"];
+          for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
+            loadModel(modelIndex, models[modelIndex]);
         }
 
         std::vector<MeshPrimitive> meshPrimitives;
-        for (const auto& mesh: mScene["meshes"]) {
-            glm::vec3 rot = toVec3(mesh["localRotation"]);
-            glm::mat4 T = glm::translate(glm::mat4(1.0f), toVec3(mesh["localPosition"]));
-            glm::mat4 R = glm::mat4(1.0f);
-            R = glm::rotate(R, glm::radians(rot.y), glm::vec3(0, 1, 0));
-            R = glm::rotate(R, glm::radians(rot.x), glm::vec3(1, 0, 0));
-            R = glm::rotate(R, glm::radians(rot.z), glm::vec3(0, 0, 1));
-            glm::mat4 S = glm::scale(glm::mat4(1.0f), toVec3(mesh["localScale"]));
-
-            glm::mat4 model = T * R * S;
-            int meshIndex = mesh["meshIndex"];
-            ++mMeshesData[meshIndex].instanceCount;
-            MeshInstance instance = {
-                .name = mesh["name"],
-                .model = model,
-                .invModel = glm::inverse(model),
-                .baseNode = nodeOffsets[meshIndex],
-                .baseTri = triOffsets[meshIndex],
-                .texIndex = mesh["texIndex"]
-            };
-            mRasterInstances.push_back(instance);
-            meshPrimitives.emplace_back(model, meshIndex, nodes[nodeOffsets[meshIndex]].bbox());
+        for (const auto& instance: mRasterInstances) {
+            AlignedBBox bbox = mNodes[instance.baseNode].bbox;
+            meshPrimitives.emplace_back(instance.model, bbox.min, bbox.max);
         }
+
         TLAS tlas = buildTLAS(std::span(meshPrimitives));
         for (int i = 0; i < mRasterInstances.size(); ++i) {
             const uint32_t idx = tlas.primIds()[i];
@@ -433,6 +345,114 @@ namespace crv::graphics::vulkan {
             alignedNode.index = node.index().value();
             mTLASNodes.push_back(alignedNode);
         }
+    }
+
+    void PathTracerApp::loadModel(const uint32_t modelIndex, const std::string& path) {
+        utils::Timer timer;
+        timer.start();
+        auto loader = new cm::Loader;
+        loader->setModel(ASSETS_PATH + path);
+        glm::mat4 T = glm::mat4(1.0f);
+        glm::mat4 R = glm::mat4(1.0f);
+        R = glm::rotate(R, glm::radians(0.0f), glm::vec3(0, 1, 0));
+        R = glm::rotate(R, glm::radians(0.0f), glm::vec3(1, 0, 0));
+        R = glm::rotate(R, glm::radians(0.0f), glm::vec3(0, 0, 1));
+        glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, 1));
+        glm::mat4 model = T * R * S;
+        loader->load(model); //glm::mat4(1.0f)
+        INFO << "Model (" << fs::path(path).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
+        timer.start();
+
+        auto allInstances = mScene["instances"];
+        decltype(allInstances) instances;
+        for (const auto& instance: allInstances) {
+            if (instance["modelIndex"] != modelIndex) continue;
+            instances.push_back(instance);
+        }
+        uint32_t instanceCount = instances.size();
+        uint32_t baseVertex = mVertices.size();
+        uint32_t baseIndex = mIndices.size();
+        uint32_t baseMaterial = mMaterials.size();
+        mMeshesData.reserve(mMeshesData.capacity() + loader->meshes().size());
+        for (size_t meshIndex = 0; meshIndex < loader->meshes().size(); ++meshIndex) {
+            const auto& mesh = loader->meshes()[meshIndex];
+            MeshData meshData {
+                .baseVertex = baseVertex + mesh.baseVertex,
+                .baseIndex = baseIndex + mesh.baseIndex,
+                .indexCount = mesh.numIndices,
+                .baseInstance = static_cast<uint32_t>(mRasterInstances.size()),
+                .instanceCount = instanceCount
+            };
+            mMeshesData.push_back(meshData);
+            mVertices.reserve(mVertices.capacity() + mesh.numVertices);
+            for (size_t i = 0; i < mesh.numVertices; ++i) {
+                const cm::Vertex& modelVertex = loader->vertices()[mesh.baseVertex + i];
+                Vertex vertex {
+                    .pos = modelVertex.pos,
+                    .texCoord = modelVertex.texCoord0,
+                    .normal = modelVertex.normal,
+                    .tangent = modelVertex.tangent,
+                };
+                mVertices.push_back(vertex);
+            }
+
+            std::vector<Tri> triangles;
+            std::vector<uint32_t> indices;
+            for (size_t i = 0; i < mesh.numIndices; i += 3) {
+                const size_t idx = mesh.baseIndex + i;
+                triangles.emplace_back(loader->vertices()[mesh.baseVertex + loader->indices()[idx + 0]].pos,
+                                       loader->vertices()[mesh.baseVertex + loader->indices()[idx + 1]].pos,
+                                       loader->vertices()[mesh.baseVertex + loader->indices()[idx + 2]].pos);
+            }
+            BVH blas = buildBLAS(std::span(triangles));
+
+            uint32_t baseTriangle = mTriangles.size();
+            uint32_t baseNode = mNodes.size();
+            for (int i = 0; i < triangles.size(); ++i) {
+                const uint32_t triIdx = blas.primIds()[i];
+                const uint32_t idx = mesh.baseIndex + triIdx * 3;
+                Tri& tri = triangles[triIdx];
+                mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
+                                        Vec4(tri.e2, 1), Vec4(tri.N, 1));
+                cm::Vertex v0 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 0]];
+                cm::Vertex v1 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 1]];
+                cm::Vertex v2 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 2]];
+                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0,
+                    (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN);
+            }
+            for (const auto& node: blas.nodes()) {
+                AlignedNode alignedNode{};
+                alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
+                alignedNode.index = node.index().value();
+                mNodes.push_back(alignedNode);
+            }
+
+            for (const auto& instance: instances) {
+                glm::vec3 rot = toVec3(instance["localRotation"]);
+                glm::mat4 T = glm::translate(glm::mat4(1.0f), toVec3(instance["localPosition"]));
+                glm::mat4 R = glm::mat4(1.0f);
+                R = glm::rotate(R, glm::radians(rot.y), glm::vec3(0, 1, 0));
+                R = glm::rotate(R, glm::radians(rot.x), glm::vec3(1, 0, 0));
+                R = glm::rotate(R, glm::radians(rot.z), glm::vec3(0, 0, 1));
+                glm::mat4 S = glm::scale(glm::mat4(1.0f), toVec3(instance["localScale"]));
+                glm::mat4 model = T * R * S;
+
+                uint32_t texIndex = instance["texIndex"];
+                if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
+                MeshInstance meshInstance = {
+                    .name = instance["name"],
+                    .model = model,
+                    .invModel = glm::inverse(model),
+                    .baseNode = baseNode,
+                    .baseTri = baseTriangle,
+                    .texIndex = texIndex
+                };
+                mRasterInstances.push_back(meshInstance);
+
+            }
+        }
+        mIndices.insert(mIndices.end(), loader->indices().begin(), loader->indices().end());
+        mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
     }
 
     void PathTracerApp::createPathTracer() {
@@ -1139,6 +1159,8 @@ namespace crv::graphics::vulkan {
             .instanceIdFormat = INSTANCE_ID_FORMAT,
             .extent = {width, height, 1},
             .framesInFlight = mFramesInFlight,
+            .vertices = mVertices,
+            .indices = mIndices,
             .meshesData = mMeshesData,
             .instances = mRasterInstances,
             .textures = &mTextures

@@ -13,8 +13,9 @@ namespace crv::graphics {
         using Vec3 = Box::Vec3;
 
         MeshPrimitive() = default;
-        MeshPrimitive(const Mat4& model, const uint32_t meshIndex, const Box& bbox):
-        mModel(model), mMeshIndex(meshIndex) {
+        MeshPrimitive(const Mat4& model, const Vec3& min, const Vec3& max): MeshPrimitive(model, Box(min, max)) {}
+        MeshPrimitive(const Mat4& model, const Box& bbox):
+        mModel(model) {
             mCenter = Vec3(model * glm::vec4(bbox.center(), 1.0));
             Vec3 extent = bbox.size() * static_cast<T>(0.5);
             glm::mat3 absModel = glm::mat3(model);
@@ -30,7 +31,6 @@ namespace crv::graphics {
         Vec3 center() const { return mCenter; }
 
         Mat4 mModel;
-        uint32_t mMeshIndex{};
         Box mBbox;
         Vec3 mCenter;
     };

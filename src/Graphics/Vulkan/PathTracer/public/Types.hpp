@@ -35,9 +35,11 @@ namespace crv::graphics::vulkan {
     };
 
     struct MeshData {
-        std::vector<Vertex>   vertices{};
-        std::vector<uint32_t> indices{};
-        uint32_t              instanceCount = 0;
+        uint32_t baseVertex    = 0;
+        uint32_t baseIndex     = 0;
+        uint32_t indexCount    = 0;
+        uint32_t baseInstance = 0;
+        uint32_t instanceCount = 0;
     };
 
     struct SSBOData: std::vector<SSBOInfo> {

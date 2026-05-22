@@ -1,19 +1,21 @@
 {
-  "meshImports":	["meshes/cube.glb","scenes/Sponza/glTF/Sponza.gltf"],
+  "modelImports":	["meshes/cube.glb", "scenes/Sponza/glTF/Sponza.gltf"],
   "textureImports":	[],
-  "meshes":	[ {
+  "instances":	[ {
     "name":	"sponza1",
-    "meshIndex":	1,
-    "localPosition":	[0, 0, 0],
-    "localRotation":	[0, 0, 180],
-    "localScale":	[5, 5, 5]
+    "modelIndex": 1,
+    "texIndex": -1,
+    "localPosition": [0, 0, 0],
+    "localRotation": [0, 0, 180],
+    "localScale":	 [5, 5, 5]
   }, {
-      "name":	"sponza2",
-      "meshIndex":	1,
-      "localPosition":	[0, 0, 100],
-      "localRotation":	[0, 0, 180],
-      "localScale":	[5, 5, 5]
-    }],
+    "name":	"sponza2",
+    "modelIndex": 1,
+    "texIndex": -1,
+    "localPosition": [0, 0, 100],
+    "localRotation": [0, 0, 180],
+    "localScale":	 [5, 5, 5]
+  }],
   "window": {
     "name": "GPU Path Tracer",
     "width": 800,
@@ -21,7 +23,7 @@
   },
   "camera":	{
     "type": "Fly",
-    "position":	[20, -2, 0],
+    "position":	[80, -2, 0],
     "target":	[-100, 10, 0],
     "up":	[0, 1, 0],
     "zoom": 1,

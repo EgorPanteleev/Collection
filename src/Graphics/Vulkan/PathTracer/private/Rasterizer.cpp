@@ -9,7 +9,7 @@
 namespace crv::graphics::vulkan {
     Rasterizer::Rasterizer(const RasterizerCreateInfo& info): mFramesInFlight(info.framesInFlight),
     mColorFormat(info.colorFormat), mNormalFormat(info.normalFormat), mInstanceIdFormat(info.instanceIdFormat),
-    mContext(info.context), mTextures(info.textures) {
+    mContext(info.context), mTextures(info.textures), mMeshesData(info.meshesData) {
         createImages(info.extent);
         createBuffers(info);
         createDescriptorSetLayout();
@@ -104,16 +104,15 @@ namespace crv::graphics::vulkan {
 
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout.get(),
                                 0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
-        for (const auto& meshBuffer : mMeshBuffers) {
-            VkBuffer vertexBuffers[] = { meshBuffer.vertexBuffer.get() };
-            VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
+        VkBuffer vertexBuffers[] = { mVertexBuffer.get() };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(info.commandBuffer, mIndexBuffer.get(),
+                     0, VK_INDEX_TYPE_UINT32);
 
-            vkCmdBindIndexBuffer(info.commandBuffer, meshBuffer.indexBuffer.get(),
-                                 0, VK_INDEX_TYPE_UINT32);
-
-            vkCmdDrawIndexed(info.commandBuffer, meshBuffer.indexCount, meshBuffer.instanceCount,
-                0, 0, meshBuffer.firstInstance);
+        for (const auto& meshData : mMeshesData) {
+            vkCmdDrawIndexed(info.commandBuffer, meshData.indexCount, meshData.instanceCount,
+                meshData.baseIndex, static_cast<int32_t>(meshData.baseVertex), meshData.baseInstance);
         }
         vkCmdEndRendering(info.commandBuffer);
     }
@@ -149,18 +148,11 @@ namespace crv::graphics::vulkan {
 
         uint32_t selectedInstanceId = mSelectedInstanceId - 1;
         uint32_t instanceCount = mSelectedInstanceId ? 1 : 0;
-        for (const auto& meshBuffer : mMeshBuffers) {
-            if (selectedInstanceId < meshBuffer.firstInstance or
-                selectedInstanceId >= meshBuffer.firstInstance + meshBuffer.instanceCount) continue;
-            VkBuffer vertexBuffers[] = { meshBuffer.vertexBuffer.get() };
-            VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
-
-            vkCmdBindIndexBuffer(info.commandBuffer, meshBuffer.indexBuffer.get(),
-                0, VK_INDEX_TYPE_UINT32);
-
-            vkCmdDrawIndexed(info.commandBuffer, meshBuffer.indexCount, instanceCount,
-                0, 0, selectedInstanceId);
+        for (const auto& meshData: mMeshesData) {
+            if (selectedInstanceId < meshData.baseInstance or
+                selectedInstanceId >= meshData.baseInstance + meshData.instanceCount) continue;
+            vkCmdDrawIndexed(info.commandBuffer, meshData.indexCount, instanceCount,
+                meshData.baseIndex, static_cast<int32_t>(meshData.baseVertex), selectedInstanceId);
         }
         vkCmdEndRendering(info.commandBuffer);
     }
@@ -398,13 +390,7 @@ namespace crv::graphics::vulkan {
             .format = VK_FORMAT_R32G32B32A32_SFLOAT,
             .offset = offsetof(Vertex, tangent)
         };
-        const VkVertexInputAttributeDescription desc5 {
-            .location = 4,
-            .binding = 0,
-            .format = VK_FORMAT_R32_UINT,
-            .offset = offsetof(Vertex, texIndex)
-        };
-        std::vector attributeDescriptions{desc1, desc2, desc3, desc4, desc5};
+        std::vector attributeDescriptions{desc1, desc2, desc3, desc4};
 
         std::vector<VkPipelineShaderStageCreateInfo> pass1Stages = {
             {
@@ -469,58 +455,50 @@ namespace crv::graphics::vulkan {
     }
 
     void Rasterizer::createBuffers(const RasterizerCreateInfo &info) {
-        mMeshBuffers.resize(info.meshesData.size());
-        uint32_t instanceOffset = 0;
-        for (size_t i = 0; i < info.meshesData.size(); ++i) {
-            auto& meshBuffer = mMeshBuffers[i];
-            auto& meshData = info.meshesData[i];
-            {
-                const size_t verticesSize = sizeof(Vertex) * meshData.vertices.size();
-                const BufferCreateInfo vertexBufferCreateInfo {
-                    .allocator = mContext->allocator(),
-                    .size = verticesSize,
-                    .bufferUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                    .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-                };
-                meshBuffer.vertexBuffer = Buffer(vertexBufferCreateInfo);
-                const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                    .data = const_cast<Vertex*>(meshData.vertices.data()),
-                    .size = verticesSize,
-                    .allocator = mContext->allocator(),
-                    .buffer = meshBuffer.vertexBuffer.get(),
-                    .device = mContext->device(),
-                    .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-                    .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-                };
-                Buffer::copy(copyDataToGPUBufferInfo);
-            }
-            {
-                meshBuffer.indexCount = meshData.indices.size();
-                meshBuffer.instanceCount = meshData.instanceCount;
-                const size_t indicesSize = sizeof(uint32_t) * meshData.indices.size();
-                const BufferCreateInfo indexBufferCreateInfo {
-                    .allocator = mContext->allocator(),
-                    .size = indicesSize,
-                    .bufferUsage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                    .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-                };
-                meshBuffer.indexBuffer = Buffer(indexBufferCreateInfo);
-                const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
-                    .data = const_cast<uint32_t*>(meshData.indices.data()),
-                    .size = indicesSize,
-                    .allocator = mContext->allocator(),
-                    .buffer = meshBuffer.indexBuffer.get(),
-                    .device = mContext->device(),
-                    .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-                    .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-                };
-                Buffer::copy(copyDataToGPUBufferInfo);
-            }
-            meshBuffer.firstInstance = instanceOffset;
-            instanceOffset += meshData.instanceCount;
+        {
+            const size_t verticesSize = sizeof(Vertex) * info.vertices.size();
+            const BufferCreateInfo vertexBufferCreateInfo {
+                .allocator = mContext->allocator(),
+                .size = verticesSize,
+                .bufferUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mVertexBuffer = Buffer(vertexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<Vertex*>(info.vertices.data()),
+                .size = verticesSize,
+                .allocator = mContext->allocator(),
+                .buffer = mVertexBuffer.get(),
+                .device = mContext->device(),
+                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+                .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
         }
+
+        {
+            const size_t indicesSize = sizeof(uint32_t) * info.indices.size();
+            const BufferCreateInfo indexBufferCreateInfo {
+                .allocator = mContext->allocator(),
+                .size = indicesSize,
+                .bufferUsage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            mIndexBuffer = Buffer(indexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo copyDataToGPUBufferInfo {
+                .data = const_cast<uint32_t*>(info.indices.data()),
+                .size = indicesSize,
+                .allocator = mContext->allocator(),
+                .buffer = mIndexBuffer.get(),
+                .device = mContext->device(),
+                .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+                .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+            };
+            Buffer::copy(copyDataToGPUBufferInfo);
+        }
+
         std::vector<RasterInstance> instances;
         for (auto instance: info.instances) instances.emplace_back(instance);
         SSBOData ssboData{};

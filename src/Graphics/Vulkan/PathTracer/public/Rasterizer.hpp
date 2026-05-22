@@ -24,6 +24,8 @@ namespace crv::graphics::vulkan {
         VkFormat                     instanceIdFormat = VK_FORMAT_UNDEFINED;
         VkExtent3D                   extent{};
         uint32_t                     framesInFlight = 2;
+        std::vector<Vertex>          vertices{};
+        std::vector<uint32_t>        indices{};
         std::vector<MeshData>        meshesData{};
         std::vector<MeshInstance>    instances{};
         std::vector<TexturesByType>* textures       = nullptr;
@@ -88,8 +90,11 @@ namespace crv::graphics::vulkan {
         ShaderModule mFragmentShader{};
         ShaderModule mSelectedFragmentShader{};
         GraphicsPipelines mGraphicsPipelines{};
+
+        std::vector<MeshData> mMeshesData{};
         std::vector<Buffer> mMVPBuffers{};
-        std::vector<MeshBuffer> mMeshBuffers{};
+        Buffer mVertexBuffer{};
+        Buffer mIndexBuffer{};
         Buffer mInstanceBuffer{};
         Image     mInstanceIdImage{};
         ImageView mInstanceIdView{};

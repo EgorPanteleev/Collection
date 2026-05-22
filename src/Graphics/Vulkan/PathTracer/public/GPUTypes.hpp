@@ -64,7 +64,6 @@ namespace crv::graphics::vulkan {
         Vec2 texCoord;
         Vec3 normal;
         Vec4 tangent;
-        uint32_t texIndex;
     };
 
     struct alignas(16) AlignedMVP {

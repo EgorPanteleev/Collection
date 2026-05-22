@@ -40,7 +40,7 @@ struct Instance {
     mat4 invModel;
     uint baseNode;
     uint baseTri;
-    float texIndex;
+    uint texIndex;
 };
 
 #endif

@@ -49,7 +49,7 @@ namespace crv::graphics {
             if (mBBoxes.empty()) return {};
             size_t size = mBBoxes.size();
             for (int axis = 0; axis < 3; ++axis) {
-                mIndexesPerAxis[axis] = std::views::iota(static_cast<size_t>(0), size) | std::ranges::to<std::vector<size_t>>();
+                mIndexesPerAxis[axis] = std::views::iota(static_cast<uint32_t>(0), size) | std::ranges::to<std::vector<uint32_t>>();
                 std::ranges::sort(mIndexesPerAxis[axis], [this, axis](size_t idx1, size_t idx2) {
                     return mCenters[idx1][axis] < mCenters[idx2][axis];
                 });
@@ -121,7 +121,7 @@ namespace crv::graphics {
                     auto right = mIndexesPerAxis[axis] |
                         std::views::filter([&isLeft](size_t index) -> bool { return !isLeft[index]; });
 
-                    std::vector<size_t> tmp;
+                    std::vector<uint32_t> tmp;
                     tmp.insert(tmp.end(), left.begin(), left.end());
                     tmp.insert(tmp.end(), right.begin(), right.end());
                     mIndexesPerAxis[axis] = std::move(tmp);
@@ -156,7 +156,7 @@ namespace crv::graphics {
         std::span<Primitive> mPrimitives;
         std::vector<Box> mBBoxes;
         std::vector<Vec3> mCenters;
-        std::array<std::vector<size_t>, 3> mIndexesPerAxis;
+        std::array<std::vector<uint32_t>, 3> mIndexesPerAxis;
     };
 }
 

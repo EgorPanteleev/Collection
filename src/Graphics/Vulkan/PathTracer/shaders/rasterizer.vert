@@ -5,7 +5,6 @@ layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec2 inUV;
 layout(location = 2) in vec3 inNormal;
 layout(location = 3) in vec4 inTangent;
-layout(location = 4) in uint inTexIndex;
 
 layout(location = 0) out vec2 fragUV;
 layout(location = 1) out vec3 fragNormal;
@@ -25,7 +24,7 @@ layout(binding = 0) uniform MVPBuffer {
 struct Instance {
     mat4 model;
     mat4 invModel;
-    float texIndex;
+    uint texIndex;
 };
 
 layout(binding = 1) readonly buffer InstanceBuffer {
@@ -42,6 +41,6 @@ void main() {
     fragTangent      = normalize(normalMatrix * inTangent.xyz);
     fragBitangent    = cross(fragNormal, fragTangent) * inTangent.w;
     fragInstanceId   = gl_InstanceIndex;
-    fragDiffuseIndex = inTexIndex;
-    fragNormalIndex  = inTexIndex + 4;
+    fragDiffuseIndex = instance.texIndex;
+    fragNormalIndex  = instance.texIndex + 4;
 }

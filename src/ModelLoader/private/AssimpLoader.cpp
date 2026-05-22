@@ -125,8 +125,6 @@ namespace crv::model {
             mesh.baseVertex = mVertices.size();
             mesh.baseIndex  = mIndices.size();
             mVertices.insert(mVertices.end(), vertices.begin(), vertices.end());
-            uint32_t baseVertex = mVertices.size() - vertices.size();
-            std::ranges::for_each(indices, [&](uint32_t &ind) { ind += baseVertex; });
             mIndices.insert(mIndices.end(), indices.begin(), indices.end());
         }
         for (unsigned i = 0; i < node->mNumChildren; i++) {

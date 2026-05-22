@@ -44,7 +44,8 @@ namespace crv::graphics::vulkan {
         void createSyncObjects();
         void createImages();
         void createTextures();
-        void loadModel();
+        void loadScene();
+        void loadModel(uint32_t modelIndex, const std::string& path);
         void createPathTracer();
         void createOutliner();
         void createImGui();
@@ -104,6 +105,8 @@ namespace crv::graphics::vulkan {
         std::vector<Semaphore> mOutlinerFinishedSemaphores{};
         std::vector<Fence>     mFences{};
 
+        std::vector<Vertex>               mVertices{};
+        std::vector<uint32_t>             mIndices{};
         std::vector<AlignedTriangle>      mTriangles{};
         std::vector<AlignedTriangleExtra> mTriangleExtras{};
         std::vector<AlignedNode>          mNodes{};
