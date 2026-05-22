@@ -1,5 +1,5 @@
 {
-  "modelImports":	["meshes/dragon.glb", "meshes/plane.glb"],
+  "modelImports":	["meshes/dragon.glb", "meshes/plane.glb", "meshes/sphere.glb"],
   "textureImports":	[],
   "materials": [{
     "name": "red",
@@ -53,6 +53,13 @@
     "localPosition":	[0, -60, 0],
     "localRotation":	[0, 0, 0],
     "localScale":	[30, 30, 30]
+  }, {
+    "name":	"lamp",
+    "modelIndex":	2,
+    "texIndex": 2,
+    "localPosition":	[0, -60, 0],
+    "localRotation":	[0, 0, 0],
+    "localScale":	[7, 1.2, 7]
   }],
   "window": {
     "name": "GPU Path Tracer",
