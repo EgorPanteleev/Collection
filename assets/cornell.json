@@ -1,45 +1,55 @@
 {
   "modelImports":	["meshes/dragon.glb", "meshes/plane.glb"],
   "textureImports":	[],
+  "materials": [{
+    "name": "red",
+    "color": [1, 0, 0]
+  }, {
+    "name": "green",
+    "color": [0, 1, 0]
+  }, {
+      "name": "gray",
+      "color": [0.8, 0.8, 0.8]
+    }],
   "instances":	[{
     "name":	"dragon1",
     "modelIndex":	0,
-    "texIndex": -1,
+    "texIndex": 2,
     "localPosition":	[-6, 0, 8],
     "localRotation":	[0, -35, 180],
     "localScale":	[30, 30, -30]
   }, {
     "name":	"bottomPlane",
     "modelIndex":	1,
-    "texIndex": -1,
+    "texIndex": 2,
     "localPosition":	[0, 0, 0],
     "localRotation":	[0, 0, 0],
     "localScale":	[30, 30, 30]
   }, {
     "name":	"leftPlane",
     "modelIndex":	1,
-    "texIndex": -1,
+    "texIndex": 0,
     "localPosition":	[0, -30, 30],
     "localRotation":	[0, 90, 90],
     "localScale":	[30, 30, 30]
   }, {
     "name":	"rightPlane",
     "modelIndex":	1,
-    "texIndex": -1,
+    "texIndex": 1,
     "localPosition":	[0, -30, -30],
     "localRotation":	[0, 90, 90],
     "localScale":	[30, 30, 30]
     }, {
     "name":	"forwardPlane",
     "modelIndex":	1,
-    "texIndex": -1,
+    "texIndex": 2,
     "localPosition":	[-30, -30, 0],
     "localRotation":	[0, 0, 90],
     "localScale":	[30, 30, 30]
   }, {
     "name":	"topPlane",
     "modelIndex":	1,
-    "texIndex": -1,
+    "texIndex": 2,
     "localPosition":	[0, -60, 0],
     "localRotation":	[0, 0, 0],
     "localScale":	[30, 30, 30]

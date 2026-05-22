@@ -114,12 +114,19 @@ namespace crv::model {
         }
     }
 
-    Texture AbsLoader::emptyTexture(const Texture::Type texType) {
+    Texture AbsLoader::colorTexture(const glm::vec3& color, Texture::Type texType) {
         Texture texture;
         texture.mFormat = toTextureFormat(texType);
         gli::texture2d tex(gli::FORMAT_RGBA8_UNORM_PACK8, {1,1}, 1);
-        tex.clear(gli::packUnorm4x8(glm::vec4(toEmptyColor(texType), 1)));
-        texture.mDataByLevel.emplace_back(tex.data(), 1, 1);
+        tex.clear(gli::packUnorm4x8(glm::vec4(color, 1)));
+        const size_t size = tex.size();
+        void* data = std::malloc(size); //leak here
+        memcpy(data, tex.data(), size);
+        texture.mDataByLevel.emplace_back(data, 1, 1);
         return texture;
+    }
+
+    Texture AbsLoader::emptyTexture(const Texture::Type texType) {
+        return colorTexture(toEmptyColor(texType), texType);
     }
 }

@@ -318,12 +318,23 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::loadScene() {
         std::vector<std::string> textures = mScene["textureImports"];
-        mMaterials.resize(textures.size());
+        auto materials = mScene["materials"];
+        mMaterials.resize(textures.size() + materials.size());
         for (int textureIndex = 0; textureIndex < textures.size(); ++textureIndex) {
             mMaterials[textureIndex].mTextures[cm::Texture::DIFFUSE] =
                 cm::AbsLoader::loadTexture(ASSETS_PATH + textures[textureIndex], cm::Texture::DIFFUSE);
             for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
                 mMaterials[textureIndex].mTextures[texType] =
+                    cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
+            }
+        }
+
+        int baseMaterial = static_cast<int>(textures.size());
+        for (int materialIndex = baseMaterial; materialIndex < baseMaterial + materials.size(); ++materialIndex) {
+            mMaterials[materialIndex].mTextures[cm::Texture::DIFFUSE] =
+                cm::AbsLoader::colorTexture(toVec3(materials[materialIndex]["color"]), cm::Texture::DIFFUSE);
+            for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
+                mMaterials[materialIndex].mTextures[texType] =
                     cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
             }
         }
@@ -435,6 +446,7 @@ namespace crv::graphics::vulkan {
 
                 uint32_t texIndex = instance["texIndex"];
                 if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
+                else texIndex *= cm::Texture::UNKNOWN;
                 MeshInstance meshInstance = {
                     .name = instance["name"],
                     .meshName = mesh.name,
