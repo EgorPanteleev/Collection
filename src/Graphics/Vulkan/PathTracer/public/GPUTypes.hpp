@@ -32,8 +32,7 @@ namespace crv::graphics::vulkan {
 
     struct alignas(16) AlignedTriangleExtra {
         Vec2 uv0, uv1, uv2;
-        uint32_t texIndex;
-        float padding;
+        float padding[2];
     };
 
     struct alignas(16) AlignedBBox {

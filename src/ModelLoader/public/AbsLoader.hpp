@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <string>
+#include <gli/gli.hpp>
 
 namespace crv::model {
     class AbsLoader {
@@ -28,7 +29,10 @@ namespace crv::model {
         [[nodiscard]] const std::vector<Vertex>& vertices() const { return mVertices; }
         [[nodiscard]] const std::vector<uint32_t>& indices() const { return mIndices; }
         void clear();
-
+        static Texture::Format toTextureFormat(Texture::Type modelTexType);
+        static Texture::Format toTextureFormat(gli::texture::format_type gliFormat);
+        [[nodiscard]] static Texture loadTexture(const std::string& path, Texture::Type type);
+        [[nodiscard]] static Texture emptyTexture(Texture::Type texType);
         virtual bool load(const glm::mat4& model) = 0;
     protected:
         void computeBBox();

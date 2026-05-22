@@ -317,6 +317,17 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::loadScene() {
+        std::vector<std::string> textures = mScene["textureImports"];
+        mMaterials.resize(textures.size());
+        for (int textureIndex = 0; textureIndex < textures.size(); ++textureIndex) {
+            mMaterials[textureIndex].mTextures[cm::Texture::DIFFUSE] =
+                cm::AbsLoader::loadTexture(ASSETS_PATH + textures[textureIndex], cm::Texture::DIFFUSE);
+            for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
+                mMaterials[textureIndex].mTextures[texType] =
+                    cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
+            }
+        }
+
         std::vector<std::string> models = mScene["modelImports"];
           for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
             loadModel(modelIndex, models[modelIndex]);
@@ -403,8 +414,7 @@ namespace crv::graphics::vulkan {
                 cm::Vertex v0 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 0]];
                 cm::Vertex v1 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 1]];
                 cm::Vertex v2 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 2]];
-                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0,
-                    (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN);
+                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
             }
             for (const auto& node: blas.nodes()) {
                 AlignedNode alignedNode{};
@@ -434,7 +444,6 @@ namespace crv::graphics::vulkan {
                     .texIndex = texIndex
                 };
                 mRasterInstances.push_back(meshInstance);
-
             }
         }
         mIndices.insert(mIndices.end(), loader->indices().begin(), loader->indices().end());
@@ -949,9 +958,10 @@ namespace crv::graphics::vulkan {
 
                 MeshInstance& instance = mRasterInstances[selectedInstanceIdx];
                 if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
-                    if (VkImGui::beginCompactTable("##object_status", 2.0f)) {
+                    if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                         VkImGui::row("Name"         , instance.name.c_str());
                         VkImGui::row("Mesh Name"    , instance.meshName.c_str());
+                        VkImGui::row("Texture index", std::to_string(instance.texIndex).c_str());
                         VkImGui::endCompactTable();
                     }
                     VkImGui::endGroup();
