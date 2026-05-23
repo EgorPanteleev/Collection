@@ -480,9 +480,19 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::createOutliner() {
+        std::vector<VkImageView> instanceIdViews;
+        std::vector<VkSampler> instanceIdSamplers;
+        for (const auto& gBuffer: mGBuffers) {
+            instanceIdViews.push_back(gBuffer.selectedInstanceView.get());
+            instanceIdSamplers.push_back(gBuffer.intSampler.get());
+        }
         const OutlinerCreateInfo outlinerCreateInfo {
             .context = &mContext,
-            .framesInFlight = mFramesInFlight
+            .tracerImageView = mTracerView.get(),
+            .instanceIdImageViews = instanceIdViews,
+            .tracerSampler = currentGBuffer().sampler.get(),
+            .instanceIdSamplers = instanceIdSamplers,
+            .framesInFlight = mFramesInFlight,
         };
         mOutliner = Outliner(outlinerCreateInfo);
     }
@@ -514,10 +524,6 @@ namespace crv::graphics::vulkan {
         mPathTracer.update(pathTracerUpdateInfo);
 
         const OutlinerUpdateInfo outlinerUpdateInfo {
-            .tracerImageView = mTracerView.get(),
-            .instanceIdImageView = currentGBuffer().selectedInstanceView.get(),
-            .tracerSampler = currentGBuffer().sampler.get(),
-            .instanceIdSampler = currentGBuffer().intSampler.get()
         };
         mOutliner.update(outlinerUpdateInfo);
     }

@@ -53,7 +53,8 @@ namespace crv::graphics::vulkan {
             }
             return *this;
         }
-        virtual ~VectorWrapper() { mVec.clear(); };
+        virtual ~VectorWrapper() { mVec.clear(); }
+        [[nodiscard]] uint32_t size() const { return mVec.size(); }
         Type get(uint32_t index) const { return mVec[index]; }
         Type& operator[](uint32_t index) { return mVec[index]; }
         const Type& operator[](uint32_t index) const { return mVec[index]; }

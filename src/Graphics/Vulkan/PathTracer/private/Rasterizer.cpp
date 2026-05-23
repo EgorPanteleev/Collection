@@ -12,9 +12,7 @@ namespace crv::graphics::vulkan {
     mContext(info.context), mTextures(info.textures), mMeshesData(info.meshesData) {
         createImages(info.extent);
         createBuffers(info);
-        createDescriptorSetLayout();
-        createDescriptorPool();
-        createDescriptorSets();
+        createDescriptorManager();
         createPipelineLayout();
         createShaders();
         createGraphicsPipelines();
@@ -110,7 +108,7 @@ namespace crv::graphics::vulkan {
         vkCmdSetScissor(info.commandBuffer, 0, 1, &scissor);
 
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout.get(),
-                                0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
+                                0, 1, &mDescriptorManager.set(info.currentFrame), 0, nullptr);
         VkBuffer vertexBuffers[] = { mVertexBuffer.get() };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
@@ -245,112 +243,47 @@ namespace crv::graphics::vulkan {
         #endif
     }
 
-    void Rasterizer::createDescriptorSetLayout() {
-        const VkDescriptorSetLayoutBinding texturesBinding {
-            .binding = 2,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN),
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    void Rasterizer::createDescriptorManager() {
+        //layout
+        constexpr BindingDescription UBOBinding {
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .stages = VK_SHADER_STAGE_VERTEX_BIT,
+        };
+        constexpr BindingDescription SSBOBinding {
+            .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .stages = VK_SHADER_STAGE_VERTEX_BIT,
+        };
+        const BindingDescription texturesBinding {
+            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .stages = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT,
+            .count = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)
         };
 
-        std::vector bindings = {
-            getLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT),
-            getLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT),
-            texturesBinding
-        };
+        mDescriptorManager.add(UBOBinding );
+        mDescriptorManager.add(SSBOBinding);
+        mDescriptorManager.add(texturesBinding );
 
-        std::vector<VkDescriptorBindingFlags> bindingFlags = {
-            0, 0,  VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
+        const DescriptorBuildInfo buildInfo {
+            .context = mContext,
+            .count = mFramesInFlight,
+            .variableCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)
         };
+        mDescriptorManager.build(buildInfo);
 
-        const DescriptorSetLayoutCreateInfo createInfo {
-            .device = mContext->device(),
-            .bindings = bindings,
-            .bindingFlags = bindingFlags
-        };
-        mDescriptorSetLayout = DescriptorSetLayout(createInfo);
-    }
-
-    void Rasterizer::createDescriptorPool() {
-        std::vector<VkDescriptorPoolSize> poolSizes{
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mFramesInFlight},
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER , mFramesInFlight *
-                static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)}
-        };
-
-        const DescriptorPoolCreateInfo createInfo {
-            .device = mContext->device(),
-            .flags = 0,
-            .poolSizes = poolSizes,
-            .maxSets = mFramesInFlight
-        };
-        mDescriptorPool = DescriptorPool(createInfo);
-    }
-
-    std::vector<VkDescriptorSetLayout>  Rasterizer::getDescriptorLayouts() {
-        std::vector<VkDescriptorSetLayout> layouts;
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            layouts.push_back(mDescriptorSetLayout.get());
+        //resources
+        for (int i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.add(i, BufferResource(mMVPBuffers[i]  ));
+            mDescriptorManager.add(i, BufferResource(mInstanceBuffer ));
+            mDescriptorManager.add(i, ImageResource(*mTextures));
         }
-        return layouts;
-    }
-
-    void Rasterizer::createDescriptorSets() {
-        const std::vector variableCounts(mFramesInFlight, static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN));
-        const DescriptorSetsCreateInfo createInfo {
-            .device = mContext->device(),
-            .layouts = getDescriptorLayouts(),
-            .pool = mDescriptorPool.get(),
-            .variableCounts = variableCounts
-        };
-        mDescriptorSets = DescriptorSets(createInfo);
-
-        std::vector<VkDescriptorImageInfo> textureInfos;
-        for (size_t i = 0; i < mTextures->size(); i++) {
-            auto& texturesByType = (*mTextures)[i];
-            for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
-                auto& texture = texturesByType[j];
-                VkDescriptorImageInfo textureInfo {
-                    .sampler = texture.sampler(),
-                    .imageView = texture.view(),
-                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                };
-                textureInfos.push_back(textureInfo);
-            }
-        }
-
-        VkWriteDescriptorSet texturesDescriptorSet {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 2,
-            .dstArrayElement = 0,
-            .descriptorCount = static_cast<uint32_t>(textureInfos.size()),
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = textureInfos.data()
-        };
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
-        bufferInfos.reserve(20);
-
-        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            std::vector descriptorWrites{
-                getUBODescriptorWrite (mMVPBuffers[i] , 0, bufferInfos),
-                getSSBODescriptorWrite(mInstanceBuffer, 1, bufferInfos),
-                texturesDescriptorSet
-            };
-            descriptorsWrites.push_back(descriptorWrites);
-        }
-
-        const DescriptorSetsUpdateInfo updateInfo {
-            .descriptorsWrites = descriptorsWrites
-        };
-        mDescriptorSets.update(updateInfo);
+        mDescriptorManager.update();
     }
 
     void Rasterizer::createPipelineLayout() {
         const PipelineLayoutCreateInfo createInfo {
             .device = mContext->device(),
-            .layouts = getDescriptorLayouts(),
+            .layouts = mDescriptorManager.layouts(mFramesInFlight),
         };
         mPipelineLayout = PipelineLayout(createInfo);
     }

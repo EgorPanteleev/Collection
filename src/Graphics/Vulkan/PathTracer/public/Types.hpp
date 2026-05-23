@@ -16,11 +16,6 @@ namespace crv::graphics::vulkan {
     using UBOInfo = std::tuple<uint32_t, Buffer&>;
     using UIVec2 = glm::vec<2, uint32_t>;
 
-    struct TexturesByType {
-        Texture& operator[](const int type) { return mTexturesByType[type]; }
-        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
-    };
-
     struct GBuffer {
         Image     colorImage{};
         ImageView colorView{};

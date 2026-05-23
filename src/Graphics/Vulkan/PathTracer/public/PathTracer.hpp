@@ -6,9 +6,7 @@
 #define COLLECTION_PATHTRACER_HPP
 
 #include "Context.hpp"
-#include "DescriptorSetLayout.hpp"
-#include "DescriptorPool.hpp"
-#include "DescriptorSets.hpp"
+#include "DescriptorManager.hpp"
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"
 #include "ComputePipelines.hpp"
@@ -55,23 +53,17 @@ namespace crv::graphics::vulkan {
         void record(const PathTracerRecordInfo& info);
         void updateTLAS(const std::vector<AlignedNode>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers);
     protected:
-        void createDescriptorSetLayout();
-        void createDescriptorPool();
-        void updateDescriptorSets(const std::vector<GBuffer>& gBuffers);
-        void createDescriptorSets(const PathTracerCreateInfo& info);
+        void createDescriptorManager(const PathTracerCreateInfo& info);
         void createPipelineLayout();
         void createShaders();
         void createComputePipelines();
         void createBuffers(const PathTracerCreateInfo& info);
 
-        [[nodiscard]] std::vector<VkDescriptorSetLayout> getDescriptorLayouts() const;
         uint32_t mFramesInFlight = 2;
         uint32_t mInstanceCount = 1;
 
         Context* mContext = nullptr;
-        DescriptorSetLayout mDescriptorSetLayout{};
-        DescriptorPool mDescriptorPool{};
-        DescriptorSets mDescriptorSets{};
+        DescriptorManager mDescriptorManager{};
         PipelineLayout mPipelineLayout{};
         ShaderModule mShader{};
         ComputePipelines mComputePipelines{};

@@ -7,31 +7,13 @@
 
 namespace crv::graphics::vulkan {
     Outliner::Outliner(const OutlinerCreateInfo& info): mContext(info.context), mFramesInFlight(info.framesInFlight) {
-        createDescriptorSetLayout();
-        createDescriptorPool();
-        createDescriptorSets();
+        createDescriptorManager(info);
         createPipelineLayout();
         createShaders();
         createGraphicsPipelines();
     }
 
     void Outliner::update(const OutlinerUpdateInfo& info) {
-        std::vector<VkDescriptorImageInfo> imageInfos;
-        imageInfos.reserve(6);
-        std::vector descriptorWrites{
-            getSamplerImageDescriptorWrite (info.tracerSampler    , info.tracerImageView    , VK_IMAGE_LAYOUT_GENERAL, 0, imageInfos),
-            getSamplerImageDescriptorWrite (info.instanceIdSampler, info.instanceIdImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, imageInfos),
-        };
-
-        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            descriptorsWrites.push_back(descriptorWrites);
-        }
-
-        const DescriptorSetsUpdateInfo updateInfo {
-            .descriptorsWrites = descriptorsWrites
-        };
-        mDescriptorSets.update(updateInfo);
     }
 
     void Outliner::record(const OutlinerRecordInfo& info) {
@@ -82,66 +64,40 @@ namespace crv::graphics::vulkan {
         vkCmdSetScissor(info.commandBuffer, 0, 1, &scissor);
 
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout.get(),
-                                0, 1, &mDescriptorSets[info.currentFrame], 0, nullptr);
-
+                                0, 1, &mDescriptorManager.set(info.currentFrame), 0, nullptr);
         vkCmdDraw(info.commandBuffer, 3, 1, 0, 0);
-
         vkCmdEndRendering(info.commandBuffer);
     }
 
-    void Outliner::createDescriptorSetLayout() {
-        std::vector bindings = {
-            getLayoutBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT),
-            getLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT),
+    void Outliner::createDescriptorManager(const OutlinerCreateInfo& info) {
+        //layout
+        constexpr BindingDescription samplerImageBinding {
+            .type   = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .stages = VK_SHADER_STAGE_FRAGMENT_BIT,
         };
+        mDescriptorManager.add(samplerImageBinding);
+        mDescriptorManager.add(samplerImageBinding);
 
-        std::vector<VkDescriptorBindingFlags> bindingFlags = {0, 0};
-
-        const DescriptorSetLayoutCreateInfo createInfo {
-            .device = mContext->device(),
-            .bindings = bindings,
-            .bindingFlags = bindingFlags
+        const DescriptorBuildInfo buildInfo {
+            .context = mContext,
+            .count = mFramesInFlight,
         };
-        mDescriptorSetLayout = DescriptorSetLayout(createInfo);
-    }
+        mDescriptorManager.build(buildInfo);
 
-    void Outliner::createDescriptorPool() {
-        std::vector<VkDescriptorPoolSize> poolSizes{
-                {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
-                {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mFramesInFlight},
-        };
-        const DescriptorPoolCreateInfo createInfo {
-            .device = mContext->device(),
-            .flags = 0,
-            .poolSizes = poolSizes,
-            .maxSets = mFramesInFlight
-        };
-        mDescriptorPool = DescriptorPool(createInfo);
-    }
-
-    std::vector<VkDescriptorSetLayout> Outliner::getDescriptorLayouts() {
-        std::vector<VkDescriptorSetLayout> layouts;
-        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            layouts.push_back(mDescriptorSetLayout.get());
+        //resources
+        for (int i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.add(i, ImageResource(info.tracerSampler, info.tracerImageView,
+                VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.add(i, ImageResource(info.instanceIdSamplers[i], info.instanceIdImageViews[i],
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
         }
-        return layouts;
-    }
-
-    void Outliner::createDescriptorSets() {
-        const std::vector<uint32_t> variableCounts(mFramesInFlight, 1);
-        const DescriptorSetsCreateInfo createInfo {
-            .device = mContext->device(),
-            .layouts = getDescriptorLayouts(),
-            .pool = mDescriptorPool.get(),
-            .variableCounts = variableCounts
-        };
-        mDescriptorSets = DescriptorSets(createInfo);
+        mDescriptorManager.update();
     }
 
     void Outliner::createPipelineLayout() {
         const PipelineLayoutCreateInfo createInfo {
             .device = mContext->device(),
-            .layouts = getDescriptorLayouts(),
+            .layouts = mDescriptorManager.layouts(mFramesInFlight),
         };
         mPipelineLayout = PipelineLayout(createInfo);
     }

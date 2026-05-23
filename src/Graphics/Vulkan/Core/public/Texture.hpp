@@ -47,6 +47,11 @@ namespace crv::graphics::vulkan {
         ImageView mView{};
         Sampler mSampler{};
     };
+
+    struct TexturesByType {
+        Texture& operator[](const int type) { return mTexturesByType[type]; }
+        std::array<Texture, cm::Texture::UNKNOWN> mTexturesByType{};
+    };
 }
 
 #endif //COLLECTION_TEXTURE_HPP

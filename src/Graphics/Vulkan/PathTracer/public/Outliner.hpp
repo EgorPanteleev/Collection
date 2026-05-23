@@ -6,24 +6,22 @@
 #define COLLECTION_OUTLINER_HPP
 
 #include "Context.hpp"
-#include "DescriptorSetLayout.hpp"
-#include "DescriptorPool.hpp"
-#include "DescriptorSets.hpp"
+#include "DescriptorManager.hpp"
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"
 #include "GraphicsPipelines.hpp"
 
 namespace crv::graphics::vulkan {
     struct OutlinerCreateInfo {
-        Context* context = nullptr;
-        uint32_t framesInFlight = 1;
+        Context*    context             = nullptr;
+        VkImageView tracerImageView     = VK_NULL_HANDLE;
+        std::vector<VkImageView> instanceIdImageViews{};
+        VkSampler   tracerSampler       = VK_NULL_HANDLE;
+        std::vector<VkSampler> instanceIdSamplers{};
+        uint32_t    framesInFlight      = 1;
     };
 
     struct OutlinerUpdateInfo {
-        VkImageView tracerImageView     = VK_NULL_HANDLE;
-        VkImageView instanceIdImageView = VK_NULL_HANDLE;
-        VkSampler   tracerSampler       = VK_NULL_HANDLE;
-        VkSampler   instanceIdSampler   = VK_NULL_HANDLE;
     };
 
     struct OutlinerRecordInfo {
@@ -40,19 +38,14 @@ namespace crv::graphics::vulkan {
         void update(const OutlinerUpdateInfo& info);
         void record(const OutlinerRecordInfo& info);
     protected:
-        void createDescriptorSetLayout();
-        void createDescriptorPool();
-        std::vector<VkDescriptorSetLayout> getDescriptorLayouts();
-        void createDescriptorSets();
+        void createDescriptorManager(const OutlinerCreateInfo& info);
         void createPipelineLayout();
         void createShaders();
         void createGraphicsPipelines();
         //void createBuffers(const OutlinerCreateInfo& info);
 
         Context* mContext = nullptr;
-        DescriptorSetLayout mDescriptorSetLayout{};
-        DescriptorPool mDescriptorPool{};
-        DescriptorSets mDescriptorSets{};
+        DescriptorManager mDescriptorManager{};
         PipelineLayout mPipelineLayout{};
         ShaderModule mVertexShader{};
         ShaderModule mFragmentShader{};

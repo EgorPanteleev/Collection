@@ -7,9 +7,7 @@
 
 #include "Context.hpp"
 #include "Types.hpp"
-#include "DescriptorSetLayout.hpp"
-#include "DescriptorPool.hpp"
-#include "DescriptorSets.hpp"
+#include "DescriptorManager.hpp"
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"
 #include "GraphicsPipelines.hpp"
@@ -63,10 +61,7 @@ namespace crv::graphics::vulkan {
         uint32_t selectedInstanceIdx() const { return mSelectedInstanceId - 1; }
     protected:
         void createImages(VkExtent3D extent);
-        void createDescriptorSetLayout();
-        void createDescriptorPool();
-        std::vector<VkDescriptorSetLayout> getDescriptorLayouts();
-        void createDescriptorSets();
+        void createDescriptorManager();
         void createPipelineLayout();
         void createShaders();
         void createGraphicsPipelines();
@@ -82,9 +77,7 @@ namespace crv::graphics::vulkan {
         VkFormat mInstanceIdFormat = VK_FORMAT_UNDEFINED;
 
         Context* mContext = nullptr;
-        DescriptorSetLayout mDescriptorSetLayout{};
-        DescriptorPool mDescriptorPool{};
-        DescriptorSets mDescriptorSets{};
+        DescriptorManager mDescriptorManager{};
         std::vector<TexturesByType>* mTextures = nullptr;
         PipelineLayout mPipelineLayout{};
         ShaderModule mVertexShader{};
