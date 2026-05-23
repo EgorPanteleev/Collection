@@ -47,7 +47,7 @@ uint pcg(uint v){
     return (word >> 22) ^ word;
 }
 
-float rand01(uint seed){
+float rand01(inout uint seed){
     seed = pcg(seed);
     return float(seed) / 4294967296.0;
 }

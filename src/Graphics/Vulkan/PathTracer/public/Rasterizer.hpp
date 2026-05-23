@@ -6,7 +6,7 @@
 #define COLLECTION_RASTERPASS_HPP
 
 #include "Context.hpp"
-#include "Types.hpp"
+#include "TypesGPU.hpp"
 #include "DescriptorManager.hpp"
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"

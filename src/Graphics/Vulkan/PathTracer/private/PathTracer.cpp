@@ -22,14 +22,14 @@ namespace crv::graphics::vulkan {
     
     void PathTracer::update(const PathTracerUpdateInfo& info) {
         Buffer& cameraBuffer = mCameraBuffers[info.currentFrame];
-        AlignedCamera camera {
-            .pos = Vec4(info.camera->position(), 1),
+        CameraGPU camera {
+            .pos = glm::vec4(info.camera->position(), 1),
             .invViewProj = glm::inverse(info.camera->projectionMatrix() * info.camera->viewMatrix())
         };
-        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &camera, sizeof(AlignedCamera), cameraBuffer);
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &camera, sizeof(CameraGPU), cameraBuffer);
 
         Buffer& directLightBuffer = mDirectLightBuffers[info.currentFrame];
-        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &info.directLight, sizeof(AlignedDirectLight), directLightBuffer);
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &info.directLight, sizeof(DirectLightGPU), directLightBuffer);
     }
 
     void PathTracer::record(const PathTracerRecordInfo& info) {
@@ -46,13 +46,13 @@ namespace crv::graphics::vulkan {
         vkCmdDispatch(info.commandBuffer, groupX, groupY, 1);
     }
 
-    void PathTracer::updateTLAS(const std::vector<AlignedNode>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers) {
-        std::vector<TracerInstance> tracerInstances;
+    void PathTracer::updateTLAS(const std::vector<NodeGPU>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers) {
+        std::vector<TracerInstanceGPU> tracerInstances;
         for (const auto& instance: instances) tracerInstances.emplace_back(instance);
         copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, tracerInstances.data(),
-            tracerInstances.size() * sizeof(TracerInstance), mInstanceBuffer);
+            tracerInstances.size() * sizeof(TracerInstanceGPU), mInstanceBuffer);
 
-        uint32_t newSize = nodes.size() * sizeof(AlignedNode);
+        uint32_t newSize = nodes.size() * sizeof(NodeGPU);
         if (mTLASNodeBuffer.size() != newSize) {
             createSSBO(mContext->allocator(), newSize, mTLASNodeBuffer);
             mDescriptorManager.update(4, BufferResource(mTLASNodeBuffer));
@@ -188,12 +188,12 @@ namespace crv::graphics::vulkan {
 
     void PathTracer::createBuffers(const PathTracerCreateInfo& info) {
         SSBOData ssboData{};
-        std::vector<TracerInstance> instances;
+        std::vector<TracerInstanceGPU> instances;
         for (const auto& instance: info.instances) instances.emplace_back(instance);
         ssboData.add(info.triangles     , mTriangleBuffer     );
         ssboData.add(info.triangleExtras, mTriangleExtraBuffer);
         ssboData.add(info.nodes         , mNodeBuffer         );
-        ssboData.add(info.TLASNodes     , mTLASNodeBuffer     );
+        ssboData.add(info.tlasNodes     , mTLASNodeBuffer     );
         ssboData.add(instances          , mInstanceBuffer     );
         ssboData.createAll(mContext, QueueFamilyType::COMPUTE);
 
@@ -201,9 +201,9 @@ namespace crv::graphics::vulkan {
         mDirectLightBuffers.resize(mFramesInFlight);
         UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            uboData.add<AlignedCamera     >(mCameraBuffers[i]     );
-            uboData.add<AlignedDirectLight>(mDirectLightBuffers[i]);
+            uboData.add<CameraGPU     >(mCameraBuffers[i]     );
+            uboData.add<DirectLightGPU>(mDirectLightBuffers[i]);
         }
-        uboData.createAll(mContext, QueueFamilyType::COMPUTE);
+        uboData.createAll(mContext);
     }
 }

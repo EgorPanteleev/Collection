@@ -304,7 +304,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    static BLAS buildBLAS(std::span<Tri> tris) {
+    static BLAS buildBLAS(std::span<Triangle> tris) {
         BLASBuilder builder{tris};
         BLAS blas = builder.build();
         return blas;
@@ -345,7 +345,7 @@ namespace crv::graphics::vulkan {
         }
 
         for (const auto& instance: mRasterInstances) {
-            AlignedBBox bbox = mNodes[instance.baseNode].bbox;
+            BBoxGPU bbox = mNodes[instance.baseNode].bbox;
             mMeshPrimitives.emplace_back(instance.transform.matrix(), bbox.min, bbox.max);
         }
 
@@ -355,10 +355,10 @@ namespace crv::graphics::vulkan {
             mTracerInstances.push_back(mRasterInstances[idx]);
         }
         for (const auto& node: tlas.nodes()) {
-            AlignedNode alignedNode{};
-            alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
-            alignedNode.index = node.index().value();
-            mTLASNodes.push_back(alignedNode);
+            NodeGPU nodeGPU{};
+            nodeGPU.bbox = BBoxGPU(glm::vec4(node.bbox().min, 1), glm::vec4(node.bbox().max, 1));
+            nodeGPU.index = node.index().value();
+            mTLASNodes.push_back(nodeGPU);
         }
     }
 
@@ -404,7 +404,7 @@ namespace crv::graphics::vulkan {
                 mVertices.push_back(vertex);
             }
 
-            std::vector<Tri> triangles;
+            std::vector<Triangle> triangles;
             std::vector<uint32_t> indices;
             for (size_t i = 0; i < mesh.numIndices; i += 3) {
                 const size_t idx = mesh.baseIndex + i;
@@ -419,19 +419,19 @@ namespace crv::graphics::vulkan {
             for (int i = 0; i < triangles.size(); ++i) {
                 const uint32_t triIdx = blas.primIds()[i];
                 const uint32_t idx = mesh.baseIndex + triIdx * 3;
-                Tri& tri = triangles[triIdx];
-                mTriangles.emplace_back(Vec4(tri.p0, 1), Vec4(tri.e1, 1),
-                                        Vec4(tri.e2, 1), Vec4(tri.N, 1));
+                Triangle& tri = triangles[triIdx];
+                mTriangles.emplace_back(glm::vec4(tri.p0, 1), glm::vec4(tri.e1, 1),
+                                        glm::vec4(tri.e2, 1), glm::vec4(tri.N, 1));
                 cm::Vertex v0 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 0]];
                 cm::Vertex v1 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 1]];
                 cm::Vertex v2 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 2]];
                 mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
             }
             for (const auto& node: blas.nodes()) {
-                AlignedNode alignedNode{};
-                alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
-                alignedNode.index = node.index().value();
-                mNodes.push_back(alignedNode);
+                NodeGPU nodeGPU{};
+                nodeGPU.bbox = BBoxGPU(glm::vec4(node.bbox().min, 1), glm::vec4(node.bbox().max, 1));
+                nodeGPU.index = node.index().value();
+                mNodes.push_back(nodeGPU);
             }
 
             for (const auto& instance: instances) {
@@ -468,7 +468,7 @@ namespace crv::graphics::vulkan {
             .triangles = mTriangles,
             .triangleExtras = mTriangleExtras,
             .nodes = mNodes,
-            .TLASNodes = mTLASNodes,
+            .tlasNodes = mTLASNodes,
             .textures = &mTextures,
             .instances = mTracerInstances,
             .outImage = mTracerImage.get(),
@@ -1253,7 +1253,7 @@ namespace crv::graphics::vulkan {
         mRasterizer.updateInstanceBuffer(mRasterInstances);
         glm::mat4 model = transform.matrix();
 
-        AlignedBBox bbox = mNodes[instance.baseNode].bbox;
+        BBoxGPU bbox = mNodes[instance.baseNode].bbox;
         mMeshPrimitives[instanceIndex] = MeshPrimitive(model, bbox.min, bbox.max);
 
         TLAS tlas = buildTLAS(std::span(mMeshPrimitives));
@@ -1264,8 +1264,8 @@ namespace crv::graphics::vulkan {
         }
         mTLASNodes.clear();
         for (const auto& node: tlas.nodes()) {
-            AlignedNode alignedNode{};
-            alignedNode.bbox = AlignedBBox(Vec4(node.bbox().min, 1), Vec4(node.bbox().max, 1));
+            NodeGPU alignedNode{};
+            alignedNode.bbox = BBoxGPU(glm::vec4(node.bbox().min, 1), glm::vec4(node.bbox().max, 1));
             alignedNode.index = node.index().value();
             mTLASNodes.push_back(alignedNode);
         }

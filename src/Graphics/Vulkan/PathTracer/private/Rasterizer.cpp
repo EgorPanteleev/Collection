@@ -20,13 +20,13 @@ namespace crv::graphics::vulkan {
 
     void Rasterizer::update(const RasterizerUpdateInfo& info) {
         glm::mat4 model = glm::mat4(1.0f);
-        AlignedMVP MVP {
+        MVPGPU MVP {
             .model = model,
             .view = info.camera->viewMatrix(),
             .proj = info.camera->projectionMatrix(),
             .trInvModel = glm::transpose(glm::inverse(model))
         };
-        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(AlignedMVP), mMVPBuffers[info.currentFrame]);
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(MVPGPU), mMVPBuffers[info.currentFrame]);
     }
 
     void Rasterizer::record(const RasterizerRecordInfo& info) {
@@ -43,10 +43,10 @@ namespace crv::graphics::vulkan {
     }
 
     void Rasterizer::updateInstanceBuffer(const std::vector<MeshInstance>& instances) {
-        std::vector<RasterInstance> rasterInstances;
+        std::vector<RasterInstanceGPU> rasterInstances;
         for (const auto& instance: instances) rasterInstances.emplace_back(instance);
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, rasterInstances.data(),
-            rasterInstances.size() * sizeof(RasterInstance), mInstanceBuffer);
+            rasterInstances.size() * sizeof(RasterInstanceGPU), mInstanceBuffer);
     }
 
     void Rasterizer::recordMainPass(const RasterizerRecordInfo& info) {
@@ -439,8 +439,8 @@ namespace crv::graphics::vulkan {
             Buffer::copy(copyDataToGPUBufferInfo);
         }
 
-        std::vector<RasterInstance> instances;
-        for (auto instance: info.instances) instances.emplace_back(instance);
+        std::vector<RasterInstanceGPU> instances;
+        for (const auto& instance: info.instances) instances.emplace_back(instance);
         SSBOData ssboData{};
         ssboData.add(instances     , mInstanceBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
@@ -448,9 +448,9 @@ namespace crv::graphics::vulkan {
         mMVPBuffers.resize(mFramesInFlight);
         UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            uboData.add<AlignedMVP     >(mMVPBuffers[i]     );
+            uboData.add<MVPGPU     >(mMVPBuffers[i]     );
         }
-        uboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+        uboData.createAll(mContext);
 
         const BufferCreateInfo readbackInfo {
             .allocator = mContext->allocator(),

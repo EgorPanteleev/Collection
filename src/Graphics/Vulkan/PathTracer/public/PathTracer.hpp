@@ -11,7 +11,7 @@
 #include "ShaderModule.hpp"
 #include "ComputePipelines.hpp"
 #include "Buffer.hpp"
-#include "Types.hpp"
+#include "TypesGPU.hpp"
 
 namespace crv::scene {
     class AbsCamera;
@@ -20,10 +20,10 @@ namespace crv::scene {
 namespace crv::graphics::vulkan {
     struct PathTracerCreateInfo {
         Context* context;
-        std::vector<AlignedTriangle> triangles{};
-        std::vector<AlignedTriangleExtra> triangleExtras{};
-        std::vector<AlignedNode> nodes{};
-        std::vector<AlignedNode> TLASNodes{};
+        std::vector<TriangleGPU> triangles{};
+        std::vector<TriangleExtraGPU> triangleExtras{};
+        std::vector<NodeGPU> nodes{};
+        std::vector<NodeGPU> tlasNodes{};
         std::vector<TexturesByType>* textures = nullptr;
         std::vector<MeshInstance> instances{};
         VkImage            outImage       = VK_NULL_HANDLE;
@@ -34,7 +34,7 @@ namespace crv::graphics::vulkan {
 
     struct PathTracerUpdateInfo {
         scene::AbsCamera*  camera         = nullptr;
-        AlignedDirectLight directLight{};
+        DirectLightGPU     directLight{};
         uint32_t           currentFrame   = 0;
     };
 
@@ -51,7 +51,7 @@ namespace crv::graphics::vulkan {
         explicit PathTracer(const PathTracerCreateInfo& info);
         void update(const PathTracerUpdateInfo& info);
         void record(const PathTracerRecordInfo& info);
-        void updateTLAS(const std::vector<AlignedNode>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers);
+        void updateTLAS(const std::vector<NodeGPU>& nodes, const std::vector<MeshInstance>& instances, const std::vector<GBuffer>& gBuffers);
     protected:
         void createDescriptorManager(const PathTracerCreateInfo& info);
         void createPipelineLayout();

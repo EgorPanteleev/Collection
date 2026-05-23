@@ -22,7 +22,7 @@ using json = nlohmann::json;
 namespace crv::graphics::vulkan {
     struct PathTracerAppCreateInfo {
         std::string scenePath;
-        AlignedDirectLight directLight{};
+        DirectLightGPU directLight{};
     };
 
     class PathTracerApp {
@@ -78,7 +78,7 @@ namespace crv::graphics::vulkan {
         scene::FlyCamera     mFlyCamera{};
         scene::OrbitalCamera mOrbitalCamera{};
         scene::AbsCamera*    mCamera = nullptr;
-        AlignedDirectLight   mDirectLight{};
+        DirectLightGPU   mDirectLight{};
         bool mRenderImGui = false;
         int  mSPP         = 1;
         int  mMinDepth    = 0;
@@ -107,18 +107,18 @@ namespace crv::graphics::vulkan {
         std::vector<Semaphore> mOutlinerFinishedSemaphores{};
         std::vector<Fence>     mFences{};
 
-        std::vector<Vertex>               mVertices{};
-        std::vector<uint32_t>             mIndices{};
-        std::vector<AlignedTriangle>      mTriangles{};
-        std::vector<AlignedTriangleExtra> mTriangleExtras{};
-        std::vector<AlignedNode>          mNodes{};
-        std::vector<AlignedNode>          mTLASNodes{};
-        std::vector<MeshData>             mMeshesData{};
-        std::vector<MeshPrimitive>        mMeshPrimitives{};
-        std::vector<MeshInstance>         mRasterInstances{};
-        std::vector<MeshInstance>         mTracerInstances{};
-        std::vector<cm::Material>         mMaterials{};
-        std::vector<TexturesByType>       mTextures{};
+        std::vector<Vertex>           mVertices{};
+        std::vector<uint32_t>         mIndices{};
+        std::vector<TriangleGPU>      mTriangles{};
+        std::vector<TriangleExtraGPU> mTriangleExtras{};
+        std::vector<NodeGPU>          mNodes{};
+        std::vector<NodeGPU>          mTLASNodes{};
+        std::vector<MeshData>         mMeshesData{};
+        std::vector<MeshPrimitive>    mMeshPrimitives{};
+        std::vector<MeshInstance>     mRasterInstances{};
+        std::vector<MeshInstance>     mTracerInstances{};
+        std::vector<cm::Material>     mMaterials{};
+        std::vector<TexturesByType>   mTextures{};
 
         std::vector<GBuffer> mGBuffers{};
         Rasterizer mRasterizer{};

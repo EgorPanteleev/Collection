@@ -20,7 +20,7 @@ void createONB(in vec3 N, out vec3 tangent, out vec3 bitangent){
 
 vec3 cosineSample(uint seed) {
     const float u = rand01(seed);
-    const float v = rand01(seed + 1);
+    const float v = rand01(seed);
     const float r = sqrt(u);
     float azimuth = v * 2 * M_PI;
     return vec3(r * cos(azimuth), r * sin(azimuth), sqrt(1 - u));
@@ -44,7 +44,7 @@ Scatter lambertianScatter(inout uint seed, vec3 albedo, const vec3 N, const vec3
     vec3 tangent, bitangent;
     createONB(N, tangent, bitangent);
     vec3 localSample = cosineSample(seed);
-    scatter.wi = localSample.x * tangent + localSample.y * bitangent + localSample.z * N;
+    scatter.wi = normalize(localSample.x * tangent + localSample.y * bitangent + localSample.z * N);
 
     scatter.pdf = lambertianPDF(N, scatter.wi);
     scatter.brdf = lambertianBRDF(albedo);
