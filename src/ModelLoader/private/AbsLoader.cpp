@@ -101,13 +101,13 @@ namespace crv::model {
     static glm::vec3 toEmptyColor(Texture::Type texType) {
         switch(texType) {
             case Texture::Type::DIFFUSE:
-                return {1, 0, 0};
+                return {0.5, 0, 0};
             case Texture::Type::SPECULAR:
             case Texture::Type::SHININESS:
             case Texture::Type::AMBIENT:
                 return glm::vec3(0);
             case Texture::Type::NORMAL:
-                return {0, 1, 0};
+                return {0.5, 0.5, 1};
             default:
                 INFO << "ID: " << texType;
                 throw std::runtime_error("Unsupported model texture type!");

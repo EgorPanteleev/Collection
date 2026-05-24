@@ -17,16 +17,14 @@ layout(binding = 2) uniform sampler2D textures[];
 //layout(set = 1, binding = 0) uniform sampler2D albedoMap;
 
 void main() {
-    vec3 normal = gl_FrontFacing ? -fragNormal : fragNormal;
+    vec3 fragNormal = gl_FrontFacing ? -fragNormal : fragNormal;
     vec3 texColor = texture(nonuniformEXT(textures[fragDiffuseIndex]), fragUV).rgb;
     vec3 texNormal = texture(nonuniformEXT(textures[fragNormalIndex]), fragUV).rgb;
-    texNormal = normalize(texNormal * 2.0 - 1.0);
+    texNormal = texNormal * 2.0 - 1.0;
     mat3 TBN = mat3(fragTangent, fragBitangent, fragNormal);
-    texNormal = TBN * texNormal;
+    vec3 normal = normalize(TBN * texNormal);
 
     outNormal = vec4(normal, 1.0);
-//    outNormal = vec4(texNormal, 1.0);
-    //outAlbedo = vec4(normal * 0.5 + 0.5, 1.0);
     outAlbedo = vec4(texColor, 1.0);
     outInstanceId = fragInstanceId + 1;
 }

@@ -39,7 +39,9 @@ void main() {
     fragUV           = inUV;
     fragNormal       = normalize(normalMatrix * inNormal);
     fragTangent      = normalize(normalMatrix * inTangent.xyz);
-    fragBitangent    = cross(fragNormal, fragTangent) * inTangent.w;
+    fragTangent = normalize(fragTangent - fragNormal * dot(fragNormal, fragTangent));
+    fragBitangent    = (cross(fragNormal, fragTangent) * inTangent.w);
+
     fragInstanceId   = gl_InstanceIndex;
     fragDiffuseIndex = instance.texIndex;
     fragNormalIndex  = instance.texIndex + 4;
