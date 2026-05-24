@@ -15,10 +15,11 @@ void createONB(in vec3 N, out vec3 tangent, out vec3 bitangent){
         tangent = normalize(vec3(-N.y, N.x, 0));
     else
         tangent = normalize(vec3(0, -N.z, N.y));
-    bitangent = cross(N, tangent);
+    bitangent = normalize(cross(N, tangent));
 }
 
-vec3 cosineSample(uint seed) {
+
+vec3 cosineSample(inout uint seed) {
     const float u = rand01(seed);
     const float v = rand01(seed);
     const float r = sqrt(u);

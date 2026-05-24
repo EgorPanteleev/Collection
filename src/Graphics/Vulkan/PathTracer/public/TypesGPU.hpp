@@ -25,6 +25,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct alignas(16) TriangleExtraGPU {
+        glm::vec4 n0, n1, n2;
         glm::vec2 uv0, uv1, uv2;
         float padding[2];
     };

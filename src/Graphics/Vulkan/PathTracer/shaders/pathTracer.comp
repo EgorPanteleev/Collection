@@ -6,38 +6,33 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 #include "layout.glsl"
 #include "material.glsl"
 
-#define skyColor vec3(0.2)
+#define skyColor vec3(0.1)
 
 float getShadow(vec3 P, vec3 dir) {
     Ray shadowRay = makeRay(P, dir, 0.0, FLT_MAX);
     Hit shadowHit = intersect(shadowRay, 1e-6);
 
-    if (shadowHit.triId == UINT_MAX) return 1;
-    return 0;
+    if (shadowHit.triId == UINT_MAX) return 1.0;
+    return 0.0;
 }
 
 float offsetBias(vec3 P) {
+    return 1e-4;
     return max(length(P - camera.pos.xyz) * 1e-3, 1e-2);
 }
 
-vec3 traceRay(uint seed, vec3 albedo, float inDepth, vec3 P, vec3 N) {
-    if (inDepth >= 1.0) { ;
-        return skyColor;
-    }
+vec3 traceRay(uint seed, vec3 albedo, vec3 P, vec3 N) {
     vec3 resultColor = vec3(0.0);
     vec3 throughput  = vec3(1.0);
-
     //vec3 wo = -rayDir;
     vec3 L  = -directLight.dir.xyz;
     Scatter scatter = lambertianScatter(seed, albedo, N, vec3(1));
-
     float cosTheta   = max(dot(N, L), 0.0);
     vec3  movedP     = P + N * offsetBias(P);
     vec3  directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
-    resultColor += directColor;
-    throughput  *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
-    Ray currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
-
+    resultColor += throughput * directColor;
+    throughput  *= scatter.brdf * max(dot(N, scatter.wi), 0.0) / scatter.pdf;
+    Ray currentRay = makeRay(movedP, scatter.wi, 1e-4, FLT_MAX);
     for (uint depth = 1; depth < pc.maxDepth; ++depth) {
         Hit hit = intersect(currentRay, 1e-3);
         if (hit.triId == UINT_MAX) {
@@ -57,16 +52,21 @@ vec3 traceRay(uint seed, vec3 albedo, float inDepth, vec3 P, vec3 N) {
         vec2 uv = getUV(triExtra, hit.u, hit.v);
         vec3 albedo = textureLod(textures[nonuniformEXT(instance.texIndex)], uv, 0).rgb;
         vec3 L = -directLight.dir.xyz;
-        vec3 N = normalize(mat3(transpose(instance.invModel)) * tri.N.xyz);
-        N = faceforward(N, currentRay.dir, N);
+
+        vec3 gN = normalize(mat3(transpose(instance.invModel)) * tri.N.xyz);
+        vec3 sN = normalize(triExtra.n0.xyz * (1 - hit.u - hit.v) +
+                            triExtra.n1.xyz * hit.u +
+                            triExtra.n2.xyz * hit.v);
+        sN = faceforward(sN, currentRay.dir, sN);
         vec3 wo = -currentRay.dir;
-        Scatter scatter = lambertianScatter(seed, albedo, N, wo);
-        float cosTheta = max(dot(N,L), 0);
-        vec3 movedP = P + N * offsetBias(P);
+        scatter = lambertianScatter(seed, albedo, sN, wo);
+        float cosTheta = max(dot(sN, L), 0);
+        vec3 movedP = P + gN * offsetBias(P);
         vec3 directColor = scatter.brdf * cosTheta * directLight.intensity * getShadow(movedP, L);
         resultColor += throughput * directColor;
-        throughput *= scatter.brdf * dot(N, scatter.wi) / scatter.pdf;
-        currentRay = makeRay(movedP, scatter.wi, 0.0, FLT_MAX);
+        float dotWi = dot(scatter.wi, sN);
+        throughput *= scatter.brdf * max(dot(scatter.wi, sN), 0.0) / scatter.pdf;
+        currentRay = makeRay(movedP, scatter.wi, 1e-4, FLT_MAX);
     }
     return resultColor;
 }
@@ -102,6 +102,7 @@ vec3 tracedColor() {
     vec2 wh = imageSize(outputImage);
     vec2 uv = coord / wh;
     float depth = texture(depthImage, uv).r;
+    if (depth >= 1.0) return skyColor;
     vec2 ndc = uv * 2.0 - 1.0;
     vec4 clip = vec4(ndc, depth, 1.0);
     vec4 world = camera.invViewProj * clip;
@@ -112,9 +113,9 @@ vec3 tracedColor() {
     vec3 N = texture(normalImage, uv).rgb;
     N = faceforward(N, P - camera.pos.xyz, N);
     vec3 color = vec3(0.0);
-    for (uint i = 0; i < pc.spp; i++) {
+     for (uint i = 0; i < pc.spp; i++) {
         uint seed = coord.x + coord.y * 1973u + pc.frame * 9277u + i * 26699u;
-        color += traceRay(seed, albedo, depth, P, N);
+        color += traceRay(seed, albedo, P, N);
     }
     color /= float(pc.spp);
     return color;

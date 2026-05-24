@@ -8,6 +8,7 @@ struct PrecomputedTriangle {
 };
 
 struct TriangleExtra {
+    vec4 n0, n1, n2;
     vec2 uv0, uv1, uv2;
     float padding[2];
 };
@@ -16,11 +17,11 @@ struct TriHit {
     float t, u, v;
 };
 
-TriHit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
+TriHit intersect(PrecomputedTriangle tri, Ray ray, float tmin_eps) {
     vec3 p0 = tri.p0.xyz;
     vec3 e1 = tri.e1.xyz;
     vec3 e2 = tri.e2.xyz;
-    vec3 N = tri.N.xyz;
+    vec3 N  = tri.N.xyz;
 
     vec3 c = p0 - ray.pos;
     vec3 r = cross(ray.dir, c);

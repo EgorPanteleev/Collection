@@ -425,7 +425,8 @@ namespace crv::graphics::vulkan {
                 cm::Vertex v0 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 0]];
                 cm::Vertex v1 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 1]];
                 cm::Vertex v2 = loader->vertices()[mesh.baseVertex + loader->indices()[idx + 2]];
-                mTriangleExtras.emplace_back(v0.texCoord0, v1.texCoord0, v2.texCoord0);
+                mTriangleExtras.emplace_back(glm::vec4(v0.normal, 1), glm::vec4(v1.normal, 1),
+                    glm::vec4(v2.normal, 1), v0.texCoord0, v1.texCoord0, v2.texCoord0);
             }
             for (const auto& node: blas.nodes()) {
                 NodeGPU nodeGPU{};

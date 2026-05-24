@@ -34,7 +34,7 @@
     "texIndex": 2,
     "localPosition":	[0, 0, 0],
     "localRotation":	[0, 0, 0],
-    "localScale":	[30, 30, 30]
+    "localScale":	[31, 31, 31]
   },
   {
     "name":	"leftPlane",
@@ -42,7 +42,7 @@
     "texIndex": 0,
     "localPosition":	[0, -30, 30],
     "localRotation":	[0, 90, 90],
-    "localScale":	[30, 30, 30]
+    "localScale":	[31, 31, 31]
   },
   {
     "name":	"rightPlane",
@@ -50,7 +50,7 @@
     "texIndex": 1,
     "localPosition":	[0, -30, -30],
     "localRotation":	[0, 90, 90],
-    "localScale":	[30, 30, 30]
+    "localScale":	[31, 31, 31]
   },
   {
     "name":	"forwardPlane",
@@ -58,15 +58,23 @@
     "texIndex": 2,
     "localPosition":	[-30, -30, 0],
     "localRotation":	[0, 0, 90],
-    "localScale":	[30, 30, 30]
+    "localScale":	[31, 31, 31]
   },
+    {
+      "name":	"backPlane",
+      "modelIndex":	1,
+      "texIndex": 2,
+      "localPosition":	[30, -30, 0],
+      "localRotation":	[0, 0, 90],
+      "localScale":	[31, 31, 31]
+    },
   {
     "name":	"topPlane",
     "modelIndex":	1,
     "texIndex": 2,
     "localPosition":	[0, -60, 0],
     "localRotation":	[0, 0, 0],
-    "localScale":	[30, 30, 30]
+    "localScale":	[31, 31, 31]
   },
   {
     "name":	"lamp",

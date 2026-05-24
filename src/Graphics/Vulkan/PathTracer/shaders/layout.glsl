@@ -114,7 +114,7 @@ Hit intersect(Ray ray, float eps) {
                 Instance instance = instanceBuffer.data[id + i];
                 vec3 localPos = vec3(instance.invModel * vec4(ray.pos, 1.0));
                 vec3 localDir = vec3(instance.invModel * vec4(ray.dir, 0.0));
-                Ray localRay = makeRay(localPos, localDir, 0.0, FLT_MAX);
+                Ray localRay = makeRay(localPos, localDir, ray.tmin, ray.tmax);
                 BLASHit instanceHit = intersect(localRay, instance.baseNode, instance.baseTri, eps);
                 if (instanceHit.t > eps && instanceHit.t < closestHit.t) {
                     closestHit = Hit(instanceHit.id, id + i, instanceHit.t, instanceHit.u, instanceHit.v);
