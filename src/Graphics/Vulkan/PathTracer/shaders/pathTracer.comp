@@ -17,7 +17,7 @@ float getShadow(vec3 P, vec3 dir) {
 }
 
 float offsetBias(vec3 P) {
-    return 1e-4;
+    //return 1e-4;
     return max(length(P - camera.pos.xyz) * 1e-3, 1e-2);
 }
 

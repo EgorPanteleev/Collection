@@ -17,7 +17,7 @@ struct TriHit {
     float t, u, v;
 };
 
-TriHit intersect(PrecomputedTriangle tri, Ray ray, float tmin_eps) {
+TriHit intersect(PrecomputedTriangle tri, Ray ray, float eps) {
     vec3 p0 = tri.p0.xyz;
     vec3 e1 = tri.e1.xyz;
     vec3 e2 = tri.e2.xyz;

@@ -60,14 +60,6 @@
     "localRotation":	[0, 0, 90],
     "localScale":	[31, 31, 31]
   },
-    {
-      "name":	"backPlane",
-      "modelIndex":	1,
-      "texIndex": 2,
-      "localPosition":	[30, -30, 0],
-      "localRotation":	[0, 0, 90],
-      "localScale":	[31, 31, 31]
-    },
   {
     "name":	"topPlane",
     "modelIndex":	1,
