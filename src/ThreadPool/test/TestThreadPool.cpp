@@ -24,11 +24,10 @@ TEST(ThreadPool, All) {
     ThreadPool pool(n);
     auto vec = generateNumbers(n);
     float sum = std::reduce(vec.begin(), vec.end());
-    float calc = 0;
+    std::atomic<float> calc = 0;
     for (int i = 0; i < n; ++i) {
-        pool.enqueue([&vec, &calc, i](){ calc += vec[i]; });
+        pool.enqueue([&vec, &calc, i](){ calc.fetch_add(vec[i]); });
     }
-    pool.wait();
-
+    pool.stop();
     EXPECT_EQ(sum, calc);
 }
