@@ -131,7 +131,7 @@ namespace crv::graphics {
                 pool.enqueue([&task, i, j](){ task(i, j); });
             }
         }
-        pool.wait();
+        pool.stop();
         return imageBuffer;
     }
 

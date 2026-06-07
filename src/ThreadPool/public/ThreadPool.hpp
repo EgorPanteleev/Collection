@@ -14,63 +14,57 @@
 #include <condition_variable>
 
 class ThreadPool {
-    using Task = std::function<void()>;
 public:
-    ThreadPool(size_t n): mStop(false) {
-        auto worker = [this]() {
+    using Task = std::function<void()>;
+    explicit ThreadPool(const uint32_t numWorkers) {
+        auto worker = [this] {
             while (true) {
-                Task task;
+                Task task{};
                 {
-                    std::unique_lock lock(mMutex);
-                    mCondition.wait(lock, [this]() { return mStop or !mTasks.empty(); });
-                    if (mStop and mTasks.empty()) {
-                        return;
-                    }
+                    std::unique_lock lock{mMutex};
+                    mConditionVariable.wait(lock, [this]{ return !mTasks.empty() or mStop; });
+                    if (mStop and mTasks.empty()) return;
                     task = std::move(mTasks.front());
                     mTasks.pop();
                 }
                 task();
             }
         };
-        for (int i = 0; i < n; ++i) {
-            mThreads.emplace_back(worker);
+        for (uint32_t i = 0; i < numWorkers; ++i) {
+            mWorkers.emplace_back(worker);
         }
     }
 
     ~ThreadPool() {
-        wait();
+        stop();
     }
 
-    template <typename Func>
+    template<typename Func>
     void enqueue(Func&& task) {
         {
-            std::lock_guard lock(mMutex);
-            mTasks.push(std::forward<Func>(task));
+            std::lock_guard lock{mMutex};
+            mTasks.emplace(std::forward<Func>(task));
         }
-        mCondition.notify_one();
+        mConditionVariable.notify_one();
     }
 
-    void wait() {
+    void stop() {
         {
-            std::lock_guard lock(mMutex);
+            std::lock_guard lock{mMutex};
             mStop = true;
         }
-        mCondition.notify_all();
-        for (auto& thread: mThreads) {
-            if (!thread.joinable()) continue;
-            thread.join();
+        mConditionVariable.notify_all();
+        for (auto& worker: mWorkers) {
+            if (!worker.joinable()) continue;
+            worker.join();
         }
     }
-
-protected:
-
-    std::vector<std::thread> mThreads;
-    std::queue<Task> mTasks;
-
-    std::mutex mMutex;
-    std::condition_variable mCondition;
-
-    bool mStop;
+private:
+    std::queue<Task> mTasks{};
+    std::vector<std::thread> mWorkers{};
+    std::condition_variable mConditionVariable{};
+    std::mutex mMutex{};
+    bool mStop = false;
 };
 
 
