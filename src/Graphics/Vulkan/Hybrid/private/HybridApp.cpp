@@ -2,7 +2,7 @@
 // Created by igor on 4/22/26.
 //
 
-#include "PathTracerApp.hpp"
+#include "HybridApp.hpp"
 #include "CoreUtils.hpp"
 #include "Timer.hpp"
 #include "Loader.hpp"
@@ -30,7 +30,7 @@ static glm::vec3 toVec3(const nlohmann::json& json) {
 }
 
 namespace crv::graphics::vulkan {
-    PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& info) {
+    HybridApp::HybridApp(const HybridAppCreateInfo& info) {
         std::ifstream file(info.scenePath);
         file >> mScene;
         createCamera();
@@ -54,7 +54,7 @@ namespace crv::graphics::vulkan {
         createImGui();
     }
 
-    void PathTracerApp::run() {
+    void HybridApp::run() {
         utils::FpsCounter fpsCounter;
         double deltaTime = 0;
         const Window& window = mContext.window();
@@ -71,18 +71,18 @@ namespace crv::graphics::vulkan {
         vkDeviceWaitIdle(mContext.device());
     }
 
-    void PathTracerApp::updateImage() {
+    void HybridApp::updateImage() {
         mFrameCount = 0;
     }
 
-    void PathTracerApp::pixelClicked(uint32_t x, uint32_t y) {
+    void HybridApp::pixelClicked(uint32_t x, uint32_t y) {
         if (!mRenderImGui) return;
         auto [width, height] = mSwapchain.extent();
         if (x > width or y > height) return;
         mPixel = {x, y};
     }
 
-    void PathTracerApp::createCamera() {
+    void HybridApp::createCamera() {
         auto camera = mScene["camera"];
         auto window = mScene["window"];
         const cs::CameraCreateInfo info {
@@ -105,7 +105,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::createContext() {
+    void HybridApp::createContext() {
         auto window = mScene["window"];
         const WindowCreateInfo windowCreateInfo {
             .width = window["width"],
@@ -122,7 +122,7 @@ namespace crv::graphics::vulkan {
         mContext = Context(createInfo);
     }
 
-    void PathTracerApp::createCommandPool() {
+    void HybridApp::createCommandPool() {
         CommandPoolCreateInfo createInfo {
             .device = mContext.device(),
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
@@ -134,7 +134,7 @@ namespace crv::graphics::vulkan {
         mOutlinerCommandPool = CommandPool(createInfo);
     }
 
-    void PathTracerApp::createCommandBuffers() {
+    void HybridApp::createCommandBuffers() {
         CommandBuffersCreateInfo createInfo {
             .device = mContext.device(),
             .commandPool = mTracerCommandPool.get(),
@@ -147,7 +147,7 @@ namespace crv::graphics::vulkan {
         mOutlinerCommandBuffers = CommandBuffers(createInfo);
     }
 
-    void PathTracerApp::createSwapChain() {
+    void HybridApp::createSwapChain() {
         int width, height;
         mContext.window().getFrameBufferSize(width, height);
         const SwapchainCreateInfo info{
@@ -161,7 +161,7 @@ namespace crv::graphics::vulkan {
         mSwapchain = Swapchain(info);
     }
 
-    void PathTracerApp::createSwapChainImages() {
+    void HybridApp::createSwapChainImages() {
         auto [capabilities, formats, presentModes] = Swapchain::getSupport(mContext.physicalDevice(), mContext.surface());
         uint32_t imageCount = Swapchain::getImageCount(capabilities);
         vkGetSwapchainImagesKHR(mContext.device(), mSwapchain.get(), &imageCount, nullptr);
@@ -203,7 +203,7 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::COMPUTE));
     }
 
-    void PathTracerApp::createSyncObjects() {
+    void HybridApp::createSyncObjects() {
         const SemaphoreCreateInfo semaphoreCreateInfo {
             .device = mContext.device()
         };
@@ -224,7 +224,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::createImages() {
+    void HybridApp::createImages() {
         ImageCreateInfo imageCreateInfo {
             .device = mContext.device(),
             .allocator = mContext.allocator(),
@@ -278,7 +278,7 @@ namespace crv::graphics::vulkan {
         #endif
     }
 
-    void PathTracerApp::createTextures() {
+    void HybridApp::createTextures() {
         mTextures.resize(mMaterials.size());
         for (size_t i = 0; i < mMaterials.size(); ++i) {
             const cm::Material& material = mMaterials[i];
@@ -316,7 +316,7 @@ namespace crv::graphics::vulkan {
         return tlas;
     }
 
-    void PathTracerApp::loadScene() {
+    void HybridApp::loadScene() {
         std::vector<std::string> textures = mScene["textureImports"];
         auto materials = mScene["materials"];
         mMaterials.resize(textures.size() + materials.size());
@@ -362,7 +362,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::loadModel(const uint32_t modelIndex, const std::string& path) {
+    void HybridApp::loadModel(const uint32_t modelIndex, const std::string& path) {
         utils::Timer timer;
         timer.start();
         auto loader = new cm::Loader;
@@ -463,7 +463,7 @@ namespace crv::graphics::vulkan {
         mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
     }
 
-    void PathTracerApp::createPathTracer() {
+    void HybridApp::createPathTracer() {
         const PathTracerCreateInfo pathTracerCreateInfo {
             .context = &mContext,
             .triangles = mTriangles,
@@ -480,7 +480,7 @@ namespace crv::graphics::vulkan {
         mPathTracer = PathTracer(pathTracerCreateInfo);
     }
 
-    void PathTracerApp::createOutliner() {
+    void HybridApp::createOutliner() {
         std::vector<VkImageView> instanceIdViews;
         std::vector<VkSampler> instanceIdSamplers;
         for (const auto& gBuffer: mGBuffers) {
@@ -498,7 +498,7 @@ namespace crv::graphics::vulkan {
         mOutliner = Outliner(outlinerCreateInfo);
     }
 
-    void PathTracerApp::createImGui() {
+    void HybridApp::createImGui() {
         const ImGuiCreateInfo createInfo {
             .context = &mContext,
             .imageCount = static_cast<uint32_t>(mSwapchainImages.size()),
@@ -510,7 +510,7 @@ namespace crv::graphics::vulkan {
         VkImGui::loadConfigFile(PROJECT_PATH"imgui.ini");
     }
 
-    void PathTracerApp::update() {
+    void HybridApp::update() {
         mDirectLight.dir = glm::normalize(mDirectLight.dir);
         const RasterizerUpdateInfo rasterizerUpdateInfo {
             .camera = mCamera,
@@ -529,7 +529,7 @@ namespace crv::graphics::vulkan {
         mOutliner.update(outlinerUpdateInfo);
     }
 
-    void PathTracerApp::recordRaster() {
+    void HybridApp::recordRaster() {
         VkCommandBuffer commandBuffer = mRasterCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
@@ -588,7 +588,7 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandBuffer);
     }
 
-    void PathTracerApp::recordTracer() {
+    void HybridApp::recordTracer() {
         VkCommandBuffer commandBuffer = mTracerCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
@@ -638,7 +638,7 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandBuffer);
     }
 
-    void PathTracerApp::recordOutliner(const uint32_t imageIndex) {
+    void HybridApp::recordOutliner(const uint32_t imageIndex) {
         VkCommandBuffer commandBuffer = mOutlinerCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
@@ -653,7 +653,7 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandBuffer);
     }
 
-    void PathTracerApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
+    void HybridApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
         const ImageBarrierInfo dataBarrierInfo {
             .image = mPresentImage.get(),
             .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -754,14 +754,14 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::record(uint32_t imageIndex) {
+    void HybridApp::record(uint32_t imageIndex) {
         recordRaster();
         recordTracer();
         recordOutliner(imageIndex);
         vkResetFences(mContext.device(), 1, &mFences[mCurrentFrame].get());
     }
 
-    void PathTracerApp::submit(const uint32_t imageIndex) {
+    void HybridApp::submit(const uint32_t imageIndex) {
         auto& rasterCommandBuffer = mRasterCommandBuffers[mCurrentFrame];
         VkPipelineStageFlags rasterWaitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         const VkSubmitInfo rasterSubmitInfo{
@@ -827,7 +827,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::acquireNextImage(uint32_t& imageIndex) {
+    void HybridApp::acquireNextImage(uint32_t& imageIndex) {
         SwapchainAcquireInfo swapchainAcquireInfo {
             .imageAvailableSemaphore = mImageAvailableSemaphores[mCurrentFrame].get(),
             .fence = VK_NULL_HANDLE,
@@ -839,7 +839,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::drawFrame() {
+    void HybridApp::drawFrame() {
         uint32_t imageIndex;
         vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
         mRasterizer.updateSelectedInstance();
@@ -860,7 +860,7 @@ namespace crv::graphics::vulkan {
         return {clampAngle(e.x), clampAngle(e.y), clampAngle(e.z)};
     }
 
-    void PathTracerApp::drawControlPanel() {
+    void HybridApp::drawControlPanel() {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
         mImGui.beginFrame();
@@ -1031,7 +1031,7 @@ namespace crv::graphics::vulkan {
         mImGui.endFrame();
     }
 
-    void PathTracerApp::setCamera(const scene::CameraType type) {
+    void HybridApp::setCamera(const scene::CameraType type) {
         if (type == scene::CameraType::FLY) {
             mCamera = &mFlyCamera;
             mCamera->setPosition(mOrbitalCamera.position());
@@ -1041,7 +1041,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::createGBuffers() {
+    void HybridApp::createGBuffers() {
         const auto [width, height] = mSwapchain.extent();
         VkExtent3D extent = {width, height, 1};
         const ImageCreateInfo colorImageCreateInfo {
@@ -1230,7 +1230,7 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
-    void PathTracerApp::createRasterizer() {
+    void HybridApp::createRasterizer() {
         const auto [width, height] = mSwapchain.extent();
         const RasterizerCreateInfo createInfo {
             .context = &mContext,
@@ -1248,7 +1248,7 @@ namespace crv::graphics::vulkan {
         mRasterizer = Rasterizer(createInfo);
     }
 
-    void PathTracerApp::updateInstanceModel(const uint32_t instanceIndex, const Transform& transform) {
+    void HybridApp::updateInstanceModel(const uint32_t instanceIndex, const Transform& transform) {
         MeshInstance& instance = mRasterInstances[instanceIndex];
         instance.transform = transform;
         mRasterizer.updateInstanceBuffer(mRasterInstances);

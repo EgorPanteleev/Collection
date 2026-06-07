@@ -5,11 +5,11 @@
 #ifndef COLLECTION_CALLBACKS_HPP
 #define COLLECTION_CALLBACKS_HPP
 
-#include "PathTracerApp.hpp"
+#include "HybridApp.hpp"
 
 namespace cs = crv::scene;
 namespace crv::graphics::vulkan {
-    void setCallBacks(PathTracerApp* app);
+    void setCallBacks(HybridApp* app);
 }
 
 

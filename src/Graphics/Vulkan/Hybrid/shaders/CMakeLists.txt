@@ -7,4 +7,4 @@ add_custom_target(
         COMMENT "Compiling shaders..."
 )
 
-add_dependencies(VulkanPathTracer CompileShaders)
+add_dependencies(VulkanHybrid CompileShaders)

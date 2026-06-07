@@ -20,14 +20,14 @@
 using json = nlohmann::json;
 
 namespace crv::graphics::vulkan {
-    struct PathTracerAppCreateInfo {
+    struct HybridAppCreateInfo {
         std::string scenePath;
         DirectLightGPU directLight{};
     };
 
-    class PathTracerApp {
+    class HybridApp {
     public:
-        PathTracerApp(const PathTracerAppCreateInfo& info);
+        explicit HybridApp(const HybridAppCreateInfo& info);
         void run();
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         void updateImage();
