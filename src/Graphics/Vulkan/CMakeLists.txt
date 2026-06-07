@@ -1,2 +1,2 @@
 add_subdirectory(Core)
-add_subdirectory(PathTracer)
+add_subdirectory(Hybrid)

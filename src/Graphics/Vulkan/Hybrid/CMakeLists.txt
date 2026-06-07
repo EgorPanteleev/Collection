@@ -20,5 +20,5 @@ add_subdirectory(shaders)
 
 #applications
 set(AppLibs Message Geometry ModelLoader Camera glfw Vulkan::Vulkan Vulkan::PathTracer )
-add_executable(PathTracerGPU applications/PathTracerGPU.cpp)
-target_link_libraries(PathTracerGPU ${AppLibs})
+add_executable(Hybrid applications/Hybrid.cpp)
+target_link_libraries(Hybrid ${AppLibs})

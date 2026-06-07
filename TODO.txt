@@ -1,3 +1,4 @@
-1) vizualize lights, improve triangle meshes
-2) need camera movement
-3) optimization, make algo faster
+Multithreading:
+1) Thread pool with futures
+2) Thread safe stack
+
