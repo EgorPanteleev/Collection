@@ -40,6 +40,22 @@ namespace crv::graphics::vulkan {
         VkPipelineStageFlags dstStage       = VK_PIPELINE_STAGE_NONE;
     };
 
+    struct ImageTransitInfo2 {
+        VkCommandBuffer       commandBuffer  = VK_NULL_HANDLE;
+        VkImage               image          = VK_NULL_HANDLE;
+        VkAccessFlags2        srcAccessMask  = VK_ACCESS_2_NONE;
+        VkAccessFlags2        dstAccessMask  = VK_ACCESS_2_NONE;
+        VkPipelineStageFlags2 srcStage       = VK_PIPELINE_STAGE_2_NONE;
+        VkPipelineStageFlags2 dstStage       = VK_PIPELINE_STAGE_2_NONE;
+        VkImageLayout         oldLayout      = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageLayout         newLayout      = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageAspectFlags    aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        uint32_t              baseMipLevel   = 0;
+        uint32_t              levelCount     = 1;
+        uint32_t              baseArrayLayer = 0;
+        uint32_t              layerCount     = 1;
+    };
+
     struct CopyBufferToImageInfo {
         VkCommandBuffer       commandBuffer  = VK_NULL_HANDLE;
         VkBuffer              buffer         = VK_NULL_HANDLE;
@@ -80,7 +96,11 @@ namespace crv::graphics::vulkan {
         void destroy() override;
         [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         static void transit(const ImageTransitInfo& info);
+        static void transit(const std::vector<ImageTransitInfo2>& infos);
+        static void transit(const ImageTransitInfo2& info);
         static void inverseTransit(const ImageTransitInfo& info);
+        static void inverseTransit(const std::vector<ImageTransitInfo2>& infos);
+        static void inverseTransit(const ImageTransitInfo2& info);
         static VkImageMemoryBarrier barrier(const ImageBarrierInfo& info);
         static VkImageMemoryBarrier inverseBarrier(const ImageBarrierInfo& info);
         static void copy(const CopyBufferToImageInfo& info);

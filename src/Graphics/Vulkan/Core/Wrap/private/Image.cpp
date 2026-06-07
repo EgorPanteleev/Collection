@@ -70,6 +70,45 @@ namespace crv::graphics::vulkan {
             nullptr,1, &barrier);
     }
 
+    void Image::transit(const std::vector<ImageTransitInfo2>& infos) {
+        if (infos.empty()) return;
+        std::vector<VkImageMemoryBarrier2> barriers;
+        barriers.reserve(infos.size());
+        for (const auto& info: infos) {
+            const VkImageMemoryBarrier2 barrier {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                .srcStageMask = info.srcStage,
+                .srcAccessMask = info.srcAccessMask,
+                .dstStageMask = info.dstStage,
+                .dstAccessMask = info.dstAccessMask,
+                .oldLayout = info.oldLayout,
+                .newLayout = info.newLayout,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = info.image,
+                .subresourceRange = {
+                    .aspectMask = info.aspectMask,
+                    .baseMipLevel = info.baseMipLevel,
+                    .levelCount = info.levelCount,
+                    .baseArrayLayer = info.baseArrayLayer,
+                    .layerCount = info.layerCount
+                }
+            };
+            barriers.push_back(barrier);
+        }
+
+        const VkDependencyInfo depInfo{
+            .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+            .imageMemoryBarrierCount = static_cast<uint32_t>(barriers.size()),
+            .pImageMemoryBarriers = barriers.data()
+        };
+        vkCmdPipelineBarrier2(infos[0].commandBuffer, &depInfo);
+    }
+
+    void Image::transit(const ImageTransitInfo2& info) {
+        transit(std::vector{info});
+    }
+
     void Image::inverseTransit(const ImageTransitInfo& info) {
         const VkImageMemoryBarrier barrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -92,6 +131,45 @@ namespace crv::graphics::vulkan {
         vkCmdPipelineBarrier(info.commandBuffer, info.dstStage, info.srcStage,
             0,0, nullptr,0,
             nullptr,1, &barrier);
+    }
+
+    void Image::inverseTransit(const std::vector<ImageTransitInfo2>& infos) {
+        if (infos.empty()) return;
+        std::vector<VkImageMemoryBarrier2> barriers;
+        barriers.reserve(infos.size());
+        for (const auto& info: infos) {
+            const VkImageMemoryBarrier2 barrier {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                .srcStageMask = info.dstStage,
+                .srcAccessMask = info.dstAccessMask,
+                .dstStageMask = info.srcStage,
+                .dstAccessMask = info.srcAccessMask,
+                .oldLayout = info.newLayout,
+                .newLayout = info.oldLayout,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = info.image,
+                .subresourceRange = {
+                    .aspectMask = info.aspectMask,
+                    .baseMipLevel = info.baseMipLevel,
+                    .levelCount = info.levelCount,
+                    .baseArrayLayer = info.baseArrayLayer,
+                    .layerCount = info.layerCount
+                }
+            };
+            barriers.push_back(barrier);
+        }
+
+        const VkDependencyInfo depInfo{
+            .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+            .imageMemoryBarrierCount = static_cast<uint32_t>(barriers.size()),
+            .pImageMemoryBarriers = barriers.data()
+        };
+        vkCmdPipelineBarrier2(infos[0].commandBuffer, &depInfo);
+    }
+
+    void Image::inverseTransit(const ImageTransitInfo2& info) {
+        inverseTransit(std::vector{info});
     }
 
     VkImageMemoryBarrier Image::barrier(const ImageBarrierInfo& info) {

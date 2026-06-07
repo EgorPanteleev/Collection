@@ -24,6 +24,7 @@ namespace crv::graphics::vulkan {
         std::vector<const char*> validationLayers{};
         std::vector<const char*> deviceExtensions{};
         bool enableValidationLayers = false;
+        bool enableRT               = false;
     };
 
     class Context {
@@ -47,11 +48,12 @@ namespace crv::graphics::vulkan {
         bool isDeviceSuitable(VkPhysicalDevice device) const;
         QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device) const;
         bool checkDeviceExtensionSupport(VkPhysicalDevice device) const;
-        bool checkSwapChainSupport(VkPhysicalDevice device) const;
+        bool loadExtensionFunctionPointers() const;
 
         std::vector<const char *> mValidationLayers{};
         std::vector<const char *> mDeviceExtensions{};
         bool mEnableValidationLayers = false;
+        bool mEnableRT               = false;
 
         Window mWindow{};
         Instance mInstance{};

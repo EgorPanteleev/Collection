@@ -10,10 +10,13 @@
 
 #include <vector>
 
+#define CRV_NULL_HANDLE {}
+
 namespace crv::graphics::vulkan {
     struct InstanceCreateInfo {
         std::vector<const char *> validationLayers{};
         bool enableValidationLayers = false;
+        bool enableRT               = false;
     };
 
     class Instance: public DefaultWrapper<VkInstance> {
@@ -24,9 +27,9 @@ namespace crv::graphics::vulkan {
         ~Instance() override { Instance::destroy(); }
         void destroy() override;
         static bool checkValidationLayerSupport(const std::vector<const char*>& validationLayers);
-        static std::vector<const char *> getRequiredExtensions(bool enableValidationLayers);
+        static std::vector<const char *> getRequiredExtensions(bool enableValidationLayers, bool enableRT);
         static const VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo();
-        static void checkGlfwRequiredInstanceExtensions(bool enableValidationLayers);
+        static void checkGlfwRequiredInstanceExtensions(bool enableValidationLayers, bool enableRT);
     protected:
 
     };

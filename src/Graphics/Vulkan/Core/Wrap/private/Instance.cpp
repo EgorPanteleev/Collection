@@ -24,7 +24,7 @@ namespace crv::graphics::vulkan {
             .apiVersion = VK_API_VERSION_1_4
         };
 
-        const auto& extensions = getRequiredExtensions(info.enableValidationLayers);
+        const auto& extensions = getRequiredExtensions(info.enableValidationLayers, info.enableRT);
         VkInstanceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pApplicationInfo = &appInfo,
@@ -43,7 +43,7 @@ namespace crv::graphics::vulkan {
             throw std::runtime_error("Failed to create instance!");
         }
         INFO << "VkInstance created!";
-        checkGlfwRequiredInstanceExtensions(info.enableValidationLayers);
+        checkGlfwRequiredInstanceExtensions(info.enableValidationLayers, info.enableRT);
     }
 
     void Instance::destroy() {
@@ -69,11 +69,12 @@ namespace crv::graphics::vulkan {
         return true;
     }
 
-    std::vector<const char *> Instance::getRequiredExtensions(const bool enableValidationLayers) {
+    std::vector<const char *> Instance::getRequiredExtensions(bool enableValidationLayers, bool enableRT) {
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
         std::vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
         if (enableValidationLayers) extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        if (enableRT) extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
         return extensions;
     }
 
@@ -109,7 +110,7 @@ namespace crv::graphics::vulkan {
         return createInfo;
     }
 
-    void Instance::checkGlfwRequiredInstanceExtensions(const bool enableValidationLayers) {
+    void Instance::checkGlfwRequiredInstanceExtensions(bool enableValidationLayers, bool enableRT) {
         uint32_t extensionCount = 0;
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
         std::vector<VkExtensionProperties> extensions(extensionCount);
@@ -123,7 +124,7 @@ namespace crv::graphics::vulkan {
         }
 
         INFO << "Required extensions:";
-        const auto requiredExtensions = getRequiredExtensions(enableValidationLayers);
+        const auto requiredExtensions = getRequiredExtensions(enableValidationLayers, enableRT);
         for (const auto &required : requiredExtensions) {
             INFO << "\t" << required;
             if (available.find(required) != available.end()) continue;

@@ -18,6 +18,7 @@ namespace crv::graphics::vulkan {
         std::vector<const char *> validationLayers{};
         std::vector<const char *> deviceExtensions{};
         bool enableValidationLayers = false;
+        bool enableRT               = false;
     };
 
     class Device: public DefaultWrapper<VkDevice> {

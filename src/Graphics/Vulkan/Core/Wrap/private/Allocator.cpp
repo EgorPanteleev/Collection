@@ -7,6 +7,7 @@
 namespace crv::graphics::vulkan {
     Allocator::Allocator(const AllocatorCreateInfo &info) {
         const VmaAllocatorCreateInfo allocatorInfo = {
+            .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
             .physicalDevice = info.physicalDevice,
             .device = info.device,
             .instance = info.instance

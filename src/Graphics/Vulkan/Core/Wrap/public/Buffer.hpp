@@ -15,6 +15,7 @@ namespace crv::graphics::vulkan {
         VmaAllocator allocator = VK_NULL_HANDLE;
         VkDeviceSize size = 0;
         VkBufferUsageFlags bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        VmaAllocationCreateFlags allocFlags = 0;
         VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_UNKNOWN;
     };
@@ -72,6 +73,8 @@ namespace crv::graphics::vulkan {
         void destroy() override;
         [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         [[nodiscard]] VkDeviceSize size() const { return mSize; }
+        void* map() const;
+        void unmap() const;
         static std::tuple<VkBuffer, VmaAllocation> createBuffer(const BufferCreateInfo& info);
         static void copy(const CopyDataToCPUBufferInfo& info);
         static void copy(const CopyCPUBufferToDataInfo& info);

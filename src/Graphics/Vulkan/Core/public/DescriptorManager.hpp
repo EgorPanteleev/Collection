@@ -39,6 +39,7 @@ namespace crv::graphics::vulkan {
     };
 
     struct ImageResource {
+        explicit ImageResource(ImageView* view, VkImageLayout layout);
         explicit ImageResource(VkSampler sampler, VkImageView view, VkImageLayout layout);
         explicit ImageResource(VkSampler sampler, const ImageView& view, VkImageLayout layout);
         explicit ImageResource(const std::vector<VkSampler>& samplers, const std::vector<ImageView>& views,

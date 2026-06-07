@@ -22,11 +22,13 @@ namespace crv::graphics::vulkan {
         mValidationLayers = createInfo.validationLayers;
         mDeviceExtensions = createInfo.deviceExtensions;
         mEnableValidationLayers = createInfo.enableValidationLayers;
+        mEnableRT               = createInfo.enableRT;
 
         mWindow = Window(createInfo.windowCreateInfo);
         const InstanceCreateInfo instanceCreateInfo{
             .validationLayers = mValidationLayers,
-            .enableValidationLayers = mEnableValidationLayers
+            .enableValidationLayers = mEnableValidationLayers,
+            .enableRT = mEnableRT
         };
         mInstance = Instance(instanceCreateInfo);
         const SurfaceCreateInfo surfaceCreateInfo{
@@ -48,7 +50,8 @@ namespace crv::graphics::vulkan {
             .physicalDevice = mPhysicalDevice,
             .validationLayers = mValidationLayers,
             .deviceExtensions = mDeviceExtensions,
-            .enableValidationLayers = mEnableValidationLayers
+            .enableValidationLayers = mEnableValidationLayers,
+            .enableRT               = mEnableRT,
         };
         mDevice = Device(deviceCreateInfo);
         mComputeQueue  = mDevice.getQueue(mFamilyIndices.get(QueueFamilyType::COMPUTE ).value());

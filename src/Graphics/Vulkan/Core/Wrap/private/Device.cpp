@@ -42,23 +42,44 @@ namespace crv::graphics::vulkan {
                 .descriptorBindingVariableDescriptorCount = VK_TRUE,
                 .runtimeDescriptorArray = VK_TRUE,
                 .separateDepthStencilLayouts = VK_TRUE,
+                .bufferDeviceAddress         = VK_TRUE,
         };
 
-        VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeature{
+        VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
                 .pNext = &vulkan12Features,
                 .dynamicRendering = VK_TRUE,
         };
 
+        VkPhysicalDeviceSynchronization2Features sync2{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
+            .pNext = &dynamicRenderingFeatures,
+            .synchronization2 = VK_TRUE
+        };
+
         VkDeviceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-            .pNext = &dynamicRenderingFeature,
+            .pNext = &sync2,
             .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
             .pQueueCreateInfos = queueCreateInfos.data(),
             .enabledExtensionCount = static_cast<uint32_t>(info.deviceExtensions.size()),
             .ppEnabledExtensionNames = info.deviceExtensions.data(),
             .pEnabledFeatures = &deviceFeatures,
         };
+
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{};
+        VkPhysicalDeviceRayTracingPipelineFeaturesKHR    rtFeatures{};
+        if (info.enableRT) {
+            asFeatures.sType                 = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+            asFeatures.pNext                 = &sync2;
+            asFeatures.accelerationStructure = VK_TRUE;
+
+            rtFeatures.sType              = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+            rtFeatures.pNext              = &asFeatures;
+            rtFeatures.rayTracingPipeline = VK_TRUE;
+            createInfo.pNext = &rtFeatures;
+        }
+
         if (info.enableValidationLayers) {
             createInfo.enabledLayerCount = static_cast<uint32_t>(info.validationLayers.size());
             createInfo.ppEnabledLayerNames = info.validationLayers.data();

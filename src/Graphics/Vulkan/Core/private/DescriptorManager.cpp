@@ -14,6 +14,10 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    ImageResource::ImageResource(ImageView* view, const VkImageLayout layout):
+    ImageResource(VK_NULL_HANDLE, view->get(), layout)  {
+    }
+
     ImageResource::ImageResource(VkSampler sampler, VkImageView view, VkImageLayout layout):
         samplers({sampler}), imageViews({view}), layouts({layout}) {}
 

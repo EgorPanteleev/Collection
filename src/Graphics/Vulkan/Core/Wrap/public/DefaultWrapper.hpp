@@ -8,6 +8,11 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 
+#ifndef LOAD_VK_FN
+#define LOAD_VK_FN(dev, name) \
+auto name = (PFN_##name)vkGetDeviceProcAddr(dev, #name)
+#endif
+
 namespace crv::graphics::vulkan {
     template <typename Type>
     class DefaultWrapper {

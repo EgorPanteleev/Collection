@@ -33,6 +33,16 @@ namespace crv::graphics::vulkan {
         mAllocation.destroy();
     }
 
+    void* Buffer::map() const {
+        void* ptr;
+        vmaMapMemory(mAllocator, mAllocation.get(), &ptr);
+        return ptr;
+    }
+
+    void Buffer::unmap() const {
+        vmaUnmapMemory(mAllocator, mAllocation.get());
+    }
+
     std::tuple<VkBuffer, VmaAllocation> Buffer::createBuffer(const BufferCreateInfo& info) {
         VkBuffer buffer;
         VmaAllocation allocation;
@@ -43,6 +53,7 @@ namespace crv::graphics::vulkan {
             .sharingMode = info.sharingMode
         };
         const VmaAllocationCreateInfo allocInfo {
+            .flags = info.allocFlags,
             .usage = info.memoryUsage,
             .preferredFlags = 0
         };

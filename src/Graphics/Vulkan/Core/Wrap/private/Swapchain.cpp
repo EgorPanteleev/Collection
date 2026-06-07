@@ -29,15 +29,14 @@ namespace crv::graphics::vulkan {
     static VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const uint32_t width, const uint32_t height) {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;
-        } else {
-            VkExtent2D actualExtent = {
-                width,
-                height
-            };
-            actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-            actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-            return actualExtent;
         }
+        VkExtent2D actualExtent = {
+            width,
+            height
+        };
+        actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+        return actualExtent;
     }
 
     Swapchain::Swapchain(const SwapchainCreateInfo &info): mDevice(info.device) {
