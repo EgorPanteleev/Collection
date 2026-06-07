@@ -7,12 +7,31 @@
 
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
-    mContext(info.context), mOutView(info.outView), mFramesInFlight(info.framesInFlight) {
+    mContext(info.context), mOutputView(info.outView), mFramesInFlight(info.framesInFlight) {
         createDescriptorManager();
         createShaders();
         createPipelineLayout();
         createPipelines();
         createSBT();
+    }
+
+    void RayTracerPass::update() {
+
+    }
+
+    void RayTracerPass::record(const RayTracerPassRecordInfo& info) {
+        vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, mPipelines[0]);
+        vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+            mPipelineLayout.get(), 0, 1, &mDescriptorManager.set(0),
+            0, nullptr);
+
+        LOAD_VK_FN(mContext->device(), vkCmdTraceRaysKHR);
+        vkCmdTraceRaysKHR(info.commandBuffer,
+            &mRaygenRegion,
+            &mMissRegion,
+            &mHitRegion,
+            &mCallRegion,
+            info.width, info.height, 1);
     }
 
     void RayTracerPass::createDescriptorManager() {
@@ -30,7 +49,7 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.build(buildInfo);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.add(i, ImageResource(mOutView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.add(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
         }
         mDescriptorManager.update();
     }

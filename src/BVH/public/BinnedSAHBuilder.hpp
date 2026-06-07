@@ -171,7 +171,7 @@ namespace crv::graphics {
                                 rightArea / parentArea * (rightCount * INTERSECTION_COST);
                     if (cost >= bestSplit.cost) continue;
                     bestSplit = {
-                        .axis = axis,
+                        .axis = static_cast<uint32_t>(axis),
                         .id = binId,
                         .cost = cost,
                         .leftBox = leftBin.bbox,

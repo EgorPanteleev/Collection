@@ -12,5 +12,5 @@ int main() {
         //.directLight = cvk::DirectLightGPU(glm::vec4(-0.468, 0.318, -0.824, 1), 2.0)
     };
     cvk::PathTracerApp app(createInfo);
-    //app.run();
+    app.run();
 }

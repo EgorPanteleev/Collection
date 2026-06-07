@@ -18,10 +18,18 @@ namespace crv::graphics::vulkan {
         uint32_t   framesInFlight = 0;
     };
 
+    struct RayTracerPassRecordInfo {
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        uint32_t        width         = 0;
+        uint32_t        height        = 0;
+    };
+
     class RayTracerPass {
     public:
         RayTracerPass() = default;
         explicit RayTracerPass(const RayTracerPassCreateInfo& createInfo);
+        void update();
+        void record(const RayTracerPassRecordInfo& recordInfo);
     private:
         void createDescriptorManager();
         void createShaders();
@@ -30,7 +38,7 @@ namespace crv::graphics::vulkan {
         void createSBT();
 
         Context*                        mContext           = nullptr;
-        ImageView*                      mOutView           = nullptr;
+        ImageView*                      mOutputView        = nullptr;
         DescriptorManager               mDescriptorManager{};
         PipelineLayout                  mPipelineLayout    = CRV_NULL_HANDLE;
         RayTracerPipelines              mPipelines         = CRV_NULL_HANDLE;

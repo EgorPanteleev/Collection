@@ -10,7 +10,7 @@
 
 #ifndef LOAD_VK_FN
 #define LOAD_VK_FN(dev, name) \
-auto name = (PFN_##name)vkGetDeviceProcAddr(dev, #name)
+static auto name = (PFN_##name)vkGetDeviceProcAddr(dev, #name)
 #endif
 
 namespace crv::graphics::vulkan {

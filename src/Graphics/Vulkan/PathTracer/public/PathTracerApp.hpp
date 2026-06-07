@@ -14,6 +14,8 @@ using json = nlohmann::json;
 #include "Image.hpp"
 #include "ImageView.hpp"
 #include "RayTracerPass.hpp"
+#include "Semaphore.hpp"
+#include "Fence.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
@@ -26,7 +28,9 @@ namespace crv::graphics::vulkan {
     public:
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
+        void run();
     private:
+        void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void readScene(const std::string& scenePath);
         void createContext();
         void createSwapChain();
@@ -34,6 +38,14 @@ namespace crv::graphics::vulkan {
         void createRayTracerPass();
         void createCamera();
         void createSwapChainImages();
+        void createSyncObjects();
+        void createCommandBuffers();
+        void recordTracer(uint32_t imageIndex);
+        void recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer);
+        void record(uint32_t imageIndex);
+        void submit(uint32_t imageIndex);
+        void acquireNextImage(uint32_t& imageIndex);
+        void drawFrame();
 
 #ifdef NDEBUG
         bool mDebug = false;
@@ -41,6 +53,7 @@ namespace crv::graphics::vulkan {
         bool mDebug = true;
 #endif
         uint32_t               mFramesInFlight = 3;
+        uint32_t               mCurrentFrame   = 0;
 
         json                   mScene{};
         Context                mContext        = CRV_NULL_HANDLE;
@@ -55,6 +68,13 @@ namespace crv::graphics::vulkan {
         std::vector<ImageView> mSwapchainImageViews{};
         Image                  mTracerImage    = CRV_NULL_HANDLE;
         ImageView              mTracerView     = CRV_NULL_HANDLE;
+
+        std::vector<Fence>     mFences{};
+        std::vector<Semaphore> mImageAvailableSemaphores{};
+        std::vector<Semaphore> mTracerFinishedSemaphores{};
+
+        CommandPool            mTracerCommandPool    = CRV_NULL_HANDLE;
+        CommandBuffers         mTracerCommandBuffers = CRV_NULL_HANDLE;
     };
 }
 
