@@ -127,8 +127,7 @@ namespace crv::graphics::vulkan {
         }
         mDescriptorManager.update();
 
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext->device(), mContext->familyIndex(QueueFamilyType::COMPUTE).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext->device(), mContext->familyIndex(QueueFamilyType::COMPUTE).value());
         const ImageTransitInfo imageTransitInfo {
             .commandBuffer = commandBuffer,
             .image = info.outImage,
@@ -141,7 +140,7 @@ namespace crv::graphics::vulkan {
             .dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
         };
         Image::transit(imageTransitInfo);
-        endCommandBuffer(commandPool, commandBuffers, mContext->queue(QueueFamilyType::COMPUTE));
+        endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::COMPUTE));
     }
 
     void PathTracer::createPipelineLayout() {

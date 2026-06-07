@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 namespace crv::graphics::vulkan {
-    std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, const uint32_t queueFamilyIndex) {
+    std::tuple<VkCommandBuffer, CommandBufferData> beginCommandBuffer(VkDevice device, const uint32_t queueFamilyIndex) {
         const CommandPoolCreateInfo poolCreateInfo {
             .device = device,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
@@ -27,11 +27,11 @@ namespace crv::graphics::vulkan {
             .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
         };
         vkBeginCommandBuffer(commandBuffer, &beginInfo);
-        return {commandPool, commandBuffers};
+        return {commandBuffer,{commandPool, commandBuffers}};
     }
 
-    void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue) {
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+    void endCommandBuffer(const CommandBufferData& data, VkQueue queue) {
+        VkCommandBuffer commandBuffer = (*data.commandBuffers)[0];
         vkEndCommandBuffer(commandBuffer);
         const VkSubmitInfo submitInfo{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -40,8 +40,8 @@ namespace crv::graphics::vulkan {
         };
         vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
         vkQueueWaitIdle(queue);
-        commandBuffers->destroy();
-        commandPool->destroy();
+        data.commandBuffers->destroy();
+        data.commandPool->destroy();
     }
 
     void beginCommandBuffer(VkCommandBuffer commandBuffer) {

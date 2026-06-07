@@ -105,8 +105,7 @@ namespace crv::graphics::vulkan {
 
     void Texture::load(const TextureCreateInfo& info, void* data,
                        const VkExtent2D extent, const uint32_t mipLevel) {
-        auto [commandPool, commandBuffers] = beginCommandBuffer(info.device, info.queueFamilyIndex);
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(info.device, info.queueFamilyIndex);
         const ImageTransitInfo transitInfo {
             .commandBuffer = commandBuffer,
             .image = mImage.get(),
@@ -150,7 +149,7 @@ namespace crv::graphics::vulkan {
             .layerCount = 1
         };
         Image::copy(copyBufferToImageInfo);
-        endCommandBuffer(commandPool, commandBuffers, info.queue);
+        endCommandBuffer(cmdData, info.queue);
         //if (mGenerateMipMap) generateMipMaps();
     }
 

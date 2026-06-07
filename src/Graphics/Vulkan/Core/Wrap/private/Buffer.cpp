@@ -68,15 +68,14 @@ namespace crv::graphics::vulkan {
     }
 
     void Buffer::copy(const CopyBufferToBufferInfo& info) {
-        auto [commandPool, commandBuffers] = beginCommandBuffer(info.device, info.queueFamilyIndex);
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(info.device, info.queueFamilyIndex);
         const VkBufferCopy copyRegion{
             .srcOffset = 0,
             .dstOffset = 0,
             .size = info.size,
         };
         vkCmdCopyBuffer(commandBuffer, info.srcBuffer, info.dstBuffer, 1, &copyRegion);
-        endCommandBuffer(commandPool, commandBuffers, info.queue);
+        endCommandBuffer(cmdData, info.queue);
     }
 
     void Buffer::copy(const CopyDataToGPUBufferInfo& info) {

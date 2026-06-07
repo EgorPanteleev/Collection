@@ -168,8 +168,7 @@ namespace crv::graphics::vulkan {
         mSwapchainImages.resize(imageCount);
         vkGetSwapchainImagesKHR(mContext.device(), mSwapchain.get(), &imageCount, mSwapchainImages.data());
 
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
         for (uint32_t i = 0; i < imageCount; ++i) {
             const ImageViewCreateInfo imageViewCreateInfo{
                 .device = mContext.device(),
@@ -200,7 +199,7 @@ namespace crv::graphics::vulkan {
             };
             Image::transit(imageTransitInfo);
         }
-        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::COMPUTE));
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::COMPUTE));
     }
 
     void HybridApp::createSyncObjects() {
@@ -256,8 +255,7 @@ namespace crv::graphics::vulkan {
         imageViewCreateInfo.image = mPresentImage.get();
         mPresentView  = ImageView(imageViewCreateInfo);
 
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
         const ImageTransitInfo presentTransitInfo {
             .commandBuffer = commandBuffer,
             .image = mPresentImage.get(),
@@ -270,7 +268,7 @@ namespace crv::graphics::vulkan {
             .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
         };
         Image::transit(presentTransitInfo);
-        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
 
         #ifndef NDEBUG
             DEBUG << "Tracer image: " << mTracerImage.get();
@@ -1204,8 +1202,7 @@ namespace crv::graphics::vulkan {
             shaderBarrier.image = gBuffer.selectedInstanceImage.get();
             shaderBarriers.push_back(shaderBarrier);
         }
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
         const ImagePipelineBarrierInfo colorPipelineBarrierInfo {
             .commandBuffer = commandBuffer,
             .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -1227,7 +1224,7 @@ namespace crv::graphics::vulkan {
         Image::pipelineBarrier(colorPipelineBarrierInfo);
         Image::pipelineBarrier(depthPipelineBarrierInfo);
         Image::pipelineBarrier(shaderPipelineBarrierInfo);
-        endCommandBuffer(commandPool, commandBuffers, mContext.queue(QueueFamilyType::GRAPHICS));
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
     void HybridApp::createRasterizer() {

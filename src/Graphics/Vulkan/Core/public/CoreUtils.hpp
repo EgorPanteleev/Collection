@@ -12,8 +12,13 @@
 #include "ImageView.hpp"
 
 namespace crv::graphics::vulkan {
-    std::tuple<CommandPool*, CommandBuffers*> beginCommandBuffer(VkDevice device, uint32_t queueFamilyIndex);
-    void endCommandBuffer(CommandPool* commandPool, CommandBuffers* commandBuffers, VkQueue queue);
+    struct CommandBufferData {
+        CommandPool*    commandPool    = nullptr;
+        CommandBuffers* commandBuffers = nullptr;
+    };
+
+    std::tuple<VkCommandBuffer, CommandBufferData> beginCommandBuffer(VkDevice device, uint32_t queueFamilyIndex);
+    void endCommandBuffer(const CommandBufferData& data, VkQueue queue);
     void beginCommandBuffer(VkCommandBuffer commandBuffer);
     void endCommandBuffer(VkCommandBuffer commandBuffer);
     void copyDataToBuffer(Context* context, QueueFamilyType familyType, const void* data, uint32_t size, Buffer& buffer);

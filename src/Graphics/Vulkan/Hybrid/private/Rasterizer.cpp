@@ -222,8 +222,7 @@ namespace crv::graphics::vulkan {
         };
         mInstanceIdView = ImageView(imageViewCreateInfo);
 
-        auto [commandPool, commandBuffers] = beginCommandBuffer(mContext->device(), mContext->familyIndex(QueueFamilyType::GRAPHICS).value());
-        VkCommandBuffer commandBuffer = (*commandBuffers)[0];
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext->device(), mContext->familyIndex(QueueFamilyType::GRAPHICS).value());
         const ImageTransitInfo instanceIdTransitInfo {
             .commandBuffer = commandBuffer,
             .image = mInstanceIdImage.get(),
@@ -236,7 +235,7 @@ namespace crv::graphics::vulkan {
             .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
         };
         Image::transit(instanceIdTransitInfo);
-        endCommandBuffer(commandPool, commandBuffers, mContext->queue(QueueFamilyType::GRAPHICS));
+        endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
 
         #ifndef NDEBUG
             DEBUG << "Instance id image: " << mInstanceIdImage.get();
