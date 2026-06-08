@@ -1,0 +1,9 @@
+#define FLT_MAX 3.402823e38
+#define INT_MAX 2147483647
+#define UINT_MAX 4294967295u
+#define M_PI 3.14159265359
+#define M_1_PI 0.3183098861837907
+
+#define ALL_OBJECTS 0xFF
+#define T_MIN 1e-3
+#define T_MAX 1e10

@@ -1,1 +1,0 @@
-#define ALL_OBJECTS 0xFF

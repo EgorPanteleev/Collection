@@ -7,6 +7,7 @@
 #include "Timer.hpp"
 #include "Loader.hpp"
 #include "CallBacks.hpp"
+#include "IconsFontAwesome6.h"
 
 #include <fstream>
 #include <filesystem>
@@ -33,6 +34,7 @@ namespace crv::graphics::vulkan {
     namespace cu = utils;
 
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo) {
+        mDirectLight = {glm::vec4(-0.468, 0.318, -0.824, 1), 2.0};
         readScene(createInfo.scenePath);
         createContext();
         setCallBacks(this);
@@ -45,6 +47,7 @@ namespace crv::graphics::vulkan {
         loadScene();
         createTextures();
         createRayTracerPass();
+        createImGui();
     }
 
     void PathTracerApp::run() {
@@ -476,6 +479,18 @@ namespace crv::graphics::vulkan {
         mRayTracerPass = RayTracerPass(createInfo);
     }
 
+    void PathTracerApp::createImGui() {
+        const ImGuiCreateInfo createInfo {
+            .context = &mContext,
+            .imageCount = static_cast<uint32_t>(mSwapchainImages.size()),
+            .format = mSwapchain.format(),
+            .alpha = 0.4f,
+            .scale = 1.0f
+        };
+        mImGui = VkImGui(createInfo);
+        VkImGui::loadConfigFile(PROJECT_PATH"imgui.ini");
+    }
+
     void PathTracerApp::recordTracer(const uint32_t imageIndex) {
         VkCommandBuffer commandBuffer = mTracerCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
@@ -503,7 +518,7 @@ namespace crv::graphics::vulkan {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
 
-        const ImageTransitInfo2 swapchainTransitInfo {
+        ImageTransitInfo2 swapchainTransitInfo {
             .commandBuffer = commandBuffer,
             .image = mSwapchainImages[imageIndex],
             .srcAccessMask = 0,
@@ -547,40 +562,34 @@ namespace crv::graphics::vulkan {
             VK_FILTER_NEAREST
         );
 
+        if (mRenderImGui) {
+            swapchainTransitInfo.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+            swapchainTransitInfo.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            swapchainTransitInfo.srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
         Image::inverseTransit({presentTransitInfo, swapchainTransitInfo});
-        // if (mRenderImGui) {
-        //     inversePresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        //     inversePresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        //     dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        // }
 
-
-        // if (mRenderImGui) {
-        //     ImGuiRenderInfo renderInfo {
-        //         .commandBuffer = commandBuffer,
-        //         .imageView = mSwapchainImageViews[imageIndex].get(),
-        //         .extent = mSwapchain.extent()
-        //     };
-        //     mImGui.render(renderInfo);
-        //     inversePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        //     inversePresentBarrier.dstAccessMask = 0;
-        //     inversePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        //     inversePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        //
-        //     ImagePipelineBarrierInfo guiBarrierInfo {
-        //         .commandBuffer = commandBuffer,
-        //         .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        //         .dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-        //         .barriers = {inversePresentBarrier}
-        //     };
-        //     Image::pipelineBarrier(guiBarrierInfo);
-        // }
+        if (mRenderImGui) {
+            const ImGuiRenderInfo renderInfo {
+                .commandBuffer = commandBuffer,
+                .imageView = mSwapchainImageViews[imageIndex].get(),
+                .extent = mSwapchain.extent()
+            };
+            mImGui.render(renderInfo);
+            swapchainTransitInfo.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+            swapchainTransitInfo.dstAccessMask = 0;
+            swapchainTransitInfo.srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+            swapchainTransitInfo.dstStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+            swapchainTransitInfo.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            swapchainTransitInfo.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            Image::transit(swapchainTransitInfo);
+        }
     }
 
     void PathTracerApp::update() {
         const RayTracerPassUpdateInfo updateInfo {
             .camera = mCamera,
-            .directLight = {glm::vec4(-0.468, 0.318, -0.824, 1), 2.0},
+            .directLight = mDirectLight,
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(updateInfo);
@@ -635,11 +644,142 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void PathTracerApp::setCamera(const scene::CameraType type) {
+        if (type == scene::CameraType::FLY) {
+            mCamera = &mFlyCamera;
+            mCamera->setPosition(mOrbitalCamera.position());
+            mCamera->setOrientation(mOrbitalCamera.orientation());
+        } else {
+            mCamera = &mOrbitalCamera;
+        }
+    }
+
+    void PathTracerApp::drawControlPanel() {
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
+        mImGui.beginFrame();
+        if (!mRenderImGui) {
+            mImGui.endFrame();
+            return;
+        }
+
+        if (ImGui::Begin("Overview", nullptr, ImGuiWindowFlags_MenuBar)) {
+            if (ImGui::BeginMenuBar()) {
+                if (ImGui::BeginMenu("File")) {
+                    if (ImGui::MenuItem("Save Panel Configuration")) {
+                        VkImGui::saveConfigFile(PROJECT_PATH"imgui.ini");
+                    }
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenuBar();
+            }
+
+            if (VkImGui::beginGroup(ICON_FA_GAUGE " Status")) {
+                std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
+                std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
+                //std::string accumulation = std::format("{:1}", (mFrameCount + 1) * mSPP);
+
+                if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
+                    VkImGui::row("FPS"         , fps.c_str());
+                    VkImGui::row("Render Time" , renderTime.c_str());
+                    VkImGui::row("SPP"         , "1");
+                    //VkImGui::row("Accumulation", accumulation.c_str());
+                    VkImGui::endCompactTable();
+                }
+                VkImGui::endGroup();
+            }
+
+            if (VkImGui::beginGroup(ICON_FA_MICROCHIP " System")) {
+                auto properties = mContext.physicalDeviceProperties();
+                auto [width, height] = mSwapchain.extent();
+                std::string viewport = std::format("{:1}x{:2}", width, height);
+                if (VkImGui::beginCompactTable("##monitor_system", 2.0f)) {
+                    VkImGui::row("GPU"     , properties.deviceName);
+                    VkImGui::row("Viewport", viewport.c_str());
+                    VkImGui::endCompactTable();
+                }
+                VkImGui::endGroup();
+            }
+
+            if (VkImGui::beginGroup(ICON_FA_CUBES " Scene")) {
+                VkImGui::endGroup();
+            }
+
+        }
+        ImGui::End();
+
+        if (ImGui::Begin("Settings")) {
+            auto cameraFunc = [this] {
+            glm::vec3 position = mCamera->position();
+            if (ImGui::DragFloat3("Position", &position.x, 0.05f, -FLT_MAX, FLT_MAX)) {
+                mCamera->setPosition(position);
+                //updateImage();
+            }
+            float fov = mCamera->FOV();
+            if (ImGui::SliderFloat("FOV", &fov, 10, 140, "%.2f deg")) {
+                mCamera->zoom(mCamera->FOV() - fov);
+                //updateImage();
+            }
+            const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
+            if (VkImGui::selectableButton("Fly", isFlyCamera)) {
+                setCamera(scene::CameraType::FLY);
+            }
+            ImGui::SameLine(0.0f, 5.0f);
+            if (VkImGui::selectableButton("Orbital", !isFlyCamera)) {
+                setCamera(scene::CameraType::ORBITAL);
+                //updateImage();
+            }
+            ImGui::SameLine();
+            ImGui::Text("Type");
+            };
+            auto renderFunc = [this] {
+                ImGui::Indent(4.0f);
+                if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
+                        //updateImage();
+                    }
+                    if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
+                        //updateImage();
+                    }
+                }
+                if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    // if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
+                    //     //updateImage();
+                    // }
+                    // if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
+                    //     //updateImage();
+                    // }
+                    // if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
+                    //     //updateImage();
+                    // }
+                }
+                if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    // const char* modes[] = {"Albedo", "Depth", "Normal", "TracedAlbedo", "Rendered"};
+                    // if (ImGui::Combo("Display mode", &mDisplayMode, modes, IM_ARRAYSIZE(modes))) {
+                    //     //updateImage();
+                    // }
+                }
+                ImGui::Unindent(4.0f);
+            };
+
+            static TabPanel panel = {
+                //{ICON_FA_CUBE   " Object", 0, objectFunc},
+                {ICON_FA_IMAGES " Render", 1, renderFunc},
+                {ICON_FA_VIDEO  " Camera", 2, cameraFunc},
+            };
+            static uint32_t activeSettingsTabIndex = 1;
+            VkImGui::tabPanel(panel, activeSettingsTabIndex);
+        }
+        ImGui::End();
+
+        mImGui.endFrame();
+    }
+
     void PathTracerApp::drawFrame() {
         uint32_t imageIndex;
         vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
         acquireNextImage(imageIndex);
-//        drawControlPanel();
+        drawControlPanel();
         update();
         record(imageIndex);
         submit(imageIndex);

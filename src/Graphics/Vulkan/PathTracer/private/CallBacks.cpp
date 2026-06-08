@@ -70,9 +70,9 @@ namespace crv::graphics::vulkan {
         if (action == GLFW_PRESS && key == GLFW_KEY_Q) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
-        // if (action == GLFW_PRESS && key == GLFW_KEY_Z) {
-        //     app->toggleControlPanel();
-        // }
+        if (action == GLFW_PRESS && key == GLFW_KEY_Z) {
+            app->toggleControlPanel();
+        }
     }
 
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {

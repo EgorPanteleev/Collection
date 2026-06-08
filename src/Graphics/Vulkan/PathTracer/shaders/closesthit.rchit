@@ -5,7 +5,7 @@
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
-#include "types.glsl"
+#include "utils.glsl"
 
 struct Vertex {
     vec3 pos;
@@ -80,9 +80,9 @@ void main() {
         ALL_OBJECTS,
         0, 1, 1,
         P + N * 0.1,
-        1e-3,
+        T_MIN,
         L,
-        1e4,
+        T_MAX,
         1
     );
 

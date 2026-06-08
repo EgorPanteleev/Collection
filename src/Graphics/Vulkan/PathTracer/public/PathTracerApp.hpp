@@ -18,6 +18,7 @@ using json = nlohmann::json;
 #include "Fence.hpp"
 #include "Types.hpp"
 #include "TypesGPU.hpp"
+#include "ImGui.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
@@ -31,6 +32,7 @@ namespace crv::graphics::vulkan {
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
+        void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
     private:
@@ -47,12 +49,15 @@ namespace crv::graphics::vulkan {
         void loadScene();
         void createTextures();
         void createRayTracerPass();
+        void createImGui();
         void update();
         void recordTracer(uint32_t imageIndex);
         void recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer);
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);
+        void setCamera(scene::CameraType type);
+        void drawControlPanel();
         void drawFrame();
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;
@@ -61,6 +66,7 @@ namespace crv::graphics::vulkan {
 #else
         bool mDebug = true;
 #endif
+        bool                         mRenderImGui    = false;
         uint32_t                     mFramesInFlight = 3;
         uint32_t                     mCurrentFrame   = 0;
 
@@ -93,6 +99,9 @@ namespace crv::graphics::vulkan {
         AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
         std::vector<cm::Material>    mMaterials{};
         std::vector<TexturesByType>  mTextures{};
+
+        VkImGui                      mImGui                = CRV_NULL_HANDLE;
+        DirectLightGPU               mDirectLight{};
     };
 }
 
