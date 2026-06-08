@@ -9,7 +9,8 @@
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context), mBLASInfos(info.blasInfos),
-    mTLAS(info.tlas), mInstanceInfos(info.instanceInfos), mTextures(info.textures), mOutputView(info.outView) {
+    mTLAS(info.tlas), mInstanceInfos(info.instanceInfos), mTextures(info.textures), mOutputView(info.outView),
+    mOutputInstanceIdView(info.outInstanceIdView) {
         createBuffers();
         createDescriptorManager();
         createShaders();
@@ -53,6 +54,7 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
                                                                   VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR     );
         mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
+        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
         mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
         mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
@@ -69,6 +71,7 @@ namespace crv::graphics::vulkan {
         for (int i = 0; i < mFramesInFlight; ++i) {
             mDescriptorManager.add(i, ASResource(mTLAS->get()));
             mDescriptorManager.add(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.add(i, ImageResource(mOutputInstanceIdView, VK_IMAGE_LAYOUT_GENERAL));
             mDescriptorManager.add(i, BufferResource(mCameraBuffers[i]));
             mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i]));
             mDescriptorManager.add(i, BufferResource(mBLASInfoBuffer));

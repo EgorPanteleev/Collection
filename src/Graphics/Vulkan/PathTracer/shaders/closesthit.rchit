@@ -10,17 +10,17 @@ layout(buffer_reference, scalar) readonly buffer IndexBuffer {
     uint indices[];
 };
 layout(binding = 0) uniform accelerationStructureEXT tlas;
-layout(binding = 3) uniform DirectLight {
+layout(binding = 4) uniform DirectLight {
     vec4 dir;
     float intensity;
 } directLight;
-layout(binding = 4, scalar) readonly buffer MeshInfoBuffer {
+layout(binding = 5, scalar) readonly buffer MeshInfoBuffer {
     MeshInfo meshes[];
 };
-layout(binding = 5, scalar) readonly buffer InstanceBuffer {
+layout(binding = 6, scalar) readonly buffer InstanceBuffer {
     InstanceData instances[];
 };
-layout(binding = 6) uniform sampler2D textures[];
+layout(binding = 7) uniform sampler2D textures[];
 layout(location = 0) rayPayloadInEXT PathPayload payload;
 layout(location = 1) rayPayloadEXT float shadowPayload;
 
@@ -77,5 +77,6 @@ void main() {
 
     payload.origin    = movedPoint(P, gN);
     payload.direction = scatter.wi;
+    payload.instanceId = gl_InstanceCustomIndexEXT;
     payload.done      = false;
 }

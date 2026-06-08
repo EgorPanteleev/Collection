@@ -42,6 +42,7 @@ struct PathPayload {
     vec3  radiance;
     vec3  origin;
     vec3  direction;
+    uint  instanceId;
     uint  seed;
     bool  done;
 };

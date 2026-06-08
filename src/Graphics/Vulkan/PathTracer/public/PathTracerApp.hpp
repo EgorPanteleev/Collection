@@ -33,6 +33,7 @@ namespace crv::graphics::vulkan {
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
         void updateImage() { mFrameCount = 0; }
+        void pixelClicked(uint32_t x, uint32_t y);
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
@@ -41,6 +42,7 @@ namespace crv::graphics::vulkan {
         void readScene(const std::string& scenePath);
         void createContext();
         void createSwapChain();
+        void createBuffers();
         void createImages();
         void createSwapChainImages();
         void createSyncObjects();
@@ -54,6 +56,8 @@ namespace crv::graphics::vulkan {
         void update();
         void recordTracer(uint32_t imageIndex);
         void recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer);
+        void recordPixelRead(VkCommandBuffer commandBuffer);
+        void updateSelectedInstance();
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);
@@ -67,10 +71,12 @@ namespace crv::graphics::vulkan {
 #else
         bool mDebug = true;
 #endif
-        bool                         mRenderImGui    = false;
-        uint32_t                     mFramesInFlight = 1;
-        uint32_t                     mCurrentFrame   = 0;
-        uint32_t                     mFrameCount     = 0;
+        bool                         mRenderImGui          = false;
+        uint32_t                     mFramesInFlight       = 1;
+        uint32_t                     mCurrentFrame         = 0;
+        uint32_t                     mFrameCount           = 0;
+        uint32_t                     mSelectedInstanceId   = UINT32_MAX;
+        ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
 
         json                         mScene{};
         Context                      mContext              = CRV_NULL_HANDLE;
@@ -81,6 +87,9 @@ namespace crv::graphics::vulkan {
         std::vector<ImageView>       mSwapchainImageViews{};
         Image                        mTracerImage          = CRV_NULL_HANDLE;
         ImageView                    mTracerView           = CRV_NULL_HANDLE;
+        Image                        mInstanceIdImage      = CRV_NULL_HANDLE;
+        ImageView                    mInstanceIdView       = CRV_NULL_HANDLE;
+        Buffer                       mReadbackBuffer       = CRV_NULL_HANDLE;
 
         std::vector<Fence>           mFences{};
         std::vector<Semaphore>       mImageAvailableSemaphores{};

@@ -39,6 +39,7 @@ namespace crv::graphics::vulkan {
         setCallBacks(this);
         createSwapChain();
         createSwapChainImages();
+        createBuffers();
         createImages();
         createSyncObjects();
         createCommandBuffers();
@@ -64,6 +65,13 @@ namespace crv::graphics::vulkan {
             ++mFrameCount;
         }
         vkDeviceWaitIdle(mContext.device());
+    }
+
+    void PathTracerApp::pixelClicked(uint32_t x, uint32_t y) {
+        if (!mRenderImGui) return;
+        auto [width, height] = mSwapchain.extent();
+        if (x > width or y > height) return;
+        mClickedPixel = {x, y};
     }
 
     void PathTracerApp::readScene(const std::string& scenePath) {
@@ -110,8 +118,19 @@ namespace crv::graphics::vulkan {
         mSwapchain = Swapchain(info);
     }
 
+    void PathTracerApp::createBuffers() {
+        const BufferCreateInfo readbackInfo {
+            .allocator = mContext.allocator(),
+            .size = sizeof(uint32_t),
+            .bufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY
+        };
+        mReadbackBuffer = Buffer(readbackInfo);
+    }
+
     void PathTracerApp::createImages() {
-        const ImageCreateInfo imageCreateInfo {
+        ImageCreateInfo imageCreateInfo {
             .device = mContext.device(),
             .allocator = mContext.allocator(),
             .flags = 0,
@@ -126,7 +145,10 @@ namespace crv::graphics::vulkan {
         };
         mTracerImage = Image(imageCreateInfo);
 
-        const ImageViewCreateInfo imageViewCreateInfo {
+        imageCreateInfo.format = VK_FORMAT_R32_UINT;
+        mInstanceIdImage = Image(imageCreateInfo);
+
+        ImageViewCreateInfo imageViewCreateInfo {
             .device = mContext.device(),
             .image = mTracerImage.get(),
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
@@ -135,9 +157,13 @@ namespace crv::graphics::vulkan {
         };
         mTracerView = ImageView(imageViewCreateInfo);
 
+        imageViewCreateInfo.image = mInstanceIdImage.get();
+        imageViewCreateInfo.format = VK_FORMAT_R32_UINT;
+        mInstanceIdView = ImageView(imageViewCreateInfo);
+
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(),
                                             mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-        const ImageTransitInfo2 transitInfo {
+        const ImageTransitInfo2 tracerTransitInfo {
             .commandBuffer = commandBuffer,
             .image = mTracerImage.get(),
             .srcAccessMask = VK_ACCESS_2_NONE,
@@ -148,7 +174,10 @@ namespace crv::graphics::vulkan {
             .newLayout = VK_IMAGE_LAYOUT_GENERAL,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
-        Image::transit(transitInfo);
+        ImageTransitInfo2 instanceIdTransitInfo = tracerTransitInfo;
+        instanceIdTransitInfo.image = mInstanceIdImage.get();
+
+        Image::transit({tracerTransitInfo, instanceIdTransitInfo});
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
@@ -476,6 +505,7 @@ namespace crv::graphics::vulkan {
             .instanceInfos = &mInstanceInfos,
             .textures = &mTextures,
             .outView = &mTracerView,
+            .outInstanceIdView = &mInstanceIdView,
             .framesInFlight = mFramesInFlight
         };
         mRayTracerPass = RayTracerPass(createInfo);
@@ -510,6 +540,7 @@ namespace crv::graphics::vulkan {
             .height = mSwapchain.extent().height
         };
         mRayTracerPass.record(recordInfo);
+        recordPixelRead(commandBuffer);
         recordPresent(imageIndex, commandBuffer);
         endCommandBuffer(commandBuffer);
     }
@@ -593,6 +624,43 @@ namespace crv::graphics::vulkan {
             swapchainTransitInfo.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
             Image::transit(swapchainTransitInfo);
         }
+    }
+
+    void PathTracerApp::recordPixelRead(VkCommandBuffer commandBuffer) {
+        if (mClickedPixel.x == UINT32_MAX) return;
+        const ImageTransitInfo2 transitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mInstanceIdImage.get(),
+            .srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
+            .srcStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,
+            .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        Image::transit(transitInfo);
+
+        const VkBufferImageCopy region {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .imageOffset = {static_cast<int32_t>(mClickedPixel.x), static_cast<int32_t>(mClickedPixel.y), 0},
+            .imageExtent = {1, 1, 1}
+        };
+        vkCmdCopyImageToBuffer(commandBuffer, mInstanceIdImage.get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            mReadbackBuffer.get(),
+            1, &region);
+
+        Image::inverseTransit(transitInfo);
+    }
+
+    void PathTracerApp::updateSelectedInstance() {
+        uint32_t* data = nullptr;
+        vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
+        mSelectedInstanceId = *data;
+        vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
     }
 
     void PathTracerApp::update() {
@@ -787,6 +855,7 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::drawFrame() {
         uint32_t imageIndex;
         vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
+        updateSelectedInstance();
         acquireNextImage(imageIndex);
         drawControlPanel();
         update();

@@ -12,7 +12,8 @@ layout(push_constant) uniform PushConstants {
 
 layout(binding = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 1, rgba16f) uniform image2D outputImage;
-layout(set = 0, binding = 2) uniform Camera {
+layout(binding = 2, r32ui) uniform uimage2D outputInstanceIdImage;
+layout(set = 0, binding = 3) uniform Camera {
     mat4 invView;
     mat4 invProj;
 } camera;
@@ -32,9 +33,11 @@ void main() {
     payload.radiance   = vec3(0.0);
     payload.origin     = vec3(camera.invView[3]);
     payload.direction  = dir;
+    payload.instanceId = UINT_MAX;
     payload.seed       = seed;
     payload.done       = false;
 
+    uint firstInstanceId = UINT_MAX;
     for (uint depth = 0; depth < pc.maxDepth; ++depth) {
         traceRayEXT(tlas,
         gl_RayFlagsNoneEXT,
@@ -43,7 +46,7 @@ void main() {
         payload.origin, 0.0,
         payload.direction, T_MAX,
         0);
-
+        if (depth == 0) firstInstanceId = payload.instanceId;
         if (payload.done) break;
 
         if (depth >= pc.minDepth) {
@@ -60,4 +63,5 @@ void main() {
     vec3 imageColor = imageLoad(outputImage, pixel).rgb;
     vec3 newColor = (imageColor * pc.frame + payload.radiance) / (pc.frame + 1);
     imageStore(outputImage, pixel, vec4(newColor, 1.0));
+    imageStore(outputInstanceIdImage, pixel, uvec4(firstInstanceId + 1, 0, 0, 0 ));
 }

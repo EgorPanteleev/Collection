@@ -13,6 +13,7 @@
 namespace crv::graphics::vulkan {
     using SSBOInfo = std::tuple<void*, uint32_t, Buffer&>;
     using UBOInfo  = std::tuple<uint32_t, Buffer&>;
+    using ivec2 = glm::vec<2, uint32_t>;
 
     struct SSBOData: std::vector<SSBOInfo> {
         SSBOData() = default;

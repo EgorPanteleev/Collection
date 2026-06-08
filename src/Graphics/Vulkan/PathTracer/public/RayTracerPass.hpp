@@ -19,13 +19,14 @@ namespace crv::graphics::vulkan {
     namespace cs = scene;
 
     struct RayTracerPassCreateInfo {
-        Context*                      context        = nullptr;
-        std::vector<BLASInfo>*        blasInfos      = nullptr;
-        AccelerationStructure*        tlas           = nullptr;
+        Context*                      context           = nullptr;
+        std::vector<BLASInfo>*        blasInfos         = nullptr;
+        AccelerationStructure*        tlas              = nullptr;
         std::vector<InstanceInfoGPU>* instanceInfos     = nullptr;
-        std::vector<TexturesByType>*  textures       = nullptr;
-        ImageView*                    outView        = nullptr;
-        uint32_t                      framesInFlight = 0;
+        std::vector<TexturesByType>*  textures          = nullptr;
+        ImageView*                    outView           = nullptr;
+        ImageView*                    outInstanceIdView = nullptr;
+        uint32_t                      framesInFlight    = 0;
     };
 
     struct RayTracerPassUpdateInfo {
@@ -54,27 +55,29 @@ namespace crv::graphics::vulkan {
         void createPipelines();
         void createSBT();
         void createBuffers();
-        uint32_t                        mFramesInFlight    = 0;
 
-        Context*                        mContext           = nullptr;
-        std::vector<BLASInfo>*          mBLASInfos         = nullptr;
-        AccelerationStructure*          mTLAS              = nullptr;
-        std::vector<InstanceInfoGPU>*   mInstanceInfos     = nullptr;
-        std::vector<TexturesByType>*    mTextures          = nullptr;
-        ImageView*                      mOutputView        = nullptr;
+        uint32_t                        mFramesInFlight       = 0;
+
+        Context*                        mContext              = nullptr;
+        std::vector<BLASInfo>*          mBLASInfos            = nullptr;
+        AccelerationStructure*          mTLAS                 = nullptr;
+        std::vector<InstanceInfoGPU>*   mInstanceInfos        = nullptr;
+        std::vector<TexturesByType>*    mTextures             = nullptr;
+        ImageView*                      mOutputView           = nullptr;
+        ImageView*                      mOutputInstanceIdView = nullptr;
         DescriptorManager               mDescriptorManager{};
-        PipelineLayout                  mPipelineLayout    = CRV_NULL_HANDLE;
-        RayTracerPipelines              mPipelines         = CRV_NULL_HANDLE;
-        Buffer                          mSBTBuffer         = CRV_NULL_HANDLE;
+        PipelineLayout                  mPipelineLayout       = CRV_NULL_HANDLE;
+        RayTracerPipelines              mPipelines            = CRV_NULL_HANDLE;
+        Buffer                          mSBTBuffer            = CRV_NULL_HANDLE;
         VkStridedDeviceAddressRegionKHR mRaygenRegion{};
         VkStridedDeviceAddressRegionKHR mMissRegion{};
         VkStridedDeviceAddressRegionKHR mHitRegion{};
         VkStridedDeviceAddressRegionKHR mCallRegion{};
 
-        ShaderModule                    mRaygenShader       = CRV_NULL_HANDLE;
-        ShaderModule                    mMissShader         = CRV_NULL_HANDLE;
-        ShaderModule                    mShadowMissShader   = CRV_NULL_HANDLE;
-        ShaderModule                    mHitShader          = CRV_NULL_HANDLE;
+        ShaderModule                    mRaygenShader         = CRV_NULL_HANDLE;
+        ShaderModule                    mMissShader           = CRV_NULL_HANDLE;
+        ShaderModule                    mShadowMissShader     = CRV_NULL_HANDLE;
+        ShaderModule                    mHitShader            = CRV_NULL_HANDLE;
 
         Buffer                          mBLASInfoBuffer{};
         Buffer                          mInstanceInfoBuffer{};
