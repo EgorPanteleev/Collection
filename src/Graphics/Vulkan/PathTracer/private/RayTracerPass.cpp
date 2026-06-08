@@ -213,7 +213,8 @@ namespace crv::graphics::vulkan {
                            VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
                            VK_BUFFER_USAGE_2_TRANSFER_DST_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO,
+            .minAlignment = baseAlign
         };
         mSBTBuffer = Buffer(sbtCreateInfo);
 
