@@ -6,6 +6,6 @@
 layout(location = 0) rayPayloadInEXT PathPayload payload;
 
 void main() {
-    payload.radiance = vec3(0.1);
+    payload.radiance += payload.throughput * vec3(0.2);
     payload.done = true;
 }

@@ -34,7 +34,6 @@ namespace crv::graphics::vulkan {
     namespace cu = utils;
 
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo) {
-        mDirectLight = {glm::vec4(-0.468, 0.318, -0.824, 1), 2.0};
         readScene(createInfo.scenePath);
         createContext();
         setCallBacks(this);
@@ -380,6 +379,9 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::loadScene() {
+        auto directLight = mScene["directLight"];
+        mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
+        mDirectLight.intensity = directLight["intensity"];
         std::vector<std::string> textures = mScene["textureImports"];
         auto materials = mScene["materials"];
         mMaterials.resize(textures.size() + materials.size());
@@ -684,13 +686,13 @@ namespace crv::graphics::vulkan {
             if (VkImGui::beginGroup(ICON_FA_GAUGE " Status")) {
                 std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
                 std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
-                //std::string accumulation = std::format("{:1}", (mFrameCount + 1) * mSPP);
+                std::string accumulation = std::format("{:1}", (mFrameCount + 1) * mSPP);
 
                 if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
                     VkImGui::row("FPS"         , fps.c_str());
                     VkImGui::row("Render Time" , renderTime.c_str());
                     VkImGui::row("SPP"         , "1");
-                    //VkImGui::row("Accumulation", accumulation.c_str());
+                    VkImGui::row("Accumulation", accumulation.c_str());
                     VkImGui::endCompactTable();
                 }
                 VkImGui::endGroup();

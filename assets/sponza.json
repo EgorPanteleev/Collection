@@ -16,6 +16,10 @@
     "localRotation": [0, 0, 180],
     "localScale":	 [5, 5, 5]
   }],
+  "directLight": {
+    "direction": [-0.468, 0.318, -0.824],
+    "intensity": 2
+  },
   "window": {
     "name": "GPU Path Tracer",
     "width": 800,
