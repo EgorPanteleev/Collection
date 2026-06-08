@@ -71,15 +71,17 @@ void main() {
 
     vec3 albedo = texture(textures[nonuniformEXT(instance.textureID)], uv).rgb;
     vec3 L = normalize(-directLight.dir.xyz);
+    vec3 gN = normalize(cross(v1.pos - v0.pos, v2.pos - v0.pos));
+    gN = normalize(normalMatrix * gN);
+    if (dot(gN, N) < 0.0) gN = -gN;
     float NdotL = max(dot(N, L), 0.0);
-
     shadowPayload = 0.0;
     traceRayEXT(
         tlas,
         gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
         ALL_OBJECTS,
         0, 1, 1,
-        P + N * 0.1,
+        movedPoint(P, gN),
         T_MIN,
         L,
         T_MAX,
