@@ -45,6 +45,7 @@ namespace crv::graphics::vulkan {
         void createCamera();
         void loadModel(uint32_t modelIndex, const std::string& path);
         void loadScene();
+        void createTextures();
         void createRayTracerPass();
         void update();
         void recordTracer(uint32_t imageIndex);
@@ -60,34 +61,38 @@ namespace crv::graphics::vulkan {
 #else
         bool mDebug = true;
 #endif
-        uint32_t                  mFramesInFlight = 3;
-        uint32_t                  mCurrentFrame   = 0;
+        uint32_t                     mFramesInFlight = 3;
+        uint32_t                     mCurrentFrame   = 0;
 
-        json                      mScene{};
-        Context                   mContext              = CRV_NULL_HANDLE;
-        Swapchain                 mSwapchain            = CRV_NULL_HANDLE;
-        RayTracerPass             mRayTracerPass        = CRV_NULL_HANDLE;
+        json                         mScene{};
+        Context                      mContext              = CRV_NULL_HANDLE;
+        Swapchain                    mSwapchain            = CRV_NULL_HANDLE;
+        RayTracerPass                mRayTracerPass        = CRV_NULL_HANDLE;
 
-        std::vector<VkImage>      mSwapchainImages{};
-        std::vector<ImageView>    mSwapchainImageViews{};
-        Image                     mTracerImage          = CRV_NULL_HANDLE;
-        ImageView                 mTracerView           = CRV_NULL_HANDLE;
+        std::vector<VkImage>         mSwapchainImages{};
+        std::vector<ImageView>       mSwapchainImageViews{};
+        Image                        mTracerImage          = CRV_NULL_HANDLE;
+        ImageView                    mTracerView           = CRV_NULL_HANDLE;
 
-        std::vector<Fence>        mFences{};
-        std::vector<Semaphore>    mImageAvailableSemaphores{};
-        std::vector<Semaphore>    mTracerFinishedSemaphores{};
+        std::vector<Fence>           mFences{};
+        std::vector<Semaphore>       mImageAvailableSemaphores{};
+        std::vector<Semaphore>       mTracerFinishedSemaphores{};
 
-        CommandPool               mTracerCommandPool    = CRV_NULL_HANDLE;
-        CommandBuffers            mTracerCommandBuffers = CRV_NULL_HANDLE;
+        CommandPool                  mTracerCommandPool    = CRV_NULL_HANDLE;
+        CommandBuffers               mTracerCommandBuffers = CRV_NULL_HANDLE;
 
-        cs::FlyCamera             mFlyCamera{};
-        cs::OrbitalCamera         mOrbitalCamera{};
-        cs::AbsCamera*            mCamera               = nullptr;
+        cs::FlyCamera                mFlyCamera{};
+        cs::OrbitalCamera            mOrbitalCamera{};
+        cs::AbsCamera*               mCamera               = nullptr;
 
-        std::vector<BLASEntry>    mBLASEntries{};
-        std::vector<VkASInstance> mInstances{};
-        Buffer                    mInstanceBuffer       = CRV_NULL_HANDLE;
-        AccelerationStructure     mTLAS                 = CRV_NULL_HANDLE;
+        std::vector<BLASEntry>       mBLASEntries{};
+        std::vector<BLASInfo>        mBLASInfos{};
+        std::vector<VkASInstance>    mInstances{};
+        std::vector<InstanceInfoGPU> mInstanceInfos{};
+        Buffer                       mInstanceBuffer       = CRV_NULL_HANDLE;
+        AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
+        std::vector<cm::Material>    mMaterials{};
+        std::vector<TexturesByType>  mTextures{};
     };
 }
 

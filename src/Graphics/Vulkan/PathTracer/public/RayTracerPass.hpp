@@ -12,15 +12,20 @@
 #include "RayTracerPipelines.hpp"
 #include "AccelerationStructure.hpp"
 #include "Camera.hpp"
+#include "Types.hpp"
+#include "TypesGPU.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
 
     struct RayTracerPassCreateInfo {
-        Context*               context        = nullptr;
-        AccelerationStructure* tlas           = nullptr;
-        ImageView*             outView        = nullptr;
-        uint32_t               framesInFlight = 0;
+        Context*                      context        = nullptr;
+        std::vector<BLASInfo>*        blasInfos      = nullptr;
+        AccelerationStructure*        tlas           = nullptr;
+        std::vector<InstanceInfoGPU>* instanceInfos     = nullptr;
+        std::vector<TexturesByType>*  textures       = nullptr;
+        ImageView*                    outView        = nullptr;
+        uint32_t                      framesInFlight = 0;
     };
 
     struct RayTracerPassUpdateInfo {
@@ -50,7 +55,10 @@ namespace crv::graphics::vulkan {
         uint32_t                        mFramesInFlight     = 0;
 
         Context*                        mContext           = nullptr;
+        std::vector<BLASInfo>*          mBLASInfos         = nullptr;
         AccelerationStructure*          mTLAS              = nullptr;
+        std::vector<InstanceInfoGPU>*   mInstanceInfos     = nullptr;
+        std::vector<TexturesByType>*    mTextures          = nullptr;
         ImageView*                      mOutputView        = nullptr;
         DescriptorManager               mDescriptorManager{};
         PipelineLayout                  mPipelineLayout    = CRV_NULL_HANDLE;
@@ -65,6 +73,8 @@ namespace crv::graphics::vulkan {
         ShaderModule                    mMissShader         = CRV_NULL_HANDLE;
         ShaderModule                    mHitShader          = CRV_NULL_HANDLE;
 
+        Buffer                          mBLASInfoBuffer{};
+        Buffer                          mInstanceInfoBuffer{};
         std::vector<Buffer>             mCameraBuffers{};
     };
 }

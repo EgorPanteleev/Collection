@@ -21,6 +21,12 @@ namespace crv::graphics::vulkan {
         glm::mat4 invView;
         glm::mat4 invProj;
     };
+
+    struct alignas(16) InstanceInfoGPU {
+        uint meshID    = 0;
+        uint textureID = 0;
+        uint pad[2];
+    };
 }
 
 #endif //COLLECTION_TYPESGPU_HPP

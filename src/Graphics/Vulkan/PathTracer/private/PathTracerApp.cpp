@@ -43,6 +43,7 @@ namespace crv::graphics::vulkan {
         createCommandBuffers();
         createCamera();
         loadScene();
+        createTextures();
         createRayTracerPass();
     }
 
@@ -255,12 +256,6 @@ namespace crv::graphics::vulkan {
         INFO << "Model (" << fs::path(path).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
         timer.start();
 
-        auto allInstances = mScene["instances"];
-        decltype(allInstances) instances;
-        for (const auto& instance: allInstances) {
-            if (instance["modelIndex"] != modelIndex) continue;
-            instances.push_back(instance);
-        }
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
         for (size_t meshIndex = 0; meshIndex < loader->meshes().size(); ++meshIndex) {
             const auto& mesh = loader->meshes()[meshIndex];
@@ -338,8 +333,17 @@ namespace crv::graphics::vulkan {
                 .indexCount = static_cast<uint32_t>(indices.size())
             };
             blasEntry.blas = AccelerationStructure(blasCreateInfo);
+            mBLASInfos.emplace_back(blasEntry.vertexBuffer.deviceAddress(mContext.device()),
+                blasEntry.indexBuffer.deviceAddress(mContext.device()));
             VkDeviceAddress blasAddress = blasEntry.blas.deviceAddress();
+            auto allInstances = mScene["instances"];
+            decltype(allInstances) instances;
+            for (const auto& instance: allInstances) {
+                if (instance["modelIndex"] != modelIndex) continue;
+                instances.push_back(instance);
+            }
 
+            uint32_t baseMaterial = mMaterials.size();
             for (const auto& instance: instances) {
                 glm::vec3 rot = toVec3(instance["localRotation"]);
                 Transform transform;
@@ -349,45 +353,50 @@ namespace crv::graphics::vulkan {
                 glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0,1,0));
                 glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0,0,1));
                 transform.rotation = glm::normalize(qy * qx * qz);
-                // uint32_t texIndex = instance["texIndex"];
-                // if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
-                // else texIndex *= cm::Texture::UNKNOWN;
+                uint32_t texIndex = instance["texIndex"];
+                if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
+                else texIndex *= cm::Texture::UNKNOWN;
                 VkASInstance asInstance{
                     .transform = toVkTransform(transform.matrix()),
-                    .instanceCustomIndex = 0,
+                    .instanceCustomIndex = static_cast<uint32_t>(mInstances.size()),
                     .mask = 0xFF,
                     .instanceShaderBindingTableRecordOffset = 0,
                     .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
                     .accelerationStructureReference = blasAddress
                 };
                 mInstances.push_back(asInstance);
+                InstanceInfoGPU instanceInfo {
+                    .meshID = static_cast<uint32_t>(mBLASEntries.size() - 1),
+                    .textureID = texIndex,
+                };
+                mInstanceInfos.push_back(instanceInfo);
             }
         }
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
+        mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
     }
 
     void PathTracerApp::loadScene() {
-        // std::vector<std::string> textures = mScene["textureImports"];
-        // auto materials = mScene["materials"];
-        // mMaterials.resize(textures.size() + materials.size());
-        // for (int textureIndex = 0; textureIndex < textures.size(); ++textureIndex) {
-        //     mMaterials[textureIndex].mTextures[cm::Texture::DIFFUSE] =
-        //         cm::AbsLoader::loadTexture(ASSETS_PATH + textures[textureIndex], cm::Texture::DIFFUSE);
-        //     for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
-        //         mMaterials[textureIndex].mTextures[texType] =
-        //             cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
-        //     }
-        // }
-        //
-        // int baseMaterial = static_cast<int>(textures.size());
-        // for (int materialIndex = baseMaterial; materialIndex < baseMaterial + materials.size(); ++materialIndex) {
-        //     mMaterials[materialIndex].mTextures[cm::Texture::DIFFUSE] =
-        //         cm::AbsLoader::colorTexture(toVec3(materials[materialIndex]["color"]), cm::Texture::DIFFUSE);
-        //     for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
-        //         mMaterials[materialIndex].mTextures[texType] =
-        //             cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
-        //     }
-        // }
+        std::vector<std::string> textures = mScene["textureImports"];
+        auto materials = mScene["materials"];
+        mMaterials.resize(textures.size() + materials.size());
+        for (int textureIndex = 0; textureIndex < textures.size(); ++textureIndex) {
+            mMaterials[textureIndex].mTextures[cm::Texture::DIFFUSE] =
+                cm::AbsLoader::loadTexture(ASSETS_PATH + textures[textureIndex], cm::Texture::DIFFUSE);
+            for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
+                mMaterials[textureIndex].mTextures[texType] =
+                    cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
+            }
+        }
+        int baseMaterial = static_cast<int>(textures.size());
+        for (int materialIndex = baseMaterial; materialIndex < baseMaterial + materials.size(); ++materialIndex) {
+            mMaterials[materialIndex].mTextures[cm::Texture::DIFFUSE] =
+                cm::AbsLoader::colorTexture(toVec3(materials[materialIndex]["color"]), cm::Texture::DIFFUSE);
+            for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
+                mMaterials[materialIndex].mTextures[texType] =
+                    cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
+            }
+        }
 
         std::vector<std::string> models = mScene["modelImports"];
           for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
@@ -428,10 +437,39 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
+    void PathTracerApp::createTextures() {
+        mTextures.resize(mMaterials.size());
+        for (size_t i = 0; i < mMaterials.size(); ++i) {
+            const cm::Material& material = mMaterials[i];
+            TexturesByType& texturesByType = mTextures[i];
+            for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
+                const cm::Texture& texture = material.mTextures[texType];
+                TextureCreateInfo textureCreateInfo {
+                    .device = mContext.device(),
+                    .physicalDevice = mContext.physicalDevice(),
+                    .allocator = mContext.allocator(),
+                    .queue = mContext.queue(QueueFamilyType::COMPUTE),
+                    .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+                    .dataByLevel = texture.mDataByLevel,
+                    .texFormat = texture.mFormat,
+                    .mipLevels = 1,
+                    .arrayLayers = 1,
+                    .samples = VK_SAMPLE_COUNT_1_BIT,
+                    .tiling = VK_IMAGE_TILING_OPTIMAL,
+                    .memoryUsage = VMA_MEMORY_USAGE_AUTO
+                };
+                texturesByType[texType] = Texture(textureCreateInfo);
+            }
+        }
+    }
+
     void PathTracerApp::createRayTracerPass() {
         const RayTracerPassCreateInfo createInfo {
             .context = &mContext,
+            .blasInfos = &mBLASInfos,
             .tlas = &mTLAS,
+            .instanceInfos = &mInstanceInfos,
+            .textures = &mTextures,
             .outView = &mTracerView,
             .framesInFlight = mFramesInFlight
         };

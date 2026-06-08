@@ -32,7 +32,8 @@ namespace crv::graphics::vulkan {
 
         VkPhysicalDeviceFeatures deviceFeatures{
             .sampleRateShading = VK_TRUE,
-            .samplerAnisotropy = VK_TRUE
+            .samplerAnisotropy = VK_TRUE,
+            .shaderInt64 = VK_TRUE
         };
 
         VkPhysicalDeviceVulkan12Features vulkan12Features{
@@ -41,6 +42,7 @@ namespace crv::graphics::vulkan {
                 .descriptorBindingPartiallyBound = VK_TRUE,
                 .descriptorBindingVariableDescriptorCount = VK_TRUE,
                 .runtimeDescriptorArray = VK_TRUE,
+                .scalarBlockLayout = VK_TRUE,
                 .separateDepthStencilLayouts = VK_TRUE,
                 .bufferDeviceAddress         = VK_TRUE,
         };

@@ -34,6 +34,11 @@ namespace crv::graphics::vulkan {
         AccelerationStructure blas         = CRV_NULL_HANDLE;
     };
 
+    struct BLASInfo {
+        VkDeviceSize vertexAddress = 0;
+        VkDeviceSize indexAddress  = 0;
+    };
+
     struct Transform {
         glm::vec3 position {0.0f};
         glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
