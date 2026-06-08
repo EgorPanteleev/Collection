@@ -24,6 +24,17 @@ namespace crv::graphics::vulkan {
         uint32_t                 count  = 1;
     };
 
+    enum class BindingType {
+        UBO,
+        SSBO,
+        AS,
+        STORAGE_IMAGE,
+        SAMPLED_IMAGE,
+        TEXTURE
+    };
+
+    BindingDescription binding(BindingType type, VkShaderStageFlags stages, uint32_t count = 1);
+
     struct DescriptorBuildInfo {
         Context* context       = nullptr;
         uint32_t count         = 0;
@@ -59,6 +70,7 @@ namespace crv::graphics::vulkan {
     class DescriptorManager {
     public:
         using Resource = std::variant<BufferResource, ImageResource, ASResource>;
+        void add(BindingType type, VkShaderStageFlags stages, uint32_t count = 1) { mBindings.push_back(binding(type, stages, count)); }
         void add(const BindingDescription& desc) { mBindings.push_back(desc); }
         void add(uint32_t setIndex, const BufferResource& resource) { mResources[setIndex].emplace_back(resource); }
         void add(uint32_t setIndex, const ImageResource& resource)  { mResources[setIndex].emplace_back(resource); }

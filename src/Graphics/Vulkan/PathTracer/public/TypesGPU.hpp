@@ -27,6 +27,12 @@ namespace crv::graphics::vulkan {
         uint textureID = 0;
         uint pad[2];
     };
+
+    struct alignas(16) DirectLightGPU {
+        glm::vec4 dir{};
+        float intensity = 0;
+        float pad[3];
+    };
 }
 
 #endif //COLLECTION_TYPESGPU_HPP

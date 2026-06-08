@@ -473,7 +473,6 @@ namespace crv::graphics::vulkan {
             .outView = &mTracerView,
             .framesInFlight = mFramesInFlight
         };
-
         mRayTracerPass = RayTracerPass(createInfo);
     }
 
@@ -581,6 +580,7 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::update() {
         const RayTracerPassUpdateInfo updateInfo {
             .camera = mCamera,
+            .directLight = {glm::vec4(-0.468, 0.318, -0.824, 1), 2.0},
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(updateInfo);

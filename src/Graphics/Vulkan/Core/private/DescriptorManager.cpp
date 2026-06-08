@@ -5,6 +5,40 @@
 #include "DescriptorManager.hpp"
 
 namespace crv::graphics::vulkan {
+    static VkDescriptorType toVkDescriptorType(BindingType type) {
+        switch (type) {
+            case BindingType::UBO:
+                return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            case BindingType::SSBO:
+                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            case BindingType::AS:
+                return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+            case BindingType::STORAGE_IMAGE:
+                return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            case BindingType::SAMPLED_IMAGE:
+            case BindingType::TEXTURE:
+                return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        }
+    }
+
+    BindingDescription binding(BindingType type, VkShaderStageFlags stages, uint32_t count) {
+        switch (type) {
+            case BindingType::TEXTURE:
+                return {
+                    .type = toVkDescriptorType(type),
+                    .stages = stages,
+                    .flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT,
+                    .count = count
+                };
+            default:
+                return {
+                    .type = toVkDescriptorType(type),
+                    .stages = stages,
+                    .count = count
+                };
+        }
+    }
+
     BufferResource::BufferResource(VkBuffer buffer, VkDeviceSize size): buffers({buffer}), sizes({size}) {}
     BufferResource::BufferResource(const Buffer& buffer): BufferResource(buffer.get(), buffer.size()) {}
     BufferResource::BufferResource(const std::vector<Buffer>& buffers_) {

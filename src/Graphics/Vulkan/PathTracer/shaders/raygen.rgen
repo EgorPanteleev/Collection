@@ -1,6 +1,8 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
 
+#include "types.glsl"
+
 layout(binding = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 1, rgba16f) uniform image2D outputImage;
 layout(set = 0, binding = 2) uniform Camera {
@@ -8,7 +10,7 @@ layout(set = 0, binding = 2) uniform Camera {
     mat4 invProj;
 } camera;
 
-layout(location = 0) rayPayloadEXT vec3 payloadColor;
+layout(location = 0) rayPayloadEXT vec3 payload;
 
 void main() {
     ivec2 pixel = ivec2(gl_LaunchIDEXT.xy);
@@ -21,18 +23,19 @@ void main() {
     target /= target.w;
     vec3 direction = normalize((camera.invView * vec4(target.xyz, 0.0)).xyz);
     vec3 origin = (camera.invView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    payloadColor = vec3(0.0);
+    payload = vec3(0.0);
 
     traceRayEXT(
         tlas,
         gl_RayFlagsOpaqueEXT,
-        0xff,
+        ALL_OBJECTS,
         0, 0, 0,
         origin,
         0.001,
         direction,
         10000.0,
-        0);
+        0
+    );
 
-    imageStore(outputImage, pixel, vec4(payloadColor, 1.0));
+    imageStore(outputImage, pixel, vec4(payload, 1.0));
 }

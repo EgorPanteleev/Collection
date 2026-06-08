@@ -5,10 +5,12 @@
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
+#include "types.glsl"
+
 struct Vertex {
     vec3 pos;
     vec2 texCoord;
-    vec3 normal;
+    vec3 n;
     vec4 tangent;
 };
 struct MeshInfo {
@@ -26,14 +28,20 @@ layout(buffer_reference, scalar) readonly buffer VertexBuffer {
 layout(buffer_reference, scalar) readonly buffer IndexBuffer {
     uint indices[];
 };
-layout(set = 0, binding = 3, scalar) readonly buffer MeshInfoBuffer {
+layout(binding = 0) uniform accelerationStructureEXT tlas;
+layout(binding = 3) uniform DirectLight {
+    vec4 dir;
+    float intensity;
+} directLight;
+layout(binding = 4, scalar) readonly buffer MeshInfoBuffer {
     MeshInfo meshes[];
 };
-layout(set = 0, binding = 4, scalar) readonly buffer InstanceBuffer {
+layout(binding = 5, scalar) readonly buffer InstanceBuffer {
     InstanceData instances[];
 };
-layout(binding = 5) uniform sampler2D textures[];
-layout(location = 0) rayPayloadInEXT vec3 payloadColor;
+layout(binding = 6) uniform sampler2D textures[];
+layout(location = 0) rayPayloadInEXT vec3 payload;
+layout(location = 1) rayPayloadEXT float shadowPayload;
 
 hitAttributeEXT vec2 hitAttrib;
 
@@ -47,12 +55,39 @@ void main() {
     uint i1 = indexBuffer.indices[gl_PrimitiveID * 3 + 1];
     uint i2 = indexBuffer.indices[gl_PrimitiveID * 3 + 2];
 
-    vec2 uv0 = vertexBuffer.vertices[i0].texCoord;
-    vec2 uv1 = vertexBuffer.vertices[i1].texCoord;
-    vec2 uv2 = vertexBuffer.vertices[i2].texCoord;
+    Vertex v0 = vertexBuffer.vertices[i0];
+    Vertex v1 = vertexBuffer.vertices[i1];
+    Vertex v2 = vertexBuffer.vertices[i2];
 
     float u = hitAttrib.x; float v = hitAttrib.y; float w = 1 - u - v;
-    vec2 uv = w * uv0 + u * uv1 + v * uv2;
+    vec2 uv = w * v0.texCoord + u * v1.texCoord + v * v2.texCoord;
 
-    payloadColor = texture(textures[nonuniformEXT(instance.textureID)], uv).rgb;;//vec3(1.0, 1.0, 1.0);
+    vec3 P = w * v0.pos + u * v1.pos + v * v2.pos;
+    vec3 N = normalize(w * v0.n + u * v1.n + v * v2.n);
+    mat3 normalMatrix = transpose(inverse(mat3(gl_ObjectToWorldEXT)));
+    P = vec3(gl_ObjectToWorldEXT * vec4(P, 1.0));
+    N = normalize(normalMatrix * N);
+    if (dot(N, gl_WorldRayDirectionEXT) > 0.0) N = -N;
+
+    vec3 albedo = texture(textures[nonuniformEXT(instance.textureID)], uv).rgb;
+    vec3 L = normalize(-directLight.dir.xyz);
+    float NdotL = max(dot(N, L), 0.0);
+
+    shadowPayload = 0.0;
+    traceRayEXT(
+        tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+        ALL_OBJECTS,
+        0, 1, 1,
+        P + N * 0.1,
+        1e-3,
+        L,
+        1e4,
+        1
+    );
+
+    vec3 direct = shadowPayload * albedo * NdotL * directLight.intensity;
+    payload = direct;
+
+   //payload = N * 0.5 + 0.5;//texture(textures[nonuniformEXT(instance.textureID)], uv).rgb;
 }

@@ -30,6 +30,7 @@ namespace crv::graphics::vulkan {
 
     struct RayTracerPassUpdateInfo {
         cs::AbsCamera* camera       = nullptr;
+        DirectLightGPU directLight{};
         uint32_t       currentFrame = 0;
     };
 
@@ -71,11 +72,13 @@ namespace crv::graphics::vulkan {
 
         ShaderModule                    mRaygenShader       = CRV_NULL_HANDLE;
         ShaderModule                    mMissShader         = CRV_NULL_HANDLE;
+        ShaderModule                    mShadowMissShader   = CRV_NULL_HANDLE;
         ShaderModule                    mHitShader          = CRV_NULL_HANDLE;
 
         Buffer                          mBLASInfoBuffer{};
         Buffer                          mInstanceInfoBuffer{};
         std::vector<Buffer>             mCameraBuffers{};
+        std::vector<Buffer>             mDirectLightBuffers{};
     };
 }
 

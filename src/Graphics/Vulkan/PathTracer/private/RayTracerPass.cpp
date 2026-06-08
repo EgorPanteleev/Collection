@@ -24,7 +24,10 @@ namespace crv::graphics::vulkan {
             .invView = glm::inverse(info.camera->viewMatrix()),
             .invProj = glm::inverse(info.camera->projectionMatrix())
         };
-        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &camera, sizeof(CameraGPU), cameraBuffer);
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &camera, sizeof(CameraGPU), cameraBuffer);
+
+        Buffer& directLightBuffer = mDirectLightBuffers[info.currentFrame];
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &info.directLight, sizeof(DirectLightGPU), directLightBuffer);
     }
 
     void RayTracerPass::record(const RayTracerPassRecordInfo& info) {
@@ -43,34 +46,15 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::createDescriptorManager() {
-        constexpr BindingDescription tlasBinding {
-            .type   = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
-            .stages = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
-        };
-        constexpr BindingDescription storageImageBinding {
-            .type   = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .stages = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
-        };
-        constexpr BindingDescription UBOBinding {
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .stages = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
-        };
-        constexpr BindingDescription SSBOBinding {
-            .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .stages = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
-        };
-        const BindingDescription texturesBinding {
-            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .stages = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
-            .flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT,
-            .count = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)
-        };
-        mDescriptorManager.add(tlasBinding);
-        mDescriptorManager.add(storageImageBinding);
-        mDescriptorManager.add(UBOBinding);
-        mDescriptorManager.add(SSBOBinding);
-        mDescriptorManager.add(SSBOBinding);
-        mDescriptorManager.add(texturesBinding);
+        auto textureCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN);
+        mDescriptorManager.add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
+                                                                  VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR     );
+        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
+        mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
+        mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+        mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, textureCount);
 
         const DescriptorBuildInfo buildInfo {
             .context = mContext,
@@ -83,6 +67,7 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.add(i, ASResource(mTLAS->get()));
             mDescriptorManager.add(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
             mDescriptorManager.add(i, BufferResource(mCameraBuffers[i]));
+            mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i]));
             mDescriptorManager.add(i, BufferResource(mBLASInfoBuffer));
             mDescriptorManager.add(i, BufferResource(mInstanceInfoBuffer));
             mDescriptorManager.add(i, ImageResource(*mTextures));
@@ -98,6 +83,8 @@ namespace crv::graphics::vulkan {
         mRaygenShader = ShaderModule(createInfo);
         createInfo.fileName = COMPILED_SHADERS_DIR"/miss.rmiss.spv";
         mMissShader = ShaderModule(createInfo);
+        createInfo.fileName = COMPILED_SHADERS_DIR"/shadow.rmiss.spv";
+        mShadowMissShader = ShaderModule(createInfo);
         createInfo.fileName = COMPILED_SHADERS_DIR"/closesthit.rchit.spv";
         mHitShader = ShaderModule(createInfo);
     }
@@ -127,6 +114,13 @@ namespace crv::graphics::vulkan {
                 .module = mMissShader.get(),
                 .pName = "main",
             },
+            { //shadow miss
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_MISS_BIT_KHR,
+                .module = mShadowMissShader.get(),
+                .pName = "main",
+            },
             { //closest hit
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .flags = 0,
@@ -152,11 +146,19 @@ namespace crv::graphics::vulkan {
                 .anyHitShader = VK_SHADER_UNUSED_KHR,
                 .intersectionShader = VK_SHADER_UNUSED_KHR,
             },
+            { //shadow miss
+                .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
+                .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR,
+                .generalShader = 2,
+                .closestHitShader = VK_SHADER_UNUSED_KHR,
+                .anyHitShader = VK_SHADER_UNUSED_KHR,
+                .intersectionShader = VK_SHADER_UNUSED_KHR,
+            },
             { //closest hit
                 .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
                 .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR,
                 .generalShader = VK_SHADER_UNUSED_KHR,
-                .closestHitShader = 2,
+                .closestHitShader = 3,
                 .anyHitShader = VK_SHADER_UNUSED_KHR,
                 .intersectionShader = VK_SHADER_UNUSED_KHR,
             }
@@ -180,7 +182,7 @@ namespace crv::graphics::vulkan {
             .pNext = &props
         };
         vkGetPhysicalDeviceProperties2(mContext->physicalDevice(), &props2);
-        uint32_t groupCount = 3;
+        uint32_t groupCount = 4;
         uint32_t handleSize = props.shaderGroupHandleSize;
         std::vector<uint8_t> handles(groupCount * handleSize);
         LOAD_VK_FN(mContext->device(), vkGetRayTracingShaderGroupHandlesKHR);
@@ -190,10 +192,11 @@ namespace crv::graphics::vulkan {
         constexpr auto alignUp = [](const uint32_t v, const uint32_t a){ return (v + a - 1) & ~(a - 1); };
         uint32_t stride = alignUp(props.shaderGroupHandleSize, props.shaderGroupHandleAlignment);
         uint32_t baseAlign     = props.shaderGroupBaseAlignment;
-        uint32_t raygenOffset = 0;
-        uint32_t missOffset   = alignUp(raygenOffset + stride, baseAlign);
-        uint32_t hitOffset    = alignUp(missOffset   + stride, baseAlign);
-        uint32_t sbtSize      = hitOffset + stride;
+        uint32_t raygenOffset     = 0;
+        uint32_t missOffset       = alignUp(raygenOffset     + stride, baseAlign);
+        uint32_t shadowMissOffset = alignUp(missOffset       + stride, baseAlign);
+        uint32_t hitOffset        = alignUp(shadowMissOffset + stride, baseAlign);
+        uint32_t sbtSize          = hitOffset + stride;
 
         const BufferCreateInfo sbtCreateInfo {
             .allocator = mContext->allocator(),
@@ -216,9 +219,10 @@ namespace crv::graphics::vulkan {
         };
         Buffer stagingBuffer = Buffer(stagingBufferCreateInfo);
         auto mapped = static_cast<uint8_t*>(stagingBuffer.map());
-        memcpy(mapped + raygenOffset, handles.data() + 0 * handleSize, handleSize);
-        memcpy(mapped + missOffset,   handles.data() + 1 * handleSize, handleSize);
-        memcpy(mapped + hitOffset,    handles.data() + 2 * handleSize, handleSize);
+        memcpy(mapped + raygenOffset    , handles.data() + 0 * handleSize, handleSize);
+        memcpy(mapped + missOffset      , handles.data() + 1 * handleSize, handleSize);
+        memcpy(mapped + shadowMissOffset, handles.data() + 2 * handleSize, handleSize);
+        memcpy(mapped + hitOffset       , handles.data() + 3 * handleSize, handleSize);
         stagingBuffer.unmap();
 
         CopyBufferToBufferInfo copyInfo {
@@ -237,10 +241,10 @@ namespace crv::graphics::vulkan {
         };
         VkDeviceAddress sbtAddr = vkGetBufferDeviceAddress(mContext->device(), &addrInfo);
 
-        mRaygenRegion = {sbtAddr + raygenOffset, stride, stride};
-        mMissRegion   = {sbtAddr + missOffset,   stride, stride};
-        mHitRegion    = {sbtAddr + hitOffset,    stride, stride};
-        mCallRegion   = {};
+        mRaygenRegion     = {sbtAddr + raygenOffset    , stride, stride};
+        mMissRegion       = {sbtAddr + missOffset      , stride, stride * 2};
+        mHitRegion        = {sbtAddr + hitOffset       , stride, stride};
+        mCallRegion       = {};
     }
 
     void RayTracerPass::createBuffers() {
@@ -250,9 +254,11 @@ namespace crv::graphics::vulkan {
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
 
         mCameraBuffers.resize(mFramesInFlight);
+        mDirectLightBuffers.resize(mFramesInFlight);
         UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             uboData.add<CameraGPU>(mCameraBuffers[i]);
+            uboData.add<DirectLightGPU>(mDirectLightBuffers[i]);
         }
         uboData.createAll(mContext);
     }
