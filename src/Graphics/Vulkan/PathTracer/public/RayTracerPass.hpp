@@ -36,6 +36,7 @@ namespace crv::graphics::vulkan {
 
     struct RayTracerPassRecordInfo {
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        PushConstants   constants{};
         uint32_t        width         = 0;
         uint32_t        height        = 0;
     };
@@ -53,7 +54,7 @@ namespace crv::graphics::vulkan {
         void createPipelines();
         void createSBT();
         void createBuffers();
-        uint32_t                        mFramesInFlight     = 0;
+        uint32_t                        mFramesInFlight    = 0;
 
         Context*                        mContext           = nullptr;
         std::vector<BLASInfo>*          mBLASInfos         = nullptr;

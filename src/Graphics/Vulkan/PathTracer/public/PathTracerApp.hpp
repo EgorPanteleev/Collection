@@ -32,6 +32,7 @@ namespace crv::graphics::vulkan {
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
+        void updateImage() { mFrameCount = 0; }
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
@@ -67,8 +68,9 @@ namespace crv::graphics::vulkan {
         bool mDebug = true;
 #endif
         bool                         mRenderImGui    = false;
-        uint32_t                     mFramesInFlight = 3;
+        uint32_t                     mFramesInFlight = 1;
         uint32_t                     mCurrentFrame   = 0;
+        uint32_t                     mFrameCount     = 0;
 
         json                         mScene{};
         Context                      mContext              = CRV_NULL_HANDLE;
@@ -99,9 +101,13 @@ namespace crv::graphics::vulkan {
         AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
         std::vector<cm::Material>    mMaterials{};
         std::vector<TexturesByType>  mTextures{};
+        DirectLightGPU               mDirectLight{};
 
         VkImGui                      mImGui                = CRV_NULL_HANDLE;
-        DirectLightGPU               mDirectLight{};
+        int                          mSPP                  = 1;
+        int                          mMinDepth             = 0;
+        int                          mMaxDepth             = 1;
+        int                          mDisplayMode          = 4;
     };
 }
 

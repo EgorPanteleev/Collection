@@ -1,27 +1,8 @@
 #version 460
-#extension GL_EXT_ray_tracing : require
-#extension GL_EXT_nonuniform_qualifier : require
-#extension GL_EXT_buffer_reference2 : require
-#extension GL_EXT_scalar_block_layout : require
-#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 #include "utils.glsl"
+#include "material.glsl"
 
-struct Vertex {
-    vec3 pos;
-    vec2 texCoord;
-    vec3 n;
-    vec4 tangent;
-};
-struct MeshInfo {
-    uint64_t vertexAddress;
-    uint64_t indexAddress;
-};
-struct InstanceData {
-    uint meshID;
-    uint textureID;
-    uint pad[2];
-};
 layout(buffer_reference, scalar) readonly buffer VertexBuffer {
     Vertex vertices[];
 };
@@ -40,7 +21,7 @@ layout(binding = 5, scalar) readonly buffer InstanceBuffer {
     InstanceData instances[];
 };
 layout(binding = 6) uniform sampler2D textures[];
-layout(location = 0) rayPayloadInEXT vec3 payload;
+layout(location = 0) rayPayloadInEXT PathPayload payload;
 layout(location = 1) rayPayloadEXT float shadowPayload;
 
 hitAttributeEXT vec2 hitAttrib;
@@ -88,8 +69,13 @@ void main() {
         1
     );
 
-    vec3 direct = shadowPayload * albedo * NdotL * directLight.intensity;
-    payload = direct;
+    vec3 wo = -gl_WorldRayDirectionEXT;
+    Scatter scatter = lambertianScatter(payload.seed, albedo, N, wo);
+    vec3 direct  = scatter.brdf * NdotL * directLight.intensity * shadowPayload;
+    payload.radiance += payload.throughput * direct;
+    payload.throughput *= scatter.brdf * max(dot(scatter.wi, N), 0.0) / scatter.pdf;
 
-   //payload = N * 0.5 + 0.5;//texture(textures[nonuniformEXT(instance.textureID)], uv).rgb;
+    payload.origin    = movedPoint(P, gN);
+    payload.direction = scatter.wi;
+    payload.done      = false;
 }

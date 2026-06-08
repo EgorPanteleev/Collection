@@ -1,7 +1,14 @@
 #version 460
-#extension GL_EXT_ray_tracing : require
 
 #include "utils.glsl"
+
+layout(push_constant) uniform PushConstants {
+    uint frame;
+    uint spp;
+    uint minDepth;
+    uint maxDepth;
+    uint displayMode;
+} pc;
 
 layout(binding = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 1, rgba16f) uniform image2D outputImage;
@@ -10,32 +17,47 @@ layout(set = 0, binding = 2) uniform Camera {
     mat4 invProj;
 } camera;
 
-layout(location = 0) rayPayloadEXT vec3 payload;
+layout(location = 0) rayPayloadEXT PathPayload payload;
 
 void main() {
     ivec2 pixel = ivec2(gl_LaunchIDEXT.xy);
-    vec2 size = vec2(gl_LaunchSizeEXT.xy);
-    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + 0.5) /
-    vec2(gl_LaunchSizeEXT.xy);
-    uv = uv * 2.0 - 1.0;
-    vec4 target =
-    camera.invProj * vec4(uv, 1.0, 1.0);
-    target /= target.w;
-    vec3 direction = normalize((camera.invView * vec4(target.xyz, 0.0)).xyz);
-    vec3 origin = (camera.invView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    payload = vec3(0.0);
+    uint seed = pixel.x + pixel.y * gl_LaunchSizeEXT.x + pc.frame * 16777619u;
 
-    traceRayEXT(
-        tlas,
-        gl_RayFlagsOpaqueEXT,
+    vec2 jitter = vec2(rand01(seed), rand01(seed)) - 0.5;
+    vec2 uv = (pixel + jitter) / vec2(gl_LaunchSizeEXT.xy);
+    vec4 target = camera.invProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
+    vec3 dir = normalize(vec3(camera.invView * vec4(normalize(target.xyz), 0.0)));
+
+    payload.throughput = vec3(1.0);
+    payload.radiance   = vec3(0.0);
+    payload.origin     = vec3(camera.invView[3]);
+    payload.direction  = dir;
+    payload.seed       = seed;
+    payload.done       = false;
+
+    for (uint depth = 0; depth < pc.maxDepth; ++depth) {
+        traceRayEXT(tlas,
+        gl_RayFlagsNoneEXT,
         ALL_OBJECTS,
         0, 0, 0,
-        origin,
-        T_MIN,
-        direction,
-        T_MAX,
-        0
-    );
+        payload.origin, 0.0,
+        payload.direction, T_MAX,
+        0);
 
-    imageStore(outputImage, pixel, vec4(payload, 1.0));
+        if (payload.done) break;
+
+        if (depth >= pc.minDepth) {
+            float p = clamp(luminance(payload.throughput), 0.01, 1.0);
+            if (rand01(payload.seed) > p) break;
+            payload.throughput /= p;
+        }
+    }
+
+    if (pc.frame == 0) {
+        imageStore(outputImage, pixel, vec4(payload.radiance, 1.0));
+        return;
+    }
+    vec3 imageColor = imageLoad(outputImage, pixel).rgb;
+    vec3 newColor = (imageColor * pc.frame + payload.radiance) / (pc.frame + 1);
+    imageStore(outputImage, pixel, vec4(newColor, 1.0));
 }

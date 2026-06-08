@@ -23,7 +23,7 @@
   },
   "camera":	{
     "type": "Fly",
-    "position":	[80, -2, 0],
+    "position":	[40, -2, 0],
     "target":	[-100, 10, 0],
     "up":	[0, 1, 0],
     "zoom": 1,

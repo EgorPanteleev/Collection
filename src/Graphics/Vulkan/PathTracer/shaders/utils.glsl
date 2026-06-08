@@ -1,3 +1,12 @@
+#ifndef UTILS_GLSL
+#define UTILS_GLSL
+
+#extension GL_EXT_ray_tracing : require
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference2 : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+
 #define FLT_MAX 3.402823e38
 #define INT_MAX 2147483647
 #define UINT_MAX 4294967295u
@@ -12,6 +21,31 @@
 #define FLOAT_SCALE 1.0 / 65536.0
 #define INT_SCALE 256.0
 
+struct Vertex {
+    vec3 pos;
+    vec2 texCoord;
+    vec3 n;
+    vec4 tangent;
+};
+struct MeshInfo {
+    uint64_t vertexAddress;
+    uint64_t indexAddress;
+};
+struct InstanceData {
+    uint meshID;
+    uint textureID;
+    uint pad[2];
+};
+
+struct PathPayload {
+    vec3  throughput;
+    vec3  radiance;
+    vec3  origin;
+    vec3  direction;
+    uint  seed;
+    bool  done;
+};
+
 vec3 offsetRay(const vec3 p, const vec3 n) {
     ivec3 of_i = ivec3(INT_SCALE * n.x, INT_SCALE * n.y, INT_SCALE * n.z);
     vec3 p_i = vec3(intBitsToFloat(floatBitsToInt(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
@@ -25,3 +59,22 @@ vec3 offsetRay(const vec3 p, const vec3 n) {
 vec3 movedPoint(vec3 p, vec3 gn) {
     return offsetRay(p, gn);
 }
+
+uint pcg(uint v){
+    uint state = v * 747796405u + 2891336453u;
+    uint word  = ((state >> ((state >> 28) + 4)) ^ state) * 277803737u;
+    return (word >> 22) ^ word;
+}
+
+float rand01(inout uint seed){
+    seed = pcg(seed);
+    return float(seed) / 4294967296.0;
+}
+
+float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+float copysign(float x, float y){
+    return abs(x) * (y < 0.0 ? -1.0 : 1.0);
+}
+
+#endif

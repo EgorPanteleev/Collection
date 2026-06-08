@@ -62,7 +62,7 @@ namespace crv::graphics::vulkan {
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
             drawFrame();
             updateCurrentFrame();
-            //++mFrameCount;
+            ++mFrameCount;
         }
         vkDeviceWaitIdle(mContext.device());
     }
@@ -497,6 +497,13 @@ namespace crv::graphics::vulkan {
         beginCommandBuffer(commandBuffer);
         const RayTracerPassRecordInfo recordInfo {
             .commandBuffer = commandBuffer,
+            .constants = {
+                .frameCount = mFrameCount,
+                .spp = static_cast<uint32_t>(mSPP),
+                .minDepth = static_cast<uint32_t>(mMinDepth),
+                .maxDepth = static_cast<uint32_t>(mMaxDepth),
+                .displayMode = static_cast<uint32_t>(mDisplayMode)
+            },
             .width = mSwapchain.extent().width,
             .height = mSwapchain.extent().height
         };
@@ -713,12 +720,12 @@ namespace crv::graphics::vulkan {
             glm::vec3 position = mCamera->position();
             if (ImGui::DragFloat3("Position", &position.x, 0.05f, -FLT_MAX, FLT_MAX)) {
                 mCamera->setPosition(position);
-                //updateImage();
+                updateImage();
             }
             float fov = mCamera->FOV();
             if (ImGui::SliderFloat("FOV", &fov, 10, 140, "%.2f deg")) {
                 mCamera->zoom(mCamera->FOV() - fov);
-                //updateImage();
+                updateImage();
             }
             const bool isFlyCamera = mCamera->type() == cs::CameraType::FLY;
             if (VkImGui::selectableButton("Fly", isFlyCamera)) {
@@ -727,7 +734,7 @@ namespace crv::graphics::vulkan {
             ImGui::SameLine(0.0f, 5.0f);
             if (VkImGui::selectableButton("Orbital", !isFlyCamera)) {
                 setCamera(scene::CameraType::ORBITAL);
-                //updateImage();
+                updateImage();
             }
             ImGui::SameLine();
             ImGui::Text("Type");
@@ -736,27 +743,27 @@ namespace crv::graphics::vulkan {
                 ImGui::Indent(4.0f);
                 if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
                     if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
-                        //updateImage();
+                        updateImage();
                     }
                     if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
-                        //updateImage();
+                        updateImage();
                     }
                 }
                 if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    // if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
-                    //     //updateImage();
-                    // }
-                    // if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
-                    //     //updateImage();
-                    // }
-                    // if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
-                    //     //updateImage();
-                    // }
+                    if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
+                        updateImage();
+                    }
+                    if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
+                        updateImage();
+                    }
+                    if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
+                        updateImage();
+                    }
                 }
                 if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
                     // const char* modes[] = {"Albedo", "Depth", "Normal", "TracedAlbedo", "Rendered"};
                     // if (ImGui::Combo("Display mode", &mDisplayMode, modes, IM_ARRAYSIZE(modes))) {
-                    //     //updateImage();
+                    //     updateImage();
                     // }
                 }
                 ImGui::Unindent(4.0f);
