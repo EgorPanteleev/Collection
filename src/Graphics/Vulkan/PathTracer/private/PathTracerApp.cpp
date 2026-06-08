@@ -5,8 +5,13 @@
 #include "PathTracerApp.hpp"
 #include "CoreUtils.hpp"
 #include "Timer.hpp"
+#include "Loader.hpp"
+#include "CallBacks.hpp"
 
 #include <fstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 static glm::vec3 toVec3(const nlohmann::json& json) {
     return {
@@ -16,19 +21,29 @@ static glm::vec3 toVec3(const nlohmann::json& json) {
     };
 }
 
+static VkTransformMatrixKHR toVkTransform(const glm::mat4& mat) {
+    VkTransformMatrixKHR t{};
+    for (int c = 0; c < 3; ++c)
+        for (int r = 0; r < 4; ++r)
+            t.matrix[c][r] = mat[r][c];
+    return t;
+}
+
 namespace crv::graphics::vulkan {
     namespace cu = utils;
 
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo) {
         readScene(createInfo.scenePath);
         createContext();
+        setCallBacks(this);
         createSwapChain();
         createSwapChainImages();
         createImages();
-        createRayTracerPass();
         createSyncObjects();
         createCommandBuffers();
         createCamera();
+        loadScene();
+        createRayTracerPass();
     }
 
     void PathTracerApp::run() {
@@ -37,7 +52,7 @@ namespace crv::graphics::vulkan {
         const Window& window = mContext.window();
         while (!window.shouldClose()) {
             glfwPollEvents();
-            //window.keyboardCallBack(deltaTime);
+            window.keyboardCallBack(deltaTime);
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
@@ -134,39 +149,6 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
-    void PathTracerApp::createRayTracerPass() {
-        const RayTracerPassCreateInfo createInfo {
-            .context = &mContext,
-            .outView = &mTracerView,
-            .framesInFlight = mFramesInFlight
-        };
-
-        mRayTracerPass = RayTracerPass(createInfo);
-    }
-
-    void PathTracerApp::createCamera() {
-        auto camera = mScene["camera"];
-        auto window = mScene["window"];
-        const cs::CameraCreateInfo info {
-            .type = camera["type"] == "Fly" ? cs::CameraType::FLY : cs::CameraType::ORBITAL,
-            .pos = toVec3(camera["position"]),
-            .target = toVec3(camera["target"]),
-            .up = toVec3(camera["up"]),
-            .zoom = camera["zoom"],
-            .FOV = camera["fov"],
-            .aspectRatio = static_cast<float>(window["width"]) / static_cast<float>(window["height"]),
-            .nearPlane = camera["nearPlane"],
-            .farPlane = camera["farPlane"]
-        };
-        mFlyCamera = scene::FlyCamera(info);
-        mOrbitalCamera = scene::OrbitalCamera(info);
-        if (info.type == scene::CameraType::FLY) {
-            mCamera = &mFlyCamera;
-        } else {
-            mCamera = &mOrbitalCamera;
-        }
-    }
-
     void PathTracerApp::createSwapChainImages() {
         auto [capabilities, formats, presentModes] = Swapchain::getSupport(mContext.physicalDevice(), mContext.surface());
         uint32_t imageCount = Swapchain::getImageCount(capabilities);
@@ -239,6 +221,222 @@ namespace crv::graphics::vulkan {
         };
         bufferCreateInfo.commandPool = mTracerCommandPool.get();
         mTracerCommandBuffers = CommandBuffers(bufferCreateInfo);
+    }
+
+    void PathTracerApp::createCamera() {
+        auto camera = mScene["camera"];
+        auto window = mScene["window"];
+        const cs::CameraCreateInfo info {
+            .type = camera["type"] == "Fly" ? cs::CameraType::FLY : cs::CameraType::ORBITAL,
+            .pos = toVec3(camera["position"]),
+            .target = toVec3(camera["target"]),
+            .up = toVec3(camera["up"]),
+            .zoom = camera["zoom"],
+            .FOV = camera["fov"],
+            .aspectRatio = static_cast<float>(window["width"]) / static_cast<float>(window["height"]),
+            .nearPlane = camera["nearPlane"],
+            .farPlane = camera["farPlane"]
+        };
+        mFlyCamera = scene::FlyCamera(info);
+        mOrbitalCamera = scene::OrbitalCamera(info);
+        if (info.type == scene::CameraType::FLY) {
+            mCamera = &mFlyCamera;
+        } else {
+            mCamera = &mOrbitalCamera;
+        }
+    }
+
+    void PathTracerApp::loadModel(const uint32_t modelIndex, const std::string& path) {
+        utils::Timer timer;
+        timer.start();
+        auto loader = new cm::Loader;
+        loader->setModel(ASSETS_PATH + path);
+        loader->load(glm::mat4(1.0f));
+        INFO << "Model (" << fs::path(path).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
+        timer.start();
+
+        auto allInstances = mScene["instances"];
+        decltype(allInstances) instances;
+        for (const auto& instance: allInstances) {
+            if (instance["modelIndex"] != modelIndex) continue;
+            instances.push_back(instance);
+        }
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
+        for (size_t meshIndex = 0; meshIndex < loader->meshes().size(); ++meshIndex) {
+            const auto& mesh = loader->meshes()[meshIndex];
+            std::vector<Vertex> vertices{};
+            vertices.reserve(mesh.numVertices);
+            for (size_t i = 0; i < mesh.numVertices; ++i) {
+                const cm::Vertex& modelVertex = loader->vertices()[mesh.baseVertex + i];
+                Vertex vertex {
+                    .pos = modelVertex.pos,
+                    .texCoord = modelVertex.texCoord0,
+                    .normal = modelVertex.normal,
+                    .tangent = modelVertex.tangent,
+                };
+                vertices.push_back(vertex);
+            }
+            std::vector<uint32_t> indices{};
+            indices.reserve(mesh.numIndices);
+            for (size_t i = 0; i < mesh.numIndices; ++i) {
+                indices.push_back(loader->indices()[mesh.baseIndex + i]);
+            }
+
+            mBLASEntries.emplace_back();
+            BLASEntry& blasEntry = mBLASEntries.back();
+            const size_t verticesSize = sizeof(Vertex) * vertices.size();
+            const BufferCreateInfo vertexBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = verticesSize,
+                .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            blasEntry.vertexBuffer = Buffer(vertexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo vertexCopyInfo {
+                .data = vertices.data(),
+                .size = verticesSize,
+                .allocator = mContext.allocator(),
+                .buffer = blasEntry.vertexBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
+                .queue = mContext.queue(QueueFamilyType::GRAPHICS)
+            };
+            Buffer::copy(vertexCopyInfo);
+
+            const size_t indicesSize = sizeof(uint32_t) * indices.size();
+            const BufferCreateInfo indexBufferCreateInfo {
+                .allocator = mContext.allocator(),
+                .size = indicesSize,
+                .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            };
+            blasEntry.indexBuffer = Buffer(indexBufferCreateInfo);
+            const CopyDataToGPUBufferInfo indexCopyInfo {
+                .data = indices.data(),
+                .size = indicesSize,
+                .allocator = mContext.allocator(),
+                .buffer = blasEntry.indexBuffer.get(),
+                .device = mContext.device(),
+                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
+                .queue = mContext.queue(QueueFamilyType::GRAPHICS)
+            };
+            Buffer::copy(indexCopyInfo);
+
+            BLASCreateInfo blasCreateInfo {
+                .commandBuffer = commandBuffer,
+                .device = mContext.device(),
+                .physicalDevice = mContext.physicalDevice(),
+                .allocator = mContext.allocator(),
+                .vertexAddress = blasEntry.vertexBuffer.deviceAddress(mContext.device()),
+                .vertexStride = sizeof(Vertex),
+                .vertexCount = static_cast<uint32_t>(vertices.size()),
+                .indexAddress = blasEntry.indexBuffer.deviceAddress(mContext.device()),
+                .indexCount = static_cast<uint32_t>(indices.size())
+            };
+            blasEntry.blas = AccelerationStructure(blasCreateInfo);
+            VkDeviceAddress blasAddress = blasEntry.blas.deviceAddress();
+
+            for (const auto& instance: instances) {
+                glm::vec3 rot = toVec3(instance["localRotation"]);
+                Transform transform;
+                transform.position = toVec3(instance["localPosition"]);
+                transform.scale = toVec3(instance["localScale"]);
+                glm::quat qx = glm::angleAxis(glm::radians(rot.x), glm::vec3(1,0,0));
+                glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0,1,0));
+                glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0,0,1));
+                transform.rotation = glm::normalize(qy * qx * qz);
+                // uint32_t texIndex = instance["texIndex"];
+                // if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
+                // else texIndex *= cm::Texture::UNKNOWN;
+                VkASInstance asInstance{
+                    .transform = toVkTransform(transform.matrix()),
+                    .instanceCustomIndex = 0,
+                    .mask = 0xFF,
+                    .instanceShaderBindingTableRecordOffset = 0,
+                    .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
+                    .accelerationStructureReference = blasAddress
+                };
+                mInstances.push_back(asInstance);
+            }
+        }
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
+    }
+
+    void PathTracerApp::loadScene() {
+        // std::vector<std::string> textures = mScene["textureImports"];
+        // auto materials = mScene["materials"];
+        // mMaterials.resize(textures.size() + materials.size());
+        // for (int textureIndex = 0; textureIndex < textures.size(); ++textureIndex) {
+        //     mMaterials[textureIndex].mTextures[cm::Texture::DIFFUSE] =
+        //         cm::AbsLoader::loadTexture(ASSETS_PATH + textures[textureIndex], cm::Texture::DIFFUSE);
+        //     for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
+        //         mMaterials[textureIndex].mTextures[texType] =
+        //             cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
+        //     }
+        // }
+        //
+        // int baseMaterial = static_cast<int>(textures.size());
+        // for (int materialIndex = baseMaterial; materialIndex < baseMaterial + materials.size(); ++materialIndex) {
+        //     mMaterials[materialIndex].mTextures[cm::Texture::DIFFUSE] =
+        //         cm::AbsLoader::colorTexture(toVec3(materials[materialIndex]["color"]), cm::Texture::DIFFUSE);
+        //     for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
+        //         mMaterials[materialIndex].mTextures[texType] =
+        //             cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
+        //     }
+        // }
+
+        std::vector<std::string> models = mScene["modelImports"];
+          for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
+            loadModel(modelIndex, models[modelIndex]);
+        }
+
+        const size_t instancesSize = sizeof(VkASInstance) * mInstances.size();
+        const BufferCreateInfo instanceBufferCreateInfo {
+            .allocator = mContext.allocator(),
+            .size = instancesSize,
+            .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+                           VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+        };
+        mInstanceBuffer = Buffer(instanceBufferCreateInfo);
+        const CopyDataToGPUBufferInfo instanceCopyInfo {
+            .data = mInstances.data(),
+            .size = instancesSize,
+            .allocator = mContext.allocator(),
+            .buffer = mInstanceBuffer.get(),
+            .device = mContext.device(),
+            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
+            .queue = mContext.queue(QueueFamilyType::GRAPHICS)
+        };
+        Buffer::copy(instanceCopyInfo);
+
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
+        TLASCreateInfo tlasCreateInfo {
+            .commandBuffer = commandBuffer,
+            .device = mContext.device(),
+            .physicalDevice = mContext.physicalDevice(),
+            .allocator = mContext.allocator(),
+            .instanceAddress = mInstanceBuffer.deviceAddress(mContext.device()),
+            .instanceCount = static_cast<uint32_t>(mInstances.size())
+        };
+        mTLAS = AccelerationStructure(tlasCreateInfo);
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
+    }
+
+    void PathTracerApp::createRayTracerPass() {
+        const RayTracerPassCreateInfo createInfo {
+            .context = &mContext,
+            .tlas = &mTLAS,
+            .outView = &mTracerView,
+            .framesInFlight = mFramesInFlight
+        };
+
+        mRayTracerPass = RayTracerPass(createInfo);
     }
 
     void PathTracerApp::recordTracer(const uint32_t imageIndex) {
@@ -342,6 +540,14 @@ namespace crv::graphics::vulkan {
         // }
     }
 
+    void PathTracerApp::update() {
+        const RayTracerPassUpdateInfo updateInfo {
+            .camera = mCamera,
+            .currentFrame = mCurrentFrame
+        };
+        mRayTracerPass.update(updateInfo);
+    }
+
     void PathTracerApp::record(const uint32_t imageIndex) {
         recordTracer(imageIndex);
         vkResetFences(mContext.device(), 1, &mFences[mCurrentFrame].get());
@@ -396,7 +602,7 @@ namespace crv::graphics::vulkan {
         vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
         acquireNextImage(imageIndex);
 //        drawControlPanel();
-//        update();
+        update();
         record(imageIndex);
         submit(imageIndex);
     }

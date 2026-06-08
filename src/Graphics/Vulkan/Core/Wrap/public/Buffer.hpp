@@ -18,6 +18,7 @@ namespace crv::graphics::vulkan {
         VmaAllocationCreateFlags allocFlags = 0;
         VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_UNKNOWN;
+        VkDeviceSize   minAlignment = 0;
     };
 
     struct CopyDataToCPUBufferInfo {
@@ -67,12 +68,13 @@ namespace crv::graphics::vulkan {
     public:
         using DefaultWrapper::DefaultWrapper;
         explicit Buffer(const BufferCreateInfo& info);
-        explicit Buffer(Buffer&&);
+        explicit Buffer(Buffer&&) noexcept;
         Buffer& operator=(Buffer&&) = default;
         ~Buffer() override { Buffer::destroy(); }
         void destroy() override;
         [[nodiscard]] VmaAllocation allocation() const { return mAllocation.get(); }
         [[nodiscard]] VkDeviceSize size() const { return mSize; }
+        VkDeviceAddress deviceAddress(VkDevice device) const;
         void* map() const;
         void unmap() const;
         static std::tuple<VkBuffer, VmaAllocation> createBuffer(const BufferCreateInfo& info);

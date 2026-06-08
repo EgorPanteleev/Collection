@@ -50,12 +50,19 @@ namespace crv::graphics::vulkan {
         std::vector<VkImageLayout> layouts{};
     };
 
+    struct ASResource {
+        explicit ASResource(VkAccelerationStructureKHR as): accelerationStructures({as}) {}
+        explicit ASResource(const std::vector<VkAccelerationStructureKHR>& structures): accelerationStructures(structures) {}
+        std::vector<VkAccelerationStructureKHR> accelerationStructures;
+    };
+
     class DescriptorManager {
     public:
-        using Resource = std::variant<BufferResource, ImageResource>;
+        using Resource = std::variant<BufferResource, ImageResource, ASResource>;
         void add(const BindingDescription& desc) { mBindings.push_back(desc); }
         void add(uint32_t setIndex, const BufferResource& resource) { mResources[setIndex].emplace_back(resource); }
         void add(uint32_t setIndex, const ImageResource& resource)  { mResources[setIndex].emplace_back(resource); }
+        void add(uint32_t setIndex, const ASResource& resource)  { mResources[setIndex].emplace_back(resource); }
         void update(uint32_t binding, uint32_t setIndex, const BufferResource& resource);
         void update(uint32_t binding, uint32_t setIndex, const ImageResource& resource);
         void update(uint32_t binding, const BufferResource& resource);
@@ -71,6 +78,7 @@ namespace crv::graphics::vulkan {
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, uint32_t setIndex);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const BufferResource& resource);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ImageResource& resource );
+        VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ASResource& resource );
 
         using Resources = std::unordered_map<uint32_t, std::vector<Resource>>;
         std::vector<BindingDescription>    mBindings{};
@@ -79,8 +87,9 @@ namespace crv::graphics::vulkan {
         DescriptorPool                     mDescriptorPool{};
         DescriptorSets                     mDescriptorSets{};
 
-        std::vector<VkDescriptorBufferInfo> mBufferInfos;
-        std::vector<VkDescriptorImageInfo>  mImageInfos;
+        std::vector<VkDescriptorBufferInfo>                        mBufferInfos;
+        std::vector<VkDescriptorImageInfo>                         mImageInfos;
+        std::vector<VkWriteDescriptorSetAccelerationStructureKHR>  mASInfos;
     };
 }
 

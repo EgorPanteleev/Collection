@@ -57,9 +57,11 @@ namespace crv::graphics::vulkan {
 
         mBufferInfos.reserve(resourcesCount * mDescriptorSets.size());
         mImageInfos.reserve(resourcesCount * mDescriptorSets.size());
+        mASInfos.reserve(resourcesCount * mDescriptorSets.size());
         std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites;
         for (uint32_t setIndex = 0; setIndex < mDescriptorSets.size(); ++setIndex) {
             std::vector<VkWriteDescriptorSet> descriptorWrites;
+            descriptorWrites.reserve(mBindings.size());
             for (uint32_t bindingIndex = 0; bindingIndex < mBindings.size(); ++bindingIndex) {
                 descriptorWrites.push_back(getDescriptorWrite(bindingIndex, setIndex));
             }
@@ -152,7 +154,10 @@ namespace crv::graphics::vulkan {
         if (std::holds_alternative<BufferResource>(resource)) {
             return getDescriptorWrite(binding, std::get<BufferResource>(resource));
         }
-        return getDescriptorWrite(binding, std::get<ImageResource>(resource));
+        if (std::holds_alternative<ImageResource>(resource)) {
+            return getDescriptorWrite(binding, std::get<ImageResource>(resource));
+        }
+        return getDescriptorWrite(binding, std::get<ASResource>(resource));
     }
 
     VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const BufferResource& resource) {
@@ -194,6 +199,25 @@ namespace crv::graphics::vulkan {
             .descriptorCount = static_cast<uint32_t>(resource.imageViews.size()),
             .descriptorType = mBindings[binding].type,
             .pImageInfo = &mImageInfos[baseImageInfo]
+        };
+    }
+
+    VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(uint32_t binding, const ASResource& resource ) {
+        const uint32_t baseASInfo = mASInfos.size();
+        for (int i = 0; i < resource.accelerationStructures.size(); ++i) {
+            VkWriteDescriptorSetAccelerationStructureKHR info{
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+                .accelerationStructureCount = 1,
+                .pAccelerationStructures = &resource.accelerationStructures[i]
+            };
+            mASInfos.push_back(info);
+        }
+        return {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .pNext = &mASInfos[baseASInfo],
+            .dstBinding = binding,
+            .descriptorCount = static_cast<uint32_t>(resource.accelerationStructures.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
         };
     }
 }

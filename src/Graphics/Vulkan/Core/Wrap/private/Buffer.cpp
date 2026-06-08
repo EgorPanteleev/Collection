@@ -18,10 +18,12 @@ namespace crv::graphics::vulkan {
         mAllocation = Allocation(allocation);
     }
 
-    Buffer::Buffer(Buffer&& other) {
+    Buffer::Buffer(Buffer&& other) noexcept {
         mAllocator = other.mAllocator;
         mAllocation = std::move(other.mAllocation);
         mSize = other.mSize;
+        mHandle = other.mHandle;
+        other.mHandle = VK_NULL_HANDLE;
         other.mAllocator = VK_NULL_HANDLE;
         other.mAllocation = {};
         other.mSize = 0;
@@ -30,7 +32,17 @@ namespace crv::graphics::vulkan {
     void Buffer::destroy() {
         if (mHandle == VK_NULL_HANDLE) return;
         vmaDestroyBuffer(mAllocator, mHandle, mAllocation.get());
+        mHandle = VK_NULL_HANDLE;
+        mAllocator = VK_NULL_HANDLE;
         mAllocation.destroy();
+    }
+
+    VkDeviceAddress Buffer::deviceAddress(VkDevice device) const {
+        const VkBufferDeviceAddressInfo addressInfo{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+            .buffer = mHandle
+        };
+        return vkGetBufferDeviceAddress(device, &addressInfo);
     }
 
     void* Buffer::map() const {
@@ -58,7 +70,15 @@ namespace crv::graphics::vulkan {
             .preferredFlags = 0
         };
 
-        if (vmaCreateBuffer(info.allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr) != VK_SUCCESS) {
+        VkResult result;
+        if (info.minAlignment > 1) {
+            result = vmaCreateBufferWithAlignment(info.allocator, &bufferInfo, &allocInfo,
+                info.minAlignment, &buffer, &allocation, nullptr);
+        } else {
+            result = vmaCreateBuffer(info.allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
+        }
+
+        if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to create buffer with VMA");
         }
         return {buffer, allocation};

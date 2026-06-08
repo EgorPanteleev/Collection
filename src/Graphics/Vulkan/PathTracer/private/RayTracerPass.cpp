@@ -4,10 +4,12 @@
 
 #include "RayTracerPass.hpp"
 #include "TypesGPU.hpp"
+#include "Types.hpp"
 
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
-    mContext(info.context), mOutputView(info.outView), mFramesInFlight(info.framesInFlight) {
+    mFramesInFlight(info.framesInFlight), mContext(info.context), mTLAS(info.tlas), mOutputView(info.outView) {
+        createBuffers();
         createDescriptorManager();
         createShaders();
         createPipelineLayout();
@@ -15,8 +17,13 @@ namespace crv::graphics::vulkan {
         createSBT();
     }
 
-    void RayTracerPass::update() {
-
+    void RayTracerPass::update(const RayTracerPassUpdateInfo& info) {
+        Buffer& cameraBuffer = mCameraBuffers[info.currentFrame];
+        const CameraGPU camera {
+            .invView = glm::inverse(info.camera->viewMatrix()),
+            .invProj = glm::inverse(info.camera->projectionMatrix())
+        };
+        copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, &camera, sizeof(CameraGPU), cameraBuffer);
     }
 
     void RayTracerPass::record(const RayTracerPassRecordInfo& info) {
@@ -35,11 +42,21 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::createDescriptorManager() {
+        constexpr BindingDescription tlasBinding {
+            .type   = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+            .stages = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        };
         constexpr BindingDescription storageImageBinding {
             .type   = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .stages = VK_SHADER_STAGE_COMPUTE_BIT,
+            .stages = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
         };
-        mDescriptorManager.add(storageImageBinding );
+        constexpr BindingDescription UBOBinding {
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .stages = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        };
+        mDescriptorManager.add(tlasBinding);
+        mDescriptorManager.add(storageImageBinding);
+        mDescriptorManager.add(UBOBinding);
 
         const DescriptorBuildInfo buildInfo {
             .context = mContext,
@@ -49,7 +66,9 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.build(buildInfo);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.add(i, ASResource(mTLAS->get()));
             mDescriptorManager.add(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.add(i, BufferResource(mCameraBuffers[i]));
         }
         mDescriptorManager.update();
     }
@@ -205,5 +224,14 @@ namespace crv::graphics::vulkan {
         mMissRegion   = {sbtAddr + missOffset,   stride, stride};
         mHitRegion    = {sbtAddr + hitOffset,    stride, stride};
         mCallRegion   = {};
+    }
+
+    void RayTracerPass::createBuffers() {
+        mCameraBuffers.resize(mFramesInFlight);
+        UBOData uboData{};
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            uboData.add<CameraGPU>(mCameraBuffers[i]);
+        }
+        uboData.createAll(mContext);
     }
 }
