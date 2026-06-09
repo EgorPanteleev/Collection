@@ -70,6 +70,7 @@ namespace crv::graphics::vulkan {
         void setCamera(scene::CameraType type);
         void drawControlPanel();
         void drawFrame();
+        void updateInstanceModel();
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;
 #ifdef NDEBUG

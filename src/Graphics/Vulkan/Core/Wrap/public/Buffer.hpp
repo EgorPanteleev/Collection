@@ -23,6 +23,8 @@ namespace crv::graphics::vulkan {
 
     struct CopyDataToCPUBufferInfo {
         const void* data = nullptr;
+        VkDeviceSize srcOffset = 0;
+        VkDeviceSize dstOffset = 0;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
@@ -30,6 +32,8 @@ namespace crv::graphics::vulkan {
 
     struct CopyCPUBufferToDataInfo {
         const void* data = nullptr;
+        VkDeviceSize srcOffset = 0;
+        VkDeviceSize dstOffset = 0;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
@@ -38,6 +42,8 @@ namespace crv::graphics::vulkan {
     struct CopyBufferToBufferInfo {
         VkBuffer srcBuffer = VK_NULL_HANDLE;
         VkBuffer dstBuffer = VK_NULL_HANDLE;
+        VkDeviceSize srcOffset = 0;
+        VkDeviceSize dstOffset = 0;
         VkDeviceSize size = 0;
         VkDevice device = VK_NULL_HANDLE;
         uint32_t queueFamilyIndex = 0;
@@ -46,6 +52,8 @@ namespace crv::graphics::vulkan {
 
     struct CopyDataToGPUBufferInfo {
         const void* data = nullptr;
+        VkDeviceSize srcOffset = 0;
+        VkDeviceSize dstOffset = 0;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VkBuffer buffer = VK_NULL_HANDLE;
@@ -56,6 +64,8 @@ namespace crv::graphics::vulkan {
 
     struct CopyGPUBufferToDataInfo {
         const void* data = nullptr;
+        VkDeviceSize srcOffset = 0;
+        VkDeviceSize dstOffset = 0;
         VkDeviceSize size = 0;
         VmaAllocator allocator = VK_NULL_HANDLE;
         VkBuffer buffer = VK_NULL_HANDLE;

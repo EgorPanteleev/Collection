@@ -28,9 +28,9 @@ namespace crv::graphics::vulkan {
         VkAccelerationStructureBuildGeometryInfoKHR buildInfo {
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
             .type = info.type,
-            .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+            .flags = info.flags,
             .geometryCount = 1,
-            .pGeometries = &info.geometry,
+            .pGeometries = &mGeometry,
         };
         VkAccelerationStructureBuildSizesInfoKHR sizeInfo {
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
@@ -112,16 +112,16 @@ namespace crv::graphics::vulkan {
             .indexData = {.deviceAddress = info.indexAddress},
         };
 
-        VkAccelerationStructureGeometryKHR geometry {
+        mGeometry = {
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
             .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
             .flags = VK_GEOMETRY_OPAQUE_BIT_KHR,
         };
-        geometry.geometry.triangles = triangles;
+        mGeometry.geometry.triangles = triangles;
 
         const ASCreateInfo asCreateInfo {
             .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-            .geometry = geometry,
+            .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
             .commandBuffer = info.commandBuffer,
             .physicalDevice = info.physicalDevice,
             .allocator = info.allocator,
@@ -137,21 +137,69 @@ namespace crv::graphics::vulkan {
         };
         instancesData.data.deviceAddress = info.instanceAddress;
 
-        VkAccelerationStructureGeometryKHR geometry {
+        mGeometry = {
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
             .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
         };
-        geometry.geometry.instances = instancesData;
+        mGeometry.geometry.instances = instancesData;
 
         const ASCreateInfo asCreateInfo {
             .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
-            .geometry = geometry,
+            .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR |
+                     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR,
             .commandBuffer = info.commandBuffer,
             .physicalDevice = info.physicalDevice,
             .allocator = info.allocator,
             .primitiveCount = info.instanceCount
         };
         create(asCreateInfo);
+    }
+
+    void AccelerationStructure::update(const TLASUpdateInfo& info) {
+        VkAccelerationStructureBuildGeometryInfoKHR buildInfo{};
+        buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+        buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+
+        buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR |
+                          VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+
+        buildInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+
+        buildInfo.srcAccelerationStructure = mHandle;
+        buildInfo.dstAccelerationStructure = mHandle;
+
+        buildInfo.geometryCount = 1;
+        buildInfo.pGeometries = &mGeometry;
+
+        buildInfo.scratchData.deviceAddress =
+            mScratchBuffer.deviceAddress(mDevice);
+
+        VkAccelerationStructureBuildRangeInfoKHR rangeInfo{};
+        rangeInfo.primitiveCount = info.instanceCount;
+
+        const VkAccelerationStructureBuildRangeInfoKHR* ranges[] = { &rangeInfo };
+
+        LOAD_VK_FN(mDevice, vkCmdBuildAccelerationStructuresKHR);
+        vkCmdBuildAccelerationStructuresKHR(
+            info.commandBuffer,
+            1,
+            &buildInfo,
+            ranges
+        );
+
+        VkMemoryBarrier2 barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
+        barrier.srcStageMask = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+        barrier.srcAccessMask = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+        barrier.dstStageMask = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;
+        barrier.dstAccessMask = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+        VkDependencyInfo dependency{};
+        dependency.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+        dependency.memoryBarrierCount = 1;
+        dependency.pMemoryBarriers = &barrier;
+
+        vkCmdPipelineBarrier2(info.commandBuffer, &dependency);
     }
 
     void AccelerationStructure::destroy() {

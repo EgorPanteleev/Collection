@@ -22,6 +22,17 @@ static glm::vec3 toVec3(const nlohmann::json& json) {
     };
 }
 
+static float clampAngle(float deg) {
+    deg = std::fmod(deg + 180.0f, 360.0f);
+    if (deg < 0.0f) deg += 360.0f;
+    return deg - 180.0f;
+}
+
+
+static glm::vec3 clampRotation(const glm::vec3& e) {
+    return {clampAngle(e.x), clampAngle(e.y), clampAngle(e.z)};
+}
+
 static VkTransformMatrixKHR toVkTransform(const glm::mat4& mat) {
     VkTransformMatrixKHR t{};
     for (int c = 0; c < 3; ++c)
@@ -441,8 +452,9 @@ namespace crv::graphics::vulkan {
                 };
                 mInstances.push_back(asInstance);
                 InstanceInfo instanceInfo {
-                    .model = transform.matrix(),
-                    .invModel = glm::inverse(transform.matrix()),
+                    .name = instance["name"],
+                    .meshName = mesh.name,
+                    .transform = transform,
                     .meshID = static_cast<uint32_t>(mBLASEntries.size() - 1),
                     .textureID = texIndex,
                     .indexCount = static_cast<uint32_t>(indices.size())
@@ -1006,8 +1018,56 @@ namespace crv::graphics::vulkan {
                 ImGui::Unindent(4.0f);
             };
 
+            auto objectFunc = [this] {
+                if (mSelectedInstanceId == 0) {
+                    ImGui::Text("Click a mesh in the viewport");
+                    return;
+                }
+                InstanceInfo& instance = mInstanceInfos[mSelectedInstanceId - 1];
+                if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
+                    if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
+                        VkImGui::row("Name"         , instance.name.c_str());
+                        VkImGui::row("Mesh Name"    , instance.meshName.c_str());
+                        VkImGui::row("Texture index", std::to_string(instance.textureID).c_str());
+                        VkImGui::endCompactTable();
+                    }
+                    VkImGui::endGroup();
+                }
+
+                if (VkImGui::beginGroup(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform")) {
+                    bool changed = false;
+                    Transform& transform = instance.transform;
+                    if (ImGui::DragFloat3("Position", &transform.position[0], 0.1f))
+                        changed = true;
+
+                    static glm::vec3 uiRotation{FLT_MAX};
+                    if (uiRotation[0] == FLT_MAX)
+                        uiRotation = glm::degrees(glm::eulerAngles(instance.transform.rotation));
+                    glm::vec3 prevRotation = uiRotation;
+                    if (ImGui::DragFloat3("Rotation", &uiRotation[0], 0.5f)) {
+                        uiRotation = clampRotation(uiRotation);
+                        glm::vec3 delta = uiRotation - prevRotation;
+                        glm::quat qx = glm::angleAxis(glm::radians(delta.x), glm::vec3(1,0,0));
+                        glm::quat qy = glm::angleAxis(glm::radians(delta.y), glm::vec3(0,1,0));
+                        glm::quat qz = glm::angleAxis(glm::radians(delta.z), glm::vec3(0,0,1));
+                        glm::quat deltaRot = qz * qy * qx;
+                        transform.rotation = glm::normalize(deltaRot * transform.rotation);
+                        changed = true;
+                    }
+
+                    if (ImGui::DragFloat3("Scale", &transform.scale[0], 0.05f))
+                        changed = true;
+
+                    if (changed) {
+                        updateInstanceModel();
+                        updateImage();
+                    }
+                    VkImGui::endGroup();
+                }
+            };
+
             static TabPanel panel = {
-                //{ICON_FA_CUBE   " Object", 0, objectFunc},
+                {ICON_FA_CUBE   " Object", 0, objectFunc},
                 {ICON_FA_IMAGES " Render", 1, renderFunc},
                 {ICON_FA_VIDEO  " Camera", 2, cameraFunc},
             };
@@ -1028,5 +1088,30 @@ namespace crv::graphics::vulkan {
         update();
         record(imageIndex);
         submit(imageIndex);
+    }
+
+    void PathTracerApp::updateInstanceModel() {
+        const InstanceInfo& instanceInfo = mInstanceInfos[mSelectedInstanceId - 1];
+        VkASInstance& asInstance = mInstances[mSelectedInstanceId - 1];
+        asInstance.transform = toVkTransform(instanceInfo.transform.matrix());
+        const CopyDataToGPUBufferInfo copyInfo {
+            .data = mInstances.data(),
+            .srcOffset = sizeof(VkASInstance) * (mSelectedInstanceId - 1),
+            .dstOffset = sizeof(VkASInstance) * (mSelectedInstanceId - 1),
+            .size = sizeof(VkASInstance),
+            .allocator = mContext.allocator(),
+            .buffer = mInstanceBuffer.get(),
+            .device = mContext.device(),
+            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
+            .queue = mContext.queue(QueueFamilyType::GRAPHICS)
+        };
+        Buffer::copy(copyInfo);
+        auto [commandBuffer, cmdData] = beginCommandBuffer(&mContext, QueueFamilyType::GRAPHICS);
+        const TLASUpdateInfo updateInfo {
+            .commandBuffer = commandBuffer,
+            .instanceCount = static_cast<uint32_t>(mInstances.size())
+        };
+        mTLAS.update(updateInfo);
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 }

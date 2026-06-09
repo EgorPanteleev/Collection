@@ -6,6 +6,10 @@
 #include <stdexcept>
 
 namespace crv::graphics::vulkan {
+    std::tuple<VkCommandBuffer, CommandBufferData> beginCommandBuffer(Context* context, QueueFamilyType type) {
+        return beginCommandBuffer(context->device(), context->familyIndex(type).value());
+    }
+
     std::tuple<VkCommandBuffer, CommandBufferData> beginCommandBuffer(VkDevice device, const uint32_t queueFamilyIndex) {
         const CommandPoolCreateInfo poolCreateInfo {
             .device = device,

@@ -44,7 +44,6 @@ namespace crv::graphics::vulkan {
 
     struct alignas(16) RasterInstanceGPU {
         glm::mat4 model{};
-        glm::mat4 invModel{};
     };
 }
 

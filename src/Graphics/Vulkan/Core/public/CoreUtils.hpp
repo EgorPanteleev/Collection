@@ -17,6 +17,7 @@ namespace crv::graphics::vulkan {
         CommandBuffers* commandBuffers = nullptr;
     };
 
+    std::tuple<VkCommandBuffer, CommandBufferData> beginCommandBuffer(Context* context, QueueFamilyType type);
     std::tuple<VkCommandBuffer, CommandBufferData> beginCommandBuffer(VkDevice device, uint32_t queueFamilyIndex);
     void endCommandBuffer(const CommandBufferData& data, VkQueue queue);
     void beginCommandBuffer(VkCommandBuffer commandBuffer);

@@ -40,14 +40,6 @@ namespace crv::graphics::vulkan {
         VkDeviceSize indexAddress  = 0;
     };
 
-    struct InstanceInfo {
-        glm::mat4 model{};
-        glm::mat4 invModel{};
-        uint32_t  meshID     = 0;
-        uint32_t  textureID  = 0;
-        uint32_t  indexCount = 0;
-    };
-
     struct Transform {
         glm::vec3 position {0.0f};
         glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
@@ -59,6 +51,15 @@ namespace crv::graphics::vulkan {
             glm::mat4 S = glm::scale(glm::mat4(1.0f), scale);
             return T * R * S;
         }
+    };
+
+    struct InstanceInfo {
+        std::string name{};
+        std::string meshName{};
+        Transform   transform{};
+        uint32_t    meshID     = 0;
+        uint32_t    textureID  = 0;
+        uint32_t    indexCount = 0;
     };
 }
 

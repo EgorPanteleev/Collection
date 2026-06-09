@@ -29,8 +29,7 @@ namespace crv::graphics::vulkan {
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(MVPGPU), mMVPBuffers[info.currentFrame]);
 
         const RasterInstanceGPU instanceGPU = {
-            .model = info.instanceInfo->model,
-            .invModel = info.instanceInfo->invModel
+            .model = info.instanceInfo->transform.matrix()
         };
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &instanceGPU, sizeof(RasterInstanceGPU),
             mInstanceBuffers[info.currentFrame]);

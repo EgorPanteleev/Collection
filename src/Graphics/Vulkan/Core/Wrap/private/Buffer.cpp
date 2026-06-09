@@ -87,22 +87,28 @@ namespace crv::graphics::vulkan {
     void Buffer::copy(const CopyDataToCPUBufferInfo& info) {
         void* stagingData;
         vmaMapMemory(info.allocator, info.allocation, &stagingData);
-        memcpy(stagingData, info.data, info.size);
+        memcpy(
+            static_cast<std::byte*>(stagingData) + info.dstOffset,
+            static_cast<std::byte*>(const_cast<void*>(info.data)) + info.srcOffset,
+            info.size);
         vmaUnmapMemory(info.allocator, info.allocation);
     }
 
     void Buffer::copy(const CopyCPUBufferToDataInfo& info) {
         void* mapped;
         vmaMapMemory(info.allocator, info.allocation, &mapped);
-        memcpy(const_cast<void*>(info.data), mapped, info.size);
+        memcpy(
+            static_cast<std::byte*>(const_cast<void*>(info.data)) + info.dstOffset,
+            static_cast<std::byte*>(mapped) + info.srcOffset,
+            info.size);
         vmaUnmapMemory(info.allocator, info.allocation);
     }
 
     void Buffer::copy(const CopyBufferToBufferInfo& info) {
         auto [commandBuffer, cmdData] = beginCommandBuffer(info.device, info.queueFamilyIndex);
         const VkBufferCopy copyRegion{
-            .srcOffset = 0,
-            .dstOffset = 0,
+            .srcOffset = info.srcOffset,
+            .dstOffset = info.dstOffset,
             .size = info.size,
         };
         vkCmdCopyBuffer(commandBuffer, info.srcBuffer, info.dstBuffer, 1, &copyRegion);
@@ -120,6 +126,8 @@ namespace crv::graphics::vulkan {
         auto [stagingBuffer, stagingAllocation] = createBuffer(createInfo);
         const CopyDataToCPUBufferInfo copyDataToCPUBufferInfo {
             .data = info.data,
+            .srcOffset = info.srcOffset,
+            .dstOffset = 0,
             .size = info.size,
             .allocator = info.allocator,
             .allocation = stagingAllocation
@@ -128,6 +136,8 @@ namespace crv::graphics::vulkan {
         const CopyBufferToBufferInfo copyBufferToBufferInfo {
             .srcBuffer = stagingBuffer,
             .dstBuffer = info.buffer,
+            .srcOffset = 0,
+            .dstOffset = info.dstOffset,
             .size = info.size,
             .device = info.device,
             .queueFamilyIndex = info.queueFamilyIndex,
@@ -149,6 +159,8 @@ namespace crv::graphics::vulkan {
         const CopyBufferToBufferInfo copyBufferToBufferInfo {
             .srcBuffer = info.buffer,
             .dstBuffer = stagingBuffer,
+            .srcOffset = info.srcOffset,
+            .dstOffset = 0,
             .size = info.size,
             .device = info.device,
             .queueFamilyIndex = info.queueFamilyIndex,
@@ -158,6 +170,8 @@ namespace crv::graphics::vulkan {
 
         const CopyCPUBufferToDataInfo copyCPUBufferToDataInfo {
             .data = info.data,
+            .srcOffset = 0,
+            .dstOffset = info.dstOffset,
             .size = info.size,
             .allocator = info.allocator,
             .allocation = stagingAllocation

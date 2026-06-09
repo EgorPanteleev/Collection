@@ -15,7 +15,6 @@ layout(binding = 0) uniform MVPBuffer {
 
 layout(binding = 1) uniform InstanceBuffer {
     mat4 model;
-    mat4 invModel;
 } instance;
 
 
