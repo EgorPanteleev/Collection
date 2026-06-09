@@ -22,7 +22,7 @@ namespace crv::graphics::vulkan {
         Context*                      context           = nullptr;
         std::vector<BLASInfo>*        blasInfos         = nullptr;
         AccelerationStructure*        tlas              = nullptr;
-        std::vector<InstanceInfoGPU>* instanceInfos     = nullptr;
+        std::vector<InstanceInfo>*    instanceInfos     = nullptr;
         std::vector<TexturesByType>*  textures          = nullptr;
         ImageView*                    outView           = nullptr;
         ImageView*                    outInstanceIdView = nullptr;
@@ -61,7 +61,7 @@ namespace crv::graphics::vulkan {
         Context*                        mContext              = nullptr;
         std::vector<BLASInfo>*          mBLASInfos            = nullptr;
         AccelerationStructure*          mTLAS                 = nullptr;
-        std::vector<InstanceInfoGPU>*   mInstanceInfos        = nullptr;
+        std::vector<InstanceInfo>*      mInstanceInfos        = nullptr;
         std::vector<TexturesByType>*    mTextures             = nullptr;
         ImageView*                      mOutputView           = nullptr;
         ImageView*                      mOutputInstanceIdView = nullptr;

@@ -262,7 +262,10 @@ namespace crv::graphics::vulkan {
     void RayTracerPass::createBuffers() {
         SSBOData ssboData{};
         ssboData.add(*mBLASInfos, mBLASInfoBuffer);
-        ssboData.add(*mInstanceInfos, mInstanceInfoBuffer);
+        std::vector<InstanceInfoGPU> instanceInfos;
+        instanceInfos.reserve(mInstanceInfos->size());
+        for (auto& instanceInfo: *mInstanceInfos) {instanceInfos.emplace_back(instanceInfo.meshID, instanceInfo.textureID);}
+        ssboData.add(instanceInfos, mInstanceInfoBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
 
         mCameraBuffers.resize(mFramesInFlight);

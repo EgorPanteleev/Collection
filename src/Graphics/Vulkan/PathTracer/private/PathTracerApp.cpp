@@ -47,6 +47,8 @@ namespace crv::graphics::vulkan {
         loadScene();
         createTextures();
         createRayTracerPass();
+        createRasterizerPass();
+        createPostprocessPass();
         createImGui();
     }
 
@@ -144,9 +146,12 @@ namespace crv::graphics::vulkan {
             .memoryUsage = VMA_MEMORY_USAGE_AUTO
         };
         mTracerImage = Image(imageCreateInfo);
+        mFinalImage  = Image(imageCreateInfo);
 
         imageCreateInfo.format = VK_FORMAT_R32_UINT;
-        mInstanceIdImage = Image(imageCreateInfo);
+        mTracerInstanceImage = Image(imageCreateInfo);
+        imageCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+        mRasterInstanceImage = Image(imageCreateInfo);
 
         ImageViewCreateInfo imageViewCreateInfo {
             .device = mContext.device(),
@@ -156,10 +161,14 @@ namespace crv::graphics::vulkan {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
         mTracerView = ImageView(imageViewCreateInfo);
+        imageViewCreateInfo.image = mFinalImage.get();
+        mFinalView = ImageView(imageViewCreateInfo);
 
-        imageViewCreateInfo.image = mInstanceIdImage.get();
+        imageViewCreateInfo.image = mTracerInstanceImage.get();
         imageViewCreateInfo.format = VK_FORMAT_R32_UINT;
-        mInstanceIdView = ImageView(imageViewCreateInfo);
+        mTracerInstanceView = ImageView(imageViewCreateInfo);
+        imageViewCreateInfo.image = mRasterInstanceImage.get();
+        mRasterInstanceView = ImageView(imageViewCreateInfo);
 
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(),
                                             mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
@@ -174,10 +183,33 @@ namespace crv::graphics::vulkan {
             .newLayout = VK_IMAGE_LAYOUT_GENERAL,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
-        ImageTransitInfo2 instanceIdTransitInfo = tracerTransitInfo;
-        instanceIdTransitInfo.image = mInstanceIdImage.get();
+        ImageTransitInfo2 tracerInstanceTransitInfo = tracerTransitInfo;
+        tracerInstanceTransitInfo.image = mTracerInstanceImage.get();
 
-        Image::transit({tracerTransitInfo, instanceIdTransitInfo});
+        const ImageTransitInfo2 rasterTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mRasterInstanceImage.get(),
+            .srcAccessMask = VK_ACCESS_2_NONE,
+            .dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+            .srcStage = VK_PIPELINE_STAGE_2_NONE,
+            .dstStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+
+        const ImageTransitInfo2 finalTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mFinalImage.get(),
+            .srcAccessMask = VK_ACCESS_2_NONE,
+            .dstAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
+            .srcStage = VK_PIPELINE_STAGE_2_NONE,
+            .dstStage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        Image::transit({tracerTransitInfo, tracerInstanceTransitInfo, rasterTransitInfo, finalTransitInfo});
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
@@ -229,13 +261,17 @@ namespace crv::graphics::vulkan {
         };
         mFences.resize(mFramesInFlight);
         mImageAvailableSemaphores.resize(mFramesInFlight);
+        mTracerFinishedSemaphores.resize(mFramesInFlight);
+        mRasterFinishedSemaphores.resize(mFramesInFlight);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             mFences[i] = Fence(fenceCreateInfo);
             mImageAvailableSemaphores[i] = Semaphore(semaphoreCreateInfo);
-        }
-        mTracerFinishedSemaphores.resize(imageCount);
-        for (uint32_t i = 0; i < imageCount; ++i) {
             mTracerFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
+            mRasterFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
+        }
+        mPostprocessFinishedSemaphores.resize(imageCount);
+        for (uint32_t i = 0; i < imageCount; ++i) {
+            mPostprocessFinishedSemaphores[i] = Semaphore(semaphoreCreateInfo);
         }
     }
 
@@ -246,6 +282,8 @@ namespace crv::graphics::vulkan {
             .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value()
         };
         mTracerCommandPool = CommandPool(poolCreateInfo);
+        mRasterCommandPool = CommandPool(poolCreateInfo);
+        mPostprocessCommandPool = CommandPool(poolCreateInfo);
 
         CommandBuffersCreateInfo bufferCreateInfo {
             .device = mContext.device(),
@@ -253,6 +291,10 @@ namespace crv::graphics::vulkan {
         };
         bufferCreateInfo.commandPool = mTracerCommandPool.get();
         mTracerCommandBuffers = CommandBuffers(bufferCreateInfo);
+        bufferCreateInfo.commandPool = mRasterCommandPool.get();
+        mRasterCommandBuffers = CommandBuffers(bufferCreateInfo);
+        bufferCreateInfo.commandPool = mPostprocessCommandPool.get();
+        mPostprocessCommandBuffers = CommandBuffers(bufferCreateInfo);
     }
 
     void PathTracerApp::createCamera() {
@@ -315,7 +357,8 @@ namespace crv::graphics::vulkan {
                 .allocator = mContext.allocator(),
                 .size = verticesSize,
                 .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                               VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
@@ -336,7 +379,8 @@ namespace crv::graphics::vulkan {
                 .allocator = mContext.allocator(),
                 .size = indicesSize,
                 .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                               VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
@@ -396,9 +440,12 @@ namespace crv::graphics::vulkan {
                     .accelerationStructureReference = blasAddress
                 };
                 mInstances.push_back(asInstance);
-                InstanceInfoGPU instanceInfo {
+                InstanceInfo instanceInfo {
+                    .model = transform.matrix(),
+                    .invModel = glm::inverse(transform.matrix()),
                     .meshID = static_cast<uint32_t>(mBLASEntries.size() - 1),
                     .textureID = texIndex,
+                    .indexCount = static_cast<uint32_t>(indices.size())
                 };
                 mInstanceInfos.push_back(instanceInfo);
             }
@@ -505,10 +552,32 @@ namespace crv::graphics::vulkan {
             .instanceInfos = &mInstanceInfos,
             .textures = &mTextures,
             .outView = &mTracerView,
-            .outInstanceIdView = &mInstanceIdView,
+            .outInstanceIdView = &mTracerInstanceView,
             .framesInFlight = mFramesInFlight
         };
         mRayTracerPass = RayTracerPass(createInfo);
+    }
+
+    void PathTracerApp::createRasterizerPass() {
+        const RasterizerPassCreateInfo createInfo {
+            .context = &mContext,
+            .outView = &mRasterInstanceView,
+            .outFormat = VK_FORMAT_R32_UINT,
+            .extent = mSwapchain.extent(),
+            .framesInFlight = mFramesInFlight
+        };
+        mRasterizerPass = RasterizerPass(createInfo);
+    }
+
+    void PathTracerApp::createPostprocessPass() {
+        const PostprocessPassCreateInfo createInfo {
+            .context = &mContext,
+            .tracerView = &mTracerView,
+            .instanceView = &mRasterInstanceView,
+            .outputView = &mFinalView,
+            .framesInFlight = mFramesInFlight
+        };
+        mPostprocessPass = PostprocessPass(createInfo);
     }
 
     void PathTracerApp::createImGui() {
@@ -523,7 +592,7 @@ namespace crv::graphics::vulkan {
         VkImGui::loadConfigFile(PROJECT_PATH"imgui.ini");
     }
 
-    void PathTracerApp::recordTracer(const uint32_t imageIndex) {
+    void PathTracerApp::recordTracer() {
         VkCommandBuffer commandBuffer = mTracerCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
@@ -541,17 +610,72 @@ namespace crv::graphics::vulkan {
         };
         mRayTracerPass.record(recordInfo);
         recordPixelRead(commandBuffer);
-        recordPresent(imageIndex, commandBuffer);
         endCommandBuffer(commandBuffer);
     }
 
-    void PathTracerApp::recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer) {
+    void PathTracerApp::recordRaster() {
+        VkCommandBuffer commandBuffer = mRasterCommandBuffers[mCurrentFrame];
+        vkResetCommandBuffer(commandBuffer, 0);
+        beginCommandBuffer(commandBuffer);
+        RasterizerPassRecordInfo recordInfo{};
+        if (mSelectedInstanceId != 0) {
+            const InstanceInfo& instanceInfo = mInstanceInfos[mSelectedInstanceId - 1];
+            BLASEntry& blasEntry = mBLASEntries[instanceInfo.meshID];
+            recordInfo = {
+                .commandBuffer = commandBuffer,
+                .vertexBuffer = &blasEntry.vertexBuffer,
+                .indexBuffer = &blasEntry.indexBuffer,
+                .indexCount = instanceInfo.indexCount,
+                .extent = mSwapchain.extent(),
+                .currentFrame = mCurrentFrame
+            };
+        } else {
+            recordInfo = {
+                .commandBuffer = commandBuffer,
+                .vertexBuffer = nullptr,
+                .indexBuffer = nullptr,
+                .indexCount = 0,
+                .extent = mSwapchain.extent(),
+                .currentFrame = mCurrentFrame
+            };
+        }
+        mRasterizerPass.record(recordInfo);
+        endCommandBuffer(commandBuffer);
+    }
+
+    void PathTracerApp::recordPostprocess() {
+        VkCommandBuffer commandBuffer = mPostprocessCommandBuffers[mCurrentFrame];
+        vkResetCommandBuffer(commandBuffer, 0);
+        beginCommandBuffer(commandBuffer);
+        ImageTransitInfo2 transitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mRasterInstanceImage.get(),
+            .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,
+            .srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        Image::transit(transitInfo);
+        const PostprocessPassRecordInfo recordInfo {
+            .commandBuffer = commandBuffer,
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame
+        };
+        mPostprocessPass.record(recordInfo);
+        Image::inverseTransit(transitInfo);
+    }
+
+    void PathTracerApp::recordPresent(uint32_t imageIndex) {
+        VkCommandBuffer commandBuffer = mPostprocessCommandBuffers[mCurrentFrame];
         const ImageTransitInfo2 presentTransitInfo {
             .commandBuffer = commandBuffer,
-            .image = mTracerImage.get(),
+            .image = mFinalImage.get(),
             .srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
-            .srcStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,
+            .srcStage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
             .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
             .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -593,7 +717,7 @@ namespace crv::graphics::vulkan {
 
         vkCmdBlitImage(
             commandBuffer,
-            mTracerImage.get(),
+            mFinalImage.get(),
             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             mSwapchainImages[imageIndex],
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -624,13 +748,14 @@ namespace crv::graphics::vulkan {
             swapchainTransitInfo.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
             Image::transit(swapchainTransitInfo);
         }
+        endCommandBuffer(commandBuffer);
     }
 
     void PathTracerApp::recordPixelRead(VkCommandBuffer commandBuffer) {
         if (mClickedPixel.x == UINT32_MAX) return;
         const ImageTransitInfo2 transitInfo {
             .commandBuffer = commandBuffer,
-            .image = mInstanceIdImage.get(),
+            .image = mTracerInstanceImage.get(),
             .srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
             .srcStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,
@@ -649,11 +774,12 @@ namespace crv::graphics::vulkan {
             .imageOffset = {static_cast<int32_t>(mClickedPixel.x), static_cast<int32_t>(mClickedPixel.y), 0},
             .imageExtent = {1, 1, 1}
         };
-        vkCmdCopyImageToBuffer(commandBuffer, mInstanceIdImage.get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        vkCmdCopyImageToBuffer(commandBuffer, mTracerInstanceImage.get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             mReadbackBuffer.get(),
             1, &region);
 
         Image::inverseTransit(transitInfo);
+        mClickedPixel = {UINT32_MAX, UINT32_MAX};
     }
 
     void PathTracerApp::updateSelectedInstance() {
@@ -664,16 +790,27 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::update() {
-        const RayTracerPassUpdateInfo updateInfo {
+        const RayTracerPassUpdateInfo tracerUpdateInfo {
             .camera = mCamera,
             .directLight = mDirectLight,
             .currentFrame = mCurrentFrame
         };
-        mRayTracerPass.update(updateInfo);
+        mRayTracerPass.update(tracerUpdateInfo);
+
+        if (mSelectedInstanceId == 0) return;
+        const RasterizerPassUpdateInfo rasterUpdateInfo {
+            .camera = mCamera,
+            .instanceInfo = &mInstanceInfos[mSelectedInstanceId - 1],
+            .currentFrame = mCurrentFrame
+        };
+        mRasterizerPass.update(rasterUpdateInfo);
     }
 
     void PathTracerApp::record(const uint32_t imageIndex) {
-        recordTracer(imageIndex);
+        recordTracer();
+        recordRaster();
+        recordPostprocess();
+        recordPresent(imageIndex);
         vkResetFences(mContext.device(), 1, &mFences[mCurrentFrame].get());
     }
 
@@ -687,17 +824,47 @@ namespace crv::graphics::vulkan {
             .commandBufferCount = 1,
             .pCommandBuffers = &mTracerCommandBuffers[mCurrentFrame],
             .signalSemaphoreCount = 1,
-            .pSignalSemaphores = &mTracerFinishedSemaphores[imageIndex].get()
+            .pSignalSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get()
         };
         VkQueue queue = mContext.queue(QueueFamilyType::GRAPHICS);
-        if (vkQueueSubmit(queue, 1, &tracerSubmitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
+        if (vkQueueSubmit(queue, 1, &tracerSubmitInfo, nullptr) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to submit draw command buffer!");
+        }
+
+        VkPipelineStageFlags rasterWaitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        const VkSubmitInfo rasterSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &mTracerFinishedSemaphores[mCurrentFrame].get(),
+            .pWaitDstStageMask = rasterWaitStages,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &mRasterCommandBuffers[mCurrentFrame],
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &mRasterFinishedSemaphores[mCurrentFrame].get()
+        };
+        if (vkQueueSubmit(queue, 1, &rasterSubmitInfo, nullptr) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to submit draw command buffer!");
+        }
+
+        VkPipelineStageFlags postprocessWaitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
+        const VkSubmitInfo postprocessSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &mRasterFinishedSemaphores[mCurrentFrame].get(),
+            .pWaitDstStageMask = postprocessWaitStages,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &mPostprocessCommandBuffers[mCurrentFrame],
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &mPostprocessFinishedSemaphores[imageIndex].get()
+        };
+        if (vkQueueSubmit(queue, 1, &postprocessSubmitInfo, mFences[mCurrentFrame].get()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer!");
         }
 
         const VkPresentInfoKHR presentInfo {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &mTracerFinishedSemaphores[imageIndex].get(),
+            .pWaitSemaphores = &mPostprocessFinishedSemaphores[imageIndex].get(),
             .swapchainCount = 1,
             .pSwapchains = &mSwapchain.get(),
             .pImageIndices = &imageIndex,

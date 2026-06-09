@@ -14,6 +14,8 @@ using json = nlohmann::json;
 #include "Image.hpp"
 #include "ImageView.hpp"
 #include "RayTracerPass.hpp"
+#include "RasterizerPass.hpp"
+#include "PostprocessPass.hpp"
 #include "Semaphore.hpp"
 #include "Fence.hpp"
 #include "Types.hpp"
@@ -52,10 +54,14 @@ namespace crv::graphics::vulkan {
         void loadScene();
         void createTextures();
         void createRayTracerPass();
+        void createRasterizerPass();
+        void createPostprocessPass();
         void createImGui();
         void update();
-        void recordTracer(uint32_t imageIndex);
-        void recordPresent(uint32_t imageIndex, VkCommandBuffer commandBuffer);
+        void recordTracer();
+        void recordRaster();
+        void recordPostprocess();
+        void recordPresent(uint32_t imageIndex);
         void recordPixelRead(VkCommandBuffer commandBuffer);
         void updateSelectedInstance();
         void record(uint32_t imageIndex);
@@ -82,21 +88,33 @@ namespace crv::graphics::vulkan {
         Context                      mContext              = CRV_NULL_HANDLE;
         Swapchain                    mSwapchain            = CRV_NULL_HANDLE;
         RayTracerPass                mRayTracerPass        = CRV_NULL_HANDLE;
+        RasterizerPass               mRasterizerPass       = CRV_NULL_HANDLE;
+        PostprocessPass              mPostprocessPass      = CRV_NULL_HANDLE;
 
         std::vector<VkImage>         mSwapchainImages{};
         std::vector<ImageView>       mSwapchainImageViews{};
         Image                        mTracerImage          = CRV_NULL_HANDLE;
         ImageView                    mTracerView           = CRV_NULL_HANDLE;
-        Image                        mInstanceIdImage      = CRV_NULL_HANDLE;
-        ImageView                    mInstanceIdView       = CRV_NULL_HANDLE;
+        Image                        mTracerInstanceImage  = CRV_NULL_HANDLE;
+        ImageView                    mTracerInstanceView   = CRV_NULL_HANDLE;
+        Image                        mRasterInstanceImage  = CRV_NULL_HANDLE;
+        ImageView                    mRasterInstanceView   = CRV_NULL_HANDLE;
+        Image                        mFinalImage           = CRV_NULL_HANDLE;
+        ImageView                    mFinalView            = CRV_NULL_HANDLE;
         Buffer                       mReadbackBuffer       = CRV_NULL_HANDLE;
 
         std::vector<Fence>           mFences{};
         std::vector<Semaphore>       mImageAvailableSemaphores{};
         std::vector<Semaphore>       mTracerFinishedSemaphores{};
+        std::vector<Semaphore>       mRasterFinishedSemaphores{};
+        std::vector<Semaphore>       mPostprocessFinishedSemaphores{};
 
         CommandPool                  mTracerCommandPool    = CRV_NULL_HANDLE;
         CommandBuffers               mTracerCommandBuffers = CRV_NULL_HANDLE;
+        CommandPool                  mRasterCommandPool    = CRV_NULL_HANDLE;
+        CommandBuffers               mRasterCommandBuffers = CRV_NULL_HANDLE;
+        CommandPool                  mPostprocessCommandPool    = CRV_NULL_HANDLE;
+        CommandBuffers               mPostprocessCommandBuffers = CRV_NULL_HANDLE;
 
         cs::FlyCamera                mFlyCamera{};
         cs::OrbitalCamera            mOrbitalCamera{};
@@ -105,7 +123,7 @@ namespace crv::graphics::vulkan {
         std::vector<BLASEntry>       mBLASEntries{};
         std::vector<BLASInfo>        mBLASInfos{};
         std::vector<VkASInstance>    mInstances{};
-        std::vector<InstanceInfoGPU> mInstanceInfos{};
+        std::vector<InstanceInfo>    mInstanceInfos{};
         Buffer                       mInstanceBuffer       = CRV_NULL_HANDLE;
         AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
         std::vector<cm::Material>    mMaterials{};

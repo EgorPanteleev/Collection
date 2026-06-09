@@ -27,15 +27,24 @@ namespace crv::graphics::vulkan {
     };
 
     struct alignas(16) InstanceInfoGPU {
-        uint meshID    = 0;
-        uint textureID = 0;
-        uint pad[2];
+        uint32_t meshID    = 0;
+        uint32_t textureID = 0;
+        uint32_t pad[2];
     };
 
     struct alignas(16) DirectLightGPU {
         glm::vec4 dir{};
         float intensity = 0;
         float pad[3];
+    };
+
+    struct alignas(16) MVPGPU {
+        glm::mat4 model, view, proj, trInvModel;
+    };
+
+    struct alignas(16) RasterInstanceGPU {
+        glm::mat4 model{};
+        glm::mat4 invModel{};
     };
 }
 

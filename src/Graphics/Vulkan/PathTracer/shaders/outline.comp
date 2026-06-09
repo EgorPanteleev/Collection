@@ -1,0 +1,43 @@
+#version 450
+
+layout(binding = 0, rgba16f) readonly uniform image2D tracerImage;
+layout(binding = 1, r32ui) readonly uniform uimage2D instanceIdImage;
+layout(binding = 2, rgba16f) writeonly uniform image2D outputImage;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+vec4 outline(vec3 baseColor, const int thickness) { //4
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    uint instanceId = imageLoad(instanceIdImage, pixel).r;
+    ivec2 size = imageSize(instanceIdImage);
+    if (instanceId != 1) {
+        return vec4(baseColor, 1);
+    }
+    bool edge = false;
+    for (int y = -thickness; y <= thickness; ++y) {
+        for (int x = -thickness; x <= thickness; ++x) {
+            ivec2 q = pixel + ivec2(x, y);
+            if (q.x < 0 || q.y < 0 || q.x >= size.x || q.y >= size.y)
+            continue;
+            if (x * x + y * y > thickness * thickness)
+            continue;
+            uint id = imageLoad(instanceIdImage, pixel + ivec2(x, y)).r;
+            if (id != instanceId) {
+                edge = true;
+                break;
+            }
+        }
+        if (edge) break;
+    }
+
+    if (edge) {
+        return vec4(1.0, 0.3, 0.0, 1.0);
+    }
+    return vec4(baseColor, 1);
+}
+
+void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    vec3 imageColor = imageLoad(tracerImage, pixel).rgb;
+    imageStore(outputImage, pixel, outline(imageColor, 4));
+}
