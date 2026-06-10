@@ -1,6 +1,5 @@
 {
   "modelImports":	["meshes/dragon.glb", "meshes/plane.glb", "meshes/sphere.glb"],
-  "textureImports":	[],
   "materials": [{
     "name": "red",
     "color": [1, 0, 0]

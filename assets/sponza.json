@@ -1,6 +1,5 @@
 {
   "modelImports":	["meshes/cube.glb", "scenes/Sponza/glTF/Sponza.gltf"],
-  "textureImports":	[],
   "instances":	[ {
     "name":	"sponza1",
     "modelIndex": 1,
@@ -17,8 +16,8 @@
     "localScale":	 [5, 5, 5]
   }],
   "directLight": {
-    "direction": [-0.468, 0.318, -0.824],
-    "intensity": 2
+    "direction": [0, 1.0, -0.2],
+    "intensity": 5
   },
   "window": {
     "name": "GPU Path Tracer",
@@ -27,7 +26,7 @@
   },
   "camera":	{
     "type": "Fly",
-    "position":	[40, -2, 0],
+    "position":	[24, -24, 3],
     "target":	[-100, 10, 0],
     "up":	[0, 1, 0],
     "zoom": 1,

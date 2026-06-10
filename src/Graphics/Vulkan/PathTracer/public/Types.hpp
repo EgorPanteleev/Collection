@@ -57,9 +57,16 @@ namespace crv::graphics::vulkan {
         std::string name{};
         std::string meshName{};
         Transform   transform{};
-        uint32_t    meshID     = 0;
-        uint32_t    textureID  = 0;
-        uint32_t    indexCount = 0;
+        uint32_t    meshIndex      = 0;
+        uint32_t    materialIndex  = 0;
+        uint32_t    indexCount     = 0;
+    };
+
+    struct Material {
+        std::string name{};
+        glm::vec3   baseColor{};
+        uint32_t    baseColorTexIndex = UINT32_MAX;
+        uint32_t    normalTexIndex    = UINT32_MAX;
     };
 }
 

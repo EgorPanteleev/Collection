@@ -65,6 +65,21 @@ namespace crv::graphics::vulkan {
         app->updateImage();
     }
 
+    static void objectSelected(GLFWwindow* window) {
+        auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
+        double mouseX, mouseY;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+        int winWidth, winHeight;
+        int fbWidth, fbHeight;
+        glfwGetWindowSize(window, &winWidth, &winHeight);
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+        float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
+        float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
+        auto x = static_cast<uint32_t>(mouseX * scaleX);
+        auto y = static_cast<uint32_t>(mouseY * scaleY);
+        app->pixelClicked(x, y);
+    }
+
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
         auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         if (action == GLFW_PRESS && key == GLFW_KEY_Q) {
@@ -73,10 +88,12 @@ namespace crv::graphics::vulkan {
         if (action == GLFW_PRESS && key == GLFW_KEY_Z) {
             app->toggleControlPanel();
         }
+        if (action == GLFW_PRESS && key == GLFW_KEY_X) {
+            objectSelected(window);
+        }
     }
 
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-        auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
             if (action == GLFW_PRESS) {
                 rightMouseButtonPressed = true;
@@ -87,17 +104,7 @@ namespace crv::graphics::vulkan {
         }
         if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
             if (action == GLFW_RELEASE) {
-                double mouseX, mouseY;
-                glfwGetCursorPos(window, &mouseX, &mouseY);
-                int winWidth, winHeight;
-                int fbWidth, fbHeight;
-                glfwGetWindowSize(window, &winWidth, &winHeight);
-                glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-                float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
-                float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
-                auto x = static_cast<uint32_t>(mouseX * scaleX);
-                auto y = static_cast<uint32_t>(mouseY * scaleY);
-                app->pixelClicked(x, y);
+                objectSelected(window);
             }
         }
     }

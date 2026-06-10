@@ -20,15 +20,25 @@ layout(binding = 5, scalar) readonly buffer MeshInfoBuffer {
 layout(binding = 6, scalar) readonly buffer InstanceBuffer {
     InstanceData instances[];
 };
-layout(binding = 7) uniform sampler2D textures[];
+layout(binding = 7) readonly buffer MaterialBuffer {
+    MaterialData materials[];
+};
+layout(binding = 8) uniform sampler2D textures[];
 layout(location = 0) rayPayloadInEXT PathPayload payload;
 layout(location = 1) rayPayloadEXT float shadowPayload;
 
 hitAttributeEXT vec2 hitAttrib;
 
+vec3 getBaseColor(MaterialData material, vec2 uv) {
+    vec3 baseColor = material.baseColor.xyz;
+    if (material.baseColorTexIndex != UINT_MAX)
+        baseColor *= texture(textures[nonuniformEXT(material.baseColorTexIndex)], uv).rgb;
+    return baseColor;
+}
+
 void main() {
     InstanceData instance = instances[gl_InstanceCustomIndexEXT];
-    MeshInfo mesh = meshes[instance.meshID];
+    MeshInfo mesh = meshes[instance.meshIndex];
     VertexBuffer vertexBuffer = VertexBuffer(mesh.vertexAddress);
     IndexBuffer  indexBuffer  = IndexBuffer(mesh.indexAddress);
 
@@ -50,7 +60,8 @@ void main() {
     N = normalize(normalMatrix * N);
     if (dot(N, gl_WorldRayDirectionEXT) > 0.0) N = -N;
 
-    vec3 albedo = texture(textures[nonuniformEXT(instance.textureID)], uv).rgb;
+    MaterialData material = materials[instance.materialIndex];
+    vec3 baseColor = getBaseColor(material, uv);
     vec3 L = normalize(-directLight.dir.xyz);
     vec3 gN = normalize(cross(v1.pos - v0.pos, v2.pos - v0.pos));
     gN = normalize(normalMatrix * gN);
@@ -70,7 +81,7 @@ void main() {
     );
 
     vec3 wo = -gl_WorldRayDirectionEXT;
-    Scatter scatter = lambertianScatter(payload.seed, albedo, N, wo);
+    Scatter scatter = lambertianScatter(payload.seed, baseColor, N, wo);
     vec3 direct  = scatter.brdf * NdotL * directLight.intensity * shadowPayload;
     payload.radiance += payload.throughput * direct;
     payload.throughput *= scatter.brdf * max(dot(scatter.wi, N), 0.0) / scatter.pdf;

@@ -23,7 +23,8 @@ namespace crv::graphics::vulkan {
         std::vector<BLASInfo>*        blasInfos         = nullptr;
         AccelerationStructure*        tlas              = nullptr;
         std::vector<InstanceInfo>*    instanceInfos     = nullptr;
-        std::vector<TexturesByType>*  textures          = nullptr;
+        std::vector<Texture>*         textures          = nullptr;
+        std::vector<Material>*        materials         = nullptr;
         ImageView*                    outView           = nullptr;
         ImageView*                    outInstanceIdView = nullptr;
         uint32_t                      framesInFlight    = 0;
@@ -48,6 +49,8 @@ namespace crv::graphics::vulkan {
         explicit RayTracerPass(const RayTracerPassCreateInfo& info);
         void update(const RayTracerPassUpdateInfo& info);
         void record(const RayTracerPassRecordInfo& info);
+        void updateMaterial(uint32_t index);
+        void updateInstance(uint32_t index);
     private:
         void createDescriptorManager();
         void createShaders();
@@ -62,7 +65,8 @@ namespace crv::graphics::vulkan {
         std::vector<BLASInfo>*          mBLASInfos            = nullptr;
         AccelerationStructure*          mTLAS                 = nullptr;
         std::vector<InstanceInfo>*      mInstanceInfos        = nullptr;
-        std::vector<TexturesByType>*    mTextures             = nullptr;
+        std::vector<Texture>*           mTextures             = nullptr;
+        std::vector<Material>*          mMaterials            = nullptr;
         ImageView*                      mOutputView           = nullptr;
         ImageView*                      mOutputInstanceIdView = nullptr;
         DescriptorManager               mDescriptorManager{};
@@ -81,6 +85,7 @@ namespace crv::graphics::vulkan {
 
         Buffer                          mBLASInfoBuffer{};
         Buffer                          mInstanceInfoBuffer{};
+        Buffer                          mMaterialBuffer{};
         std::vector<Buffer>             mCameraBuffers{};
         std::vector<Buffer>             mDirectLightBuffers{};
     };

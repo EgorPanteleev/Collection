@@ -38,6 +38,7 @@ namespace crv::graphics::vulkan {
         VkImage image() { return mImage.get(); }
         VkImageView view() { return mView.get(); }
         VkSampler sampler() { return mSampler.get(); }
+        static uint32_t typeCount() { return cmt::Texture::Type::UNKNOWN; }
     protected:
         void create(const TextureCreateInfo& info);
         void load(const TextureCreateInfo& info);

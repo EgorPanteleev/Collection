@@ -27,8 +27,8 @@ namespace crv::graphics::vulkan {
     };
 
     struct alignas(16) InstanceInfoGPU {
-        uint32_t meshID    = 0;
-        uint32_t textureID = 0;
+        uint32_t meshIndex     = 0;
+        uint32_t materialIndex = 0;
         uint32_t pad[2];
     };
 
@@ -44,6 +44,13 @@ namespace crv::graphics::vulkan {
 
     struct alignas(16) RasterInstanceGPU {
         glm::mat4 model{};
+    };
+
+    struct alignas(16) MaterialGPU {
+        glm::vec4   baseColor{};
+        uint32_t    baseColorTexIndex = UINT32_MAX;
+        uint32_t    normalTexIndex    = UINT32_MAX;
+        uint32_t    pad[2];
     };
 }
 

@@ -15,12 +15,9 @@
 namespace crv::model {
     struct Texture {
         enum Type {
-            DIFFUSE = 0,
-            SPECULAR = 1,
-            SHININESS = 2,
-            AMBIENT = 3,
-            NORMAL = 4,
-            UNKNOWN = 5
+            BASE_COLOR = 0,
+            NORMAL     = 1,
+            UNKNOWN    = 2
         };
 
         enum Format {
@@ -48,12 +45,8 @@ namespace crv::model {
     };
 
     static std::map<Texture::Type, aiTextureType> toAssimpTypeMap{
-            {Texture::DIFFUSE,   aiTextureType_DIFFUSE},
-            {Texture::SPECULAR,  aiTextureType_SPECULAR},
-            {Texture::SHININESS, aiTextureType_SHININESS},
-            {Texture::AMBIENT,   aiTextureType_AMBIENT},
-            {Texture::NORMAL,    aiTextureType_NORMALS},
-            {Texture::UNKNOWN,   aiTextureType_UNKNOWN}
+            {Texture::BASE_COLOR, aiTextureType_BASE_COLOR},
+            {Texture::NORMAL    , aiTextureType_NORMALS},
     };
 
     struct Material {
@@ -68,6 +61,7 @@ namespace crv::model {
 
         float mTransparencyFactor;
         float mAlphaTest;
+
 
         std::array<Texture, Texture::UNKNOWN> mTextures;
     };

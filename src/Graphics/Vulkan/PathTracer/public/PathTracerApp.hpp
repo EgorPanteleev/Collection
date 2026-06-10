@@ -51,8 +51,10 @@ namespace crv::graphics::vulkan {
         void createCommandBuffers();
         void createCamera();
         void loadModel(uint32_t modelIndex, const std::string& path);
+        void loadMaterials();
+        void buildTLAS();
         void loadScene();
-        void createTextures();
+        void addTexture(const cm::Texture& texture);
         void createRayTracerPass();
         void createRasterizerPass();
         void createPostprocessPass();
@@ -127,14 +129,14 @@ namespace crv::graphics::vulkan {
         std::vector<InstanceInfo>    mInstanceInfos{};
         Buffer                       mInstanceBuffer       = CRV_NULL_HANDLE;
         AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
-        std::vector<cm::Material>    mMaterials{};
-        std::vector<TexturesByType>  mTextures{};
+        std::vector<Material>        mMaterials{};
+        std::vector<Texture>         mTextures{};
         DirectLightGPU               mDirectLight{};
 
         VkImGui                      mImGui                = CRV_NULL_HANDLE;
         int                          mSPP                  = 1;
         int                          mMinDepth             = 0;
-        int                          mMaxDepth             = 1;
+        int                          mMaxDepth             = 2;
         int                          mDisplayMode          = 4;
     };
 }

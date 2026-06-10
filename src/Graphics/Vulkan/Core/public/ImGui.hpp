@@ -9,7 +9,8 @@
 
 #include "Context.hpp"
 #include "DescriptorPool.hpp"
-#include "Swapchain.hpp"
+
+#include <glm/glm.hpp>
 
 namespace crv::graphics::vulkan {
     struct ImGuiCreateInfo {
@@ -56,6 +57,7 @@ namespace crv::graphics::vulkan {
         static void row(const char* label, const char* value);
         static bool tabButton(const char* label, bool selected, ImVec2 size);
         static void tabPanel(const TabPanel& panel, uint32_t& activeTabIndex);
+        static bool colorEdit3(const char* label, glm::vec3& color);
     private:
         void createDesriptorPool();
         void setupStyle(float alpha, float scale);

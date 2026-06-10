@@ -32,8 +32,8 @@ struct MeshInfo {
     uint64_t indexAddress;
 };
 struct InstanceData {
-    uint meshID;
-    uint textureID;
+    uint meshIndex;
+    uint materialIndex;
     uint pad[2];
 };
 
@@ -45,6 +45,12 @@ struct PathPayload {
     uint  instanceId;
     uint  seed;
     bool  done;
+};
+
+struct MaterialData {
+    vec4   baseColor;
+    uint   baseColorTexIndex;
+    uint   normalTexIndex;
 };
 
 vec3 offsetRay(const vec3 p, const vec3 n) {
@@ -77,5 +83,6 @@ float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 float copysign(float x, float y){
     return abs(x) * (y < 0.0 ? -1.0 : 1.0);
 }
+
 
 #endif

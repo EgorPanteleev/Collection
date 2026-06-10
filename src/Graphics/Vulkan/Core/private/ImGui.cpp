@@ -245,7 +245,7 @@ namespace crv::graphics::vulkan {
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cellPadding);
         ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings;
-        if (!ImGui::BeginTable(tableId, 2, flags, ImVec2(-1.0f, 0.0f), 0.0f)) {
+        if (!ImGui::BeginTable(tableId, 3, flags, ImVec2(-1.0f, 0.0f), 0.0f)) {
             ImGui::PopStyleVar();
             return false;
         }
@@ -330,6 +330,15 @@ namespace crv::graphics::vulkan {
         }
         if (exFunc) (*exFunc)();
         ImGui::Dummy((ImVec2){0.0f, 1.0f});
+    }
+
+    bool VkImGui::colorEdit3(const char* label, glm::vec3& color) {
+        float tmpColor[3] = {color.r, color.g, color.b};
+        if (ImGui::ColorEdit3(label, tmpColor)) {
+            color = {tmpColor[0], tmpColor[1], tmpColor[2]};
+            return true;
+        }
+        return false;
     }
 
     void VkImGui::render(const ImGuiRenderInfo& info) {

@@ -263,7 +263,6 @@ namespace crv::model {
         texture.mFormat = toTextureFormat(textureType);
         if (material->GetTextureCount(assimpType) <= 0 or
             material->GetTexture(assimpType, 0, &aiPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
-            mMaterials[materialIndex].mTextures[textureType] = emptyTexture(textureType);
             return;
         }
         std::string path = aiPath.C_Str();

@@ -56,7 +56,6 @@ namespace crv::graphics::vulkan {
         createCommandBuffers();
         createCamera();
         loadScene();
-        createTextures();
         createRayTracerPass();
         createRasterizerPass();
         createPostprocessPass();
@@ -439,9 +438,8 @@ namespace crv::graphics::vulkan {
                 glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0,1,0));
                 glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0,0,1));
                 transform.rotation = glm::normalize(qy * qx * qz);
-                uint32_t texIndex = instance["texIndex"];
-                if (texIndex == UINT32_MAX) texIndex = (baseMaterial + mesh.materialIndex) * cm::Texture::UNKNOWN;
-                else texIndex *= cm::Texture::UNKNOWN;
+                uint32_t materialIndex = instance["texIndex"];
+                if (materialIndex == UINT32_MAX) materialIndex = baseMaterial + mesh.materialIndex;
                 VkASInstance asInstance{
                     .transform = toVkTransform(transform.matrix()),
                     .instanceCustomIndex = static_cast<uint32_t>(mInstances.size()),
@@ -455,47 +453,48 @@ namespace crv::graphics::vulkan {
                     .name = instance["name"],
                     .meshName = mesh.name,
                     .transform = transform,
-                    .meshID = static_cast<uint32_t>(mBLASEntries.size() - 1),
-                    .textureID = texIndex,
+                    .meshIndex = static_cast<uint32_t>(mBLASEntries.size() - 1),
+                    .materialIndex = materialIndex,
                     .indexCount = static_cast<uint32_t>(indices.size())
                 };
                 mInstanceInfos.push_back(instanceInfo);
             }
         }
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
-        mMaterials.insert(mMaterials.end(), loader->materials().begin(), loader->materials().end());
+        mMaterials.reserve(mMaterials.size() + loader->materials().size());
+        for (const auto& loaderMaterial: loader->materials()) {
+            Material material {
+                .name = loaderMaterial.mName.empty() ? "Unknown" : loaderMaterial.mName,
+                .baseColor = loaderMaterial.diffuseColor,
+            };
+            const cm::Texture& baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
+            const cm::Texture& normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];
+            if (!baseColorTexture.empty()) {
+                addTexture(baseColorTexture);
+                material.baseColorTexIndex = mTextures.size() - 1;
+            }
+            if (!normalTexture.empty()) {
+                addTexture(normalTexture);
+                material.normalTexIndex = mTextures.size() - 1;
+            }
+            mMaterials.push_back(material);
+        }
     }
 
-    void PathTracerApp::loadScene() {
-        auto directLight = mScene["directLight"];
-        mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
-        mDirectLight.intensity = directLight["intensity"];
-        std::vector<std::string> textures = mScene["textureImports"];
+    void PathTracerApp::loadMaterials() {
         auto materials = mScene["materials"];
-        mMaterials.resize(textures.size() + materials.size());
-        for (int textureIndex = 0; textureIndex < textures.size(); ++textureIndex) {
-            mMaterials[textureIndex].mTextures[cm::Texture::DIFFUSE] =
-                cm::AbsLoader::loadTexture(ASSETS_PATH + textures[textureIndex], cm::Texture::DIFFUSE);
-            for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
-                mMaterials[textureIndex].mTextures[texType] =
-                    cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
-            }
+        mMaterials.resize(materials.size());
+        for (int materialIndex = 0; materialIndex < materials.size(); ++materialIndex) {
+            Material& material = mMaterials[materialIndex];
+            auto jsonMaterial = materials[materialIndex];
+            material = {
+                .name = jsonMaterial["name"],
+                .baseColor = toVec3(jsonMaterial["color"]),
+            };
         }
-        int baseMaterial = static_cast<int>(textures.size());
-        for (int materialIndex = baseMaterial; materialIndex < baseMaterial + materials.size(); ++materialIndex) {
-            mMaterials[materialIndex].mTextures[cm::Texture::DIFFUSE] =
-                cm::AbsLoader::colorTexture(toVec3(materials[materialIndex]["color"]), cm::Texture::DIFFUSE);
-            for (int texType = 1; texType < cm::Texture::UNKNOWN; ++texType) {
-                mMaterials[materialIndex].mTextures[texType] =
-                    cm::AbsLoader::emptyTexture(static_cast<cm::Texture::Type>(texType));
-            }
-        }
+    }
 
-        std::vector<std::string> models = mScene["modelImports"];
-          for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
-            loadModel(modelIndex, models[modelIndex]);
-        }
-
+    void PathTracerApp::buildTLAS() {
         const size_t instancesSize = sizeof(VkASInstance) * mInstances.size();
         const BufferCreateInfo instanceBufferCreateInfo {
             .allocator = mContext.allocator(),
@@ -530,30 +529,37 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 
-    void PathTracerApp::createTextures() {
-        mTextures.resize(mMaterials.size());
-        for (size_t i = 0; i < mMaterials.size(); ++i) {
-            const cm::Material& material = mMaterials[i];
-            TexturesByType& texturesByType = mTextures[i];
-            for (int texType = 0; texType < static_cast<int>(cm::Texture::UNKNOWN); ++texType) {
-                const cm::Texture& texture = material.mTextures[texType];
-                TextureCreateInfo textureCreateInfo {
-                    .device = mContext.device(),
-                    .physicalDevice = mContext.physicalDevice(),
-                    .allocator = mContext.allocator(),
-                    .queue = mContext.queue(QueueFamilyType::COMPUTE),
-                    .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-                    .dataByLevel = texture.mDataByLevel,
-                    .texFormat = texture.mFormat,
-                    .mipLevels = 1,
-                    .arrayLayers = 1,
-                    .samples = VK_SAMPLE_COUNT_1_BIT,
-                    .tiling = VK_IMAGE_TILING_OPTIMAL,
-                    .memoryUsage = VMA_MEMORY_USAGE_AUTO
-                };
-                texturesByType[texType] = Texture(textureCreateInfo);
-            }
+    void PathTracerApp::loadScene() {
+        auto directLight = mScene["directLight"];
+        mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
+        mDirectLight.intensity = directLight["intensity"];
+
+        loadMaterials();
+        std::vector<std::string> models = mScene["modelImports"];
+        for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
+            loadModel(modelIndex, models[modelIndex]);
         }
+        buildTLAS();
+        if (mTextures.empty()) addTexture(cm::AbsLoader::emptyTexture(cm::Texture::BASE_COLOR));
+    }
+
+    void PathTracerApp::addTexture(const cm::Texture& texture) {
+        mTextures.emplace_back();
+        const TextureCreateInfo textureCreateInfo {
+            .device = mContext.device(),
+            .physicalDevice = mContext.physicalDevice(),
+            .allocator = mContext.allocator(),
+            .queue = mContext.queue(QueueFamilyType::COMPUTE),
+            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
+            .dataByLevel = texture.mDataByLevel,
+            .texFormat = texture.mFormat,
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        mTextures.back() = Texture(textureCreateInfo);
     }
 
     void PathTracerApp::createRayTracerPass() {
@@ -563,6 +569,7 @@ namespace crv::graphics::vulkan {
             .tlas = &mTLAS,
             .instanceInfos = &mInstanceInfos,
             .textures = &mTextures,
+            .materials = &mMaterials,
             .outView = &mTracerView,
             .outInstanceIdView = &mTracerInstanceView,
             .framesInFlight = mFramesInFlight
@@ -632,7 +639,7 @@ namespace crv::graphics::vulkan {
         RasterizerPassRecordInfo recordInfo{};
         if (mSelectedInstanceId != 0) {
             const InstanceInfo& instanceInfo = mInstanceInfos[mSelectedInstanceId - 1];
-            BLASEntry& blasEntry = mBLASEntries[instanceInfo.meshID];
+            BLASEntry& blasEntry = mBLASEntries[instanceInfo.meshIndex];
             recordInfo = {
                 .commandBuffer = commandBuffer,
                 .vertexBuffer = &blasEntry.vertexBuffer,
@@ -1009,12 +1016,6 @@ namespace crv::graphics::vulkan {
                         updateImage();
                     }
                 }
-                if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    // const char* modes[] = {"Albedo", "Depth", "Normal", "TracedAlbedo", "Rendered"};
-                    // if (ImGui::Combo("Display mode", &mDisplayMode, modes, IM_ARRAYSIZE(modes))) {
-                    //     updateImage();
-                    // }
-                }
                 ImGui::Unindent(4.0f);
             };
 
@@ -1028,10 +1029,52 @@ namespace crv::graphics::vulkan {
                     if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                         VkImGui::row("Name"         , instance.name.c_str());
                         VkImGui::row("Mesh Name"    , instance.meshName.c_str());
-                        VkImGui::row("Texture index", std::to_string(instance.textureID).c_str());
+                        VkImGui::row("Material index", std::to_string(instance.materialIndex).c_str());
                         VkImGui::endCompactTable();
                     }
                     VkImGui::endGroup();
+                }
+
+                if (VkImGui::beginGroup(ICON_FA_PALETTE " Material")) {
+                    Material& material = mMaterials[instance.materialIndex];
+                    std::vector<std::string> materialItems;
+                    materialItems.reserve(mMaterials.size());
+                    for (size_t i = 0; i < mMaterials.size(); ++i) {
+                        materialItems.push_back("#" + std::to_string(i) + " " + mMaterials[i].name);
+                    }
+                    if (ImGui::BeginCombo(" ", materialItems[instance.materialIndex].c_str())) {
+                        for (size_t i = 0; i < mMaterials.size(); ++i) {
+                            if (ImGui::Selectable(materialItems[i].c_str())) {
+                                instance.materialIndex = i;
+                                mRayTracerPass.updateInstance(mSelectedInstanceId - 1);
+                                updateImage();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    if (ImGui::CollapsingHeader("Surface", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        if (VkImGui::colorEdit3("Base Color", material.baseColor)) {
+                            mRayTracerPass.updateMaterial(instance.materialIndex);
+                            updateImage();
+                        }
+                    }
+                    if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        if (VkImGui::beginCompactTable("##textures", 6.0f)) {
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::TextDisabled("%s", "Base Color");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::TextDisabled("%s", "None");
+                            ImGui::TableSetColumnIndex(2);
+                            ImGui::AlignTextToFramePadding();
+                            if (ImGui::Button("Upload"))
+                            {
+                            }
+                            VkImGui::endCompactTable();
+                        }
+                    }
                 }
 
                 if (VkImGui::beginGroup(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform")) {
@@ -1071,7 +1114,7 @@ namespace crv::graphics::vulkan {
                 {ICON_FA_IMAGES " Render", 1, renderFunc},
                 {ICON_FA_VIDEO  " Camera", 2, cameraFunc},
             };
-            static uint32_t activeSettingsTabIndex = 1;
+            static uint32_t activeSettingsTabIndex = 0;
             VkImGui::tabPanel(panel, activeSettingsTabIndex);
         }
         ImGui::End();

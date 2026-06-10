@@ -9,8 +9,8 @@
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context), mBLASInfos(info.blasInfos),
-    mTLAS(info.tlas), mInstanceInfos(info.instanceInfos), mTextures(info.textures), mOutputView(info.outView),
-    mOutputInstanceIdView(info.outInstanceIdView) {
+    mTLAS(info.tlas), mInstanceInfos(info.instanceInfos), mTextures(info.textures), mMaterials(info.materials),
+    mOutputView(info.outView), mOutputInstanceIdView(info.outInstanceIdView) {
         createBuffers();
         createDescriptorManager();
         createShaders();
@@ -49,14 +49,56 @@ namespace crv::graphics::vulkan {
             info.width, info.height, 1);
     }
 
+    void RayTracerPass::updateMaterial(const uint32_t index) {
+        std::vector<MaterialGPU> materials;
+        materials.reserve(mMaterials->size());
+        for (auto& material: *mMaterials) {
+            materials.emplace_back(glm::vec4(material.baseColor, 1),
+                material.baseColorTexIndex, material.normalTexIndex);
+        }
+        const CopyDataToGPUBufferInfo copyInfo {
+            .data = materials.data(),
+            .srcOffset = sizeof(MaterialGPU) * index,
+            .dstOffset = sizeof(MaterialGPU) * index,
+            .size = sizeof(MaterialGPU),
+            .allocator = mContext->allocator(),
+            .buffer = mMaterialBuffer.get(),
+            .device = mContext->device(),
+            .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+            .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+        };
+        Buffer::copy(copyInfo);
+    }
+
+    void RayTracerPass::updateInstance(const uint32_t index) {
+        std::vector<InstanceInfoGPU> instanceInfos;
+        instanceInfos.reserve(mInstanceInfos->size());
+        for (auto& instanceInfo: *mInstanceInfos) {
+            instanceInfos.emplace_back(instanceInfo.meshIndex, instanceInfo.materialIndex);
+        }
+        const CopyDataToGPUBufferInfo copyInfo {
+            .data = instanceInfos.data(),
+            .srcOffset = sizeof(InstanceInfoGPU) * index,
+            .dstOffset = sizeof(InstanceInfoGPU) * index,
+            .size = sizeof(InstanceInfoGPU),
+            .allocator = mContext->allocator(),
+            .buffer = mInstanceInfoBuffer.get(),
+            .device = mContext->device(),
+            .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+            .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+        };
+        Buffer::copy(copyInfo);
+    }
+
     void RayTracerPass::createDescriptorManager() {
-        auto textureCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN);
+        auto textureCount = static_cast<uint32_t>(mTextures->size());
         mDescriptorManager.add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
-                                                                  VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR     );
+                                                                  VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
         mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
         mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
         mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, textureCount);
@@ -64,7 +106,7 @@ namespace crv::graphics::vulkan {
         const DescriptorBuildInfo buildInfo {
             .context = mContext,
             .count = mFramesInFlight,
-            .variableCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)
+            .variableCount = static_cast<uint32_t>(mTextures->size())
         };
         mDescriptorManager.build(buildInfo);
 
@@ -76,6 +118,7 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i]));
             mDescriptorManager.add(i, BufferResource(mBLASInfoBuffer));
             mDescriptorManager.add(i, BufferResource(mInstanceInfoBuffer));
+            mDescriptorManager.add(i, BufferResource(mMaterialBuffer));
             mDescriptorManager.add(i, ImageResource(*mTextures));
         }
         mDescriptorManager.update();
@@ -264,8 +307,17 @@ namespace crv::graphics::vulkan {
         ssboData.add(*mBLASInfos, mBLASInfoBuffer);
         std::vector<InstanceInfoGPU> instanceInfos;
         instanceInfos.reserve(mInstanceInfos->size());
-        for (auto& instanceInfo: *mInstanceInfos) {instanceInfos.emplace_back(instanceInfo.meshID, instanceInfo.textureID);}
+        for (auto& instanceInfo: *mInstanceInfos) {
+            instanceInfos.emplace_back(instanceInfo.meshIndex, instanceInfo.materialIndex);
+        }
         ssboData.add(instanceInfos, mInstanceInfoBuffer);
+        std::vector<MaterialGPU> materials;
+        materials.reserve(mMaterials->size());
+        for (auto& material: *mMaterials) {
+            materials.emplace_back(glm::vec4(material.baseColor, 1),
+                material.baseColorTexIndex, material.normalTexIndex);
+        }
+        ssboData.add(materials, mMaterialBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
 
         mCameraBuffers.resize(mFramesInFlight);

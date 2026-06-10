@@ -56,6 +56,7 @@ namespace crv::graphics::vulkan {
         explicit ImageResource(const std::vector<VkSampler>& samplers, const std::vector<ImageView>& views,
             const std::vector<VkImageLayout>& layouts);
         explicit ImageResource(std::vector<TexturesByType>& mTextures);
+        explicit ImageResource(std::vector<Texture>& mTextures);
         std::vector<VkSampler>     samplers{};
         std::vector<VkImageView>   imageViews{};
         std::vector<VkImageLayout> layouts{};

@@ -49,10 +49,7 @@ namespace crv::model {
 
     Texture::Format AbsLoader::toTextureFormat(Texture::Type modelTexType) {
         switch(modelTexType) {
-            case Texture::Type::DIFFUSE:
-            case Texture::Type::SPECULAR:
-            case Texture::Type::SHININESS:
-            case Texture::Type::AMBIENT:
+            case Texture::Type::BASE_COLOR:
                 return Texture::R8G8B8A8_SRGB;
             case Texture::Type::NORMAL:
                 return Texture::R8G8B8A8_UNORM;
@@ -100,12 +97,8 @@ namespace crv::model {
 
     static glm::vec3 toEmptyColor(Texture::Type texType) {
         switch(texType) {
-            case Texture::Type::DIFFUSE:
+            case Texture::Type::BASE_COLOR:
                 return {0.5, 0, 0};
-            case Texture::Type::SPECULAR:
-            case Texture::Type::SHININESS:
-            case Texture::Type::AMBIENT:
-                return glm::vec3(0);
             case Texture::Type::NORMAL:
                 return {0.5, 0.5, 1};
             default:

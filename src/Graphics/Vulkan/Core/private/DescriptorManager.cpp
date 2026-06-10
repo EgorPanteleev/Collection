@@ -76,6 +76,16 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    ImageResource::ImageResource(std::vector<Texture>& mTextures) {
+        for (size_t i = 0; i < mTextures.size(); i++) {
+            auto& texture = mTextures[i];
+            if (texture.view() == VK_NULL_HANDLE) continue;
+            samplers.push_back(texture.sampler());
+            imageViews.push_back(texture.view());
+            layouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+    }
+
     void DescriptorManager::build(const DescriptorBuildInfo& info) {
         createLayout(info);
         createPool(info);
