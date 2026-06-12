@@ -2,13 +2,20 @@
   "modelImports":	["meshes/dragon.glb", "meshes/plane.glb", "meshes/sphere.glb"],
   "materials": [{
     "name": "red",
-    "color": [1, 0, 0]
+    "color": [1, 0, 0],
+    "luminance": 0
   }, {
     "name": "green",
-    "color": [0, 1, 0]
+    "color": [0, 1, 0],
+    "luminance": 0
   }, {
       "name": "gray",
-      "color": [0.8, 0.8, 0.8]
+      "color": [0.8, 0.8, 0.8],
+      "luminance": 0
+    }, {
+      "name": "light",
+      "color": [1, 1, 1],
+      "luminance": 30.0
     }],
   "instances":	[
   {
@@ -70,14 +77,14 @@
   {
     "name":	"lamp",
     "modelIndex":	2,
-    "texIndex": 2,
+    "texIndex": 3,
     "localPosition":	[0, -60, 0],
     "localRotation":	[0, 0, 0],
     "localScale":	[7, 1.2, 7]
   }],
   "directLight": {
     "direction": [-0.468, 0.318, -0.824],
-    "intensity": 2
+    "intensity": 0
   },
   "window": {
     "name": "GPU Path Tracer",

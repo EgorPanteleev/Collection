@@ -36,7 +36,25 @@ vec3 getBaseColor(MaterialData material, vec2 uv) {
     return baseColor;
 }
 
+float shadow(vec3 P, vec3 N, vec3 L) {
+    shadowPayload = 0.0;
+    traceRayEXT(
+        tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT |
+        gl_RayFlagsSkipClosestHitShaderEXT,
+        ALL_OBJECTS,
+        0, 1, 1,
+        movedPoint(P, N),
+        T_MIN,
+        L,
+        T_MAX,
+        1
+    );
+    return shadowPayload;
+}
+
 void main() {
+    payload.instanceId = gl_InstanceCustomIndexEXT;
     InstanceData instance = instances[gl_InstanceCustomIndexEXT];
     MeshInfo mesh = meshes[instance.meshIndex];
     VertexBuffer vertexBuffer = VertexBuffer(mesh.vertexAddress);
@@ -62,23 +80,17 @@ void main() {
 
     MaterialData material = materials[instance.materialIndex];
     vec3 baseColor = getBaseColor(material, uv);
+    payload.radiance += payload.throughput * material.emissionColor * material.luminance;
+    if (material.luminance > 0.0) {
+        payload.done = true;
+        return;
+    }
     vec3 L = normalize(-directLight.dir.xyz);
     vec3 gN = normalize(cross(v1.pos - v0.pos, v2.pos - v0.pos));
     gN = normalize(normalMatrix * gN);
     if (dot(gN, N) < 0.0) gN = -gN;
     float NdotL = max(dot(N, L), 0.0);
-    shadowPayload = 0.0;
-    traceRayEXT(
-        tlas,
-        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-        ALL_OBJECTS,
-        0, 1, 1,
-        movedPoint(P, gN),
-        T_MIN,
-        L,
-        T_MAX,
-        1
-    );
+    shadowPayload = shadow(P, gN, L);
 
     vec3 wo = -gl_WorldRayDirectionEXT;
     Scatter scatter = lambertianScatter(payload.seed, baseColor, N, wo);
@@ -88,6 +100,5 @@ void main() {
 
     payload.origin    = movedPoint(P, gN);
     payload.direction = scatter.wi;
-    payload.instanceId = gl_InstanceCustomIndexEXT;
     payload.done      = false;
 }

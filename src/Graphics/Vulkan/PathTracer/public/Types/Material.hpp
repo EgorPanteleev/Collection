@@ -11,6 +11,8 @@
 namespace crv::graphics::vulkan {
     struct MaterialGPU {
         glm::vec3   baseColor{};
+        glm::vec3   emissionColor{};
+        float       luminance         = 0;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
     };
@@ -22,6 +24,8 @@ namespace crv::graphics::vulkan {
 
         std::string name{};
         glm::vec3   baseColor{};
+        glm::vec3   emissionColor     = {1, 1, 1};
+        float       luminance         = 0;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
     };
@@ -29,6 +33,8 @@ namespace crv::graphics::vulkan {
     inline Material::GPU Material::gpu() const {
         return {
             .baseColor = baseColor,
+            .emissionColor = emissionColor,
+            .luminance = luminance,
             .baseColorTexIndex = baseColorTexIndex,
             .normalTexIndex = normalTexIndex,
         };

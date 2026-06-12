@@ -48,6 +48,8 @@ struct PathPayload {
 
 struct MaterialData {
     vec3   baseColor;
+    vec3   emissionColor;
+    float  luminance;
     uint   baseColorTexIndex;
     uint   normalTexIndex;
 };
