@@ -33,14 +33,6 @@ static glm::vec3 clampRotation(const glm::vec3& e) {
     return {clampAngle(e.x), clampAngle(e.y), clampAngle(e.z)};
 }
 
-static VkTransformMatrixKHR toVkTransform(const glm::mat4& mat) {
-    VkTransformMatrixKHR t{};
-    for (int c = 0; c < 3; ++c)
-        for (int r = 0; r < 4; ++r)
-            t.matrix[c][r] = mat[r][c];
-    return t;
-}
-
 namespace crv::graphics::vulkan {
     namespace cu = utils;
 
@@ -88,11 +80,11 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::readScene(const std::string& scenePath) {
         std::ifstream file(scenePath);
-        file >> mScene;
+        file >> mJson;
     }
 
     void PathTracerApp::createContext() {
-        auto window = mScene["window"];
+        auto window = mJson["window"];
         const WindowCreateInfo windowCreateInfo {
             .width  = window["width"],
             .height = window["height"],
@@ -308,8 +300,8 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::createCamera() {
-        auto camera = mScene["camera"];
-        auto window = mScene["window"];
+        auto camera = mJson["camera"];
+        auto window = mJson["window"];
         const cs::CameraCreateInfo info {
             .type = camera["type"] == "Fly" ? cs::CameraType::FLY : cs::CameraType::ORBITAL,
             .pos = toVec3(camera["position"]),
@@ -360,8 +352,8 @@ namespace crv::graphics::vulkan {
                 indices.push_back(loader->indices()[mesh.baseIndex + i]);
             }
 
-            mBLASEntries.emplace_back();
-            BLASEntry& blasEntry = mBLASEntries.back();
+            mBLASDatas.emplace_back();
+            BLASData& blasData = mBLASDatas.back();
             const size_t verticesSize = sizeof(Vertex) * vertices.size();
             const BufferCreateInfo vertexBufferCreateInfo {
                 .allocator = mContext.allocator(),
@@ -372,12 +364,12 @@ namespace crv::graphics::vulkan {
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
-            blasEntry.vertexBuffer = Buffer(vertexBufferCreateInfo);
+            blasData.vertexBuffer = Buffer(vertexBufferCreateInfo);
             const CopyDataToGPUBufferInfo vertexCopyInfo {
                 .data = vertices.data(),
                 .size = verticesSize,
                 .allocator = mContext.allocator(),
-                .buffer = blasEntry.vertexBuffer.get(),
+                .buffer = blasData.vertexBuffer.get(),
                 .device = mContext.device(),
                 .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
                 .queue = mContext.queue(QueueFamilyType::GRAPHICS)
@@ -394,12 +386,12 @@ namespace crv::graphics::vulkan {
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
             };
-            blasEntry.indexBuffer = Buffer(indexBufferCreateInfo);
+            blasData.indexBuffer = Buffer(indexBufferCreateInfo);
             const CopyDataToGPUBufferInfo indexCopyInfo {
                 .data = indices.data(),
                 .size = indicesSize,
                 .allocator = mContext.allocator(),
-                .buffer = blasEntry.indexBuffer.get(),
+                .buffer = blasData.indexBuffer.get(),
                 .device = mContext.device(),
                 .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
                 .queue = mContext.queue(QueueFamilyType::GRAPHICS)
@@ -411,17 +403,14 @@ namespace crv::graphics::vulkan {
                 .device = mContext.device(),
                 .physicalDevice = mContext.physicalDevice(),
                 .allocator = mContext.allocator(),
-                .vertexAddress = blasEntry.vertexBuffer.deviceAddress(mContext.device()),
+                .vertexAddress = blasData.vertexBuffer.deviceAddress(mContext.device()),
                 .vertexStride = sizeof(Vertex),
                 .vertexCount = static_cast<uint32_t>(vertices.size()),
-                .indexAddress = blasEntry.indexBuffer.deviceAddress(mContext.device()),
+                .indexAddress = blasData.indexBuffer.deviceAddress(mContext.device()),
                 .indexCount = static_cast<uint32_t>(indices.size())
             };
-            blasEntry.blas = AccelerationStructure(blasCreateInfo);
-            mBLASInfos.emplace_back(blasEntry.vertexBuffer.deviceAddress(mContext.device()),
-                blasEntry.indexBuffer.deviceAddress(mContext.device()));
-            VkDeviceAddress blasAddress = blasEntry.blas.deviceAddress();
-            auto allInstances = mScene["instances"];
+            blasData.blas = AccelerationStructure(blasCreateInfo);
+            auto allInstances = mJson["instances"];
             decltype(allInstances) instances;
             for (const auto& instance: allInstances) {
                 if (instance["modelIndex"] != modelIndex) continue;
@@ -440,24 +429,15 @@ namespace crv::graphics::vulkan {
                 transform.rotation = glm::normalize(qy * qx * qz);
                 uint32_t materialIndex = instance["texIndex"];
                 if (materialIndex == UINT32_MAX) materialIndex = baseMaterial + mesh.materialIndex;
-                VkASInstance asInstance{
-                    .transform = toVkTransform(transform.matrix()),
-                    .instanceCustomIndex = static_cast<uint32_t>(mInstances.size()),
-                    .mask = 0xFF,
-                    .instanceShaderBindingTableRecordOffset = 0,
-                    .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
-                    .accelerationStructureReference = blasAddress
-                };
-                mInstances.push_back(asInstance);
-                InstanceInfo instanceInfo {
+                InstanceData instanceData {
                     .name = instance["name"],
                     .meshName = mesh.name,
                     .transform = transform,
-                    .meshIndex = static_cast<uint32_t>(mBLASEntries.size() - 1),
+                    .meshIndex = static_cast<uint32_t>(mBLASDatas.size() - 1),
                     .materialIndex = materialIndex,
                     .indexCount = static_cast<uint32_t>(indices.size())
                 };
-                mInstanceInfos.push_back(instanceInfo);
+                mInstances.push_back(instanceData);
             }
         }
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
@@ -482,7 +462,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::loadMaterials() {
-        auto materials = mScene["materials"];
+        auto materials = mJson["materials"];
         mMaterials.resize(materials.size());
         for (int materialIndex = 0; materialIndex < materials.size(); ++materialIndex) {
             Material& material = mMaterials[materialIndex];
@@ -495,7 +475,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::buildTLAS() {
-        const size_t instancesSize = sizeof(VkASInstance) * mInstances.size();
+        const size_t instancesSize = sizeof(InstanceData::AS) * mInstances.size();
         const BufferCreateInfo instanceBufferCreateInfo {
             .allocator = mContext.allocator(),
             .size = instancesSize,
@@ -505,8 +485,15 @@ namespace crv::graphics::vulkan {
             .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
         };
         mInstanceBuffer = Buffer(instanceBufferCreateInfo);
+        std::vector<InstanceData::AS> asInstances{};
+        asInstances.reserve(mInstances.size());
+        for (size_t i = 0; i < mInstances.size(); ++i) {
+            const InstanceData& instance = mInstances[i];
+            const AccelerationStructure& blas = mBLASDatas[instance.meshIndex].blas;
+            asInstances.push_back(instance.vkAS(i, blas.deviceAddress()));
+        }
         const CopyDataToGPUBufferInfo instanceCopyInfo {
-            .data = mInstances.data(),
+            .data = asInstances.data(),
             .size = instancesSize,
             .allocator = mContext.allocator(),
             .buffer = mInstanceBuffer.get(),
@@ -530,12 +517,12 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::loadScene() {
-        auto directLight = mScene["directLight"];
+        auto directLight = mJson["directLight"];
         mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
         mDirectLight.intensity = directLight["intensity"];
 
         loadMaterials();
-        std::vector<std::string> models = mScene["modelImports"];
+        std::vector<std::string> models = mJson["modelImports"];
         for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
             loadModel(modelIndex, models[modelIndex]);
         }
@@ -565,9 +552,9 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::createRayTracerPass() {
         const RayTracerPassCreateInfo createInfo {
             .context = &mContext,
-            .blasInfos = &mBLASInfos,
+            .blasDatas = &mBLASDatas,
             .tlas = &mTLAS,
-            .instanceInfos = &mInstanceInfos,
+            .instances = &mInstances,
             .textures = &mTextures,
             .materials = &mMaterials,
             .outView = &mTracerView,
@@ -638,13 +625,13 @@ namespace crv::graphics::vulkan {
         beginCommandBuffer(commandBuffer);
         RasterizerPassRecordInfo recordInfo{};
         if (mSelectedInstanceId != 0) {
-            const InstanceInfo& instanceInfo = mInstanceInfos[mSelectedInstanceId - 1];
-            BLASEntry& blasEntry = mBLASEntries[instanceInfo.meshIndex];
+            const InstanceData& instance = mInstances[mSelectedInstanceId - 1];
+            BLASData& blasData = mBLASDatas[instance.meshIndex];
             recordInfo = {
                 .commandBuffer = commandBuffer,
-                .vertexBuffer = &blasEntry.vertexBuffer,
-                .indexBuffer = &blasEntry.indexBuffer,
-                .indexCount = instanceInfo.indexCount,
+                .vertexBuffer = &blasData.vertexBuffer,
+                .indexBuffer = &blasData.indexBuffer,
+                .indexCount = instance.indexCount,
                 .extent = mSwapchain.extent(),
                 .currentFrame = mCurrentFrame
             };
@@ -819,7 +806,7 @@ namespace crv::graphics::vulkan {
         if (mSelectedInstanceId == 0) return;
         const RasterizerPassUpdateInfo rasterUpdateInfo {
             .camera = mCamera,
-            .instanceInfo = &mInstanceInfos[mSelectedInstanceId - 1],
+            .instance = &mInstances[mSelectedInstanceId - 1],
             .currentFrame = mCurrentFrame
         };
         mRasterizerPass.update(rasterUpdateInfo);
@@ -1024,7 +1011,7 @@ namespace crv::graphics::vulkan {
                     ImGui::Text("Click a mesh in the viewport");
                     return;
                 }
-                InstanceInfo& instance = mInstanceInfos[mSelectedInstanceId - 1];
+                InstanceData& instance = mInstances[mSelectedInstanceId - 1];
                 if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
                     if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                         VkImGui::row("Name"         , instance.name.c_str());
@@ -1134,14 +1121,14 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::updateInstanceModel() {
-        const InstanceInfo& instanceInfo = mInstanceInfos[mSelectedInstanceId - 1];
-        VkASInstance& asInstance = mInstances[mSelectedInstanceId - 1];
-        asInstance.transform = toVkTransform(instanceInfo.transform.matrix());
+        const InstanceData& instance = mInstances[mSelectedInstanceId - 1];
+        InstanceData::AS asInstance =
+            instance.vkAS(mSelectedInstanceId - 1, mBLASDatas[instance.meshIndex].blas.deviceAddress());
         const CopyDataToGPUBufferInfo copyInfo {
-            .data = mInstances.data(),
-            .srcOffset = sizeof(VkASInstance) * (mSelectedInstanceId - 1),
-            .dstOffset = sizeof(VkASInstance) * (mSelectedInstanceId - 1),
-            .size = sizeof(VkASInstance),
+            .data = &asInstance,
+            .srcOffset = 0,
+            .dstOffset = sizeof(InstanceData::AS) * (mSelectedInstanceId - 1),
+            .size = sizeof(InstanceData::AS),
             .allocator = mContext.allocator(),
             .buffer = mInstanceBuffer.get(),
             .device = mContext.device(),

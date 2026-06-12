@@ -10,7 +10,6 @@ layout(binding = 0) uniform MVPBuffer {
     mat4 model;
     mat4 view;
     mat4 proj;
-    mat4 trInvModel;
 } mvp;
 
 layout(binding = 1) uniform InstanceBuffer {

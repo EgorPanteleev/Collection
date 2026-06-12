@@ -201,4 +201,12 @@ namespace crv::graphics::vulkan {
             .extent = extent,
         };
     }
+
+    VkTransformMatrixKHR toVkTransform(const glm::mat4& mat) {
+        VkTransformMatrixKHR t{};
+        for (int c = 0; c < 3; ++c)
+            for (int r = 0; r < 4; ++r)
+                t.matrix[c][r] = mat[r][c];
+        return t;
+    }
 }

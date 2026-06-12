@@ -1,0 +1,45 @@
+//
+// Created by igor on 6/10/26.
+//
+
+#ifndef COLLECTION_MATERIAL_HPP
+#define COLLECTION_MATERIAL_HPP
+
+#include <string>
+#include <glm/glm.hpp>
+
+namespace crv::graphics::vulkan {
+    struct MaterialGPU {
+        glm::vec3   baseColor{};
+        uint32_t    baseColorTexIndex = UINT32_MAX;
+        uint32_t    normalTexIndex    = UINT32_MAX;
+    };
+
+    struct Material {
+        using GPU = MaterialGPU;
+        [[nodiscard]] GPU gpu() const;
+        [[nodiscard]] static std::vector<GPU> gpu(const std::vector<Material>& materials);
+
+        std::string name{};
+        glm::vec3   baseColor{};
+        uint32_t    baseColorTexIndex = UINT32_MAX;
+        uint32_t    normalTexIndex    = UINT32_MAX;
+    };
+
+    inline Material::GPU Material::gpu() const {
+        return {
+            .baseColor = baseColor,
+            .baseColorTexIndex = baseColorTexIndex,
+            .normalTexIndex = normalTexIndex,
+        };
+    }
+
+    inline std::vector<Material::GPU> Material::gpu(const std::vector<Material>& materials) {
+        std::vector<GPU> res{};
+        res.reserve(materials.size());
+        for (const auto& material: materials) res.push_back(material.gpu());
+        return res;
+    }
+}
+
+#endif //COLLECTION_MATERIAL_HPP

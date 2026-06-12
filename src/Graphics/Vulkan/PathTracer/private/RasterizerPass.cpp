@@ -4,8 +4,6 @@
 
 #include "RasterizerPass.hpp"
 
-#include "TypesGPU.hpp"
-
 namespace crv::graphics::vulkan {
     RasterizerPass::RasterizerPass(const RasterizerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context),
@@ -19,19 +17,15 @@ namespace crv::graphics::vulkan {
     }
 
     void RasterizerPass::update(const RasterizerPassUpdateInfo& info) {
-        constexpr auto model = glm::mat4(1.0f);
         const MVPGPU MVP {
-            .model = model,
+            .model = glm::mat4(1.0f),
             .view = info.camera->viewMatrix(),
             .proj = info.camera->projectionMatrix(),
-            .trInvModel = glm::transpose(glm::inverse(model))
         };
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(MVPGPU), mMVPBuffers[info.currentFrame]);
 
-        const RasterInstanceGPU instanceGPU = {
-            .model = info.instanceInfo->transform.matrix()
-        };
-        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &instanceGPU, sizeof(RasterInstanceGPU),
+        const glm::mat4 instanceModel = info.instance->transform.matrix();
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &instanceModel, sizeof(glm::mat4),
             mInstanceBuffers[info.currentFrame]);
     }
 
@@ -230,7 +224,7 @@ namespace crv::graphics::vulkan {
         UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             uboData.add<MVPGPU>(mMVPBuffers[i]);
-            uboData.add<RasterInstanceGPU>(mInstanceBuffers[i]);
+            uboData.add<glm::mat4>(mInstanceBuffers[i]);
         }
         uboData.createAll(mContext);
     }

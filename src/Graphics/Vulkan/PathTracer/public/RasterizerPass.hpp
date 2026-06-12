@@ -26,7 +26,7 @@ namespace crv::graphics::vulkan {
 
     struct RasterizerPassUpdateInfo {
         cs::AbsCamera* camera       = nullptr;
-        InstanceInfo*  instanceInfo = nullptr;
+        InstanceData*  instance     = nullptr;
         uint32_t       currentFrame = 0;
     };
 

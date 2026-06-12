@@ -1,72 +1,45 @@
 //
-// Created by igor on 6/8/26.
+// Created by igor on 6/10/26.
 //
 
 #ifndef COLLECTION_TYPES_HPP
 #define COLLECTION_TYPES_HPP
 
-#include "AccelerationStructure.hpp"
-#include "Context.hpp"
-
-#include <glm/gtx/quaternion.hpp>
+#include "Types/InstanceData.hpp"
+#include "Types/Material.hpp"
+#include "Types/BLASData.hpp"
+#include "Types/UBOData.hpp"
+#include "Types/SSBOData.hpp"
 
 namespace crv::graphics::vulkan {
-    using SSBOInfo = std::tuple<void*, uint32_t, Buffer&>;
-    using UBOInfo  = std::tuple<uint32_t, Buffer&>;
     using ivec2 = glm::vec<2, uint32_t>;
-
-    struct SSBOData: std::vector<SSBOInfo> {
-        SSBOData() = default;
-        template <typename Type>
-        void add(const std::vector<Type>& dataBuffer, Buffer& buffer) { emplace_back(const_cast<Type*>(dataBuffer.data()), dataBuffer.size() * sizeof(Type), buffer); }
-        void createAll(Context* context, QueueFamilyType familyType) const;
+    struct PushConstants {
+        uint32_t frameCount  = 0;
+        uint32_t spp         = 1;
+        uint32_t minDepth    = 1;
+        uint32_t maxDepth    = 1;
+        uint32_t displayMode = 4;
     };
 
-    struct UBOData: std::vector<UBOInfo> {
-        UBOData() = default;
-        template <typename Type>
-        void add(Buffer& buffer) { emplace_back(sizeof(Type), buffer); }
-        void createAll(Context* context) const;
+    struct Vertex {
+        glm::vec3 pos;
+        glm::vec2 texCoord;
+        glm::vec3 normal;
+        glm::vec4 tangent;
     };
 
-    struct BLASEntry {
-        Buffer                vertexBuffer = CRV_NULL_HANDLE;
-        Buffer                indexBuffer  = CRV_NULL_HANDLE;
-        AccelerationStructure blas         = CRV_NULL_HANDLE;
+    struct alignas(16) CameraGPU {
+        glm::mat4 invView;
+        glm::mat4 invProj;
     };
 
-    struct BLASInfo {
-        VkDeviceSize vertexAddress = 0;
-        VkDeviceSize indexAddress  = 0;
+    struct DirectLight {
+        glm::vec3 dir{};
+        float intensity = 0;
     };
 
-    struct Transform {
-        glm::vec3 position {0.0f};
-        glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
-        glm::vec3 scale    {1.0f};
-
-        [[nodiscard]] glm::mat4 matrix() const {
-            glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
-            glm::mat4 R = glm::toMat4(rotation);
-            glm::mat4 S = glm::scale(glm::mat4(1.0f), scale);
-            return T * R * S;
-        }
-    };
-
-    struct InstanceInfo {
-        std::string name{};
-        std::string meshName{};
-        Transform   transform{};
-        uint32_t    meshIndex      = 0;
-        uint32_t    materialIndex  = 0;
-        uint32_t    indexCount     = 0;
-    };
-
-    struct Material {
-        std::string name{};
-        glm::vec3   baseColor{};
-        uint32_t    baseColorTexIndex = UINT32_MAX;
-        uint32_t    normalTexIndex    = UINT32_MAX;
+    struct alignas(16) MVPGPU {
+        glm::mat4 model, view, proj, trInvModel;
     };
 }
 

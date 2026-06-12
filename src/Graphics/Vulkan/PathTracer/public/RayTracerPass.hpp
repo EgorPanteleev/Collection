@@ -13,16 +13,16 @@
 #include "AccelerationStructure.hpp"
 #include "Camera.hpp"
 #include "Types.hpp"
-#include "TypesGPU.hpp"
+#include "Types.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
 
     struct RayTracerPassCreateInfo {
         Context*                      context           = nullptr;
-        std::vector<BLASInfo>*        blasInfos         = nullptr;
         AccelerationStructure*        tlas              = nullptr;
-        std::vector<InstanceInfo>*    instanceInfos     = nullptr;
+        std::vector<InstanceData>*    instances         = nullptr;
+        std::vector<BLASData>*        blasDatas         = nullptr;
         std::vector<Texture>*         textures          = nullptr;
         std::vector<Material>*        materials         = nullptr;
         ImageView*                    outView           = nullptr;
@@ -32,7 +32,7 @@ namespace crv::graphics::vulkan {
 
     struct RayTracerPassUpdateInfo {
         cs::AbsCamera* camera       = nullptr;
-        DirectLightGPU directLight{};
+        DirectLight    directLight{};
         uint32_t       currentFrame = 0;
     };
 
@@ -62,9 +62,9 @@ namespace crv::graphics::vulkan {
         uint32_t                        mFramesInFlight       = 0;
 
         Context*                        mContext              = nullptr;
-        std::vector<BLASInfo>*          mBLASInfos            = nullptr;
         AccelerationStructure*          mTLAS                 = nullptr;
-        std::vector<InstanceInfo>*      mInstanceInfos        = nullptr;
+        std::vector<InstanceData>*      mInstances            = nullptr;
+        std::vector<BLASData>*          mBLASDatas            = nullptr;
         std::vector<Texture>*           mTextures             = nullptr;
         std::vector<Material>*          mMaterials            = nullptr;
         ImageView*                      mOutputView           = nullptr;

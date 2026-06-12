@@ -10,8 +10,8 @@ layout(buffer_reference, scalar) readonly buffer IndexBuffer {
     uint indices[];
 };
 layout(binding = 0) uniform accelerationStructureEXT tlas;
-layout(binding = 4) uniform DirectLight {
-    vec4 dir;
+layout(binding = 4, scalar) uniform DirectLight {
+    vec3 dir;
     float intensity;
 } directLight;
 layout(binding = 5, scalar) readonly buffer MeshInfoBuffer {
@@ -20,7 +20,7 @@ layout(binding = 5, scalar) readonly buffer MeshInfoBuffer {
 layout(binding = 6, scalar) readonly buffer InstanceBuffer {
     InstanceData instances[];
 };
-layout(binding = 7) readonly buffer MaterialBuffer {
+layout(binding = 7, scalar) readonly buffer MaterialBuffer {
     MaterialData materials[];
 };
 layout(binding = 8) uniform sampler2D textures[];

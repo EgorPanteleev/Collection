@@ -19,7 +19,6 @@ using json = nlohmann::json;
 #include "Semaphore.hpp"
 #include "Fence.hpp"
 #include "Types.hpp"
-#include "TypesGPU.hpp"
 #include "ImGui.hpp"
 
 namespace crv::graphics::vulkan {
@@ -87,7 +86,7 @@ namespace crv::graphics::vulkan {
         uint32_t                     mSelectedInstanceId   = UINT32_MAX;
         ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
 
-        json                         mScene{};
+        json                         mJson{};
         Context                      mContext              = CRV_NULL_HANDLE;
         Swapchain                    mSwapchain            = CRV_NULL_HANDLE;
         RayTracerPass                mRayTracerPass        = CRV_NULL_HANDLE;
@@ -123,15 +122,13 @@ namespace crv::graphics::vulkan {
         cs::OrbitalCamera            mOrbitalCamera{};
         cs::AbsCamera*               mCamera               = nullptr;
 
-        std::vector<BLASEntry>       mBLASEntries{};
-        std::vector<BLASInfo>        mBLASInfos{};
-        std::vector<VkASInstance>    mInstances{};
-        std::vector<InstanceInfo>    mInstanceInfos{};
+        std::vector<BLASData>        mBLASDatas{};
+        std::vector<InstanceData>    mInstances{};
         Buffer                       mInstanceBuffer       = CRV_NULL_HANDLE;
         AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
         std::vector<Material>        mMaterials{};
         std::vector<Texture>         mTextures{};
-        DirectLightGPU               mDirectLight{};
+        DirectLight                  mDirectLight{};
 
         VkImGui                      mImGui                = CRV_NULL_HANDLE;
         int                          mSPP                  = 1;

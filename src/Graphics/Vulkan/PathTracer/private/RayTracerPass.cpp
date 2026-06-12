@@ -3,14 +3,12 @@
 //
 
 #include "RayTracerPass.hpp"
-#include "TypesGPU.hpp"
-#include "Types.hpp"
 
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
-    mFramesInFlight(info.framesInFlight), mContext(info.context), mBLASInfos(info.blasInfos),
-    mTLAS(info.tlas), mInstanceInfos(info.instanceInfos), mTextures(info.textures), mMaterials(info.materials),
-    mOutputView(info.outView), mOutputInstanceIdView(info.outInstanceIdView) {
+    mFramesInFlight(info.framesInFlight), mContext(info.context), mTLAS(info.tlas),
+    mInstances(info.instances), mBLASDatas(info.blasDatas), mTextures(info.textures),
+    mMaterials(info.materials), mOutputView(info.outView), mOutputInstanceIdView(info.outInstanceIdView) {
         createBuffers();
         createDescriptorManager();
         createShaders();
@@ -28,7 +26,7 @@ namespace crv::graphics::vulkan {
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &camera, sizeof(CameraGPU), cameraBuffer);
 
         Buffer& directLightBuffer = mDirectLightBuffers[info.currentFrame];
-        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &info.directLight, sizeof(DirectLightGPU), directLightBuffer);
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &info.directLight, sizeof(DirectLight), directLightBuffer);
     }
 
     void RayTracerPass::record(const RayTracerPassRecordInfo& info) {
@@ -50,17 +48,12 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::updateMaterial(const uint32_t index) {
-        std::vector<MaterialGPU> materials;
-        materials.reserve(mMaterials->size());
-        for (auto& material: *mMaterials) {
-            materials.emplace_back(glm::vec4(material.baseColor, 1),
-                material.baseColorTexIndex, material.normalTexIndex);
-        }
+        Material::GPU materialGPU = (*mMaterials)[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
-            .data = materials.data(),
-            .srcOffset = sizeof(MaterialGPU) * index,
-            .dstOffset = sizeof(MaterialGPU) * index,
-            .size = sizeof(MaterialGPU),
+            .data = &materialGPU,
+            .srcOffset = 0,
+            .dstOffset = sizeof(Material::GPU) * index,
+            .size = sizeof(Material::GPU),
             .allocator = mContext->allocator(),
             .buffer = mMaterialBuffer.get(),
             .device = mContext->device(),
@@ -71,16 +64,12 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::updateInstance(const uint32_t index) {
-        std::vector<InstanceInfoGPU> instanceInfos;
-        instanceInfos.reserve(mInstanceInfos->size());
-        for (auto& instanceInfo: *mInstanceInfos) {
-            instanceInfos.emplace_back(instanceInfo.meshIndex, instanceInfo.materialIndex);
-        }
+        InstanceData::GPU instanceGPU = (*mInstances)[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
-            .data = instanceInfos.data(),
-            .srcOffset = sizeof(InstanceInfoGPU) * index,
-            .dstOffset = sizeof(InstanceInfoGPU) * index,
-            .size = sizeof(InstanceInfoGPU),
+            .data = &instanceGPU,
+            .srcOffset = 0,
+            .dstOffset = sizeof(InstanceData::GPU) * index,
+            .size = sizeof(InstanceData::GPU),
             .allocator = mContext->allocator(),
             .buffer = mInstanceInfoBuffer.get(),
             .device = mContext->device(),
@@ -304,20 +293,12 @@ namespace crv::graphics::vulkan {
 
     void RayTracerPass::createBuffers() {
         SSBOData ssboData{};
-        ssboData.add(*mBLASInfos, mBLASInfoBuffer);
-        std::vector<InstanceInfoGPU> instanceInfos;
-        instanceInfos.reserve(mInstanceInfos->size());
-        for (auto& instanceInfo: *mInstanceInfos) {
-            instanceInfos.emplace_back(instanceInfo.meshIndex, instanceInfo.materialIndex);
-        }
-        ssboData.add(instanceInfos, mInstanceInfoBuffer);
-        std::vector<MaterialGPU> materials;
-        materials.reserve(mMaterials->size());
-        for (auto& material: *mMaterials) {
-            materials.emplace_back(glm::vec4(material.baseColor, 1),
-                material.baseColorTexIndex, material.normalTexIndex);
-        }
-        ssboData.add(materials, mMaterialBuffer);
+        auto blasDatasGPU = BLASData::gpu(mContext->device(), *mBLASDatas);
+        ssboData.add(blasDatasGPU, mBLASInfoBuffer);
+        auto instancesGPU = InstanceData::gpu(*mInstances);
+        ssboData.add(instancesGPU, mInstanceInfoBuffer);
+        auto materialsGPU = Material::gpu(*mMaterials);
+        ssboData.add(materialsGPU, mMaterialBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
 
         mCameraBuffers.resize(mFramesInFlight);
@@ -325,7 +306,7 @@ namespace crv::graphics::vulkan {
         UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             uboData.add<CameraGPU>(mCameraBuffers[i]);
-            uboData.add<DirectLightGPU>(mDirectLightBuffers[i]);
+            uboData.add<DirectLight>(mDirectLightBuffers[i]);
         }
         uboData.createAll(mContext);
     }

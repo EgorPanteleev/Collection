@@ -34,7 +34,6 @@ struct MeshInfo {
 struct InstanceData {
     uint meshIndex;
     uint materialIndex;
-    uint pad[2];
 };
 
 struct PathPayload {
@@ -48,7 +47,7 @@ struct PathPayload {
 };
 
 struct MaterialData {
-    vec4   baseColor;
+    vec3   baseColor;
     uint   baseColorTexIndex;
     uint   normalTexIndex;
 };
@@ -67,20 +66,20 @@ vec3 movedPoint(vec3 p, vec3 gn) {
     return offsetRay(p, gn);
 }
 
-uint pcg(uint v){
+uint pcg(uint v) {
     uint state = v * 747796405u + 2891336453u;
     uint word  = ((state >> ((state >> 28) + 4)) ^ state) * 277803737u;
     return (word >> 22) ^ word;
 }
 
-float rand01(inout uint seed){
+float rand01(inout uint seed) {
     seed = pcg(seed);
     return float(seed) / 4294967296.0;
 }
 
 float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
-float copysign(float x, float y){
+float copysign(float x, float y) {
     return abs(x) * (y < 0.0 ? -1.0 : 1.0);
 }
 

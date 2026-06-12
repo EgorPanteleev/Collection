@@ -11,6 +11,8 @@
 #include "Buffer.hpp"
 #include "ImageView.hpp"
 
+#include <glm/glm.hpp>
+
 namespace crv::graphics::vulkan {
     struct CommandBufferData {
         CommandPool*    commandPool    = nullptr;
@@ -32,5 +34,6 @@ namespace crv::graphics::vulkan {
     VkDescriptorSetLayoutBinding getLayoutBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags);
     VkViewport getDefaultViewport(VkExtent2D extent);
     VkRect2D getDefaultScissor(VkExtent2D extent);
+    VkTransformMatrixKHR toVkTransform(const glm::mat4& mat);
 }
 #endif //COLLECTION_COREUTILS_HPP
