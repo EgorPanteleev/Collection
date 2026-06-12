@@ -5,6 +5,8 @@
 #ifndef COLLECTION_INSTANCEDATA_HPP
 #define COLLECTION_INSTANCEDATA_HPP
 
+#include "CoreUtils.hpp"
+
 #include <string>
 #include <glm/gtx/quaternion.hpp>
 

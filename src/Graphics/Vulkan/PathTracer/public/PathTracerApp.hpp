@@ -19,8 +19,8 @@ using json = nlohmann::json;
 #include "Semaphore.hpp"
 #include "Fence.hpp"
 #include "Types.hpp"
-#include "ImGui.hpp"
 #include "ResourceManager.hpp"
+#include "AppUI.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
@@ -55,7 +55,7 @@ namespace crv::graphics::vulkan {
         void createRayTracerPass();
         void createRasterizerPass();
         void createPostprocessPass();
-        void createImGui();
+        void createUI();
         void update();
         void recordTracer();
         void recordRaster();
@@ -121,11 +121,7 @@ namespace crv::graphics::vulkan {
 
         ResourceManager              mResourceManager{};
 
-        VkImGui                      mImGui                = CRV_NULL_HANDLE;
-        int                          mSPP                  = 1;
-        int                          mMinDepth             = 0;
-        int                          mMaxDepth             = 2;
-        int                          mDisplayMode          = 4;
+        AppUI                        mUI{};
     };
 }
 
