@@ -7,8 +7,8 @@
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context), mTLAS(info.tlas),
-    mInstances(info.instances), mBLASDatas(info.blasDatas), mTextures(info.textures),
-    mMaterials(info.materials), mOutputView(info.outView), mOutputInstanceIdView(info.outInstanceIdView) {
+    mBLASBuffer(info.BLASBuffer), mInstanceBuffer(info.instanceBuffer), mTextures(info.textures),
+    mMaterialBuffer(info.materialBuffer), mOutputView(info.outView), mOutputInstanceIdView(info.outInstanceIdView) {
         createBuffers();
         createDescriptorManager();
         createShaders();
@@ -47,38 +47,6 @@ namespace crv::graphics::vulkan {
             info.width, info.height, 1);
     }
 
-    void RayTracerPass::updateMaterial(const uint32_t index) {
-        Material::GPU materialGPU = (*mMaterials)[index].gpu();
-        const CopyDataToGPUBufferInfo copyInfo {
-            .data = &materialGPU,
-            .srcOffset = 0,
-            .dstOffset = sizeof(Material::GPU) * index,
-            .size = sizeof(Material::GPU),
-            .allocator = mContext->allocator(),
-            .buffer = mMaterialBuffer.get(),
-            .device = mContext->device(),
-            .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-            .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-        };
-        Buffer::copy(copyInfo);
-    }
-
-    void RayTracerPass::updateInstance(const uint32_t index) {
-        InstanceData::GPU instanceGPU = (*mInstances)[index].gpu();
-        const CopyDataToGPUBufferInfo copyInfo {
-            .data = &instanceGPU,
-            .srcOffset = 0,
-            .dstOffset = sizeof(InstanceData::GPU) * index,
-            .size = sizeof(InstanceData::GPU),
-            .allocator = mContext->allocator(),
-            .buffer = mInstanceInfoBuffer.get(),
-            .device = mContext->device(),
-            .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-            .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-        };
-        Buffer::copy(copyInfo);
-    }
-
     void RayTracerPass::createDescriptorManager() {
         auto textureCount = static_cast<uint32_t>(mTextures->size());
         mDescriptorManager.add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
@@ -105,9 +73,9 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.add(i, ImageResource(mOutputInstanceIdView, VK_IMAGE_LAYOUT_GENERAL));
             mDescriptorManager.add(i, BufferResource(mCameraBuffers[i]));
             mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i]));
-            mDescriptorManager.add(i, BufferResource(mBLASInfoBuffer));
-            mDescriptorManager.add(i, BufferResource(mInstanceInfoBuffer));
-            mDescriptorManager.add(i, BufferResource(mMaterialBuffer));
+            mDescriptorManager.add(i, BufferResource(*mBLASBuffer));
+            mDescriptorManager.add(i, BufferResource(*mInstanceBuffer));
+            mDescriptorManager.add(i, BufferResource(*mMaterialBuffer));
             mDescriptorManager.add(i, ImageResource(*mTextures));
         }
         mDescriptorManager.update();
@@ -292,15 +260,6 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::createBuffers() {
-        SSBOData ssboData{};
-        auto blasDatasGPU = BLASData::gpu(mContext->device(), *mBLASDatas);
-        ssboData.add(blasDatasGPU, mBLASInfoBuffer);
-        auto instancesGPU = InstanceData::gpu(*mInstances);
-        ssboData.add(instancesGPU, mInstanceInfoBuffer);
-        auto materialsGPU = Material::gpu(*mMaterials);
-        ssboData.add(materialsGPU, mMaterialBuffer);
-        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
-
         mCameraBuffers.resize(mFramesInFlight);
         mDirectLightBuffers.resize(mFramesInFlight);
         UBOData uboData{};

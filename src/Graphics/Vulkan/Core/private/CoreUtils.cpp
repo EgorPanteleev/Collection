@@ -209,4 +209,22 @@ namespace crv::graphics::vulkan {
                 t.matrix[c][r] = mat[r][c];
         return t;
     }
+
+    Texture toTexture(Context* context, const cm::Texture& texture) {
+        const TextureCreateInfo textureCreateInfo {
+            .device = context->device(),
+            .physicalDevice = context->physicalDevice(),
+            .allocator = context->allocator(),
+            .queue = context->queue(QueueFamilyType::COMPUTE),
+            .queueFamilyIndex = context->familyIndex(QueueFamilyType::COMPUTE).value(),
+            .dataByLevel = texture.mDataByLevel,
+            .texFormat = texture.mFormat,
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        return Texture(textureCreateInfo);
+    }
 }

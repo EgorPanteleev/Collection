@@ -10,6 +10,7 @@
 #include "Context.hpp"
 #include "Buffer.hpp"
 #include "ImageView.hpp"
+#include "Texture.hpp"
 
 #include <glm/glm.hpp>
 
@@ -35,5 +36,6 @@ namespace crv::graphics::vulkan {
     VkViewport getDefaultViewport(VkExtent2D extent);
     VkRect2D getDefaultScissor(VkExtent2D extent);
     VkTransformMatrixKHR toVkTransform(const glm::mat4& mat);
+    Texture toTexture(Context* context, const cm::Texture& texture);
 }
 #endif //COLLECTION_COREUTILS_HPP

@@ -14,14 +14,6 @@
 
 namespace fs = std::filesystem;
 
-static glm::vec3 toVec3(const nlohmann::json& json) {
-    return {
-        json[0].get<float>(),
-        json[1].get<float>(),
-        json[2].get<float>()
-    };
-}
-
 static float clampAngle(float deg) {
     deg = std::fmod(deg + 180.0f, 360.0f);
     if (deg < 0.0f) deg += 360.0f;
@@ -47,6 +39,7 @@ namespace crv::graphics::vulkan {
         createSyncObjects();
         createCommandBuffers();
         createCamera();
+        createResourceManager();
         loadScene();
         createRayTracerPass();
         createRasterizerPass();
@@ -322,241 +315,25 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::loadModel(const uint32_t modelIndex, const std::string& path) {
-        utils::Timer timer;
-        timer.start();
-        auto loader = new cm::Loader;
-        loader->setModel(ASSETS_PATH + path);
-        loader->load(glm::mat4(1.0f));
-        INFO << "Model (" << fs::path(path).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
-        timer.start();
-
-        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-        for (size_t meshIndex = 0; meshIndex < loader->meshes().size(); ++meshIndex) {
-            const auto& mesh = loader->meshes()[meshIndex];
-            std::vector<Vertex> vertices{};
-            vertices.reserve(mesh.numVertices);
-            for (size_t i = 0; i < mesh.numVertices; ++i) {
-                const cm::Vertex& modelVertex = loader->vertices()[mesh.baseVertex + i];
-                Vertex vertex {
-                    .pos = modelVertex.pos,
-                    .texCoord = modelVertex.texCoord0,
-                    .normal = modelVertex.normal,
-                    .tangent = modelVertex.tangent,
-                };
-                vertices.push_back(vertex);
-            }
-            std::vector<uint32_t> indices{};
-            indices.reserve(mesh.numIndices);
-            for (size_t i = 0; i < mesh.numIndices; ++i) {
-                indices.push_back(loader->indices()[mesh.baseIndex + i]);
-            }
-
-            mBLASDatas.emplace_back();
-            BLASData& blasData = mBLASDatas.back();
-            const size_t verticesSize = sizeof(Vertex) * vertices.size();
-            const BufferCreateInfo vertexBufferCreateInfo {
-                .allocator = mContext.allocator(),
-                .size = verticesSize,
-                .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                               VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            blasData.vertexBuffer = Buffer(vertexBufferCreateInfo);
-            const CopyDataToGPUBufferInfo vertexCopyInfo {
-                .data = vertices.data(),
-                .size = verticesSize,
-                .allocator = mContext.allocator(),
-                .buffer = blasData.vertexBuffer.get(),
-                .device = mContext.device(),
-                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
-                .queue = mContext.queue(QueueFamilyType::GRAPHICS)
-            };
-            Buffer::copy(vertexCopyInfo);
-
-            const size_t indicesSize = sizeof(uint32_t) * indices.size();
-            const BufferCreateInfo indexBufferCreateInfo {
-                .allocator = mContext.allocator(),
-                .size = indicesSize,
-                .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-                               VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                               VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-            };
-            blasData.indexBuffer = Buffer(indexBufferCreateInfo);
-            const CopyDataToGPUBufferInfo indexCopyInfo {
-                .data = indices.data(),
-                .size = indicesSize,
-                .allocator = mContext.allocator(),
-                .buffer = blasData.indexBuffer.get(),
-                .device = mContext.device(),
-                .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
-                .queue = mContext.queue(QueueFamilyType::GRAPHICS)
-            };
-            Buffer::copy(indexCopyInfo);
-
-            BLASCreateInfo blasCreateInfo {
-                .commandBuffer = commandBuffer,
-                .device = mContext.device(),
-                .physicalDevice = mContext.physicalDevice(),
-                .allocator = mContext.allocator(),
-                .vertexAddress = blasData.vertexBuffer.deviceAddress(mContext.device()),
-                .vertexStride = sizeof(Vertex),
-                .vertexCount = static_cast<uint32_t>(vertices.size()),
-                .indexAddress = blasData.indexBuffer.deviceAddress(mContext.device()),
-                .indexCount = static_cast<uint32_t>(indices.size())
-            };
-            blasData.blas = AccelerationStructure(blasCreateInfo);
-            auto allInstances = mJson["instances"];
-            decltype(allInstances) instances;
-            for (const auto& instance: allInstances) {
-                if (instance["modelIndex"] != modelIndex) continue;
-                instances.push_back(instance);
-            }
-
-            uint32_t baseMaterial = mMaterials.size();
-            for (const auto& instance: instances) {
-                glm::vec3 rot = toVec3(instance["localRotation"]);
-                Transform transform;
-                transform.position = toVec3(instance["localPosition"]);
-                transform.scale = toVec3(instance["localScale"]);
-                glm::quat qx = glm::angleAxis(glm::radians(rot.x), glm::vec3(1,0,0));
-                glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0,1,0));
-                glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0,0,1));
-                transform.rotation = glm::normalize(qy * qx * qz);
-                uint32_t materialIndex = instance["texIndex"];
-                if (materialIndex == UINT32_MAX) materialIndex = baseMaterial + mesh.materialIndex;
-                InstanceData instanceData {
-                    .name = instance["name"],
-                    .meshName = mesh.name,
-                    .transform = transform,
-                    .meshIndex = static_cast<uint32_t>(mBLASDatas.size() - 1),
-                    .materialIndex = materialIndex,
-                    .indexCount = static_cast<uint32_t>(indices.size())
-                };
-                mInstances.push_back(instanceData);
-            }
-        }
-        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
-        mMaterials.reserve(mMaterials.size() + loader->materials().size());
-        for (const auto& loaderMaterial: loader->materials()) {
-            Material material {
-                .name = loaderMaterial.mName.empty() ? "Unknown" : loaderMaterial.mName,
-                .baseColor = loaderMaterial.diffuseColor,
-            };
-            const cm::Texture& baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
-            const cm::Texture& normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];
-            if (!baseColorTexture.empty()) {
-                addTexture(baseColorTexture);
-                material.baseColorTexIndex = mTextures.size() - 1;
-            }
-            if (!normalTexture.empty()) {
-                addTexture(normalTexture);
-                material.normalTexIndex = mTextures.size() - 1;
-            }
-            mMaterials.push_back(material);
-        }
-    }
-
-    void PathTracerApp::loadMaterials() {
-        auto materials = mJson["materials"];
-        mMaterials.resize(materials.size());
-        for (int materialIndex = 0; materialIndex < materials.size(); ++materialIndex) {
-            Material& material = mMaterials[materialIndex];
-            auto jsonMaterial = materials[materialIndex];
-            material = {
-                .name = jsonMaterial["name"],
-                .baseColor = toVec3(jsonMaterial["color"]),
-            };
-        }
-    }
-
-    void PathTracerApp::buildTLAS() {
-        const size_t instancesSize = sizeof(InstanceData::AS) * mInstances.size();
-        const BufferCreateInfo instanceBufferCreateInfo {
-            .allocator = mContext.allocator(),
-            .size = instancesSize,
-            .bufferUsage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-                           VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+    void PathTracerApp::createResourceManager() {
+        const ResourceManagerCreateInfo createInfo {
+            .context = &mContext
         };
-        mInstanceBuffer = Buffer(instanceBufferCreateInfo);
-        std::vector<InstanceData::AS> asInstances{};
-        asInstances.reserve(mInstances.size());
-        for (size_t i = 0; i < mInstances.size(); ++i) {
-            const InstanceData& instance = mInstances[i];
-            const AccelerationStructure& blas = mBLASDatas[instance.meshIndex].blas;
-            asInstances.push_back(instance.vkAS(i, blas.deviceAddress()));
-        }
-        const CopyDataToGPUBufferInfo instanceCopyInfo {
-            .data = asInstances.data(),
-            .size = instancesSize,
-            .allocator = mContext.allocator(),
-            .buffer = mInstanceBuffer.get(),
-            .device = mContext.device(),
-            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
-            .queue = mContext.queue(QueueFamilyType::GRAPHICS)
-        };
-        Buffer::copy(instanceCopyInfo);
-
-        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-        TLASCreateInfo tlasCreateInfo {
-            .commandBuffer = commandBuffer,
-            .device = mContext.device(),
-            .physicalDevice = mContext.physicalDevice(),
-            .allocator = mContext.allocator(),
-            .instanceAddress = mInstanceBuffer.deviceAddress(mContext.device()),
-            .instanceCount = static_cast<uint32_t>(mInstances.size())
-        };
-        mTLAS = AccelerationStructure(tlasCreateInfo);
-        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
+        mResourceManager = ResourceManager(createInfo);
     }
 
     void PathTracerApp::loadScene() {
-        auto directLight = mJson["directLight"];
-        mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
-        mDirectLight.intensity = directLight["intensity"];
-
-        loadMaterials();
-        std::vector<std::string> models = mJson["modelImports"];
-        for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
-            loadModel(modelIndex, models[modelIndex]);
-        }
-        buildTLAS();
-        if (mTextures.empty()) addTexture(cm::AbsLoader::emptyTexture(cm::Texture::BASE_COLOR));
-    }
-
-    void PathTracerApp::addTexture(const cm::Texture& texture) {
-        mTextures.emplace_back();
-        const TextureCreateInfo textureCreateInfo {
-            .device = mContext.device(),
-            .physicalDevice = mContext.physicalDevice(),
-            .allocator = mContext.allocator(),
-            .queue = mContext.queue(QueueFamilyType::COMPUTE),
-            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::COMPUTE).value(),
-            .dataByLevel = texture.mDataByLevel,
-            .texFormat = texture.mFormat,
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .memoryUsage = VMA_MEMORY_USAGE_AUTO
-        };
-        mTextures.back() = Texture(textureCreateInfo);
+        mResourceManager.load(mJson);
     }
 
     void PathTracerApp::createRayTracerPass() {
         const RayTracerPassCreateInfo createInfo {
             .context = &mContext,
-            .blasDatas = &mBLASDatas,
-            .tlas = &mTLAS,
-            .instances = &mInstances,
-            .textures = &mTextures,
-            .materials = &mMaterials,
+            .tlas = &mResourceManager.tlas(),
+            .BLASBuffer = &mResourceManager.blasBuffer(),
+            .instanceBuffer = &mResourceManager.instanceBuffer(),
+            .materialBuffer = &mResourceManager.materialBuffer(),
+            .textures = &mResourceManager.textures(),
             .outView = &mTracerView,
             .outInstanceIdView = &mTracerInstanceView,
             .framesInFlight = mFramesInFlight
@@ -625,8 +402,8 @@ namespace crv::graphics::vulkan {
         beginCommandBuffer(commandBuffer);
         RasterizerPassRecordInfo recordInfo{};
         if (mSelectedInstanceId != 0) {
-            const InstanceData& instance = mInstances[mSelectedInstanceId - 1];
-            BLASData& blasData = mBLASDatas[instance.meshIndex];
+            const InstanceData& instance = mResourceManager.instances()[mSelectedInstanceId - 1];
+            BLASData& blasData = mResourceManager.blasDatas()[instance.meshIndex];
             recordInfo = {
                 .commandBuffer = commandBuffer,
                 .vertexBuffer = &blasData.vertexBuffer,
@@ -798,7 +575,7 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::update() {
         const RayTracerPassUpdateInfo tracerUpdateInfo {
             .camera = mCamera,
-            .directLight = mDirectLight,
+            .directLight = mResourceManager.directLight(),
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(tracerUpdateInfo);
@@ -806,7 +583,7 @@ namespace crv::graphics::vulkan {
         if (mSelectedInstanceId == 0) return;
         const RasterizerPassUpdateInfo rasterUpdateInfo {
             .camera = mCamera,
-            .instance = &mInstances[mSelectedInstanceId - 1],
+            .instance = &mResourceManager.instances()[mSelectedInstanceId - 1],
             .currentFrame = mCurrentFrame
         };
         mRasterizerPass.update(rasterUpdateInfo);
@@ -985,10 +762,10 @@ namespace crv::graphics::vulkan {
             auto renderFunc = [this] {
                 ImGui::Indent(4.0f);
                 if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    if (ImGui::DragFloat3("Direction", &mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
+                    if (ImGui::DragFloat3("Direction", &mResourceManager.directLight().dir.x, 0.005f, -1.0f, 1.0f)) {
                         updateImage();
                     }
-                    if (ImGui::DragFloat("Intensity", &mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
+                    if (ImGui::DragFloat("Intensity", &mResourceManager.directLight().intensity, 0.05f, 0.0f, 10.0f)) {
                         updateImage();
                     }
                 }
@@ -1011,7 +788,7 @@ namespace crv::graphics::vulkan {
                     ImGui::Text("Click a mesh in the viewport");
                     return;
                 }
-                InstanceData& instance = mInstances[mSelectedInstanceId - 1];
+                InstanceData& instance = mResourceManager.instances()[mSelectedInstanceId - 1];
                 if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
                     if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                         VkImGui::row("Name"         , instance.name.c_str());
@@ -1023,17 +800,18 @@ namespace crv::graphics::vulkan {
                 }
 
                 if (VkImGui::beginGroup(ICON_FA_PALETTE " Material")) {
-                    Material& material = mMaterials[instance.materialIndex];
+                    auto& materials = mResourceManager.materials();
+                    Material& material = materials[instance.materialIndex];
                     std::vector<std::string> materialItems;
-                    materialItems.reserve(mMaterials.size());
-                    for (size_t i = 0; i < mMaterials.size(); ++i) {
-                        materialItems.push_back("#" + std::to_string(i) + " " + mMaterials[i].name);
+                    materialItems.reserve(materials.size());
+                    for (size_t i = 0; i < materials.size(); ++i) {
+                        materialItems.push_back("#" + std::to_string(i) + " " + materials[i].name);
                     }
                     if (ImGui::BeginCombo(" ", materialItems[instance.materialIndex].c_str())) {
-                        for (size_t i = 0; i < mMaterials.size(); ++i) {
+                        for (size_t i = 0; i < materials.size(); ++i) {
                             if (ImGui::Selectable(materialItems[i].c_str())) {
                                 instance.materialIndex = i;
-                                mRayTracerPass.updateInstance(mSelectedInstanceId - 1);
+                                mResourceManager.updateInstance(mSelectedInstanceId - 1);
                                 updateImage();
                             }
                         }
@@ -1041,7 +819,7 @@ namespace crv::graphics::vulkan {
                     }
                     if (ImGui::CollapsingHeader("Surface", ImGuiTreeNodeFlags_DefaultOpen)) {
                         if (VkImGui::colorEdit3("Base Color", material.baseColor)) {
-                            mRayTracerPass.updateMaterial(instance.materialIndex);
+                            mResourceManager.updateMaterial(instance.materialIndex);
                             updateImage();
                         }
                     }
@@ -1089,7 +867,7 @@ namespace crv::graphics::vulkan {
                         changed = true;
 
                     if (changed) {
-                        updateInstanceModel();
+                        mResourceManager.updateInstanceTransform(mSelectedInstanceId - 1);
                         updateImage();
                     }
                     VkImGui::endGroup();
@@ -1118,30 +896,5 @@ namespace crv::graphics::vulkan {
         update();
         record(imageIndex);
         submit(imageIndex);
-    }
-
-    void PathTracerApp::updateInstanceModel() {
-        const InstanceData& instance = mInstances[mSelectedInstanceId - 1];
-        InstanceData::AS asInstance =
-            instance.vkAS(mSelectedInstanceId - 1, mBLASDatas[instance.meshIndex].blas.deviceAddress());
-        const CopyDataToGPUBufferInfo copyInfo {
-            .data = &asInstance,
-            .srcOffset = 0,
-            .dstOffset = sizeof(InstanceData::AS) * (mSelectedInstanceId - 1),
-            .size = sizeof(InstanceData::AS),
-            .allocator = mContext.allocator(),
-            .buffer = mInstanceBuffer.get(),
-            .device = mContext.device(),
-            .queueFamilyIndex = mContext.familyIndex(QueueFamilyType::GRAPHICS).value(),
-            .queue = mContext.queue(QueueFamilyType::GRAPHICS)
-        };
-        Buffer::copy(copyInfo);
-        auto [commandBuffer, cmdData] = beginCommandBuffer(&mContext, QueueFamilyType::GRAPHICS);
-        const TLASUpdateInfo updateInfo {
-            .commandBuffer = commandBuffer,
-            .instanceCount = static_cast<uint32_t>(mInstances.size())
-        };
-        mTLAS.update(updateInfo);
-        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
     }
 }

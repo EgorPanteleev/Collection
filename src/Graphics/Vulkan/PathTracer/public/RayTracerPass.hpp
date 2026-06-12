@@ -21,10 +21,10 @@ namespace crv::graphics::vulkan {
     struct RayTracerPassCreateInfo {
         Context*                      context           = nullptr;
         AccelerationStructure*        tlas              = nullptr;
-        std::vector<InstanceData>*    instances         = nullptr;
-        std::vector<BLASData>*        blasDatas         = nullptr;
+        Buffer*                       BLASBuffer       = nullptr;
+        Buffer*                       instanceBuffer   = nullptr;
+        Buffer*                       materialBuffer   = nullptr;
         std::vector<Texture>*         textures          = nullptr;
-        std::vector<Material>*        materials         = nullptr;
         ImageView*                    outView           = nullptr;
         ImageView*                    outInstanceIdView = nullptr;
         uint32_t                      framesInFlight    = 0;
@@ -49,8 +49,6 @@ namespace crv::graphics::vulkan {
         explicit RayTracerPass(const RayTracerPassCreateInfo& info);
         void update(const RayTracerPassUpdateInfo& info);
         void record(const RayTracerPassRecordInfo& info);
-        void updateMaterial(uint32_t index);
-        void updateInstance(uint32_t index);
     private:
         void createDescriptorManager();
         void createShaders();
@@ -63,10 +61,7 @@ namespace crv::graphics::vulkan {
 
         Context*                        mContext              = nullptr;
         AccelerationStructure*          mTLAS                 = nullptr;
-        std::vector<InstanceData>*      mInstances            = nullptr;
-        std::vector<BLASData>*          mBLASDatas            = nullptr;
         std::vector<Texture>*           mTextures             = nullptr;
-        std::vector<Material>*          mMaterials            = nullptr;
         ImageView*                      mOutputView           = nullptr;
         ImageView*                      mOutputInstanceIdView = nullptr;
         DescriptorManager               mDescriptorManager{};
@@ -83,9 +78,9 @@ namespace crv::graphics::vulkan {
         ShaderModule                    mShadowMissShader     = CRV_NULL_HANDLE;
         ShaderModule                    mHitShader            = CRV_NULL_HANDLE;
 
-        Buffer                          mBLASInfoBuffer{};
-        Buffer                          mInstanceInfoBuffer{};
-        Buffer                          mMaterialBuffer{};
+        Buffer*                         mBLASBuffer           = nullptr;
+        Buffer*                         mInstanceBuffer       = nullptr;
+        Buffer*                         mMaterialBuffer       = nullptr;
         std::vector<Buffer>             mCameraBuffers{};
         std::vector<Buffer>             mDirectLightBuffers{};
     };

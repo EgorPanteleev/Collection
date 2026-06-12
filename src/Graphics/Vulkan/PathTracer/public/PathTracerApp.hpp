@@ -20,6 +20,7 @@ using json = nlohmann::json;
 #include "Fence.hpp"
 #include "Types.hpp"
 #include "ImGui.hpp"
+#include "ResourceManager.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
@@ -49,11 +50,8 @@ namespace crv::graphics::vulkan {
         void createSyncObjects();
         void createCommandBuffers();
         void createCamera();
-        void loadModel(uint32_t modelIndex, const std::string& path);
-        void loadMaterials();
-        void buildTLAS();
+        void createResourceManager();
         void loadScene();
-        void addTexture(const cm::Texture& texture);
         void createRayTracerPass();
         void createRasterizerPass();
         void createPostprocessPass();
@@ -71,7 +69,6 @@ namespace crv::graphics::vulkan {
         void setCamera(scene::CameraType type);
         void drawControlPanel();
         void drawFrame();
-        void updateInstanceModel();
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;
 #ifdef NDEBUG
@@ -122,13 +119,7 @@ namespace crv::graphics::vulkan {
         cs::OrbitalCamera            mOrbitalCamera{};
         cs::AbsCamera*               mCamera               = nullptr;
 
-        std::vector<BLASData>        mBLASDatas{};
-        std::vector<InstanceData>    mInstances{};
-        Buffer                       mInstanceBuffer       = CRV_NULL_HANDLE;
-        AccelerationStructure        mTLAS                 = CRV_NULL_HANDLE;
-        std::vector<Material>        mMaterials{};
-        std::vector<Texture>         mTextures{};
-        DirectLight                  mDirectLight{};
+        ResourceManager              mResourceManager{};
 
         VkImGui                      mImGui                = CRV_NULL_HANDLE;
         int                          mSPP                  = 1;
