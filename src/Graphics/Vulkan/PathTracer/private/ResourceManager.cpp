@@ -129,6 +129,8 @@ namespace crv::graphics::vulkan {
         ssboData.add(blasDatasGPU, mBLASBuffer);
         const auto instancesGPU = InstanceData::gpu(mSceneLoader.mInstances);
         ssboData.add(instancesGPU, mInstanceBuffer);
+        const auto emissiveInstancesGPU = InstanceData::gpu(mSceneLoader.mEmissiveInstances);
+        ssboData.add(emissiveInstancesGPU, mEmissiveInstanceBuffer);
         const auto materialsGPU = Material::gpu(mSceneLoader.mMaterials);
         ssboData.add(materialsGPU, mMaterialBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);

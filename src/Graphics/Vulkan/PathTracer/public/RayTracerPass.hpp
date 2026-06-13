@@ -19,14 +19,15 @@ namespace crv::graphics::vulkan {
     namespace cs = scene;
 
     struct RayTracerPassCreateInfo {
-        Context*                      context           = nullptr;
-        AccelerationStructure*        tlas              = nullptr;
-        Buffer*                       BLASBuffer       = nullptr;
-        Buffer*                       instanceBuffer   = nullptr;
-        Buffer*                       materialBuffer   = nullptr;
-        std::vector<Texture>*         textures          = nullptr;
-        ImageView*                    outView           = nullptr;
-        ImageView*                    outInstanceIdView = nullptr;
+        Context*                      context                = nullptr;
+        AccelerationStructure*        tlas                   = nullptr;
+        Buffer*                       BLASBuffer             = nullptr;
+        Buffer*                       instanceBuffer         = nullptr;
+        Buffer*                       emissiveInstanceBuffer = nullptr;
+        Buffer*                       materialBuffer         = nullptr;
+        std::vector<Texture>*         textures               = nullptr;
+        ImageView*                    outView                = nullptr;
+        ImageView*                    outInstanceIdView      = nullptr;
         uint32_t                      framesInFlight    = 0;
     };
 
@@ -57,30 +58,31 @@ namespace crv::graphics::vulkan {
         void createSBT();
         void createBuffers();
 
-        uint32_t                        mFramesInFlight       = 0;
+        uint32_t                        mFramesInFlight         = 0;
 
-        Context*                        mContext              = nullptr;
-        AccelerationStructure*          mTLAS                 = nullptr;
-        std::vector<Texture>*           mTextures             = nullptr;
-        ImageView*                      mOutputView           = nullptr;
-        ImageView*                      mOutputInstanceIdView = nullptr;
+        Context*                        mContext                = nullptr;
+        AccelerationStructure*          mTLAS                   = nullptr;
+        std::vector<Texture>*           mTextures               = nullptr;
+        ImageView*                      mOutputView             = nullptr;
+        ImageView*                      mOutputInstanceIdView   = nullptr;
         DescriptorManager               mDescriptorManager{};
-        PipelineLayout                  mPipelineLayout       = CRV_NULL_HANDLE;
-        RayTracerPipelines              mPipelines            = CRV_NULL_HANDLE;
-        Buffer                          mSBTBuffer            = CRV_NULL_HANDLE;
+        PipelineLayout                  mPipelineLayout         = CRV_NULL_HANDLE;
+        RayTracerPipelines              mPipelines              = CRV_NULL_HANDLE;
+        Buffer                          mSBTBuffer              = CRV_NULL_HANDLE;
         VkStridedDeviceAddressRegionKHR mRaygenRegion{};
         VkStridedDeviceAddressRegionKHR mMissRegion{};
         VkStridedDeviceAddressRegionKHR mHitRegion{};
         VkStridedDeviceAddressRegionKHR mCallRegion{};
 
-        ShaderModule                    mRaygenShader         = CRV_NULL_HANDLE;
-        ShaderModule                    mMissShader           = CRV_NULL_HANDLE;
-        ShaderModule                    mShadowMissShader     = CRV_NULL_HANDLE;
-        ShaderModule                    mHitShader            = CRV_NULL_HANDLE;
+        ShaderModule                    mRaygenShader           = CRV_NULL_HANDLE;
+        ShaderModule                    mMissShader             = CRV_NULL_HANDLE;
+        ShaderModule                    mShadowMissShader       = CRV_NULL_HANDLE;
+        ShaderModule                    mHitShader              = CRV_NULL_HANDLE;
 
-        Buffer*                         mBLASBuffer           = nullptr;
-        Buffer*                         mInstanceBuffer       = nullptr;
-        Buffer*                         mMaterialBuffer       = nullptr;
+        Buffer*                         mBLASBuffer             = nullptr;
+        Buffer*                         mInstanceBuffer         = nullptr;
+        Buffer*                         mEmissiveInstanceBuffer = nullptr;
+        Buffer*                         mMaterialBuffer         = nullptr;
         std::vector<Buffer>             mCameraBuffers{};
         std::vector<Buffer>             mDirectLightBuffers{};
     };

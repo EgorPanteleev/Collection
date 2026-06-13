@@ -21,6 +21,11 @@ namespace crv::graphics::vulkan {
         }
         if (mTextures.empty())
             mTextures.push_back(toTexture(mContext, cm::AbsLoader::emptyTexture(cm::Texture::BASE_COLOR)));
+
+        for (const auto& instance: mInstances) {
+            if (mMaterials[instance.materialIndex].luminance == 0) continue;
+            mEmissiveInstances.push_back(instance);
+        }
     }
 
     void SceneLoader::loadModel(const uint32_t modelIndex, const std::string &path) {
@@ -51,9 +56,17 @@ namespace crv::graphics::vulkan {
             for (size_t i = 0; i < mesh.numIndices; ++i) {
                 indices.push_back(loader->indices()[mesh.baseIndex + i]);
             }
-
+            float area = 0;
+            for (size_t i = 0; i < indices.size(); i += 3) {
+                Vertex v0 = vertices[indices[i + 0]];
+                Vertex v1 = vertices[indices[i + 1]];
+                Vertex v2 = vertices[indices[i + 2]];
+                area += 0.5f * glm::length(glm::cross(v1.pos - v0.pos, v2.pos - v0.pos));
+            }
             mBLASDatas.emplace_back();
             BLASData &blasData = mBLASDatas.back();
+            blasData.area = area;
+            blasData.indexCount = indices.size();
             const size_t verticesSize = sizeof(Vertex) * vertices.size();
             const BufferCreateInfo vertexBufferCreateInfo{
                 .allocator = mContext->allocator(),

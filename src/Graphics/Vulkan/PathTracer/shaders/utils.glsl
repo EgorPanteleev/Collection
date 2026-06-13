@@ -30,8 +30,11 @@ struct Vertex {
 struct MeshInfo {
     uint64_t vertexAddress;
     uint64_t indexAddress;
+    uint     indexCount;
+    float    area;
 };
 struct InstanceData {
+    mat4 model;
     uint meshIndex;
     uint materialIndex;
 };

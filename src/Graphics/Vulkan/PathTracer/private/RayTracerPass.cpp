@@ -7,8 +7,9 @@
 namespace crv::graphics::vulkan {
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context), mTLAS(info.tlas),
-    mBLASBuffer(info.BLASBuffer), mInstanceBuffer(info.instanceBuffer), mTextures(info.textures),
-    mMaterialBuffer(info.materialBuffer), mOutputView(info.outView), mOutputInstanceIdView(info.outInstanceIdView) {
+    mBLASBuffer(info.BLASBuffer), mInstanceBuffer(info.instanceBuffer), mEmissiveInstanceBuffer(info.emissiveInstanceBuffer),
+    mTextures(info.textures), mMaterialBuffer(info.materialBuffer), mOutputView(info.outView),
+    mOutputInstanceIdView(info.outInstanceIdView) {
         createBuffers();
         createDescriptorManager();
         createShaders();
@@ -58,6 +59,7 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, textureCount);
 
         const DescriptorBuildInfo buildInfo {
@@ -75,6 +77,7 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i]));
             mDescriptorManager.add(i, BufferResource(*mBLASBuffer));
             mDescriptorManager.add(i, BufferResource(*mInstanceBuffer));
+            mDescriptorManager.add(i, BufferResource(*mEmissiveInstanceBuffer));
             mDescriptorManager.add(i, BufferResource(*mMaterialBuffer));
             mDescriptorManager.add(i, ImageResource(*mTextures));
         }

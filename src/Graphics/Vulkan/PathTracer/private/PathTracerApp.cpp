@@ -321,6 +321,7 @@ namespace crv::graphics::vulkan {
             .tlas = &mResourceManager.tlas(),
             .BLASBuffer = &mResourceManager.blasBuffer(),
             .instanceBuffer = &mResourceManager.instanceBuffer(),
+            .emissiveInstanceBuffer = &mResourceManager.emissiveInstanceBuffer(),
             .materialBuffer = &mResourceManager.materialBuffer(),
             .textures = &mResourceManager.textures(),
             .outView = &mTracerView,

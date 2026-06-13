@@ -20,10 +20,13 @@ layout(binding = 5, scalar) readonly buffer MeshInfoBuffer {
 layout(binding = 6, scalar) readonly buffer InstanceBuffer {
     InstanceData instances[];
 };
-layout(binding = 7, scalar) readonly buffer MaterialBuffer {
+layout(binding = 7, scalar) readonly buffer EmissiveInstanceBuffer {
+    InstanceData emissiveInstances[];
+};
+layout(binding = 8, scalar) readonly buffer MaterialBuffer {
     MaterialData materials[];
 };
-layout(binding = 8) uniform sampler2D textures[];
+layout(binding = 9) uniform sampler2D textures[];
 layout(location = 0) rayPayloadInEXT PathPayload payload;
 layout(location = 1) rayPayloadEXT float shadowPayload;
 
@@ -36,7 +39,7 @@ vec3 getBaseColor(MaterialData material, vec2 uv) {
     return baseColor;
 }
 
-float shadow(vec3 P, vec3 N, vec3 L) {
+float shadow(vec3 P, vec3 N, vec3 L, float t_max) {
     shadowPayload = 0.0;
     traceRayEXT(
         tlas,
@@ -47,10 +50,58 @@ float shadow(vec3 P, vec3 N, vec3 L) {
         movedPoint(P, N),
         T_MIN,
         L,
-        T_MAX,
+        t_max - T_MIN,
         1
     );
     return shadowPayload;
+}
+
+struct LightSample {
+    vec3  P;
+    vec3  N;
+    vec3  emission;
+    float pdf;
+};
+
+LightSample sampleEmissiveMesh(inout uint seed, uint instanceIdx) {
+    InstanceData instance = emissiveInstances[instanceIdx]; //TODO
+    MeshInfo     mesh     = meshes[instance.meshIndex];
+    MaterialData material = materials[instance.materialIndex];
+
+    VertexBuffer vertexBuffer = VertexBuffer(mesh.vertexAddress);
+    IndexBuffer  indexBuffer = IndexBuffer(mesh.indexAddress);
+
+    uint triCount = mesh.indexCount / 3;
+    uint triIndex = uint(rand01(seed) * float(triCount));
+
+    Vertex v0 = vertexBuffer.vertices[indexBuffer.indices[triIndex * 3 + 0]];
+    Vertex v1 = vertexBuffer.vertices[indexBuffer.indices[triIndex * 3 + 1]];
+    Vertex v2 = vertexBuffer.vertices[indexBuffer.indices[triIndex * 3 + 2]];
+
+    float r1 = sqrt(rand01(seed));
+    float r2 = rand01(seed);
+    float bu = 1.0 - r1;
+    float bv = r1 * (1.0 - r2);
+    float bw = r1 * r2;
+
+    mat4 xform = instance.model;
+    vec3 lP = bu * v0.pos + bv * v1.pos + bw * v2.pos;
+    vec3 lN = normalize(bu * v0.n  + bv * v1.n  + bw * v2.n);
+
+    lP = vec3(xform * vec4(lP, 1.0));
+    mat3 nm = transpose(inverse(mat3(xform)));
+    lN = normalize(nm * lN);
+
+    vec3 e1 = vec3(xform * vec4(v1.pos - v0.pos, 0.0));
+    vec3 e2 = vec3(xform * vec4(v2.pos - v0.pos, 0.0));
+    float triArea = 0.5 * length(cross(e1, e2));
+
+    LightSample ls;
+    ls.P        = lP;
+    ls.N        = lN;
+    ls.emission = material.emissionColor * material.luminance;
+    ls.pdf      = 1.0 / (float(triCount) * triArea);
+    return ls;
 }
 
 void main() {
@@ -80,24 +131,67 @@ void main() {
 
     MaterialData material = materials[instance.materialIndex];
     vec3 baseColor = getBaseColor(material, uv);
-    payload.radiance += payload.throughput * material.emissionColor * material.luminance;
+    //payload.radiance += payload.throughput * material.emissionColor * material.luminance;
     if (material.luminance > 0.0) {
         payload.done = true;
         return;
     }
+
     vec3 L = normalize(-directLight.dir.xyz);
     vec3 gN = normalize(cross(v1.pos - v0.pos, v2.pos - v0.pos));
     gN = normalize(normalMatrix * gN);
     if (dot(gN, N) < 0.0) gN = -gN;
-    float NdotL = max(dot(N, L), 0.0);
-    shadowPayload = shadow(P, gN, L);
-
     vec3 wo = -gl_WorldRayDirectionEXT;
     Scatter scatter = lambertianScatter(payload.seed, baseColor, N, wo);
-    vec3 direct  = scatter.brdf * NdotL * directLight.intensity * shadowPayload;
-    payload.radiance += payload.throughput * direct;
-    payload.throughput *= scatter.brdf * max(dot(scatter.wi, N), 0.0) / scatter.pdf;
 
+    float NdotL = max(dot(N, L), 0.0);
+    float vis   = shadow(P, gN, L, T_MAX);
+    vec3 direct = scatter.brdf * NdotL * directLight.intensity * vis;
+    payload.radiance += payload.throughput * direct;
+
+    // --- Emissive mesh NEE ---
+    uint emissiveCount = 1;
+    if (emissiveCount > 0) {
+        // pick one emissive instance uniformly
+        uint  lightIdx  = uint(rand01(payload.seed) * float(emissiveCount));
+        LightSample ls  = sampleEmissiveMesh(payload.seed, lightIdx);
+
+        vec3  toLight   = ls.P - P;
+        float distSq    = dot(toLight, toLight);
+        float dist      = sqrt(distSq);
+        vec3  wi        = toLight / dist;
+
+        float NdotWi    = max(dot(N,     wi),  0.0);
+        float LNdotWi   = max(dot(ls.N, -wi),  0.0); // light's normal facing us
+
+        if (NdotWi > 0.0 && LNdotWi > 0.0) {
+            float vis1 = shadow(P, normalize(gN), wi, dist); // shadow with max distance!
+
+            // convert area PDF to solid angle PDF
+            float pdfSolidAngle = ls.pdf * distSq / LNdotWi;
+            // account for picking 1 of N lights
+            pdfSolidAngle /= float(emissiveCount);
+
+            vec3 brdf = scatter.brdf; // lambertian: baseColor / PI
+            payload.radiance += payload.throughput
+            * brdf * ls.emission * NdotWi * vis1
+            / pdfSolidAngle;
+        }
+    }
+
+//    vec3 L = normalize(-directLight.dir.xyz);
+//    vec3 gN = normalize(cross(v1.pos - v0.pos, v2.pos - v0.pos));
+//    gN = normalize(normalMatrix * gN);
+//    if (dot(gN, N) < 0.0) gN = -gN;
+//    float NdotL = max(dot(N, L), 0.0);
+//    shadowPayload = shadow(P, gN, L);
+//
+//    vec3 wo = -gl_WorldRayDirectionEXT;
+//    Scatter scatter = lambertianScatter(payload.seed, baseColor, N, wo);
+//    vec3 direct  = scatter.brdf * NdotL * directLight.intensity * shadowPayload;
+//    payload.radiance += payload.throughput * direct;
+
+    payload.throughput *= scatter.brdf * max(dot(scatter.wi, N), 0.0) / scatter.pdf;
     payload.origin    = movedPoint(P, gN);
     payload.direction = scatter.wi;
     payload.done      = false;

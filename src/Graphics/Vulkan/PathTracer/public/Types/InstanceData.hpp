@@ -20,8 +20,9 @@ namespace crv::graphics::vulkan {
     };
 
     struct InstanceGPU {
-        uint32_t meshIndex     = 0;
-        uint32_t materialIndex = 0;
+        glm::mat4 model{};
+        uint32_t  meshIndex     = 0;
+        uint32_t  materialIndex = 0;
     };
 
     struct InstanceData {
@@ -48,6 +49,7 @@ namespace crv::graphics::vulkan {
 
     inline InstanceData::GPU InstanceData::gpu() const {
         return {
+            .model = transform.matrix(),
             .meshIndex = meshIndex,
             .materialIndex = materialIndex,
         };

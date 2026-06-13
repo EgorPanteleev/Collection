@@ -24,6 +24,7 @@ namespace crv::graphics::vulkan {
 
         [[nodiscard]] DirectLight& directLight() { return mSceneLoader.mDirectLight; }
         [[nodiscard]] std::vector<InstanceData>& instances() { return mSceneLoader.mInstances; }
+        [[nodiscard]] std::vector<InstanceData>& emissiveInstances() { return mSceneLoader.mEmissiveInstances; }
         [[nodiscard]] std::vector<BLASData>& blasDatas() { return mSceneLoader.mBLASDatas; }
         [[nodiscard]] std::vector<Material>& materials() { return mSceneLoader.mMaterials; }
 
@@ -31,6 +32,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Buffer& blasBuffer() { return mBLASBuffer; }
         [[nodiscard]] Buffer& asInstanceBuffer() { return mASInstanceBuffer; }
         [[nodiscard]] Buffer& instanceBuffer() { return mInstanceBuffer; }
+        [[nodiscard]] Buffer& emissiveInstanceBuffer() { return mEmissiveInstanceBuffer; }
         [[nodiscard]] Buffer& materialBuffer() { return mMaterialBuffer; }
         [[nodiscard]] std::vector<Texture>& textures() { return mSceneLoader.mTextures; }
     private:
@@ -40,11 +42,12 @@ namespace crv::graphics::vulkan {
 
         Context*              mContext          = nullptr;
         SceneLoader           mSceneLoader{};
-        Buffer                mBLASBuffer       = CRV_NULL_HANDLE;
-        Buffer                mASInstanceBuffer = CRV_NULL_HANDLE;
-        Buffer                mInstanceBuffer   = CRV_NULL_HANDLE;
-        Buffer                mMaterialBuffer   = CRV_NULL_HANDLE;
-        AccelerationStructure mTLAS             = CRV_NULL_HANDLE;
+        Buffer                mBLASBuffer             = CRV_NULL_HANDLE;
+        Buffer                mASInstanceBuffer       = CRV_NULL_HANDLE;
+        Buffer                mInstanceBuffer         = CRV_NULL_HANDLE;
+        Buffer                mEmissiveInstanceBuffer = CRV_NULL_HANDLE;
+        Buffer                mMaterialBuffer         = CRV_NULL_HANDLE;
+        AccelerationStructure mTLAS                   = CRV_NULL_HANDLE;
     };
 }
 

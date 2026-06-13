@@ -46,6 +46,7 @@ namespace crv::graphics::vulkan {
         DirectLight                  mDirectLight{};
         std::vector<BLASData>        mBLASDatas{};
         std::vector<InstanceData>    mInstances{};
+        std::vector<InstanceData>    mEmissiveInstances{};
         std::vector<Material>        mMaterials{};
         std::vector<Texture>         mTextures{};
     };

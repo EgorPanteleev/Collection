@@ -12,6 +12,8 @@ namespace crv::graphics::vulkan {
     struct BLASDataGPU {
         VkDeviceAddress vertexAddress = 0;
         VkDeviceAddress indexAddress  = 0;
+        uint32_t        indexCount    = 0;
+        float           area          = 0;
     };
 
     struct BLASData {
@@ -22,12 +24,16 @@ namespace crv::graphics::vulkan {
         Buffer                vertexBuffer = CRV_NULL_HANDLE;
         Buffer                indexBuffer  = CRV_NULL_HANDLE;
         AccelerationStructure blas         = CRV_NULL_HANDLE;
+        uint32_t              indexCount   = 0;
+        float                 area         = 0;
     };
 
     inline BLASData::GPU BLASData::gpu(VkDevice device) const {
         return {
             .vertexAddress = vertexBuffer.deviceAddress(device),
-            .indexAddress = indexBuffer.deviceAddress(device)
+            .indexAddress = indexBuffer.deviceAddress(device),
+            .indexCount = indexCount,
+            .area = area
         };
     }
 
