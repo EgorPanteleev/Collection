@@ -60,7 +60,7 @@ namespace crv::graphics::vulkan {
         ShaderModuleCreateInfo createInfo {
             .device = mContext->device(),
         };
-        createInfo.fileName = COMPILED_SHADERS_DIR"/outline.comp.spv";
+        createInfo.fileName = COMPILED_SHADERS_DIR"/outline.slang.spv";
         mOutlineShader = ShaderModule(createInfo);
     }
 

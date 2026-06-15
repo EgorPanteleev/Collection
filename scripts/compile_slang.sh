@@ -14,6 +14,10 @@ if [ ${#SHADER_FILES[@]} -eq 0 ]; then
 fi
 
 for SHADER_FILE in "${SHADER_FILES[@]}"; do
+    if ! grep -q '\[shader(' "$SHADER_FILE"; then
+        continue
+    fi
+
     BASENAME=$(basename "$SHADER_FILE")
     OUTPUT_FILE="$OUTPUT_DIR/$BASENAME.spv"
 
@@ -21,8 +25,11 @@ for SHADER_FILE in "${SHADER_FILES[@]}"; do
         -target spirv \
         -profile spirv_1_6 \
         -matrix-layout-column-major \
+        -fvk-use-scalar-layout \
         -fvk-use-entrypoint-name \
+        -emit-spirv-directly \
         -O3 \
+        -I "$SHADER_DIR" \
         -o "$OUTPUT_FILE"; then
         echo "Success: $SHADER_FILE compiled!"
     else

@@ -148,9 +148,8 @@ namespace crv::graphics::vulkan {
         ShaderModuleCreateInfo createInfo {
             .device = mContext->device(),
         };
-        createInfo.fileName = COMPILED_SHADERS_DIR"/rasterizer.vert.spv";
+        createInfo.fileName = COMPILED_SHADERS_DIR"/rasterizer.slang.spv";
         mVertexShader = ShaderModule(createInfo);
-        createInfo.fileName = COMPILED_SHADERS_DIR"/rasterizer.frag.spv";
         mFragmentShader = ShaderModule(createInfo);
     }
 
@@ -193,7 +192,7 @@ namespace crv::graphics::vulkan {
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
                 .module = mVertexShader.get(),
-                .pName = "main",
+                .pName = "vertMain",
                 .pSpecializationInfo = nullptr
             },
             {
@@ -202,7 +201,7 @@ namespace crv::graphics::vulkan {
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
                 .module = mFragmentShader.get(),
-                .pName = "main",
+                .pName = "fragMain",
                 .pSpecializationInfo = nullptr
             }
         };

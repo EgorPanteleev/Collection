@@ -89,13 +89,10 @@ namespace crv::graphics::vulkan {
         ShaderModuleCreateInfo createInfo {
             .device = mContext->device(),
         };
-        createInfo.fileName = COMPILED_SHADERS_DIR"/raygen.rgen.spv";
+        createInfo.fileName = COMPILED_SHADERS_DIR"/pathtracer.slang.spv";
         mRaygenShader = ShaderModule(createInfo);
-        createInfo.fileName = COMPILED_SHADERS_DIR"/miss.rmiss.spv";
         mMissShader = ShaderModule(createInfo);
-        createInfo.fileName = COMPILED_SHADERS_DIR"/shadow.rmiss.spv";
         mShadowMissShader = ShaderModule(createInfo);
-        createInfo.fileName = COMPILED_SHADERS_DIR"/closesthit.rchit.spv";
         mHitShader = ShaderModule(createInfo);
     }
 
@@ -120,28 +117,28 @@ namespace crv::graphics::vulkan {
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
                 .module = mRaygenShader.get(),
-                .pName = "main",
+                .pName = "rgenMain",
             },
             { //miss
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_MISS_BIT_KHR,
                 .module = mMissShader.get(),
-                .pName = "main",
+                .pName = "missMain",
             },
             { //shadow miss
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_MISS_BIT_KHR,
                 .module = mShadowMissShader.get(),
-                .pName = "main",
+                .pName = "shadowMissMain",
             },
             { //closest hit
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
                 .module = mHitShader.get(),
-                .pName = "main",
+                .pName = "chitMain",
             },
         };
         const std::vector<VkRayTracingShaderGroupCreateInfoKHR> groups = {
