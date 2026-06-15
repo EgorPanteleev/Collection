@@ -22,9 +22,9 @@ namespace crv::graphics::vulkan {
         if (mTextures.empty())
             mTextures.push_back(toTexture(mContext, cm::AbsLoader::emptyTexture(cm::Texture::BASE_COLOR)));
 
-        for (const auto& instance: mInstances) {
-            if (mMaterials[instance.materialIndex].luminance == 0) continue;
-            mEmissiveInstances.push_back(instance);
+        for (uint32_t i = 0; i < mInstances.size(); ++i) {
+            if (mMaterials[mInstances[i].materialIndex].luminance == 0) continue;
+            mEmissiveIndices.push_back(i);
         }
     }
 

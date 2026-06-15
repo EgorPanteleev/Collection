@@ -20,6 +20,7 @@
 #define ORIGIN_TRESHOLD 0.03125
 #define FLOAT_SCALE 1.0 / 65536.0
 #define INT_SCALE 256.0
+#define SHADOW_EPS 1e-3
 
 struct Vertex {
     vec3 pos;
@@ -46,6 +47,7 @@ struct PathPayload {
     vec3  direction;
     uint  instanceId;
     uint  seed;
+    uint  depth;
     bool  done;
 };
 

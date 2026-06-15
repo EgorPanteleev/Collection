@@ -24,7 +24,7 @@ namespace crv::graphics::vulkan {
 
         [[nodiscard]] DirectLight& directLight() { return mSceneLoader.mDirectLight; }
         [[nodiscard]] std::vector<InstanceData>& instances() { return mSceneLoader.mInstances; }
-        [[nodiscard]] std::vector<InstanceData>& emissiveInstances() { return mSceneLoader.mEmissiveInstances; }
+        [[nodiscard]] std::vector<uint32_t>& emissiveIndices() { return mSceneLoader.mEmissiveIndices; }
         [[nodiscard]] std::vector<BLASData>& blasDatas() { return mSceneLoader.mBLASDatas; }
         [[nodiscard]] std::vector<Material>& materials() { return mSceneLoader.mMaterials; }
 

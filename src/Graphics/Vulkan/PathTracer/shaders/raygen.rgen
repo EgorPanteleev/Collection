@@ -35,10 +35,12 @@ void main() {
     payload.direction  = dir;
     payload.instanceId = UINT_MAX;
     payload.seed       = seed;
+    payload.depth      = 0;
     payload.done       = false;
 
     uint firstInstanceId = UINT_MAX;
     for (uint depth = 0; depth < pc.maxDepth; ++depth) {
+        payload.depth = depth;
         traceRayEXT(tlas,
         gl_RayFlagsNoneEXT,
         ALL_OBJECTS,
