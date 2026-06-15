@@ -1,5 +1,5 @@
 {
-  "modelImports":	["meshes/cube.glb", "scenes/BreakfastRoom/breakfast_room.obj"],
+  "modelImports":	["meshes/sphere.glb", "scenes/BreakfastRoom/breakfast_room.obj"],
   "instances":	[ {
     "name":	"room",
     "modelIndex": 1,
@@ -7,6 +7,20 @@
     "localPosition": [0, 0, 0],
     "localRotation": [0, 0, 180],
     "localScale":	 [5, 5, 5]
+  }, {
+    "name":	"lamp1",
+    "modelIndex": 0,
+    "texIndex": -1,
+    "localPosition": [-4.7, -18.9, -9.8],
+    "localRotation": [0, 0, 180],
+    "localScale":	 [1, 1.5, 1]
+  }, {
+    "name":	"lamp2",
+    "modelIndex": 0,
+    "texIndex": -1,
+    "localPosition": [10.9, -18.9, -9.8],
+    "localRotation": [0, 0, 180],
+    "localScale":	 [1, 1.5, 1]
   }],
   "directLight": {
     "direction": [1, 0.5, 0.0],

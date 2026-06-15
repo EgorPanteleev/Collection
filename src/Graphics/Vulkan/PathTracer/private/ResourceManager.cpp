@@ -3,6 +3,7 @@
 //
 
 #include "ResourceManager.hpp"
+#include <algorithm>
 
 namespace crv::graphics::vulkan {
     ResourceManager::ResourceManager(const ResourceManagerCreateInfo& info):
@@ -55,6 +56,7 @@ namespace crv::graphics::vulkan {
             .queue = mContext->queue(QueueFamilyType::GRAPHICS)
         };
         Buffer::copy(copyInfo);
+        updateEmissiveIndices();
     }
 
     void ResourceManager::updateMaterial(const uint32_t index) {
@@ -66,6 +68,33 @@ namespace crv::graphics::vulkan {
             .size = sizeof(Material::GPU),
             .allocator = mContext->allocator(),
             .buffer = mMaterialBuffer.get(),
+            .device = mContext->device(),
+            .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+            .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+        };
+        Buffer::copy(copyInfo);
+        updateEmissiveIndices();
+    }
+
+    void ResourceManager::updateEmissiveIndices() {
+        auto& indices   = mSceneLoader.mEmissiveIndices;
+        const auto& instances = mSceneLoader.mInstances;
+        const auto& materials = mSceneLoader.mMaterials;
+
+        indices.clear();
+        for (uint32_t i = 0; i < instances.size(); ++i) {
+            if (materials[instances[i].materialIndex].luminance == 0) continue;
+            indices.push_back(i);
+        }
+        if (indices.empty()) return;
+
+        const CopyDataToGPUBufferInfo copyInfo {
+            .data = indices.data(),
+            .srcOffset = 0,
+            .dstOffset = 0,
+            .size = sizeof(uint32_t) * indices.size(),
+            .allocator = mContext->allocator(),
+            .buffer = mEmissiveInstanceBuffer.get(),
             .device = mContext->device(),
             .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
             .queue = mContext->queue(QueueFamilyType::GRAPHICS)
@@ -129,8 +158,9 @@ namespace crv::graphics::vulkan {
         ssboData.add(blasDatasGPU, mBLASBuffer);
         const auto instancesGPU = InstanceData::gpu(mSceneLoader.mInstances);
         ssboData.add(instancesGPU, mInstanceBuffer);
-        auto emissiveIndices = mSceneLoader.mEmissiveIndices;
-        if (emissiveIndices.empty()) emissiveIndices.push_back(UINT32_MAX);
+        const uint32_t emissiveCapacity = std::max<uint32_t>(mSceneLoader.mInstances.size(), 1u);
+        std::vector emissiveIndices(emissiveCapacity, 0u);
+        std::copy(mSceneLoader.mEmissiveIndices.begin(), mSceneLoader.mEmissiveIndices.end(), emissiveIndices.begin());
         ssboData.add(emissiveIndices, mEmissiveInstanceBuffer);
         const auto materialsGPU = Material::gpu(mSceneLoader.mMaterials);
         ssboData.add(materialsGPU, mMaterialBuffer);

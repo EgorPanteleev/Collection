@@ -37,6 +37,7 @@ layout(push_constant) uniform PushConstants {
     uint maxDepth;
     uint displayMode;
     uint nee;
+    uint emissiveCount;
 } pc;
 layout(location = 0) rayPayloadInEXT PathPayload payload;
 layout(location = 1) rayPayloadEXT float shadowPayload;
@@ -84,8 +85,9 @@ LightSample sampleEmissiveMesh(inout uint seed, uint instanceIndex) {
 
     uint triCount = mesh.indexCount / 3;
 
+    bool useAlias = mesh.aliasAddress != 0 && mesh.area > 0.0;
     uint triIndex = min(uint(rand01(seed) * float(triCount)), triCount - 1u);
-    if (mesh.aliasAddress != 0) {
+    if (useAlias) {
         AliasTable  aliasTable = AliasTable(mesh.aliasAddress);
         AliasEntry  entry      = aliasTable.entries[triIndex];
         triIndex = (rand01(seed) < entry.prob) ? triIndex : entry.alias;
@@ -118,7 +120,10 @@ LightSample sampleEmissiveMesh(inout uint seed, uint instanceIndex) {
     ls.P        = lP;
     ls.N        = lN;
     ls.emission = material.emissionColor * material.luminance;
-    ls.pdf      = (worldArea > PDF_EPS && mesh.area > 0.0) ? (objArea / mesh.area) / worldArea : 0.0;
+    // Triangle-selection probability must match the sampling actually used:
+    // area-weighted with the alias table, uniform without it.
+    float selectProb = useAlias ? (objArea / mesh.area) : (1.0 / float(triCount));
+    ls.pdf      = (worldArea > PDF_EPS) ? selectProb / worldArea : 0.0;
     return ls;
 }
 
@@ -153,16 +158,20 @@ void main() {
         vec3 emission = material.emissionColor * material.luminance;
         float weight = 1.0;
         if (pc.nee != 0u && payload.prevBrdfPdf >= 0.0) {
-            uint  emissiveCount = uint(emissiveIndices.length());
+            uint  emissiveCount = pc.emissiveCount;
+            uint  triCount  = mesh.indexCount / 3;
             float objArea   = 0.5 * length(cross(v1.pos - v0.pos, v2.pos - v0.pos));
             vec3  we1       = vec3(gl_ObjectToWorldEXT * vec4(v1.pos - v0.pos, 0.0));
             vec3  we2       = vec3(gl_ObjectToWorldEXT * vec4(v2.pos - v0.pos, 0.0));
             float worldArea = 0.5 * length(cross(we1, we2));
             float cosLight  = abs(dot(N, gl_WorldRayDirectionEXT));
             float dist      = gl_HitTEXT;
-            if (worldArea > PDF_EPS && mesh.area > 0.0 && cosLight > PDF_EPS) {
-                float areaPdf  = (objArea / mesh.area) / worldArea / float(emissiveCount);
-                float pdfLight = areaPdf * dist * dist / cosLight;
+            if (worldArea > PDF_EPS && cosLight > PDF_EPS && emissiveCount > 0u) {
+                // Match the NEE triangle-selection pdf (alias = area-weighted, else uniform).
+                bool  useAlias   = mesh.aliasAddress != 0 && mesh.area > 0.0;
+                float selectProb = useAlias ? (objArea / mesh.area) : (1.0 / float(triCount));
+                float areaPdf    = selectProb / worldArea / float(emissiveCount);
+                float pdfLight   = areaPdf * dist * dist / cosLight;
                 weight = powerHeuristic(payload.prevBrdfPdf, pdfLight);
             }
         }
@@ -187,10 +196,10 @@ void main() {
         }
     }
 
-    uint emissiveCount = uint(emissiveIndices.length());
-    uint lightIdx       = min(uint(rand01(payload.seed) * float(emissiveCount)), emissiveCount - 1u);
-    uint instanceIndex  = emissiveIndices[lightIdx];
-    if (pc.nee != 0u && instanceIndex != UINT_MAX) {
+    uint emissiveCount = pc.emissiveCount;
+    if (pc.nee != 0u && emissiveCount > 0u) {
+        uint lightIdx      = min(uint(rand01(payload.seed) * float(emissiveCount)), emissiveCount - 1u);
+        uint instanceIndex = emissiveIndices[lightIdx];
         LightSample ls  = sampleEmissiveMesh(payload.seed, instanceIndex);
 
         vec3  toLight   = ls.P - P;

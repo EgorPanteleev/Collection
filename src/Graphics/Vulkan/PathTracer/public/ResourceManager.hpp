@@ -21,6 +21,7 @@ namespace crv::graphics::vulkan {
         void updateInstanceTransform(uint32_t index);
         void updateInstance(uint32_t index);
         void updateMaterial(uint32_t index);
+        void updateEmissiveIndices();
 
         [[nodiscard]] DirectLight& directLight() { return mSceneLoader.mDirectLight; }
         [[nodiscard]] std::vector<InstanceData>& instances() { return mSceneLoader.mInstances; }
