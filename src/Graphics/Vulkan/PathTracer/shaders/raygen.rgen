@@ -36,6 +36,7 @@ void main() {
     payload.instanceId = UINT_MAX;
     payload.seed       = seed;
     payload.depth      = 0;
+    payload.prevBrdfPdf = -1.0;
     payload.done       = false;
 
     uint firstInstanceId = UINT_MAX;

@@ -22,6 +22,9 @@
 #define INT_SCALE 256.0
 #define SHADOW_EPS 1e-3
 
+#define PDF_EPS 1e-4
+#define NEE_CLAMP 50.0
+
 struct Vertex {
     vec3 pos;
     vec2 texCoord;
@@ -54,6 +57,7 @@ struct PathPayload {
     uint  instanceId;
     uint  seed;
     uint  depth;
+    float prevBrdfPdf;
     bool  done;
 };
 
@@ -96,5 +100,11 @@ float copysign(float x, float y) {
     return abs(x) * (y < 0.0 ? -1.0 : 1.0);
 }
 
+float powerHeuristic(float pdfA, float pdfB) {
+    float a2 = pdfA * pdfA;
+    float b2 = pdfB * pdfB;
+    float denom = a2 + b2;
+    return denom > 0.0 ? a2 / denom : 0.0;
+}
 
 #endif

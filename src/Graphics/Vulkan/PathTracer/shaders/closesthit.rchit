@@ -110,7 +110,7 @@ LightSample sampleEmissiveMesh(inout uint seed, uint instanceIndex) {
     ls.P        = lP;
     ls.N        = lN;
     ls.emission = material.emissionColor * material.luminance;
-    ls.pdf      = (objArea / mesh.area) / worldArea;
+    ls.pdf      = (worldArea > PDF_EPS && mesh.area > 0.0) ? (objArea / mesh.area) / worldArea : 0.0;
     return ls;
 }
 
@@ -142,8 +142,23 @@ void main() {
     MaterialData material = materials[instance.materialIndex];
     vec3 baseColor = getBaseColor(material, uv);
     if (material.luminance > 0.0) {
-        if (payload.depth == 0)
-            payload.radiance += payload.throughput * material.emissionColor * material.luminance;
+        vec3 emission = material.emissionColor * material.luminance;
+        float weight = 1.0;
+        if (payload.prevBrdfPdf >= 0.0) {
+            uint  emissiveCount = uint(emissiveIndices.length());
+            float objArea   = 0.5 * length(cross(v1.pos - v0.pos, v2.pos - v0.pos));
+            vec3  we1       = vec3(gl_ObjectToWorldEXT * vec4(v1.pos - v0.pos, 0.0));
+            vec3  we2       = vec3(gl_ObjectToWorldEXT * vec4(v2.pos - v0.pos, 0.0));
+            float worldArea = 0.5 * length(cross(we1, we2));
+            float cosLight  = abs(dot(N, gl_WorldRayDirectionEXT));
+            float dist      = gl_HitTEXT;
+            if (worldArea > PDF_EPS && mesh.area > 0.0 && cosLight > PDF_EPS) {
+                float areaPdf  = (objArea / mesh.area) / worldArea / float(emissiveCount);
+                float pdfLight = areaPdf * dist * dist / cosLight;
+                weight = powerHeuristic(payload.prevBrdfPdf, pdfLight);
+            }
+        }
+        payload.radiance += payload.throughput * emission * weight;
         payload.done = true;
         return;
     }
@@ -179,14 +194,20 @@ void main() {
         float NdotWi    = max(dot(N,     wi),  0.0);
         float LNdotWi   = max(dot(ls.N, -wi),  0.0); // light's normal facing us
 
-        if (NdotWi > 0.0 && LNdotWi > 0.0) {
+        if (NdotWi > 0.0 && LNdotWi > PDF_EPS && ls.pdf > 0.0 && distSq > PDF_EPS) {
             float vis1 = shadow(P, gN, wi, dist * (1.0 - SHADOW_EPS));
-            float pdfSolidAngle = ls.pdf * distSq / LNdotWi;
-            pdfSolidAngle /= float(emissiveCount);
+            float pdfLight = ls.pdf * distSq / LNdotWi / float(emissiveCount);
+
+            float pdfBrdf  = NdotWi * M_1_PI;
+            float weight   = powerHeuristic(pdfLight, pdfBrdf);
+
             vec3 brdf = scatter.brdf;
-            payload.radiance += payload.throughput
-            * brdf * ls.emission * NdotWi * vis1
-            / pdfSolidAngle;
+            vec3 contrib = payload.throughput * brdf * ls.emission * NdotWi * vis1 * weight / pdfLight;
+
+            // Firefly clamp: safety net for any residual low-pdf spike.
+            float lum = luminance(contrib);
+            if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
+            payload.radiance += contrib;
         }
     }
 
@@ -203,7 +224,8 @@ void main() {
 //    payload.radiance += payload.throughput * direct;
 
     payload.throughput *= scatter.brdf * max(dot(scatter.wi, N), 0.0) / scatter.pdf;
-    payload.origin    = movedPoint(P, gN);
-    payload.direction = scatter.wi;
-    payload.done      = false;
+    payload.origin     = movedPoint(P, gN);
+    payload.direction  = scatter.wi;
+    payload.prevBrdfPdf = scatter.pdf;
+    payload.done       = false;
 }
