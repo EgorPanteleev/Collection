@@ -33,6 +33,12 @@ struct MeshInfo {
     uint64_t indexAddress;
     uint     indexCount;
     float    area;
+    uint64_t aliasAddress;
+};
+
+struct AliasEntry {
+    float prob;
+    uint  alias;
 };
 struct InstanceData {
     mat4 model;

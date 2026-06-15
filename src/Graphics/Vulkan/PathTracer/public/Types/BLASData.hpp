@@ -9,11 +9,17 @@
 #include "AccelerationStructure.hpp"
 
 namespace crv::graphics::vulkan {
+    struct AliasEntry {
+        float    prob  = 1.0f;
+        uint32_t alias = 0;
+    };
+
     struct BLASDataGPU {
         VkDeviceAddress vertexAddress = 0;
         VkDeviceAddress indexAddress  = 0;
         uint32_t        indexCount    = 0;
         float           area          = 0;
+        VkDeviceAddress aliasAddress  = 0;
     };
 
     struct BLASData {
@@ -23,6 +29,7 @@ namespace crv::graphics::vulkan {
 
         Buffer                vertexBuffer = CRV_NULL_HANDLE;
         Buffer                indexBuffer  = CRV_NULL_HANDLE;
+        Buffer                aliasBuffer  = CRV_NULL_HANDLE; // built only for emissive meshes
         AccelerationStructure blas         = CRV_NULL_HANDLE;
         uint32_t              indexCount   = 0;
         float                 area         = 0;
@@ -33,7 +40,8 @@ namespace crv::graphics::vulkan {
             .vertexAddress = vertexBuffer.deviceAddress(device),
             .indexAddress = indexBuffer.deviceAddress(device),
             .indexCount = indexCount,
-            .area = area
+            .area = area,
+            .aliasAddress = aliasBuffer.get() != VK_NULL_HANDLE ? aliasBuffer.deviceAddress(device) : 0
         };
     }
 

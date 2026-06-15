@@ -9,6 +9,9 @@ layout(buffer_reference, scalar) readonly buffer VertexBuffer {
 layout(buffer_reference, scalar) readonly buffer IndexBuffer {
     uint indices[];
 };
+layout(buffer_reference, scalar) readonly buffer AliasTable {
+    AliasEntry entries[];
+};
 layout(binding = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 4, scalar) uniform DirectLight {
     vec3 dir;
@@ -69,10 +72,16 @@ LightSample sampleEmissiveMesh(inout uint seed, uint instanceIndex) {
     MaterialData material = materials[instance.materialIndex];
 
     VertexBuffer vertexBuffer = VertexBuffer(mesh.vertexAddress);
-    IndexBuffer  indexBuffer = IndexBuffer(mesh.indexAddress);
+    IndexBuffer  indexBuffer  = IndexBuffer(mesh.indexAddress);
 
     uint triCount = mesh.indexCount / 3;
-    uint triIndex = uint(rand01(seed) * float(triCount));
+
+    uint triIndex = min(uint(rand01(seed) * float(triCount)), triCount - 1u);
+    if (mesh.aliasAddress != 0) {
+        AliasTable  aliasTable = AliasTable(mesh.aliasAddress);
+        AliasEntry  entry      = aliasTable.entries[triIndex];
+        triIndex = (rand01(seed) < entry.prob) ? triIndex : entry.alias;
+    }
 
     Vertex v0 = vertexBuffer.vertices[indexBuffer.indices[triIndex * 3 + 0]];
     Vertex v1 = vertexBuffer.vertices[indexBuffer.indices[triIndex * 3 + 1]];
@@ -92,15 +101,16 @@ LightSample sampleEmissiveMesh(inout uint seed, uint instanceIndex) {
     mat3 nm = transpose(inverse(mat3(xform)));
     lN = normalize(nm * lN);
 
-    vec3 e1 = vec3(xform * vec4(v1.pos - v0.pos, 0.0));
-    vec3 e2 = vec3(xform * vec4(v2.pos - v0.pos, 0.0));
-    float triArea = 0.5 * length(cross(e1, e2));
+    float objArea = 0.5 * length(cross(v1.pos - v0.pos, v2.pos - v0.pos));
+    vec3  e1 = vec3(xform * vec4(v1.pos - v0.pos, 0.0));
+    vec3  e2 = vec3(xform * vec4(v2.pos - v0.pos, 0.0));
+    float worldArea = 0.5 * length(cross(e1, e2));
 
     LightSample ls;
     ls.P        = lP;
     ls.N        = lN;
     ls.emission = material.emissionColor * material.luminance;
-    ls.pdf      = 1.0 / (float(triCount) * triArea);
+    ls.pdf      = (objArea / mesh.area) / worldArea;
     return ls;
 }
 
@@ -131,8 +141,9 @@ void main() {
 
     MaterialData material = materials[instance.materialIndex];
     vec3 baseColor = getBaseColor(material, uv);
-    if (material.luminance > 0.0 && payload.depth == 0) {
-        payload.radiance += payload.throughput * material.emissionColor * material.luminance;
+    if (material.luminance > 0.0) {
+        if (payload.depth == 0)
+            payload.radiance += payload.throughput * material.emissionColor * material.luminance;
         payload.done = true;
         return;
     }
@@ -155,7 +166,7 @@ void main() {
 
     // --- Emissive mesh NEE ---
     uint emissiveCount = uint(emissiveIndices.length());
-    uint lightIdx       = uint(rand01(payload.seed) * float(emissiveCount));
+    uint lightIdx       = min(uint(rand01(payload.seed) * float(emissiveCount)), emissiveCount - 1u);
     uint instanceIndex  = emissiveIndices[lightIdx];
     if (instanceIndex != UINT_MAX) {
         LightSample ls  = sampleEmissiveMesh(payload.seed, instanceIndex);
