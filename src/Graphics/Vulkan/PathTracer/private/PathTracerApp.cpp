@@ -376,7 +376,8 @@ namespace crv::graphics::vulkan {
                 .spp = mUI.spp(),
                 .minDepth = mUI.minDepth(),
                 .maxDepth = mUI.maxDepth(),
-                .displayMode = mUI.displayMode()
+                .displayMode = mUI.displayMode(),
+                .nee = mUI.nee() ? 1u : 0u
             },
             .width = mSwapchain.extent().width,
             .height = mSwapchain.extent().height

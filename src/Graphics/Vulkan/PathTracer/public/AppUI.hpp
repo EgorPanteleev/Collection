@@ -46,6 +46,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
         [[nodiscard]] uint32_t maxDepth() const { return mMaxDepth; }
         [[nodiscard]] uint32_t displayMode() const { return mDisplayMode; }
+        [[nodiscard]] bool     nee() const { return mNee; }
     private:
         void drawOverView(const AppUIDrawInfo& info);
         void drawCameraTab(const AppUIDrawInfo& info);
@@ -62,6 +63,7 @@ namespace crv::graphics::vulkan {
         int              mMinDepth        = 0;
         int              mMaxDepth        = 2;
         int              mDisplayMode     = 4;
+        bool             mNee             = true;
 
         std::function<void()> mUpdateImage{};
         std::function<void(cs::CameraType type)> mCameraSet{};

@@ -136,6 +136,9 @@ namespace crv::graphics::vulkan {
             }
         }
         if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Checkbox("NEE", &mNee)) {
+                mUpdateImage();
+            }
             if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
                 mUpdateImage();
             }

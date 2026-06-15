@@ -8,6 +8,7 @@ layout(push_constant) uniform PushConstants {
     uint minDepth;
     uint maxDepth;
     uint displayMode;
+    uint nee;
 } pc;
 
 layout(binding = 0) uniform accelerationStructureEXT tlas;

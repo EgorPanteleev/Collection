@@ -36,7 +36,8 @@ namespace crv::graphics::vulkan {
             mPipelineLayout.get(), 0, 1, &mDescriptorManager.set(0),
             0, nullptr);
 
-        vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(),
+            VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
             0, sizeof(PushConstants), &info.constants);
 
         LOAD_VK_FN(mContext->device(), vkCmdTraceRaysKHR);
@@ -100,7 +101,7 @@ namespace crv::graphics::vulkan {
 
     void RayTracerPass::createPipelineLayout() {
         VkPushConstantRange pushRange {
-            .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+            .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
             .offset = 0,
             .size = sizeof(PushConstants)
         };

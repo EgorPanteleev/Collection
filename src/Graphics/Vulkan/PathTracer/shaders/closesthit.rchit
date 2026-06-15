@@ -30,6 +30,14 @@ layout(binding = 8, scalar) readonly buffer MaterialBuffer {
     MaterialData materials[];
 };
 layout(binding = 9) uniform sampler2D textures[];
+layout(push_constant) uniform PushConstants {
+    uint frame;
+    uint spp;
+    uint minDepth;
+    uint maxDepth;
+    uint displayMode;
+    uint nee;
+} pc;
 layout(location = 0) rayPayloadInEXT PathPayload payload;
 layout(location = 1) rayPayloadEXT float shadowPayload;
 
@@ -144,7 +152,7 @@ void main() {
     if (material.luminance > 0.0) {
         vec3 emission = material.emissionColor * material.luminance;
         float weight = 1.0;
-        if (payload.prevBrdfPdf >= 0.0) {
+        if (pc.nee != 0u && payload.prevBrdfPdf >= 0.0) {
             uint  emissiveCount = uint(emissiveIndices.length());
             float objArea   = 0.5 * length(cross(v1.pos - v0.pos, v2.pos - v0.pos));
             vec3  we1       = vec3(gl_ObjectToWorldEXT * vec4(v1.pos - v0.pos, 0.0));
@@ -179,11 +187,10 @@ void main() {
         }
     }
 
-    // --- Emissive mesh NEE ---
     uint emissiveCount = uint(emissiveIndices.length());
     uint lightIdx       = min(uint(rand01(payload.seed) * float(emissiveCount)), emissiveCount - 1u);
     uint instanceIndex  = emissiveIndices[lightIdx];
-    if (instanceIndex != UINT_MAX) {
+    if (pc.nee != 0u && instanceIndex != UINT_MAX) {
         LightSample ls  = sampleEmissiveMesh(payload.seed, instanceIndex);
 
         vec3  toLight   = ls.P - P;

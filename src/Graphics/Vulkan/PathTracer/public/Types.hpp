@@ -19,6 +19,7 @@ namespace crv::graphics::vulkan {
         uint32_t minDepth    = 1;
         uint32_t maxDepth    = 1;
         uint32_t displayMode = 4;
+        uint32_t nee         = 1;
     };
 
     struct Vertex {
