@@ -4,11 +4,18 @@
 
 #include "CallBacks.hpp"
 
+#include <imgui_internal.h>
+
 static bool rightMouseButtonPressed = false;
 static double lastX = 0.0f, lastY = 0.0f;
 
 namespace crv::graphics::vulkan {
+    static bool inputBlocked() {
+        return ImGui::GetTopMostPopupModal() != nullptr;
+    }
+
     static void processKeyboard(GLFWwindow* window, double deltaTime) {
+        if (inputBlocked()) return;
         auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         auto camera = app->camera();
         const float speed = 0.06f * deltaTime;
@@ -58,6 +65,7 @@ namespace crv::graphics::vulkan {
     }
 
     static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+        if (inputBlocked()) return;
         auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         auto camera = app->camera();
         float speed = 10.0f;
@@ -81,6 +89,7 @@ namespace crv::graphics::vulkan {
     }
 
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        if (inputBlocked()) return;
         auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         if (action == GLFW_PRESS && key == GLFW_KEY_Q) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -94,6 +103,7 @@ namespace crv::graphics::vulkan {
     }
 
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        if (inputBlocked()) return;
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
             if (action == GLFW_PRESS) {
                 rightMouseButtonPressed = true;
@@ -110,6 +120,7 @@ namespace crv::graphics::vulkan {
     }
 
     void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
+        if (inputBlocked()) return;
         auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         auto camera = app->camera();
         if (!rightMouseButtonPressed || !camera) return;

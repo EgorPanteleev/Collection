@@ -210,11 +210,15 @@ namespace crv::graphics::vulkan {
                     ImGui::TextDisabled("%s", "Base Color");
                     ImGui::TableSetColumnIndex(1);
                     ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", "None");
+                    ImGui::TextDisabled("%s", mBaseColorTexPath.empty() ? "None" : mBaseColorTexPath.c_str());
                     ImGui::TableSetColumnIndex(2);
                     ImGui::AlignTextToFramePadding();
-                    if (ImGui::Button("Upload"))
-                    {
+                    if (ImGui::Button("Upload")) {
+                        mFileDialog.open(ASSETS_PATH,
+                            {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr", ".exr", ".ktx", ".dds"});
+                    }
+                    if (mFileDialog.draw("Select Base Color Texture")) {
+                        mBaseColorTexPath = mFileDialog.result();
                     }
                     VkImGui::endCompactTable();
                 }

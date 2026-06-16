@@ -6,6 +6,7 @@
 #define COLLECTION_APPUI_HPP
 
 #include "ImGui.hpp"
+#include "ImGuiFileDialog.hpp"
 #include "Swapchain.hpp"
 #include "ImageView.hpp"
 #include "AbsCamera.hpp"
@@ -61,9 +62,12 @@ namespace crv::graphics::vulkan {
 
         int              mSPP             = 1;
         int              mMinDepth        = 0;
-        int              mMaxDepth        = 2;
+        int              mMaxDepth        = 1;
         int              mDisplayMode     = 4;
         bool             mNee             = true;
+
+        std::string      mBaseColorTexPath{};
+        ImGuiFileDialog  mFileDialog{};
 
         std::function<void()> mUpdateImage{};
         std::function<void(cs::CameraType type)> mCameraSet{};
