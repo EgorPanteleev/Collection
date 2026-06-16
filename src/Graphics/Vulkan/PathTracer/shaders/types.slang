@@ -2,6 +2,8 @@ module types;
 
 #include "SharedTypes.h"
 
+public static const float3 SKY_COLOR = float3(0.1);
+
 public struct PathPayload {
     public float3 throughput;
     public float3 radiance;

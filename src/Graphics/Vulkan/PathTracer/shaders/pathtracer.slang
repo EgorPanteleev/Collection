@@ -58,7 +58,7 @@ void rgenMain() {
 
 [shader("miss")]
 void missMain(inout PathPayload payload) {
-    payload.radiance += payload.throughput * float3(0.0);
+    payload.radiance += payload.throughput * SKY_COLOR;
     payload.done = true;
 }
 
