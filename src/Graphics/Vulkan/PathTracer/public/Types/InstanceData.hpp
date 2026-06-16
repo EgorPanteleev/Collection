@@ -9,6 +9,7 @@
 
 #include <string>
 #include <glm/gtx/quaternion.hpp>
+#include "SharedTypes.h"
 
 namespace crv::graphics::vulkan {
     struct Transform {
@@ -17,12 +18,6 @@ namespace crv::graphics::vulkan {
         glm::vec3 position {0.0f};
         glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
         glm::vec3 scale    {1.0f};
-    };
-
-    struct InstanceGPU {
-        glm::mat4 model{};
-        uint32_t  meshIndex     = 0;
-        uint32_t  materialIndex = 0;
     };
 
     struct InstanceData {

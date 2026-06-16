@@ -7,23 +7,11 @@
 
 #include "Buffer.hpp"
 #include "AccelerationStructure.hpp"
+#include "SharedTypes.h"
 
 namespace crv::graphics::vulkan {
-    struct AliasEntry {
-        float    prob  = 1.0f;
-        uint32_t alias = 0;
-    };
-
-    struct BLASDataGPU {
-        VkDeviceAddress vertexAddress = 0;
-        VkDeviceAddress indexAddress  = 0;
-        uint32_t        indexCount    = 0;
-        float           area          = 0;
-        VkDeviceAddress aliasAddress  = 0;
-    };
-
     struct BLASData {
-        using GPU = BLASDataGPU;
+        using GPU = MeshGPU;
         [[nodiscard]] GPU gpu(VkDevice device) const;
         [[nodiscard]] static std::vector<GPU> gpu(VkDevice device, const std::vector<BLASData>& data);
 
@@ -37,8 +25,8 @@ namespace crv::graphics::vulkan {
 
     inline BLASData::GPU BLASData::gpu(VkDevice device) const {
         return {
-            .vertexAddress = vertexBuffer.deviceAddress(device),
-            .indexAddress = indexBuffer.deviceAddress(device),
+            .vertices = vertexBuffer.deviceAddress(device),
+            .indices = indexBuffer.deviceAddress(device),
             .indexCount = indexCount,
             .area = area,
             .aliasAddress = aliasBuffer.get() != VK_NULL_HANDLE ? aliasBuffer.deviceAddress(device) : 0

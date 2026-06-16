@@ -10,6 +10,7 @@
 #include "Types/BLASData.hpp"
 #include "Types/UBOData.hpp"
 #include "Types/SSBOData.hpp"
+#include "SharedTypes.h"
 
 namespace crv::graphics::vulkan {
     using ivec2 = glm::vec<2, uint32_t>;
@@ -21,13 +22,6 @@ namespace crv::graphics::vulkan {
         uint32_t displayMode = 4;
         uint32_t nee         = 1;
         uint32_t emissiveCount = 0;
-    };
-
-    struct Vertex {
-        glm::vec3 pos;
-        glm::vec2 texCoord;
-        glm::vec3 normal;
-        glm::vec4 tangent;
     };
 
     struct alignas(16) CameraGPU {

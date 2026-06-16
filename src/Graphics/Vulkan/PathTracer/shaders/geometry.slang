@@ -16,7 +16,7 @@ public struct HitGeometry {
     public float2 uv;
 };
 
-public Triangle fetchTriangle(MeshInfo mesh, uint primIndex) {
+public Triangle fetchTriangle(MeshGPU mesh, uint primIndex) {
     Triangle tri;
     tri.v0 = mesh.vertices[mesh.indices[primIndex * 3 + 0]];
     tri.v1 = mesh.vertices[mesh.indices[primIndex * 3 + 1]];
@@ -34,7 +34,7 @@ public HitGeometry interpolateHit(Triangle tri, float2 bary, float3x4 o2w, float
     HitGeometry hit;
     hit.uv = w * tri.v0.texCoord + u * tri.v1.texCoord + v * tri.v2.texCoord;
     hit.P  = mul(o2w, float4(w * tri.v0.pos + u * tri.v1.pos + v * tri.v2.pos, 1.0));
-    hit.N  = normalize(mul(normalMatrix, w * tri.v0.n + u * tri.v1.n + v * tri.v2.n));
+    hit.N  = normalize(mul(normalMatrix, w * tri.v0.normal + u * tri.v1.normal + v * tri.v2.normal));
     if (dot(hit.N, rayDir) > 0.0) hit.N = -hit.N;
 
     float3 gN = normalize(cross(tri.v1.pos - tri.v0.pos, tri.v2.pos - tri.v0.pos));

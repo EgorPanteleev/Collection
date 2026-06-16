@@ -7,16 +7,9 @@
 
 #include <string>
 #include <glm/glm.hpp>
+#include "SharedTypes.h"
 
 namespace crv::graphics::vulkan {
-    struct MaterialGPU {
-        glm::vec3   baseColor{};
-        glm::vec3   emissionColor{};
-        float       luminance         = 0;
-        uint32_t    baseColorTexIndex = UINT32_MAX;
-        uint32_t    normalTexIndex    = UINT32_MAX;
-    };
-
     struct Material {
         using GPU = MaterialGPU;
         [[nodiscard]] GPU gpu() const;

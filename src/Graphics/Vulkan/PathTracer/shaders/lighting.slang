@@ -10,7 +10,7 @@ public struct LightSample {
     public float  pdf;
 };
 
-public float emitterMisWeight(MeshInfo mesh, float objArea, float3 we1, float3 we2,
+public float emitterMisWeight(MeshGPU mesh, float objArea, float3 we1, float3 we2,
                               float3 N, float3 rayDir, float dist, uint emissiveCount, float prevBrdfPdf) {
     uint  triCount  = mesh.indexCount / 3;
     float worldArea = 0.5 * length(cross(we1, we2));
@@ -24,7 +24,7 @@ public float emitterMisWeight(MeshInfo mesh, float objArea, float3 we1, float3 w
     return powerHeuristic(prevBrdfPdf, pdfLight);
 }
 
-public LightSample sampleEmissiveMesh(inout uint seed, InstanceData instance, MeshInfo mesh, MaterialData material) {
+public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, MeshGPU mesh, MaterialGPU material) {
     uint triCount = mesh.indexCount / 3;
 
     bool useAlias = mesh.aliasAddress != 0 && mesh.area > 0.0;
@@ -47,7 +47,7 @@ public LightSample sampleEmissiveMesh(inout uint seed, InstanceData instance, Me
 
     float4x4 xform = instance.model;
     float3 lP = bu * v0.pos + bv * v1.pos + bw * v2.pos;
-    float3 lN = normalize(bu * v0.n + bv * v1.n + bw * v2.n);
+    float3 lN = normalize(bu * v0.normal + bv * v1.normal + bw * v2.normal);
 
     lP = mul(xform, float4(lP, 1.0)).xyz;
     float3x3 nm = transpose(inverse3x3((float3x3)xform));

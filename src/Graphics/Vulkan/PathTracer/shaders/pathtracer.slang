@@ -70,14 +70,14 @@ void shadowMissMain(inout float visible) {
 [shader("closesthit")]
 void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes attr) {
     payload.instanceId = InstanceID();
-    InstanceData instance = instances[InstanceID()];
-    MeshInfo     mesh     = meshes[instance.meshIndex];
+    InstanceGPU  instance = instances[InstanceID()];
+    MeshGPU     mesh     = meshes[instance.meshIndex];
 
     float3x4    o2w = ObjectToWorld3x4();
     Triangle    tri = fetchTriangle(mesh, PrimitiveIndex());
     HitGeometry hit = interpolateHit(tri, attr.barycentrics, o2w, WorldRayDirection());
 
-    MaterialData material  = materials[instance.materialIndex];
+    MaterialGPU material  = materials[instance.materialIndex];
     float3       baseColor = getBaseColor(material, hit.uv);
 
     if (material.luminance > 0.0) {
@@ -85,7 +85,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         if (pc.nee != 0u && payload.prevBrdfPdf >= 0.0) {
             float  objArea = 0.5 * length(cross(tri.v1.pos - tri.v0.pos, tri.v2.pos - tri.v0.pos));
             float3 we1     = mul(o2w, float4(tri.v1.pos - tri.v0.pos, 0.0));
-            float3 we2     = mul(o2wadded slang compile scripts, float4(tri.v2.pos - tri.v0.pos, 0.0));
+            float3 we2     = mul(o2w, float4(tri.v2.pos - tri.v0.pos, 0.0));
             weight = emitterMisWeight(mesh, objArea, we1, we2, hit.N, WorldRayDirection(),
                                       RayTCurrent(), pc.emissiveCount, payload.prevBrdfPdf);
         }

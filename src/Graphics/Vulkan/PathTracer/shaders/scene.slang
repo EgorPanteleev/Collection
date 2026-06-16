@@ -31,13 +31,13 @@ public struct DirectLightData {
 [[vk::image_format("r32ui")]]   [[vk::binding(2)]] public RWTexture2D<uint>   outputInstanceIdImage;
 [[vk::binding(3)]] public ConstantBuffer<CameraData>      camera;
 [[vk::binding(4)]] public ConstantBuffer<DirectLightData> directLight;
-[[vk::binding(5)]] public StructuredBuffer<MeshInfo>      meshes;
-[[vk::binding(6)]] public StructuredBuffer<InstanceData>  instances;
+[[vk::binding(5)]] public StructuredBuffer<MeshGPU>      meshes;
+[[vk::binding(6)]] public StructuredBuffer<InstanceGPU>   instances;
 [[vk::binding(7)]] public StructuredBuffer<uint>          emissiveIndices;
-[[vk::binding(8)]] public StructuredBuffer<MaterialData>  materials;
+[[vk::binding(8)]] public StructuredBuffer<MaterialGPU>  materials;
 [[vk::binding(9)]] public Sampler2D                       textures[];
 
-public float3 getBaseColor(MaterialData material, float2 uv) {
+public float3 getBaseColor(MaterialGPU material, float2 uv) {
     float3 baseColor = material.baseColor;
     if (material.baseColorTexIndex != UINT_MAX)
         baseColor *= textures[NonUniformResourceIndex(material.baseColorTexIndex)].SampleLevel(uv, 0.0).rgb;
@@ -79,9 +79,9 @@ public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, 
 
     uint lightIdx      = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
     uint instanceIndex = emissiveIndices[lightIdx];
-    InstanceData lightInstance = instances[instanceIndex];
-    MeshInfo     lightMesh     = meshes[lightInstance.meshIndex];
-    MaterialData lightMaterial = materials[lightInstance.materialIndex];
+    InstanceGPU  lightInstance = instances[instanceIndex];
+    MeshGPU     lightMesh     = meshes[lightInstance.meshIndex];
+    MaterialGPU lightMaterial = materials[lightInstance.materialIndex];
     LightSample  ls            = sampleEmissiveMesh(payload.seed, lightInstance, lightMesh, lightMaterial);
 
     float3 toLight = ls.P - P;
