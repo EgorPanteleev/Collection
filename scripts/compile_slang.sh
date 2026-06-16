@@ -24,6 +24,7 @@ for SHADER_FILE in "${SHADER_FILES[@]}"; do
     if /usr/bin/slangc "$SHADER_FILE" \
         -target spirv \
         -profile spirv_1_6 \
+        -capability spvImageQuery+spvImageGatherExtended+spvSparseResidency+spvMinLod+spvDerivativeControl+spvFragmentFullyCoveredEXT+SPV_GOOGLE_user_type \
         -matrix-layout-column-major \
         -fvk-use-scalar-layout \
         -fvk-use-entrypoint-name \
