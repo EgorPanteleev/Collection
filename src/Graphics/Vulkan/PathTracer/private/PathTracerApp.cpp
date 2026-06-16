@@ -563,6 +563,14 @@ namespace crv::graphics::vulkan {
         vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
     }
 
+    void PathTracerApp::clearSelection() {
+        uint32_t* data = nullptr;
+        vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
+        *data = 0;
+        vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
+        mSelectedInstanceId = 0;
+    }
+
     void PathTracerApp::update() {
         const RayTracerPassUpdateInfo tracerUpdateInfo {
             .camera = mCamera,

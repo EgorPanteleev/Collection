@@ -100,6 +100,9 @@ namespace crv::graphics::vulkan {
         if (action == GLFW_PRESS && key == GLFW_KEY_X) {
             objectSelected(window);
         }
+        if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+            app->clearSelection();
+        }
     }
 
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {

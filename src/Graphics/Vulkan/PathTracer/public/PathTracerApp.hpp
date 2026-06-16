@@ -36,6 +36,7 @@ namespace crv::graphics::vulkan {
         void run();
         void updateImage() { mFrameCount = 0; }
         void pixelClicked(uint32_t x, uint32_t y);
+        void clearSelection();
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
