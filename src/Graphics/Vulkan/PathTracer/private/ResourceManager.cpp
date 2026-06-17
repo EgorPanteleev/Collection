@@ -18,6 +18,7 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::updateInstanceTransform(const uint32_t index) {
+        updateInstance(index);
         const InstanceData& instance = mSceneLoader.mInstances[index];
         InstanceData::AS asInstance =
             instance.vkAS(index, mSceneLoader.mBLASDatas[instance.meshIndex].blas.deviceAddress());
