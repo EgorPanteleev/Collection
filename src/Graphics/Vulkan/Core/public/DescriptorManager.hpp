@@ -82,9 +82,8 @@ namespace crv::graphics::vulkan {
         using Resource = std::variant<BufferResource, BufferArrayResource, ImageResource, ImageArrayResource, ASResource>;
         void add(BindingType type, VkShaderStageFlags stages, uint32_t count = 1) { mBindings.push_back(binding(type, stages, count)); }
         void add(const BindingDescription& desc) { mBindings.push_back(desc); }
-        void add(uint32_t setIndex, const Resource& resource) { mResources[setIndex].emplace_back(resource); }
-        void update(uint32_t binding, uint32_t setIndex, const Resource& resource) { mResources[setIndex][binding] = resource; }
-        void update(uint32_t binding, const Resource& resource);
+        void bind(uint32_t setIndex, const Resource& resource) { mResources[setIndex].emplace_back(resource); }
+        void bind(uint32_t binding, uint32_t setIndex, const Resource& resource) { mResources[setIndex][binding] = resource; }
         void build(const DescriptorBuildInfo& info);
         void update();
         VkDescriptorSet& set(const uint32_t index) { return mDescriptorSets[index]; }

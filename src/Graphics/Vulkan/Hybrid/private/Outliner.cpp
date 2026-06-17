@@ -86,9 +86,9 @@ namespace crv::graphics::vulkan {
 
         //resources
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.add(i, ImageResource(info.tracerSampler, info.tracerImageView,
+            mDescriptorManager.bind(i, ImageResource(info.tracerSampler, info.tracerImageView,
                 VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.add(i, ImageResource(info.instanceIdSamplers[i], info.instanceIdImageViews[i],
+            mDescriptorManager.bind(i, ImageResource(info.instanceIdSamplers[i], info.instanceIdImageViews[i],
                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
         }
         mDescriptorManager.update();

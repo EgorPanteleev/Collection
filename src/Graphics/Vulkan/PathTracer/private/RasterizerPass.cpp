@@ -130,8 +130,8 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.build(buildInfo);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.add(i, BufferResource(mMVPBuffers[i]  ));
-            mDescriptorManager.add(i, BufferResource(mInstanceBuffers[i] ));
+            mDescriptorManager.bind(i, BufferResource(mMVPBuffers[i]  ));
+            mDescriptorManager.bind(i, BufferResource(mInstanceBuffers[i] ));
         }
         mDescriptorManager.update();
     }

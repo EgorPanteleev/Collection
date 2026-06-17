@@ -40,9 +40,9 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.build(buildInfo);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.add(i, ImageResource(mTracerView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.add(i, ImageResource(mInstanceView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.add(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.bind(i, ImageResource(mTracerView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.bind(i, ImageResource(mInstanceView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.bind(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
         }
         mDescriptorManager.update();
     }

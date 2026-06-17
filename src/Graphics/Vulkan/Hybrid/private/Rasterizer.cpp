@@ -272,9 +272,9 @@ namespace crv::graphics::vulkan {
 
         //resources
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.add(i, BufferResource(mMVPBuffers[i]  ));
-            mDescriptorManager.add(i, BufferResource(mInstanceBuffer ));
-            mDescriptorManager.add(i, ImageArrayResource(*mTextures));
+            mDescriptorManager.bind(i, BufferResource(mMVPBuffers[i]  ));
+            mDescriptorManager.bind(i, BufferResource(mInstanceBuffer ));
+            mDescriptorManager.bind(i, ImageArrayResource(*mTextures));
         }
         mDescriptorManager.update();
     }

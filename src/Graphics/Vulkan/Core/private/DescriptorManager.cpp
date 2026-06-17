@@ -114,12 +114,6 @@ namespace crv::graphics::vulkan {
         mDescriptorSets.update(updateInfo);
     }
 
-    void DescriptorManager::update(const uint32_t binding, const Resource& resource) {
-        for (uint32_t setIndex = 0; setIndex < mDescriptorSets.size(); ++setIndex) {
-            mResources[setIndex][binding] = resource;
-        }
-    }
-
     void DescriptorManager::createLayout(const DescriptorBuildInfo& info) {
         std::vector <VkDescriptorSetLayoutBinding> bindings;
         std::vector<VkDescriptorBindingFlags> bindingsFlags;

@@ -71,16 +71,16 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.build(buildInfo);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.add(i, ASResource(mTLAS->get()));
-            mDescriptorManager.add(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.add(i, ImageResource(mOutputInstanceIdView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.add(i, BufferResource(mCameraBuffers[i]));
-            mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i]));
-            mDescriptorManager.add(i, BufferResource(*mBLASBuffer));
-            mDescriptorManager.add(i, BufferResource(*mInstanceBuffer));
-            mDescriptorManager.add(i, BufferResource(*mEmissiveInstanceBuffer));
-            mDescriptorManager.add(i, BufferResource(*mMaterialBuffer));
-            mDescriptorManager.add(i, ImageArrayResource(*mTextures));
+            mDescriptorManager.bind(i, ASResource(mTLAS->get()));
+            mDescriptorManager.bind(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.bind(i, ImageResource(mOutputInstanceIdView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.bind(i, BufferResource(mCameraBuffers[i]));
+            mDescriptorManager.bind(i, BufferResource(mDirectLightBuffers[i]));
+            mDescriptorManager.bind(i, BufferResource(*mBLASBuffer));
+            mDescriptorManager.bind(i, BufferResource(*mInstanceBuffer));
+            mDescriptorManager.bind(i, BufferResource(*mEmissiveInstanceBuffer));
+            mDescriptorManager.bind(i, BufferResource(*mMaterialBuffer));
+            mDescriptorManager.bind(i, ImageArrayResource(*mTextures));
         }
         mDescriptorManager.update();
     }

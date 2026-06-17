@@ -55,7 +55,8 @@ namespace crv::graphics::vulkan {
         uint32_t newSize = nodes.size() * sizeof(NodeGPU);
         if (mTLASNodeBuffer.size() != newSize) {
             createSSBO(mContext->allocator(), newSize, mTLASNodeBuffer);
-            mDescriptorManager.update(4, BufferResource(mTLASNodeBuffer));
+            for (uint32_t f = 0; f < mFramesInFlight; ++f)
+                mDescriptorManager.bind(4, f, BufferResource(mTLASNodeBuffer));
             mDescriptorManager.update();
         }
         copyDataToBuffer(mContext, QueueFamilyType::COMPUTE, nodes.data(),
@@ -110,20 +111,20 @@ namespace crv::graphics::vulkan {
         //resources
         for (int i = 0; i < mFramesInFlight; ++i) {
             GBuffer& gBuffer = (*info.gBuffers)[i];
-            mDescriptorManager.add(i, BufferResource(mCameraBuffers[i]   ));
-            mDescriptorManager.add(i, BufferResource(mTriangleBuffer     ));
-            mDescriptorManager.add(i, BufferResource(mTriangleExtraBuffer));
-            mDescriptorManager.add(i, BufferResource(mNodeBuffer         ));
-            mDescriptorManager.add(i, BufferResource(mTLASNodeBuffer     ));
-            mDescriptorManager.add(i, BufferResource(mInstanceBuffer     ));
-            mDescriptorManager.add(i, BufferResource(mDirectLightBuffers[i] ));
+            mDescriptorManager.bind(i, BufferResource(mCameraBuffers[i]   ));
+            mDescriptorManager.bind(i, BufferResource(mTriangleBuffer     ));
+            mDescriptorManager.bind(i, BufferResource(mTriangleExtraBuffer));
+            mDescriptorManager.bind(i, BufferResource(mNodeBuffer         ));
+            mDescriptorManager.bind(i, BufferResource(mTLASNodeBuffer     ));
+            mDescriptorManager.bind(i, BufferResource(mInstanceBuffer     ));
+            mDescriptorManager.bind(i, BufferResource(mDirectLightBuffers[i] ));
 
             VkSampler sampler = gBuffer.sampler.get();
-            mDescriptorManager.add(i, ImageResource(VK_NULL_HANDLE, mOutImageView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.add(i, ImageResource(sampler, gBuffer.colorView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-            mDescriptorManager.add(i, ImageResource(sampler, gBuffer.depthView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-            mDescriptorManager.add(i, ImageResource(sampler, gBuffer.normalView,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-            mDescriptorManager.add(i, ImageArrayResource(*mTextures));
+            mDescriptorManager.bind(i, ImageResource(VK_NULL_HANDLE, mOutImageView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager.bind(i, ImageResource(sampler, gBuffer.colorView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+            mDescriptorManager.bind(i, ImageResource(sampler, gBuffer.depthView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+            mDescriptorManager.bind(i, ImageResource(sampler, gBuffer.normalView,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+            mDescriptorManager.bind(i, ImageArrayResource(*mTextures));
         }
         mDescriptorManager.update();
 
