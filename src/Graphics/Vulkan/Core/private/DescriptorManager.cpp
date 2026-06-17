@@ -39,9 +39,9 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    BufferResource::BufferResource(VkBuffer buffer, VkDeviceSize size): buffers({buffer}), sizes({size}) {}
-    BufferResource::BufferResource(const Buffer& buffer): BufferResource(buffer.get(), buffer.size()) {}
-    BufferResource::BufferResource(const std::vector<Buffer>& buffers_) {
+    BufferResource::BufferResource(const Buffer& buffer): buffer(buffer.get()), size(buffer.size()) {}
+
+    BufferArrayResource::BufferArrayResource(const std::vector<Buffer>& buffers_) {
         for (const auto& buffer: buffers_) {
             buffers.push_back(buffer.get());
             sizes.push_back(buffer.size());
@@ -49,23 +49,20 @@ namespace crv::graphics::vulkan {
     }
 
     ImageResource::ImageResource(ImageView* view, const VkImageLayout layout):
-    ImageResource(VK_NULL_HANDLE, view->get(), layout)  {
-    }
+        sampler(VK_NULL_HANDLE), imageView(view->get()), layout(layout) {}
 
-    ImageResource::ImageResource(VkSampler sampler, VkImageView view, VkImageLayout layout):
-        samplers({sampler}), imageViews({view}), layouts({layout}) {}
+    ImageResource::ImageResource(const Sampler& sampler, const ImageView& view, VkImageLayout layout):
+        sampler(sampler.get()), imageView(view.get()), layout(layout) {}
 
-    ImageResource::ImageResource(VkSampler sampler, const ImageView& view, VkImageLayout layout):
-        ImageResource(sampler, view.get(), layout) {}
-
-    ImageResource::ImageResource(const std::vector<VkSampler>& samplers, const std::vector<ImageView>& views,
-        const std::vector<VkImageLayout>& layouts): samplers(samplers), layouts(layouts){
+    ImageArrayResource::ImageArrayResource(const std::vector<Sampler>& samplers_, const std::vector<ImageView>& views,
+        const std::vector<VkImageLayout>& layouts_): layouts(layouts_) {
+        for (const auto& s: samplers_) samplers.push_back(s.get());
         for (const auto& view: views) imageViews.push_back(view.get());
     }
 
-    ImageResource::ImageResource(std::vector<TexturesByType>& mTextures) {
-        for (size_t i = 0; i < mTextures.size(); i++) {
-            auto& texturesByType = mTextures[i];
+    ImageArrayResource::ImageArrayResource(std::vector<TexturesByType>& textures) {
+        for (size_t i = 0; i < textures.size(); i++) {
+            auto& texturesByType = textures[i];
             for (int j = 0; j < cm::Texture::Type::UNKNOWN; ++j) {
                 auto& texture = texturesByType[j];
                 if (texture.view() == VK_NULL_HANDLE) continue;
@@ -76,9 +73,9 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    ImageResource::ImageResource(std::vector<Texture>& mTextures) {
-        for (size_t i = 0; i < mTextures.size(); i++) {
-            auto& texture = mTextures[i];
+    ImageArrayResource::ImageArrayResource(std::vector<Texture>& textures) {
+        for (size_t i = 0; i < textures.size(); i++) {
+            auto& texture = textures[i];
             if (texture.view() == VK_NULL_HANDLE) continue;
             samplers.push_back(texture.sampler());
             imageViews.push_back(texture.view());
@@ -117,21 +114,7 @@ namespace crv::graphics::vulkan {
         mDescriptorSets.update(updateInfo);
     }
 
-    void DescriptorManager::update(const uint32_t binding, const uint32_t setIndex, const BufferResource& resource) {
-        mResources[setIndex][binding] = resource;
-    }
-
-    void DescriptorManager::update(const uint32_t binding, const uint32_t setIndex, const ImageResource& resource) {
-        mResources[setIndex][binding] = resource;
-    }
-
-    void DescriptorManager::update(uint32_t binding, const BufferResource& resource) {
-        for (uint32_t setIndex = 0; setIndex < mDescriptorSets.size(); ++setIndex) {
-            mResources[setIndex][binding] = resource;
-        }
-    }
-
-    void DescriptorManager::update(uint32_t binding, const ImageResource& resource) {
+    void DescriptorManager::update(const uint32_t binding, const Resource& resource) {
         for (uint32_t setIndex = 0; setIndex < mDescriptorSets.size(); ++setIndex) {
             mResources[setIndex][binding] = resource;
         }
@@ -195,24 +178,36 @@ namespace crv::graphics::vulkan {
 
     VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const uint32_t setIndex) {
         const Resource& resource = mResources[setIndex][binding];
-        if (std::holds_alternative<BufferResource>(resource)) {
+        if (std::holds_alternative<BufferResource>(resource))
             return getDescriptorWrite(binding, std::get<BufferResource>(resource));
-        }
-        if (std::holds_alternative<ImageResource>(resource)) {
+        if (std::holds_alternative<BufferArrayResource>(resource))
+            return getDescriptorWrite(binding, std::get<BufferArrayResource>(resource));
+        if (std::holds_alternative<ImageResource>(resource))
             return getDescriptorWrite(binding, std::get<ImageResource>(resource));
-        }
+        if (std::holds_alternative<ImageArrayResource>(resource))
+            return getDescriptorWrite(binding, std::get<ImageArrayResource>(resource));
         return getDescriptorWrite(binding, std::get<ASResource>(resource));
     }
 
     VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const BufferResource& resource) {
         const uint32_t baseBufferInfo = mBufferInfos.size();
-        for (int i = 0; i < resource.buffers.size(); ++i) {
-            const VkDescriptorBufferInfo info {
-                .buffer = resource.buffers[i],
-                .offset = 0,
-                .range = resource.sizes[i]
-            };
-            mBufferInfos.push_back(info);
+        mBufferInfos.push_back({.buffer = resource.buffer, .offset = 0, .range = resource.size});
+        return {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = binding,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = mBindings[binding].type,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &mBufferInfos[baseBufferInfo],
+            .pTexelBufferView = nullptr
+        };
+    }
+
+    VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const BufferArrayResource& resource) {
+        const uint32_t baseBufferInfo = mBufferInfos.size();
+        for (size_t i = 0; i < resource.buffers.size(); ++i) {
+            mBufferInfos.push_back({.buffer = resource.buffers[i], .offset = 0, .range = resource.sizes[i]});
         }
         return {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -228,13 +223,21 @@ namespace crv::graphics::vulkan {
 
     VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const ImageResource& resource) {
         const uint32_t baseImageInfo = mImageInfos.size();
-        for (int i = 0; i < resource.imageViews.size(); ++i) {
-            VkDescriptorImageInfo info {
-                .sampler = resource.samplers[i],
-                .imageView = resource.imageViews[i],
-                .imageLayout = resource.layouts[i]
-            };
-            mImageInfos.push_back(info);
+        mImageInfos.push_back({.sampler = resource.sampler, .imageView = resource.imageView, .imageLayout = resource.layout});
+        return {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = binding,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = mBindings[binding].type,
+            .pImageInfo = &mImageInfos[baseImageInfo]
+        };
+    }
+
+    VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const ImageArrayResource& resource) {
+        const uint32_t baseImageInfo = mImageInfos.size();
+        for (size_t i = 0; i < resource.imageViews.size(); ++i) {
+            mImageInfos.push_back({.sampler = resource.samplers[i], .imageView = resource.imageViews[i], .imageLayout = resource.layouts[i]});
         }
         return {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

@@ -80,7 +80,7 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.add(i, BufferResource(*mInstanceBuffer));
             mDescriptorManager.add(i, BufferResource(*mEmissiveInstanceBuffer));
             mDescriptorManager.add(i, BufferResource(*mMaterialBuffer));
-            mDescriptorManager.add(i, ImageResource(*mTextures));
+            mDescriptorManager.add(i, ImageArrayResource(*mTextures));
         }
         mDescriptorManager.update();
     }

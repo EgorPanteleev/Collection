@@ -123,7 +123,7 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.add(i, ImageResource(sampler, gBuffer.colorView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
             mDescriptorManager.add(i, ImageResource(sampler, gBuffer.depthView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
             mDescriptorManager.add(i, ImageResource(sampler, gBuffer.normalView,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-            mDescriptorManager.add(i, ImageResource(*mTextures));
+            mDescriptorManager.add(i, ImageArrayResource(*mTextures));
         }
         mDescriptorManager.update();
 

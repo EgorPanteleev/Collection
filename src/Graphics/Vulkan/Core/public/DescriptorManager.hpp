@@ -42,21 +42,30 @@ namespace crv::graphics::vulkan {
     };
 
     struct BufferResource {
-        explicit BufferResource(VkBuffer buffer, VkDeviceSize size);
         explicit BufferResource(const Buffer& buffer);
-        explicit BufferResource(const std::vector<Buffer>& buffers_);
+        VkBuffer     buffer = VK_NULL_HANDLE;
+        VkDeviceSize size   = 0;
+    };
+
+    struct BufferArrayResource {
+        explicit BufferArrayResource(const std::vector<Buffer>& buffers);
         std::vector<VkBuffer>     buffers{};
         std::vector<VkDeviceSize> sizes{};
     };
 
     struct ImageResource {
         explicit ImageResource(ImageView* view, VkImageLayout layout);
-        explicit ImageResource(VkSampler sampler, VkImageView view, VkImageLayout layout);
-        explicit ImageResource(VkSampler sampler, const ImageView& view, VkImageLayout layout);
-        explicit ImageResource(const std::vector<VkSampler>& samplers, const std::vector<ImageView>& views,
+        explicit ImageResource(const Sampler& sampler, const ImageView& view, VkImageLayout layout);
+        VkSampler     sampler   = VK_NULL_HANDLE;
+        VkImageView   imageView = VK_NULL_HANDLE;
+        VkImageLayout layout    = VK_IMAGE_LAYOUT_UNDEFINED;
+    };
+
+    struct ImageArrayResource {
+        explicit ImageArrayResource(const std::vector<Sampler>& samplers, const std::vector<ImageView>& views,
             const std::vector<VkImageLayout>& layouts);
-        explicit ImageResource(std::vector<TexturesByType>& mTextures);
-        explicit ImageResource(std::vector<Texture>& mTextures);
+        explicit ImageArrayResource(std::vector<TexturesByType>& textures);
+        explicit ImageArrayResource(std::vector<Texture>& textures);
         std::vector<VkSampler>     samplers{};
         std::vector<VkImageView>   imageViews{};
         std::vector<VkImageLayout> layouts{};
@@ -70,16 +79,12 @@ namespace crv::graphics::vulkan {
 
     class DescriptorManager {
     public:
-        using Resource = std::variant<BufferResource, ImageResource, ASResource>;
+        using Resource = std::variant<BufferResource, BufferArrayResource, ImageResource, ImageArrayResource, ASResource>;
         void add(BindingType type, VkShaderStageFlags stages, uint32_t count = 1) { mBindings.push_back(binding(type, stages, count)); }
         void add(const BindingDescription& desc) { mBindings.push_back(desc); }
-        void add(uint32_t setIndex, const BufferResource& resource) { mResources[setIndex].emplace_back(resource); }
-        void add(uint32_t setIndex, const ImageResource& resource)  { mResources[setIndex].emplace_back(resource); }
-        void add(uint32_t setIndex, const ASResource& resource)  { mResources[setIndex].emplace_back(resource); }
-        void update(uint32_t binding, uint32_t setIndex, const BufferResource& resource);
-        void update(uint32_t binding, uint32_t setIndex, const ImageResource& resource);
-        void update(uint32_t binding, const BufferResource& resource);
-        void update(uint32_t binding, const ImageResource& resource);
+        void add(uint32_t setIndex, const Resource& resource) { mResources[setIndex].emplace_back(resource); }
+        void update(uint32_t binding, uint32_t setIndex, const Resource& resource) { mResources[setIndex][binding] = resource; }
+        void update(uint32_t binding, const Resource& resource);
         void build(const DescriptorBuildInfo& info);
         void update();
         VkDescriptorSet& set(const uint32_t index) { return mDescriptorSets[index]; }
@@ -90,7 +95,9 @@ namespace crv::graphics::vulkan {
         void createSets(const DescriptorBuildInfo& info);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, uint32_t setIndex);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const BufferResource& resource);
+        VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const BufferArrayResource& resource);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ImageResource& resource );
+        VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ImageArrayResource& resource);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ASResource& resource );
 
         using Resources = std::unordered_map<uint32_t, std::vector<Resource>>;
