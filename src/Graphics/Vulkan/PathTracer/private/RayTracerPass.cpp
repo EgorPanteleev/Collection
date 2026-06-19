@@ -4,7 +4,12 @@
 
 #include "RayTracerPass.hpp"
 
+#include <cstring>
+
 namespace crv::graphics::vulkan {
+    static constexpr uint32_t MAX_TEXTURES    = 1024;
+    static constexpr uint32_t TEXTURE_BINDING = 9;
+
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context), mTLAS(info.tlas),
     mBLASBuffer(info.BLASBuffer), mInstanceBuffer(info.instanceBuffer), mEmissiveInstanceBuffer(info.emissiveInstanceBuffer),
@@ -50,7 +55,6 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::createDescriptorManager() {
-        auto textureCount = static_cast<uint32_t>(mTextures->size());
         mDescriptorManager.add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
                                                                   VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
@@ -61,12 +65,12 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, textureCount);
+        mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, MAX_TEXTURES);
 
         const DescriptorBuildInfo buildInfo {
             .context = mContext,
             .count = mFramesInFlight,
-            .variableCount = static_cast<uint32_t>(mTextures->size())
+            .variableCount = MAX_TEXTURES
         };
         mDescriptorManager.build(buildInfo);
 
@@ -83,6 +87,15 @@ namespace crv::graphics::vulkan {
             mDescriptorManager.bind(i, ImageArrayResource(*mTextures));
         }
         mDescriptorManager.update();
+    }
+
+    void RayTracerPass::bindTexture(const uint32_t index) {
+        Texture& texture = (*mTextures)[index];
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.bind(TEXTURE_BINDING, i, index,
+                ImageResource(texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+            mDescriptorManager.update(TEXTURE_BINDING, i, index);
+        }
     }
 
     void RayTracerPass::createShaders() {

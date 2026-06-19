@@ -50,6 +50,7 @@ namespace crv::graphics::vulkan {
         explicit RayTracerPass(const RayTracerPassCreateInfo& info);
         void update(const RayTracerPassUpdateInfo& info);
         void record(const RayTracerPassRecordInfo& info);
+        void bindTexture(uint32_t index);
     private:
         void createDescriptorManager();
         void createShaders();

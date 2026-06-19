@@ -233,6 +233,7 @@ namespace crv::graphics::vulkan {
             if (!baseColorTexture.empty()) {
                 mTextures.push_back(toTexture(mContext, baseColorTexture));
                 material.baseColorTexIndex = mTextures.size() - 1;
+                material.baseColorTexName = baseColorTexture.mName;
             }
             if (!normalTexture.empty()) {
                 mTextures.push_back(toTexture(mContext, normalTexture));

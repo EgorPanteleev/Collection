@@ -16,6 +16,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] static std::vector<GPU> gpu(const std::vector<Material>& materials);
 
         std::string name{};
+        std::string baseColorTexName{};
         glm::vec3   baseColor{};
         glm::vec3   emissionColor     = {1, 1, 1};
         float       luminance         = 0;

@@ -54,6 +54,9 @@ namespace crv::graphics::vulkan {
     ImageResource::ImageResource(const Sampler& sampler, const ImageView& view, VkImageLayout layout):
         sampler(sampler.get()), imageView(view.get()), layout(layout) {}
 
+    ImageResource::ImageResource(Texture& texture, const VkImageLayout layout):
+        sampler(texture.sampler()), imageView(texture.view()), layout(layout) {}
+
     ImageArrayResource::ImageArrayResource(const std::vector<Sampler>& samplers_, const std::vector<ImageView>& views,
         const std::vector<VkImageLayout>& layouts_): layouts(layouts_) {
         for (const auto& s: samplers_) samplers.push_back(s.get());

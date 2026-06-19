@@ -22,6 +22,7 @@ namespace crv::graphics::vulkan {
         void updateInstance(uint32_t index);
         void updateMaterial(uint32_t index);
         void updateEmissiveIndices();
+        uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);
 
         [[nodiscard]] DirectLight& directLight() { return mSceneLoader.mDirectLight; }
         [[nodiscard]] std::vector<InstanceData>& instances() { return mSceneLoader.mInstances; }

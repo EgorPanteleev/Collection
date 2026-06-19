@@ -363,6 +363,11 @@ namespace crv::graphics::vulkan {
 
         mUI.setUpdateImageCallBack([this](){updateImage();});
         mUI.setCameraSetCallBack([this](cs::CameraType type){setCamera(type);});
+        mUI.setUploadTextureCallBack([this](const std::string& path, uint32_t materialIndex){
+            vkDeviceWaitIdle(mContext.device());
+            const uint32_t index = mResourceManager.addBaseColorTexture(path, materialIndex);
+            mRayTracerPass.bindTexture(index);
+        });
     }
 
     void PathTracerApp::recordTracer() {

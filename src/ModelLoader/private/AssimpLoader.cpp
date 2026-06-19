@@ -276,6 +276,7 @@ namespace crv::model {
             path = dirPath + "/" + path;
             texture = AbsLoader::loadTexture(path, textureType);
         }
+        texture.mName = fs::path(path).filename().string();
         mMaterials[materialIndex].mTextures[textureType] = texture;
     }
 

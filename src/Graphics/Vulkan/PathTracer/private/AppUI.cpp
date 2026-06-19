@@ -208,17 +208,26 @@ namespace crv::graphics::vulkan {
                     ImGui::TableSetColumnIndex(0);
                     ImGui::AlignTextToFramePadding();
                     ImGui::TextDisabled("%s", "Base Color");
+                    const bool hasTexture = material.baseColorTexIndex != UINT32_MAX;
                     ImGui::TableSetColumnIndex(1);
                     ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", mBaseColorTexPath.empty() ? "None" : mBaseColorTexPath.c_str());
+                    ImGui::TextDisabled("%s", hasTexture ? material.baseColorTexName.c_str() : "None");
                     ImGui::TableSetColumnIndex(2);
                     ImGui::AlignTextToFramePadding();
-                    if (ImGui::Button("Upload")) {
+                    if (hasTexture) {
+                        if (ImGui::Button("Clear")) {
+                            material.baseColorTexIndex = UINT32_MAX;
+                            material.baseColorTexName.clear();
+                            mResourceManager->updateMaterial(instance.materialIndex);
+                            mUpdateImage();
+                        }
+                    } else if (ImGui::Button("Upload")) {
                         mFileDialog.open(ASSETS_PATH,
                             {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr", ".exr", ".ktx", ".dds"});
                     }
                     if (mFileDialog.draw("Select Base Color Texture")) {
-                        mBaseColorTexPath = mFileDialog.result();
+                        mUploadTexture(mFileDialog.result(), instance.materialIndex);
+                        mUpdateImage();
                     }
                     VkImGui::endCompactTable();
                 }

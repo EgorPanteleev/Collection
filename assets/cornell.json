@@ -1,90 +1,23 @@
 {
-  "modelImports":	["meshes/dragon.glb", "meshes/plane.glb", "meshes/sphere.glb"],
-  "materials": [{
-    "name": "red",
-    "color": [1, 0, 0],
-    "luminance": 0
+  "modelImports":	["meshes/cube.glb", "scenes/Sponza/glTF/Sponza.gltf"],
+  "instances":	[ {
+    "name":	"sponza1",
+    "modelIndex": 1,
+    "texIndex": -1,
+    "localPosition": [0, 0, 0],
+    "localRotation": [0, 0, 180],
+    "localScale":	 [5, 5, 5]
   }, {
-    "name": "green",
-    "color": [0, 1, 0],
-    "luminance": 0
-  }, {
-      "name": "gray",
-      "color": [0.8, 0.8, 0.8],
-      "luminance": 0
-    }, {
-      "name": "light",
-      "color": [1, 1, 1],
-      "luminance": 30.0
-    }],
-  "instances":	[
-  {
-    "name":	"dragon",
-    "modelIndex": 0,
-    "texIndex": 2,
-    "localPosition":	[-6, 0, 8],
-    "localRotation":	[0, -35, 180],
-    "localScale":	[30, 30, -30]
-  },
-  {
-    "name":	"sphere",
-    "modelIndex": 2,
-    "texIndex": 2,
-    "localPosition":	[8.5, -9.5, -13.0],
-    "localRotation":	[0, 0, 0],
-    "localScale":	[10, 10, -10]
-  },
-  {
-    "name":	"bottomPlane",
-    "modelIndex":	1,
-    "texIndex": 2,
-    "localPosition":	[0, 0, 0],
-    "localRotation":	[0, 0, 0],
-    "localScale":	[31, 31, 31]
-  },
-  {
-    "name":	"leftPlane",
-    "modelIndex":	1,
-    "texIndex": 0,
-    "localPosition":	[0, -30, 30],
-    "localRotation":	[0, 90, 90],
-    "localScale":	[31, 31, 31]
-  },
-  {
-    "name":	"rightPlane",
-    "modelIndex":	1,
-    "texIndex": 1,
-    "localPosition":	[0, -30, -30],
-    "localRotation":	[0, 90, 90],
-    "localScale":	[31, 31, 31]
-  },
-  {
-    "name":	"forwardPlane",
-    "modelIndex":	1,
-    "texIndex": 2,
-    "localPosition":	[-30, -30, 0],
-    "localRotation":	[0, 0, 90],
-    "localScale":	[31, 31, 31]
-  },
-  {
-    "name":	"topPlane",
-    "modelIndex":	1,
-    "texIndex": 2,
-    "localPosition":	[0, -60, 0],
-    "localRotation":	[0, 0, 0],
-    "localScale":	[31, 31, 31]
-  },
-  {
-    "name":	"lamp",
-    "modelIndex":	2,
-    "texIndex": 3,
-    "localPosition":	[0, -60, 0],
-    "localRotation":	[0, 0, 0],
-    "localScale":	[7, 1.2, 7]
+    "name":	"sponza2",
+    "modelIndex": 1,
+    "texIndex": -1,
+    "localPosition": [0, 0, 100],
+    "localRotation": [0, 0, 180],
+    "localScale":	 [5, 5, 5]
   }],
   "directLight": {
-    "direction": [-0.468, 0.318, -0.824],
-    "intensity": 0
+    "direction": [0, 1.0, -0.2],
+    "intensity": 5
   },
   "window": {
     "name": "GPU Path Tracer",
@@ -93,8 +26,8 @@
   },
   "camera":	{
     "type": "Fly",
-    "position":	[78, -29, -2],
-    "target":	[-100, -30, 0],
+    "position":	[24, -24, 3],
+    "target":	[-100, 10, 0],
     "up":	[0, 1, 0],
     "zoom": 1,
     "fov": 60,

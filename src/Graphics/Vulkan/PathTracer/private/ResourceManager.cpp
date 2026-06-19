@@ -4,6 +4,7 @@
 
 #include "ResourceManager.hpp"
 #include <algorithm>
+#include <filesystem>
 
 namespace crv::graphics::vulkan {
     ResourceManager::ResourceManager(const ResourceManagerCreateInfo& info):
@@ -75,6 +76,17 @@ namespace crv::graphics::vulkan {
         };
         Buffer::copy(copyInfo);
         updateEmissiveIndices();
+    }
+
+    uint32_t ResourceManager::addBaseColorTexture(const std::string& path, const uint32_t materialIndex) {
+        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::BASE_COLOR);
+        mSceneLoader.mTextures.push_back(toTexture(mContext, cmTexture));
+        const auto index = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);
+        Material& material = mSceneLoader.mMaterials[materialIndex];
+        material.baseColorTexIndex = index;
+        material.baseColorTexName = std::filesystem::path(path).filename().string();
+        updateMaterial(materialIndex);
+        return index;
     }
 
     void ResourceManager::updateEmissiveIndices() {

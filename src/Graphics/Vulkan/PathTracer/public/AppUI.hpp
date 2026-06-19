@@ -42,6 +42,7 @@ namespace crv::graphics::vulkan {
 
         void setUpdateImageCallBack(const std::function<void()>& callBack) { mUpdateImage = callBack; }
         void setCameraSetCallBack(const std::function<void(cs::CameraType type)>& callBack) { mCameraSet = callBack; }
+        void setUploadTextureCallBack(const std::function<void(const std::string& path, uint32_t materialIndex)>& callBack) { mUploadTexture = callBack; }
 
         [[nodiscard]] uint32_t spp() const { return mSPP; }
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
@@ -66,11 +67,11 @@ namespace crv::graphics::vulkan {
         int              mDisplayMode     = 4;
         bool             mNee             = true;
 
-        std::string      mBaseColorTexPath{};
         ImGuiFileDialog  mFileDialog{};
 
         std::function<void()> mUpdateImage{};
         std::function<void(cs::CameraType type)> mCameraSet{};
+        std::function<void(const std::string& path, uint32_t materialIndex)> mUploadTexture{};
     };
 }
 
