@@ -54,7 +54,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::pixelClicked(uint32_t x, uint32_t y) {
-        if (!mRenderImGui) return;
+        if (mRenderImGui) return;
         auto [width, height] = mSwapchain.extent();
         if (x > width or y > height) return;
         mClickedPixel = {x, y};
@@ -506,27 +506,23 @@ namespace crv::graphics::vulkan {
             VK_FILTER_NEAREST
         );
 
-        if (mRenderImGui) {
-            swapchainTransitInfo.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
-            swapchainTransitInfo.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            swapchainTransitInfo.srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-        }
+        swapchainTransitInfo.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        swapchainTransitInfo.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        swapchainTransitInfo.srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
         Image::inverseTransit({presentTransitInfo, swapchainTransitInfo});
 
-        if (mRenderImGui) {
-            const AppUIRecordInfo recordInfo {
-                .commandBuffer = commandBuffer,
-                .imageView = &mSwapchainImageViews[imageIndex]
-            };
-            mUI.record(recordInfo);
-            swapchainTransitInfo.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
-            swapchainTransitInfo.dstAccessMask = 0;
-            swapchainTransitInfo.srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-            swapchainTransitInfo.dstStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-            swapchainTransitInfo.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            swapchainTransitInfo.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            Image::transit(swapchainTransitInfo);
-        }
+        const AppUIRecordInfo recordInfo {
+            .commandBuffer = commandBuffer,
+            .imageView = &mSwapchainImageViews[imageIndex]
+        };
+        mUI.record(recordInfo);
+        swapchainTransitInfo.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        swapchainTransitInfo.dstAccessMask = 0;
+        swapchainTransitInfo.srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        swapchainTransitInfo.dstStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        swapchainTransitInfo.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        swapchainTransitInfo.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        Image::transit(swapchainTransitInfo);
         endCommandBuffer(commandBuffer);
     }
 

@@ -51,6 +51,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] bool     nee() const { return mNee; }
     private:
         void drawGizmo(const AppUIDrawInfo& info);
+        void drawCursorDot();
         void drawOverView(const AppUIDrawInfo& info);
         void drawCameraTab(const AppUIDrawInfo& info);
         void drawRenderTab(const AppUIDrawInfo& info);

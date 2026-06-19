@@ -51,12 +51,19 @@ namespace crv::graphics::vulkan {
             drawGizmo(info);
         }
         if (!info.drawUI) {
+            drawCursorDot();
             mImGui.endFrame();
             return;
         }
         drawOverView(info);
         drawSettings(info);
         mImGui.endFrame();
+    }
+
+    void AppUI::drawCursorDot() {
+        if (!ImGui::IsMousePosValid()) return;
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+        ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetIO().MousePos, 3.0f, IM_COL32(0, 0, 0, 255));
     }
 
     void AppUI::drawGizmo(const AppUIDrawInfo& info) {
