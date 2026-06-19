@@ -5,6 +5,7 @@
 #include "ImGui.hpp"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
+#include <ImGuizmo.h>
 
 #include "IconsFontAwesome6.h"
 #include "fa_solid_900.h"
@@ -202,6 +203,7 @@ namespace crv::graphics::vulkan {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
         return true;
     }
 

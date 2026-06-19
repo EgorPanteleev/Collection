@@ -5,8 +5,8 @@ target_include_directories(stbImage INTERFACE ./stbi/)
 #ImGui
 file(GLOB IMGUI_SOURCES "./imgui/*.cpp" "./imgui/backends/*vulkan.cpp" "./imgui/backends/*glfw.cpp")
 file(GLOB IMGUI_HEADERS "./imgui/*.h" "./imgui/backends/*vulkan.h" "./imgui/backends/*glfw.h")
-add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
-target_include_directories(imgui PUBLIC ./imgui/)
+add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS} ./imguizmo/src/ImGuizmo.cpp ./imguizmo/src/ImGuizmo.h)
+target_include_directories(imgui PUBLIC ./imgui/ ./imguizmo/src/)
 
 #gli
 add_subdirectory(./gli)

@@ -4,6 +4,8 @@
 
 #include "AppUI.hpp"
 #include "IconsFontAwesome6.h"
+#include <ImGuizmo.h>
+#include <glm/gtc/type_ptr.hpp>
 
 static float clampAngle(float deg) {
     deg = std::fmod(deg + 180.0f, 360.0f);
@@ -45,6 +47,9 @@ namespace crv::graphics::vulkan {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
         mImGui.beginFrame();
+        if (info.selectedInstanceIndex != 0) {
+            drawGizmo(info);
+        }
         if (!info.drawUI) {
             mImGui.endFrame();
             return;
@@ -52,6 +57,26 @@ namespace crv::graphics::vulkan {
         drawOverView(info);
         drawSettings(info);
         mImGui.endFrame();
+    }
+
+    void AppUI::drawGizmo(const AppUIDrawInfo& info) {
+        InstanceData& instance = mResourceManager->instances()[info.selectedInstanceIndex - 1];
+        glm::mat4 view  = info.camera->viewMatrix();
+        glm::mat4 proj  = info.camera->projectionMatrix();
+        proj[1][1] *= -1.0f;
+        glm::mat4 model = instance.transform.matrix();
+
+        const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+        ImGuizmo::SetRect(0.0f, 0.0f, displaySize.x, displaySize.y);
+
+        if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
+            ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(model))) {
+            instance.transform.position = glm::vec3(model[3]);
+            mResourceManager->updateInstanceTransform(info.selectedInstanceIndex - 1);
+            mUpdateImage();
+        }
     }
 
     void AppUI::drawOverView(const AppUIDrawInfo& info) {

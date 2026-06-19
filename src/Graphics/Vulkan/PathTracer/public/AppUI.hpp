@@ -50,6 +50,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] uint32_t displayMode() const { return mDisplayMode; }
         [[nodiscard]] bool     nee() const { return mNee; }
     private:
+        void drawGizmo(const AppUIDrawInfo& info);
         void drawOverView(const AppUIDrawInfo& info);
         void drawCameraTab(const AppUIDrawInfo& info);
         void drawRenderTab(const AppUIDrawInfo& info);
