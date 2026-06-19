@@ -83,6 +83,30 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void DescriptorManager::bind(const uint32_t binding, const uint32_t setIndex, const uint32_t arrayIndex,
+        const ImageResource& image) {
+        auto& array = std::get<ImageArrayResource>(mResources[setIndex][binding]);
+        if (arrayIndex >= array.imageViews.size()) {
+            array.samplers.resize(arrayIndex + 1, VK_NULL_HANDLE);
+            array.imageViews.resize(arrayIndex + 1, VK_NULL_HANDLE);
+            array.layouts.resize(arrayIndex + 1, VK_IMAGE_LAYOUT_UNDEFINED);
+        }
+        array.samplers[arrayIndex]   = image.sampler;
+        array.imageViews[arrayIndex] = image.imageView;
+        array.layouts[arrayIndex]    = image.layout;
+    }
+
+    void DescriptorManager::bind(const uint32_t binding, const uint32_t setIndex, const uint32_t arrayIndex,
+        const BufferResource& buffer) {
+        auto& array = std::get<BufferArrayResource>(mResources[setIndex][binding]);
+        if (arrayIndex >= array.buffers.size()) {
+            array.buffers.resize(arrayIndex + 1, VK_NULL_HANDLE);
+            array.sizes.resize(arrayIndex + 1, 0);
+        }
+        array.buffers[arrayIndex] = buffer.buffer;
+        array.sizes[arrayIndex]   = buffer.size;
+    }
+
     void DescriptorManager::build(const DescriptorBuildInfo& info) {
         createLayout(info);
         createPool(info);
@@ -112,6 +136,27 @@ namespace crv::graphics::vulkan {
             .descriptorsWrites = descriptorsWrites
         };
         mDescriptorSets.update(updateInfo);
+    }
+
+    void DescriptorManager::update(const uint32_t binding, const uint32_t setIndex) {
+        mBufferInfos.clear();
+        mImageInfos.clear();
+        mASInfos.clear();
+        mBufferInfos.reserve(mBindings[binding].count);
+        mImageInfos.reserve(mBindings[binding].count);
+        mASInfos.reserve(mBindings[binding].count);
+        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites(mDescriptorSets.size());
+        descriptorsWrites[setIndex].push_back(getDescriptorWrite(binding, setIndex));
+        mDescriptorSets.update({.descriptorsWrites = descriptorsWrites});
+    }
+
+    void DescriptorManager::update(const uint32_t binding, const uint32_t setIndex, const uint32_t arrayIndex) {
+        mBufferInfos.clear();
+        mImageInfos.clear();
+        const VkWriteDescriptorSet write = getDescriptorWrite(binding, setIndex, arrayIndex);
+        std::vector<std::vector<VkWriteDescriptorSet>> descriptorsWrites(mDescriptorSets.size());
+        descriptorsWrites[setIndex].push_back(write);
+        mDescriptorSets.update({.descriptorsWrites = descriptorsWrites});
     }
 
     void DescriptorManager::createLayout(const DescriptorBuildInfo& info) {
@@ -172,15 +217,9 @@ namespace crv::graphics::vulkan {
 
     VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const uint32_t setIndex) {
         const Resource& resource = mResources[setIndex][binding];
-        if (std::holds_alternative<BufferResource>(resource))
-            return getDescriptorWrite(binding, std::get<BufferResource>(resource));
-        if (std::holds_alternative<BufferArrayResource>(resource))
-            return getDescriptorWrite(binding, std::get<BufferArrayResource>(resource));
-        if (std::holds_alternative<ImageResource>(resource))
-            return getDescriptorWrite(binding, std::get<ImageResource>(resource));
-        if (std::holds_alternative<ImageArrayResource>(resource))
-            return getDescriptorWrite(binding, std::get<ImageArrayResource>(resource));
-        return getDescriptorWrite(binding, std::get<ASResource>(resource));
+        return std::visit([this, binding](auto&& value) {
+            return getDescriptorWrite(binding, value);
+        }, resource); 
     }
 
     VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const BufferResource& resource) {
@@ -240,6 +279,44 @@ namespace crv::graphics::vulkan {
             .descriptorCount = static_cast<uint32_t>(resource.imageViews.size()),
             .descriptorType = mBindings[binding].type,
             .pImageInfo = &mImageInfos[baseImageInfo]
+        };
+    }
+
+    VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const uint32_t arrayIndex, const ImageArrayResource& resource) {
+        const uint32_t baseImageInfo = mImageInfos.size();
+        mImageInfos.push_back({.sampler = resource.samplers[arrayIndex], .imageView = resource.imageViews[arrayIndex], .imageLayout = resource.layouts[arrayIndex]});
+        return {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = binding,
+            .dstArrayElement = arrayIndex,
+            .descriptorCount = 1,
+            .descriptorType = mBindings[binding].type,
+            .pImageInfo = &mImageInfos[baseImageInfo]
+        };
+    }
+
+    VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const uint32_t setIndex, const uint32_t arrayIndex) {
+        const Resource& resource = mResources[setIndex][binding];
+        return std::visit([this, binding, arrayIndex](auto&& value) {
+            using Type = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<Type, BufferArrayResource> or
+                          std::is_same_v<Type, ImageArrayResource>) return getDescriptorWrite(binding, arrayIndex, value);
+            return VkWriteDescriptorSet{};
+        }, resource);
+    }
+
+    VkWriteDescriptorSet DescriptorManager::getDescriptorWrite(const uint32_t binding, const uint32_t arrayIndex, const BufferArrayResource& resource) {
+        const uint32_t baseBufferInfo = mBufferInfos.size();
+        mBufferInfos.push_back({.buffer = resource.buffers[arrayIndex], .offset = 0, .range = resource.sizes[arrayIndex]});
+        return {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = binding,
+            .dstArrayElement = arrayIndex,
+            .descriptorCount = 1,
+            .descriptorType = mBindings[binding].type,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &mBufferInfos[baseBufferInfo],
+            .pTexelBufferView = nullptr
         };
     }
 

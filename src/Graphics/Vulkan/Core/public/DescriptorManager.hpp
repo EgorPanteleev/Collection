@@ -84,8 +84,12 @@ namespace crv::graphics::vulkan {
         void add(const BindingDescription& desc) { mBindings.push_back(desc); }
         void bind(uint32_t setIndex, const Resource& resource) { mResources[setIndex].emplace_back(resource); }
         void bind(uint32_t binding, uint32_t setIndex, const Resource& resource) { mResources[setIndex][binding] = resource; }
+        void bind(uint32_t binding, uint32_t setIndex, uint32_t arrayIndex, const ImageResource& image);
+        void bind(uint32_t binding, uint32_t setIndex, uint32_t arrayIndex, const BufferResource& buffer);
         void build(const DescriptorBuildInfo& info);
         void update();
+        void update(uint32_t binding, uint32_t setIndex);
+        void update(uint32_t binding, uint32_t setIndex, uint32_t arrayIndex);
         VkDescriptorSet& set(const uint32_t index) { return mDescriptorSets[index]; }
         [[nodiscard]] std::vector<VkDescriptorSetLayout> layouts(uint32_t count) const;
     private:
@@ -98,6 +102,9 @@ namespace crv::graphics::vulkan {
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ImageResource& resource );
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ImageArrayResource& resource);
         VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, const ASResource& resource );
+        VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, uint32_t setIndex, uint32_t arrayIndex);
+        VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, uint32_t arrayIndex, const ImageArrayResource& resource);
+        VkWriteDescriptorSet getDescriptorWrite(uint32_t binding, uint32_t arrayIndex, const BufferArrayResource& resource);
 
         using Resources = std::unordered_map<uint32_t, std::vector<Resource>>;
         std::vector<BindingDescription>    mBindings{};
