@@ -20,6 +20,8 @@ namespace crv::graphics::vulkan {
         glm::vec3   baseColor{};
         glm::vec3   emissionColor     = {1, 1, 1};
         float       luminance         = 0;
+        float       metalness         = 0.0f;
+        float       roughness         = 1.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
     };
@@ -29,6 +31,8 @@ namespace crv::graphics::vulkan {
             .baseColor = baseColor,
             .emissionColor = emissionColor,
             .luminance = luminance,
+            .metalness = metalness,
+            .roughness = roughness,
             .baseColorTexIndex = baseColorTexIndex,
             .normalTexIndex = normalTexIndex,
         };

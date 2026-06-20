@@ -2,21 +2,27 @@
   "modelImports":	["meshes/dragon.glb", "meshes/plane.glb", "meshes/sphere.glb"],
   "materials": [{
     "name": "red",
-    "color": [1, 0, 0],
+    "color": [0.8, 0.14, 0.12],
     "luminance": 0
   }, {
     "name": "green",
-    "color": [0, 1, 0],
+    "color": [0.13, 0.7, 0.16],
     "luminance": 0
   }, {
     "name": "gray",
-    "color": [0.8, 0.8, 0.8],
+    "color": [0.73, 0.73, 0.73],
     "luminance": 0
   }, {
     "name": "light",
     "color": [1, 1, 1],
     "luminance": 30.0
-  }],
+  }, {
+    "name": "sphere",
+    "color": [0.73, 0.73, 0.73],
+    "luminance": 0,
+    "metalness": 1.0,
+    "roughness": 0.0
+  } ],
   "instances":	[
     {
       "name":	"dragon",
@@ -29,7 +35,7 @@
     {
       "name":	"sphere",
       "modelIndex": 2,
-      "texIndex": 2,
+      "texIndex": 4,
       "localPosition":	[8.5, -9.5, -13.0],
       "localRotation":	[0, 0, 0],
       "localScale":	[10, 10, -10]

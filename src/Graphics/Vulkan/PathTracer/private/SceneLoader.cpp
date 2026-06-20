@@ -252,7 +252,9 @@ namespace crv::graphics::vulkan {
             material = {
                 .name = jsonMaterial["name"],
                 .baseColor = toVec3(jsonMaterial["color"]),
-                .luminance = jsonMaterial["luminance"]
+                .luminance = jsonMaterial["luminance"],
+                .metalness = jsonMaterial.value("metalness", 0.0f),
+                .roughness = jsonMaterial.value("roughness", 1.0f)
             };
         }
     }

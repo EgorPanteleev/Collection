@@ -94,10 +94,17 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
-    Scatter scatter = lambertianScatter(payload.seed, baseColor, hit.N, -WorldRayDirection());
+    Surface surf = makeSurface(baseColor, material.metalness, material.roughness,
+                               hit.N, -WorldRayDirection());
+    Scatter scatter = sampleBSDF(payload.seed, surf);
 
-    directLightContribution(payload, hit.P, hit.gN, hit.N, scatter);
-    nextEventEstimation(payload, hit.P, hit.gN, hit.N, scatter);
+    directLightContribution(payload, hit.P, hit.gN, surf);
+    nextEventEstimation(payload, hit.P, hit.gN, surf);
+
+    if (scatter.pdf <= PDF_EPS) {
+        payload.done = true;
+        return;
+    }
 
     payload.throughput *= scatter.brdf * max(dot(scatter.wi, hit.N), 0.0) / scatter.pdf;
     payload.origin      = movedPoint(hit.P, hit.gN);

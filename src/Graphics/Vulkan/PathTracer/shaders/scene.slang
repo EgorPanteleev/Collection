@@ -65,16 +65,19 @@ public float traceShadow(float3 P, float3 N, float3 L, float tMax) {
     return visible;
 }
 
-public void directLightContribution(inout PathPayload payload, float3 P, float3 gN, float3 N, Scatter scatter) {
+public void directLightContribution(inout PathPayload payload, float3 P, float3 gN, Surface surf) {
     if (directLight.intensity <= 0.0) return;
     float3 L     = normalize(-directLight.dir);
-    float  NdotL = max(dot(N, L), 0.0);
+    float  NdotL = max(dot(surf.N, L), 0.0);
     if (NdotL <= 0.0) return;
+    float3 brdf;
+    float  pdf;
+    evalBSDF(surf, L, brdf, pdf);
     float  vis    = traceShadow(P, gN, L, T_MAX);
-    payload.radiance += payload.throughput * scatter.brdf * NdotL * directLight.intensity * vis;
+    payload.radiance += payload.throughput * brdf * NdotL * directLight.intensity * vis;
 }
 
-public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, float3 N, Scatter scatter) {
+public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, Surface surf) {
     if (pc.nee == 0u || pc.emissiveCount == 0u) return;
 
     uint lightIdx      = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
@@ -89,17 +92,20 @@ public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, 
     float  dist    = sqrt(distSq);
     float3 wi      = toLight / dist;
 
-    float NdotWi  = max(dot(N, wi), 0.0);
+    float NdotWi  = max(dot(surf.N, wi), 0.0);
     float LNdotWi = max(dot(ls.N, -wi), 0.0);
 
     if (NdotWi <= 0.0 || LNdotWi <= PDF_EPS || ls.pdf <= 0.0 || distSq <= PDF_EPS) return;
 
+    float3 brdf;
+    float  pdfBrdf;
+    evalBSDF(surf, wi, brdf, pdfBrdf);
+
     float vis      = traceShadow(P, gN, wi, dist * (1.0 - SHADOW_EPS));
     float pdfLight = ls.pdf * distSq / LNdotWi / float(pc.emissiveCount);
-    float pdfBrdf  = NdotWi * M_1_PI;
     float weight   = powerHeuristic(pdfLight, pdfBrdf);
 
-    float3 contrib = payload.throughput * scatter.brdf * ls.emission * NdotWi * vis * weight / pdfLight;
+    float3 contrib = payload.throughput * brdf * ls.emission * NdotWi * vis * weight / pdfLight;
     float  lum     = luminance(contrib);
     if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
     payload.radiance += contrib;
