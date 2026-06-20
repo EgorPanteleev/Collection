@@ -115,7 +115,7 @@ namespace crv::graphics::vulkan {
                 rightMouseButtonPressed = false;
             }
         }
-        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
             if (action == GLFW_RELEASE) {
                 objectSelected(window);
             }

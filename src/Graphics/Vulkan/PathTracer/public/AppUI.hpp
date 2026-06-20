@@ -12,6 +12,7 @@
 #include "AbsCamera.hpp"
 #include "Types.hpp"
 #include "ResourceManager.hpp"
+#include <ImGuizmo.h>
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
@@ -69,6 +70,7 @@ namespace crv::graphics::vulkan {
         int              mDisplayMode     = 4;
         bool             mNee             = true;
 
+        ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
         ImGuiFileDialog  mFileDialog{};
 
         std::function<void()> mUpdateImage{};

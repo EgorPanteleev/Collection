@@ -54,7 +54,6 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::pixelClicked(uint32_t x, uint32_t y) {
-        if (mRenderImGui) return;
         auto [width, height] = mSwapchain.extent();
         if (x > width or y > height) return;
         mClickedPixel = {x, y};

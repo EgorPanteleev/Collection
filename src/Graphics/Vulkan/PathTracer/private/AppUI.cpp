@@ -6,6 +6,7 @@
 #include "IconsFontAwesome6.h"
 #include <ImGuizmo.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 static float clampAngle(float deg) {
     deg = std::fmod(deg + 180.0f, 360.0f);
@@ -67,20 +68,28 @@ namespace crv::graphics::vulkan {
     }
 
     void AppUI::drawGizmo(const AppUIDrawInfo& info) {
+        if (!ImGui::GetIO().WantTextInput) {
+            if (ImGui::IsKeyPressed(ImGuiKey_T)) mGizmoOp = ImGuizmo::TRANSLATE;
+            if (ImGui::IsKeyPressed(ImGuiKey_R)) mGizmoOp = ImGuizmo::ROTATE;
+        }
+
         InstanceData& instance = mResourceManager->instances()[info.selectedInstanceIndex - 1];
         glm::mat4 view  = info.camera->viewMatrix();
         glm::mat4 proj  = info.camera->projectionMatrix();
         proj[1][1] *= -1.0f;
-        glm::mat4 model = instance.transform.matrix();
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), instance.transform.position)
+                        * glm::toMat4(instance.transform.rotation);
 
         const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        const ImGuizmo::MODE mode = mGizmoOp == ImGuizmo::ROTATE ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
         ImGuizmo::SetRect(0.0f, 0.0f, displaySize.x, displaySize.y);
 
         if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
-            ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(model))) {
+            mGizmoOp, mode, glm::value_ptr(model))) {
             instance.transform.position = glm::vec3(model[3]);
+            instance.transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(model)));
             mResourceManager->updateInstanceTransform(info.selectedInstanceIndex - 1);
             mUpdateImage();
         }
@@ -272,20 +281,20 @@ namespace crv::graphics::vulkan {
             if (ImGui::DragFloat3("Position", &transform.position[0], 0.1f))
                 changed = true;
 
-            static glm::vec3 uiRotation{FLT_MAX};
-            if (uiRotation[0] == FLT_MAX)
+            static glm::vec3 uiRotation{};
+            static glm::quat cachedRotation{};
+            static uint32_t cachedInstance = UINT32_MAX;
+            if (info.selectedInstanceIndex != cachedInstance ||
+                instance.transform.rotation != cachedRotation) {
                 uiRotation = glm::degrees(glm::eulerAngles(instance.transform.rotation));
-            glm::vec3 prevRotation = uiRotation;
+                cachedInstance = info.selectedInstanceIndex;
+            }
             if (ImGui::DragFloat3("Rotation", &uiRotation[0], 0.5f)) {
                 uiRotation = clampRotation(uiRotation);
-                glm::vec3 delta = uiRotation - prevRotation;
-                glm::quat qx = glm::angleAxis(glm::radians(delta.x), glm::vec3(1,0,0));
-                glm::quat qy = glm::angleAxis(glm::radians(delta.y), glm::vec3(0,1,0));
-                glm::quat qz = glm::angleAxis(glm::radians(delta.z), glm::vec3(0,0,1));
-                glm::quat deltaRot = qz * qy * qx;
-                transform.rotation = glm::normalize(deltaRot * transform.rotation);
+                transform.rotation = glm::normalize(glm::quat(glm::radians(uiRotation)));
                 changed = true;
             }
+            cachedRotation = instance.transform.rotation;
 
             if (ImGui::DragFloat3("Scale", &transform.scale[0], 0.05f))
                 changed = true;
