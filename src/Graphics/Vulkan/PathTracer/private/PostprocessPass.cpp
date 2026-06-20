@@ -21,6 +21,8 @@ namespace crv::graphics::vulkan {
         vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelines[0]);
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mPipelineLayout.get(),
                         0, 1, &mDescriptorManager.set(info.currentFrame), 0, nullptr);
+        vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(), VK_SHADER_STAGE_COMPUTE_BIT,
+                        0, sizeof(PostprocessPushConstants), &info.constants);
 
         auto [width, height]  = info.extent;
         const uint32_t groupX = 1 + (width  - 1) / 16;
@@ -48,10 +50,15 @@ namespace crv::graphics::vulkan {
     }
 
     void PostprocessPass::createPipelineLayout() {
+        const VkPushConstantRange pushRange {
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .offset = 0,
+            .size = sizeof(PostprocessPushConstants)
+        };
         const PipelineLayoutCreateInfo createInfo {
             .device = mContext->device(),
             .layouts = mDescriptorManager.layouts(mFramesInFlight),
-            .ranges = {}
+            .ranges = {pushRange}
         };
         mPipelineLayout = PipelineLayout(createInfo);
     }

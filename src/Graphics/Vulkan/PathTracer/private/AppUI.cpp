@@ -190,6 +190,10 @@ namespace crv::graphics::vulkan {
                 mUpdateImage();
             }
         }
+        if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("ACES", &mTonemap);
+            ImGui::DragFloat("Exposure", &mExposure, 0.01f, 0.0f, 100.0f, "%.2f");
+        }
         ImGui::Unindent(4.0f);
     }
 

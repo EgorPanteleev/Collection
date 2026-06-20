@@ -10,6 +10,22 @@ RWTexture2D<uint> instanceIdImage;
 [[vk::binding(2)]]
 RWTexture2D<float4> outputImage;
 
+struct PostprocessConstants {
+    float exposure;
+    uint  tonemap;
+};
+[[vk::push_constant]]
+PostprocessConstants pc;
+
+float3 acesToneMap(float3 x) {
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 float4 outline(int2 pixel, float3 baseColor, const int thickness) {
     uint instanceId = instanceIdImage[pixel];
     uint2 size;
@@ -43,6 +59,8 @@ float4 outline(int2 pixel, float3 baseColor, const int thickness) {
 [numthreads(16, 16, 1)]
 void main(uint3 tid : SV_DispatchThreadID) {
     int2 pixel = int2(tid.xy);
-    float3 imageColor = tracerImage[pixel].rgb;
+    float3 imageColor = tracerImage[pixel].rgb * pc.exposure;
+    if (pc.tonemap != 0u)
+        imageColor = acesToneMap(imageColor);
     outputImage[pixel] = outline(pixel, imageColor, 4);
 }

@@ -50,6 +50,8 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] uint32_t maxDepth() const { return mMaxDepth; }
         [[nodiscard]] uint32_t displayMode() const { return mDisplayMode; }
         [[nodiscard]] bool     nee() const { return mNee; }
+        [[nodiscard]] float    exposure() const { return mExposure; }
+        [[nodiscard]] bool     tonemap() const { return mTonemap; }
     private:
         void drawGizmo(const AppUIDrawInfo& info);
         void drawCursorDot();
@@ -69,6 +71,8 @@ namespace crv::graphics::vulkan {
         int              mMaxDepth        = 1;
         int              mDisplayMode     = 4;
         bool             mNee             = true;
+        float            mExposure        = 1.0f;
+        bool             mTonemap         = true;
 
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
         ImGuiFileDialog  mFileDialog{};

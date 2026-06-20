@@ -24,6 +24,11 @@ namespace crv::graphics::vulkan {
         uint32_t emissiveCount = 0;
     };
 
+    struct PostprocessPushConstants {
+        float    exposure = 1.0f;
+        uint32_t tonemap  = 1;
+    };
+
     struct alignas(16) CameraGPU {
         glm::mat4 invView;
         glm::mat4 invProj;

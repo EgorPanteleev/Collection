@@ -10,6 +10,7 @@
 #include "PipelineLayout.hpp"
 #include "ComputePipelines.hpp"
 #include "ShaderModule.hpp"
+#include "Types.hpp"
 
 namespace crv::graphics::vulkan {
     struct PostprocessPassCreateInfo {
@@ -24,9 +25,10 @@ namespace crv::graphics::vulkan {
     };
 
     struct PostprocessPassRecordInfo {
-        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-        VkExtent2D      extent{};
-        uint32_t        currentFrame  = 0;
+        VkCommandBuffer          commandBuffer = VK_NULL_HANDLE;
+        VkExtent2D               extent{};
+        uint32_t                 currentFrame  = 0;
+        PostprocessPushConstants constants{};
     };
 
     class PostprocessPass {

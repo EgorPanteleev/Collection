@@ -441,7 +441,11 @@ namespace crv::graphics::vulkan {
         const PostprocessPassRecordInfo recordInfo {
             .commandBuffer = commandBuffer,
             .extent = mSwapchain.extent(),
-            .currentFrame = mCurrentFrame
+            .currentFrame = mCurrentFrame,
+            .constants = {
+                .exposure = mUI.exposure(),
+                .tonemap = mUI.tonemap() ? 1u : 0u
+            }
         };
         mPostprocessPass.record(recordInfo);
         Image::inverseTransit(transitInfo);
