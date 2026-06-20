@@ -9,6 +9,10 @@
 #include "CallBacks.hpp"
 #include "IconsFontAwesome6.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+#include <chrono>
 #include <fstream>
 #include <filesystem>
 
@@ -367,6 +371,7 @@ namespace crv::graphics::vulkan {
             const uint32_t index = mResourceManager.addBaseColorTexture(path, materialIndex);
             mRayTracerPass.bindTexture(index);
         });
+        mUI.setSaveImageCallBack([this](){ saveImage(); });
     }
 
     void PathTracerApp::recordTracer() {
@@ -558,6 +563,111 @@ namespace crv::graphics::vulkan {
 
         Image::inverseTransit(transitInfo);
         mClickedPixel = {UINT32_MAX, UINT32_MAX};
+    }
+
+    void PathTracerApp::saveImage() {
+        vkDeviceWaitIdle(mContext.device());
+        auto [width, height] = mSwapchain.extent();
+
+        ImageCreateInfo saveImageInfo {
+            .device = mContext.device(),
+            .allocator = mContext.allocator(),
+            .flags = 0,
+            .format = VK_FORMAT_R8G8B8A8_SRGB,
+            .extent = {width, height, 1},
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+            .memoryUsage = VMA_MEMORY_USAGE_AUTO
+        };
+        Image saveImage(saveImageInfo);
+
+        const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(width) * height * 4;
+        const BufferCreateInfo bufferInfo {
+            .allocator = mContext.allocator(),
+            .size = bufferSize,
+            .bufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY
+        };
+        Buffer buffer(bufferInfo);
+
+        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(),
+                                            mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
+
+        const ImageTransitInfo2 finalTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = mFinalImage.get(),
+            .srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
+            .srcStage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+            .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        ImageTransitInfo2 saveTransitInfo {
+            .commandBuffer = commandBuffer,
+            .image = saveImage.get(),
+            .srcAccessMask = VK_ACCESS_2_NONE,
+            .dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
+            .srcStage = VK_PIPELINE_STAGE_2_NONE,
+            .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        };
+        Image::transit({finalTransitInfo, saveTransitInfo});
+
+        const VkImageBlit blit {
+            .srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .srcOffsets = {{0, 0, 0}, {static_cast<int32_t>(width), static_cast<int32_t>(height), 1}},
+            .dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .dstOffsets = {{0, 0, 0}, {static_cast<int32_t>(width), static_cast<int32_t>(height), 1}}
+        };
+        vkCmdBlitImage(commandBuffer,
+            mFinalImage.get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            saveImage.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1, &blit, VK_FILTER_NEAREST);
+
+        saveTransitInfo.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+        saveTransitInfo.dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT;
+        saveTransitInfo.srcStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+        saveTransitInfo.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        saveTransitInfo.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        Image::transit(saveTransitInfo);
+
+        const VkBufferImageCopy region {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {width, height, 1}
+        };
+        vkCmdCopyImageToBuffer(commandBuffer, saveImage.get(),
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer.get(), 1, &region);
+
+        Image::inverseTransit(finalTransitInfo);
+        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
+
+        const fs::path outputDir = fs::path(PROJECT_PATH) / "screenshots";
+        fs::create_directories(outputDir);
+        const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        char stamp[32];
+        std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
+        const std::string path = (outputDir / ("render_" + std::string(stamp) + ".png")).string();
+
+        uint8_t* data = nullptr;
+        vmaMapMemory(mContext.allocator(), buffer.allocation(), reinterpret_cast<void**>(&data));
+        const int ok = stbi_write_png(path.c_str(), static_cast<int>(width), static_cast<int>(height),
+                                      4, data, static_cast<int>(width) * 4);
+        vmaUnmapMemory(mContext.allocator(), buffer.allocation());
+
+        if (ok) INFO << "Saved image: " << path;
+        else    ERROR << "Failed to save image: " << path;
     }
 
     void PathTracerApp::updateSelectedInstance() {

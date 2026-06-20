@@ -63,6 +63,7 @@ namespace crv::graphics::vulkan {
         void recordPostprocess();
         void recordPresent(uint32_t imageIndex);
         void recordPixelRead(VkCommandBuffer commandBuffer);
+        void saveImage();
         void updateSelectedInstance();
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);

@@ -13,7 +13,7 @@ file(GLOB HEADERS "./public/*.hpp" "./public/Types/*.hpp")
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ./public/ ./shaders/ ${CMAKE_SOURCE_DIR}/assets/fonts/)
 
-set(Libs Message Utils Geometry Camera BVH Vulkan::Core nlohmann_json::nlohmann_json)
+set(Libs Message Utils Geometry Camera BVH Vulkan::Core nlohmann_json::nlohmann_json stbImage)
 target_link_libraries(${PROJECT_NAME} ${Libs})
 add_library(Vulkan::PathTracer ALIAS VulkanPathTracer)
 add_subdirectory(shaders)

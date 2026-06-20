@@ -164,6 +164,11 @@ namespace crv::graphics::vulkan {
         }
         ImGui::SameLine();
         ImGui::Text("Type");
+        if (ImGui::CollapsingHeader("Capture", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Button(ICON_FA_CAMERA " Save Image") && mSaveImage) {
+                mSaveImage();
+            }
+        }
     }
 
     void AppUI::drawRenderTab(const AppUIDrawInfo& info) {
