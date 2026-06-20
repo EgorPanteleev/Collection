@@ -244,6 +244,14 @@ namespace crv::graphics::vulkan {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
+                if (ImGui::SliderFloat("IOR", &material.ior, 1.0f, 3.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                if (ImGui::SliderFloat("Specular", &material.specular, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
             }
             if (ImGui::CollapsingHeader("Emission", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (VkImGui::colorEdit3("Color", material.emissionColor)) {

@@ -33,12 +33,14 @@ public float3 cosineSample(inout uint seed) {
     return float3(r * cos(azimuth), r * sin(azimuth), sqrt(1.0 - u));
 }
 
-public Surface makeSurface(float3 baseColor, float metalness, float roughness, float3 N, float3 wo) {
+public Surface makeSurface(float3 baseColor, float metalness, float roughness, float ior, float specular, float3 N, float3 wo) {
     Surface s;
     s.N         = N;
     s.wo        = wo;
+    float  r            = (ior - 1.0) / (ior + 1.0);
+    float  dielectricF0 = min(r * r * specular, 1.0);
     s.diffColor = baseColor * (1.0 - metalness);
-    s.F0        = lerp(float3(0.04), baseColor, metalness);
+    s.F0        = lerp(float3(dielectricF0), baseColor, metalness);
     s.alpha     = max(roughness * roughness, 1e-3);
     float fl    = luminance(s.F0);
     float dl    = luminance(s.diffColor);

@@ -22,6 +22,8 @@ namespace crv::graphics::vulkan {
         float       luminance         = 0;
         float       metalness         = 0.0f;
         float       roughness         = 1.0f;
+        float       ior               = 1.5f;
+        float       specular          = 1.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
     };
@@ -33,6 +35,8 @@ namespace crv::graphics::vulkan {
             .luminance = luminance,
             .metalness = metalness,
             .roughness = roughness,
+            .ior = ior,
+            .specular = specular,
             .baseColorTexIndex = baseColorTexIndex,
             .normalTexIndex = normalTexIndex,
         };
