@@ -310,6 +310,24 @@ namespace crv::model {
             material.diffuseColor.a = std::min(diffuseColor.a, 1.0f);
         }
 
+        aiColor4D baseColor(0);
+        if (aiMat->Get(AI_MATKEY_BASE_COLOR, baseColor) == AI_SUCCESS) {
+            material.diffuseColor.r = baseColor.r;
+            material.diffuseColor.g = baseColor.g;
+            material.diffuseColor.b = baseColor.b;
+            material.diffuseColor.a = std::min(baseColor.a, 1.0f);
+        }
+
+        aiColor4D emissive(0);
+        if (aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == AI_SUCCESS) {
+            material.emissiveColor = glm::vec3(emissive.r, emissive.g, emissive.b);
+        }
+        aiMat->Get(AI_MATKEY_EMISSIVE_INTENSITY, material.emissiveStrength);
+        aiMat->Get(AI_MATKEY_METALLIC_FACTOR, material.metallic);
+        aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, material.roughness);
+        aiMat->Get(AI_MATKEY_REFRACTI, material.ior);
+        aiMat->Get(AI_MATKEY_SPECULAR_FACTOR, material.specularFactor);
+
         aiColor4D specularColor(0.0f, 0.0f, 0.0f, 0.0f);
         if (aiMat->Get(AI_MATKEY_COLOR_SPECULAR, specularColor) == AI_SUCCESS) {
             material.specularColor.r = specularColor.r;

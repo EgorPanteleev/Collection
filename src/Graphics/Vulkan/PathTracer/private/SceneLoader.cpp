@@ -224,9 +224,17 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
         mMaterials.reserve(mMaterials.size() + loader->materials().size());
         for (const auto &loaderMaterial: loader->materials()) {
+            glm::vec3 emission = glm::vec3(loaderMaterial.emissiveColor) * loaderMaterial.emissiveStrength;
+            float emissionLum = std::max(emission.r, std::max(emission.g, emission.b));
             Material material{
                 .name = loaderMaterial.mName.empty() ? "Unknown" : loaderMaterial.mName,
                 .baseColor = loaderMaterial.diffuseColor,
+                .emissionColor = emissionLum > 0.0f ? emission / emissionLum : glm::vec3(1.0f),
+                .luminance = emissionLum,
+                .metalness = loaderMaterial.metallic,
+                .roughness = loaderMaterial.roughness,
+                .ior = loaderMaterial.ior,
+                .specular = loaderMaterial.specularFactor,
             };
             const cm::Texture &baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
             const cm::Texture &normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];

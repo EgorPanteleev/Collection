@@ -60,6 +60,13 @@ namespace crv::model {
         glm::vec<4, float> diffuseColor;
         glm::vec<4, float> specularColor;
 
+        glm::vec3 emissiveColor{0.0f};
+        float emissiveStrength = 1.0f;
+        float metallic         = 0.0f;
+        float roughness        = 1.0f;
+        float ior              = 1.5f;
+        float specularFactor   = 1.0f;
+
         float mTransparencyFactor;
         float mAlphaTest;
 
