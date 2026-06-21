@@ -65,6 +65,37 @@ float3 fresnelSchlick(float cosTheta, float3 F0) {
     return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
 }
 
+float fresnelDielectric(float cosThetaI, float eta) {
+    float sin2I = max(0.0, 1.0 - cosThetaI * cosThetaI);
+    float sin2T = eta * eta * sin2I;
+    if (sin2T >= 1.0) return 1.0;
+    float cosThetaT = sqrt(1.0 - sin2T);
+    float rs = (eta * cosThetaI - cosThetaT) / (eta * cosThetaI + cosThetaT);
+    float rp = (cosThetaI - eta * cosThetaT) / (cosThetaI + eta * cosThetaT);
+    return 0.5 * (rs * rs + rp * rp);
+}
+
+public Scatter sampleDielectric(inout uint seed, float3 N, float3 wo, float ior, bool frontFace, float3 tint) {
+    Scatter scatter;
+    float  eta  = frontFace ? (1.0 / ior) : ior;
+    float  cosI = saturate(dot(N, wo));
+    float  F    = fresnelDielectric(cosI, eta);
+
+    float3 incident   = -wo;
+    float3 refractDir = refract(incident, N, eta);
+    bool   tir        = dot(refractDir, refractDir) < 1e-8;
+
+    if (tir || rand01(seed) < F) {
+        scatter.wi   = normalize(reflect(incident, N));
+        scatter.brdf = float3(1.0);
+    } else {
+        scatter.wi   = normalize(refractDir);
+        scatter.brdf = tint;
+    }
+    scatter.pdf = -1.0;
+    return scatter;
+}
+
 public void evalBSDF(Surface s, float3 wi, out float3 brdf, out float pdf) {
     brdf = float3(0.0);
     pdf  = 0.0;

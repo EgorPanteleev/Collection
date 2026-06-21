@@ -259,6 +259,10 @@ namespace crv::graphics::vulkan {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
+                if (ImGui::SliderFloat("Transmission", &material.transmission, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
             }
             if (ImGui::CollapsingHeader("Emission", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (VkImGui::colorEdit3("Color", material.emissionColor)) {

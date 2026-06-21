@@ -254,7 +254,8 @@ namespace crv::graphics::vulkan {
                 .metalness = jsonMaterial.value("metalness", 0.0f),
                 .roughness = jsonMaterial.value("roughness", 1.0f),
                 .ior = jsonMaterial.value("ior", 1.5f),
-                .specular = jsonMaterial.value("specular", 1.0f)
+                .specular = jsonMaterial.value("specular", 1.0f),
+                .transmission = jsonMaterial.value("transmission", 0.0f)
             };
         }
     }
@@ -295,8 +296,9 @@ namespace crv::graphics::vulkan {
             material.luminance = jm["luminance"];
             material.metalness = jm.value("metalness", material.metalness);
             material.roughness = jm.value("roughness", material.roughness);
-            material.ior       = jm.value("ior", material.ior);
-            material.specular  = jm.value("specular", material.specular);
+            material.ior          = jm.value("ior", material.ior);
+            material.specular     = jm.value("specular", material.specular);
+            material.transmission = jm.value("transmission", material.transmission);
         }
     }
 
@@ -351,6 +353,7 @@ namespace crv::graphics::vulkan {
             jm["roughness"]     = material.roughness;
             jm["ior"]           = material.ior;
             jm["specular"]      = material.specular;
+            jm["transmission"]  = material.transmission;
             if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
             materials.push_back(jm);
         }

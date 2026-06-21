@@ -94,6 +94,21 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    if (material.transmission > 0.0) {
+        float pt = material.transmission;
+        if (rand01(payload.seed) < pt) {
+            Scatter scatter = sampleDielectric(payload.seed, hit.N, -WorldRayDirection(),
+                                               material.ior, hit.frontFace, baseColor);
+            payload.throughput *= scatter.brdf / pt;
+            payload.origin      = movedPoint(hit.P, dot(scatter.wi, hit.gN) < 0.0 ? -hit.gN : hit.gN);
+            payload.direction   = scatter.wi;
+            payload.prevBrdfPdf = -1.0;
+            payload.done        = false;
+            return;
+        }
+        payload.throughput /= (1.0 - pt);
+    }
+
     Surface surf = makeSurface(baseColor, material.metalness, material.roughness,
                                material.ior, material.specular,
                                hit.N, -WorldRayDirection());

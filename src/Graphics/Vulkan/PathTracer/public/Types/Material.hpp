@@ -24,6 +24,7 @@ namespace crv::graphics::vulkan {
         float       roughness         = 1.0f;
         float       ior               = 1.5f;
         float       specular          = 1.0f;
+        float       transmission      = 0.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
     };
@@ -37,6 +38,7 @@ namespace crv::graphics::vulkan {
             .roughness = roughness,
             .ior = ior,
             .specular = specular,
+            .transmission = transmission,
             .baseColorTexIndex = baseColorTexIndex,
             .normalTexIndex = normalTexIndex,
         };
