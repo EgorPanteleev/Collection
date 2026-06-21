@@ -15,9 +15,10 @@
 namespace crv::model {
     struct Texture {
         enum Type {
-            BASE_COLOR = 0,
-            NORMAL     = 1,
-            UNKNOWN    = 2
+            BASE_COLOR      = 0,
+            NORMAL          = 1,
+            METAL_ROUGHNESS = 2,
+            UNKNOWN         = 3
         };
 
         enum Format {
@@ -46,8 +47,9 @@ namespace crv::model {
     };
 
     static std::map<Texture::Type, aiTextureType> toAssimpTypeMap{
-            {Texture::BASE_COLOR, aiTextureType_BASE_COLOR},
-            {Texture::NORMAL    , aiTextureType_NORMALS},
+            {Texture::BASE_COLOR     , aiTextureType_BASE_COLOR},
+            {Texture::NORMAL         , aiTextureType_NORMALS},
+            {Texture::METAL_ROUGHNESS, aiTextureType_METALNESS},
     };
 
     struct Material {

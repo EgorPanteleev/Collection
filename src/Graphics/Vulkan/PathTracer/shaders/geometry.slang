@@ -13,6 +13,7 @@ public struct HitGeometry {
     public float3 P;
     public float3 N;
     public float3 gN;
+    public float4 tangent;
     public float2 uv;
     public bool   frontFace;
 };
@@ -43,5 +44,8 @@ public HitGeometry interpolateHit(Triangle tri, float2 bary, float3x4 o2w, float
     gN = normalize(mul(normalMatrix, gN));
     if (dot(gN, hit.N) < 0.0) gN = -gN;
     hit.gN = gN;
+
+    float3 T = w * tri.v0.tangent.xyz + u * tri.v1.tangent.xyz + v * tri.v2.tangent.xyz;
+    hit.tangent = float4(mul((float3x3)o2w, T), tri.v0.tangent.w);
     return hit;
 }

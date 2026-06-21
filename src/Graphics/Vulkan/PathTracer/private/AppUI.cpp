@@ -175,6 +175,12 @@ namespace crv::graphics::vulkan {
 
     void AppUI::drawRenderTab(const AppUIDrawInfo& info) {
         ImGui::Indent(4.0f);
+        if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+            const char* displayModes[] = {"Rendered", "Base Color", "Normal", "Roughness", "Metalness"};
+            if (ImGui::Combo("Mode", &mDisplayMode, displayModes, IM_ARRAYSIZE(displayModes))) {
+                mUpdateImage();
+            }
+        }
         if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat3("Direction", &mResourceManager->directLight().dir.x, 0.005f, -1.0f, 1.0f)) {
                 mUpdateImage();
@@ -310,29 +316,77 @@ namespace crv::graphics::vulkan {
             }
             if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (VkImGui::beginCompactTable("##textures", 6.0f)) {
+                    const std::vector<std::string> extensions =
+                        {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr", ".exr", ".ktx", ".dds"};
+
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
                     ImGui::AlignTextToFramePadding();
                     ImGui::TextDisabled("%s", "Base Color");
-                    const bool hasTexture = material.baseColorTexIndex != UINT32_MAX;
+                    const bool hasBaseColor = material.baseColorTexIndex != UINT32_MAX;
                     ImGui::TableSetColumnIndex(1);
                     ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", hasTexture ? material.baseColorTexName.c_str() : "None");
+                    ImGui::TextDisabled("%s", hasBaseColor ? material.baseColorTexName.c_str() : "None");
                     ImGui::TableSetColumnIndex(2);
                     ImGui::AlignTextToFramePadding();
-                    if (hasTexture) {
-                        if (ImGui::Button("Clear")) {
+                    if (hasBaseColor) {
+                        if (ImGui::Button("Clear##basecolor")) {
                             material.baseColorTexIndex = UINT32_MAX;
                             material.baseColorTexName.clear();
                             mResourceManager->updateMaterial(instance.materialIndex);
                             mUpdateImage();
                         }
-                    } else if (ImGui::Button("Upload")) {
-                        mFileDialog.open(ASSETS_PATH,
-                            {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr", ".exr", ".ktx", ".dds"});
+                    } else if (ImGui::Button("Upload##basecolor")) {
+                        mUploadTextureType = 0;
+                        mFileDialog.open(ASSETS_PATH, extensions);
                     }
-                    if (mFileDialog.draw("Select Base Color Texture")) {
-                        mUploadTexture(mFileDialog.result(), instance.materialIndex);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", "Normal");
+                    const bool hasNormal = material.normalTexIndex != UINT32_MAX;
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", hasNormal ? material.normalTexName.c_str() : "None");
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::AlignTextToFramePadding();
+                    if (hasNormal) {
+                        if (ImGui::Button("Clear##normal")) {
+                            material.normalTexIndex = UINT32_MAX;
+                            material.normalTexName.clear();
+                            mResourceManager->updateMaterial(instance.materialIndex);
+                            mUpdateImage();
+                        }
+                    } else if (ImGui::Button("Upload##normal")) {
+                        mUploadTextureType = 1;
+                        mFileDialog.open(ASSETS_PATH, extensions);
+                    }
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", "Metal/Rough");
+                    const bool hasMetalRough = material.metalRoughnessTexIndex != UINT32_MAX;
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", hasMetalRough ? material.metalRoughnessTexName.c_str() : "None");
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::AlignTextToFramePadding();
+                    if (hasMetalRough) {
+                        if (ImGui::Button("Clear##metalrough")) {
+                            material.metalRoughnessTexIndex = UINT32_MAX;
+                            material.metalRoughnessTexName.clear();
+                            mResourceManager->updateMaterial(instance.materialIndex);
+                            mUpdateImage();
+                        }
+                    } else if (ImGui::Button("Upload##metalrough")) {
+                        mUploadTextureType = 2;
+                        mFileDialog.open(ASSETS_PATH, extensions);
+                    }
+
+                    if (mFileDialog.draw("Select Texture")) {
+                        mUploadTexture(mFileDialog.result(), instance.materialIndex, mUploadTextureType);
                         mUpdateImage();
                     }
                     VkImGui::endCompactTable();

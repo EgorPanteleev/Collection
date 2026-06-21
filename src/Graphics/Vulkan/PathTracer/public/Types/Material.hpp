@@ -17,6 +17,8 @@ namespace crv::graphics::vulkan {
 
         std::string name{};
         std::string baseColorTexName{};
+        std::string normalTexName{};
+        std::string metalRoughnessTexName{};
         glm::vec3   baseColor{};
         glm::vec3   emissionColor     = {1, 1, 1};
         float       luminance         = 0;
@@ -33,6 +35,7 @@ namespace crv::graphics::vulkan {
         float       absorption         = 1.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
+        uint32_t    metalRoughnessTexIndex = UINT32_MAX;
     };
 
     inline Material::GPU Material::gpu() const {
@@ -53,6 +56,7 @@ namespace crv::graphics::vulkan {
             .absorption = absorption,
             .baseColorTexIndex = baseColorTexIndex,
             .normalTexIndex = normalTexIndex,
+            .metalRoughnessTexIndex = metalRoughnessTexIndex,
         };
     }
 

@@ -19,14 +19,15 @@ namespace crv::graphics::vulkan {
         uint32_t spp         = 1;
         uint32_t minDepth    = 1;
         uint32_t maxDepth    = 1;
-        uint32_t displayMode = 4;
+        uint32_t displayMode = 0;
         uint32_t nee         = 1;
         uint32_t emissiveCount = 0;
     };
 
     struct PostprocessPushConstants {
-        float    exposure = 1.0f;
-        uint32_t tonemap  = 1;
+        float    exposure    = 1.0f;
+        uint32_t tonemap     = 1;
+        uint32_t displayMode = 0;
     };
 
     struct alignas(16) CameraGPU {

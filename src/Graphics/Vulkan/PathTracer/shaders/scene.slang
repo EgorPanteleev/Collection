@@ -4,6 +4,7 @@ import common;
 import types;
 import bsdf;
 import lighting;
+import geometry;
 
 public struct PushConstants {
     public uint frame;
@@ -42,6 +43,23 @@ public float3 getBaseColor(MaterialGPU material, float2 uv) {
     if (material.baseColorTexIndex != UINT_MAX)
         baseColor *= textures[NonUniformResourceIndex(material.baseColorTexIndex)].SampleLevel(uv, 0.0).rgb;
     return baseColor;
+}
+
+public void applyMetalRoughness(MaterialGPU material, float2 uv, inout float metalness, inout float roughness) {
+    if (material.metalRoughnessTexIndex == UINT_MAX) return;
+    float3 mr = textures[NonUniformResourceIndex(material.metalRoughnessTexIndex)].SampleLevel(uv, 0.0).rgb;
+    roughness *= mr.g;
+    metalness *= mr.b;
+}
+
+public void applyNormalMap(inout HitGeometry hit, MaterialGPU material) {
+    if (material.normalTexIndex == UINT_MAX) return;
+    if (dot(hit.tangent.xyz, hit.tangent.xyz) < 1e-8) return;
+    float3 tn = textures[NonUniformResourceIndex(material.normalTexIndex)].SampleLevel(hit.uv, 0.0).rgb * 2.0 - 1.0;
+    float3 N = hit.N;
+    float3 T = normalize(hit.tangent.xyz - dot(hit.tangent.xyz, N) * N);
+    float3 B = cross(N, T) * hit.tangent.w;
+    hit.N = normalize(tn.x * T + tn.y * B + tn.z * N);
 }
 
 public void primaryRay(uint2 pixel, uint2 size, inout uint seed, out float3 origin, out float3 dir) {

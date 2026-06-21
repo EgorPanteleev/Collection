@@ -52,6 +52,7 @@ namespace crv::model {
             case Texture::Type::BASE_COLOR:
                 return Texture::R8G8B8A8_SRGB;
             case Texture::Type::NORMAL:
+            case Texture::Type::METAL_ROUGHNESS:
                 return Texture::R8G8B8A8_UNORM;
             default:
                 INFO << "ID: " << modelTexType;
@@ -101,6 +102,8 @@ namespace crv::model {
                 return {0.5, 0, 0};
             case Texture::Type::NORMAL:
                 return {0.5, 0.5, 1};
+            case Texture::Type::METAL_ROUGHNESS:
+                return {0, 1, 0};
             default:
                 INFO << "ID: " << texType;
                 throw std::runtime_error("Unsupported model texture type!");

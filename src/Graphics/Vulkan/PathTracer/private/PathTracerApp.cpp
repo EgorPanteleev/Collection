@@ -404,9 +404,14 @@ namespace crv::graphics::vulkan {
 
         mUI.setUpdateImageCallBack([this](){updateImage();});
         mUI.setCameraSetCallBack([this](cs::CameraType type){setCamera(type);});
-        mUI.setUploadTextureCallBack([this](const std::string& path, uint32_t materialIndex){
+        mUI.setUploadTextureCallBack([this](const std::string& path, uint32_t materialIndex, int textureType){
             vkDeviceWaitIdle(mContext.device());
-            const uint32_t index = mResourceManager.addBaseColorTexture(path, materialIndex);
+            uint32_t index = 0;
+            switch (textureType) {
+                case 1:  index = mResourceManager.addNormalTexture(path, materialIndex); break;
+                case 2:  index = mResourceManager.addMetalRoughnessTexture(path, materialIndex); break;
+                default: index = mResourceManager.addBaseColorTexture(path, materialIndex); break;
+            }
             mRayTracerPass.bindTexture(index);
         });
         mUI.setSaveImageCallBack([this](){ saveImage(); });
@@ -488,7 +493,8 @@ namespace crv::graphics::vulkan {
             .currentFrame = mCurrentFrame,
             .constants = {
                 .exposure = mUI.exposure(),
-                .tonemap = mUI.tonemap() ? 1u : 0u
+                .tonemap = mUI.tonemap() ? 1u : 0u,
+                .displayMode = mUI.displayMode()
             }
         };
         mPostprocessPass.record(recordInfo);

@@ -59,7 +59,8 @@ void rgenMain() {
 
 [shader("miss")]
 void missMain(inout PathPayload payload) {
-    payload.radiance += payload.throughput * SKY_COLOR;
+    if (pc.displayMode == 0u)
+        payload.radiance += payload.throughput * SKY_COLOR;
     payload.done = true;
 }
 
@@ -79,7 +80,21 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     HitGeometry hit = interpolateHit(tri, attr.barycentrics, o2w, WorldRayDirection());
 
     MaterialGPU material  = materials[instance.materialIndex];
+    applyNormalMap(hit, material);
     float3       baseColor = getBaseColor(material, hit.uv);
+
+    if (pc.displayMode != 0u && payload.depth == 0u) {
+        float dmMetal = material.metalness;
+        float dmRough = material.roughness;
+        applyMetalRoughness(material, hit.uv, dmMetal, dmRough);
+        float3 aov = baseColor;
+        if (pc.displayMode == 2u) aov = hit.N * 0.5 + 0.5;
+        else if (pc.displayMode == 3u) aov = float3(dmRough);
+        else if (pc.displayMode == 4u) aov = float3(dmMetal);
+        payload.radiance = aov;
+        payload.done     = true;
+        return;
+    }
 
     if (material.luminance > 0.0) {
         float weight = 1.0;
@@ -121,7 +136,10 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         payload.throughput /= (1.0 - pt);
     }
 
-    Surface surf = makeSurface(baseColor, material.metalness, material.roughness,
+    float metalness = material.metalness;
+    float roughness = material.roughness;
+    applyMetalRoughness(material, hit.uv, metalness, roughness);
+    Surface surf = makeSurface(baseColor, metalness, roughness,
                                material.ior, material.specular,
                                material.clearcoat, material.clearcoatRoughness,
                                hit.N, -WorldRayDirection());

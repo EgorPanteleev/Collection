@@ -13,6 +13,7 @@ RWTexture2D<float4> outputImage;
 struct PostprocessConstants {
     float exposure;
     uint  tonemap;
+    uint  displayMode;
 };
 [[vk::push_constant]]
 PostprocessConstants pc;
@@ -59,8 +60,11 @@ float4 outline(int2 pixel, float3 baseColor, const int thickness) {
 [numthreads(16, 16, 1)]
 void main(uint3 tid : SV_DispatchThreadID) {
     int2 pixel = int2(tid.xy);
-    float3 imageColor = tracerImage[pixel].rgb * pc.exposure;
-    if (pc.tonemap != 0u)
-        imageColor = acesToneMap(imageColor);
+    float3 imageColor = tracerImage[pixel].rgb;
+    if (pc.displayMode == 0u) {
+        imageColor *= pc.exposure;
+        if (pc.tonemap != 0u)
+            imageColor = acesToneMap(imageColor);
+    }
     outputImage[pixel] = outline(pixel, imageColor, 4);
 }

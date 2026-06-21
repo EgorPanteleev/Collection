@@ -89,6 +89,28 @@ namespace crv::graphics::vulkan {
         return index;
     }
 
+    uint32_t ResourceManager::addNormalTexture(const std::string& path, const uint32_t materialIndex) {
+        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::NORMAL);
+        mSceneLoader.mTextures.push_back(toTexture(mContext, cmTexture));
+        const auto index = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);
+        Material& material = mSceneLoader.mMaterials[materialIndex];
+        material.normalTexIndex = index;
+        material.normalTexName = std::filesystem::path(path).filename().string();
+        updateMaterial(materialIndex);
+        return index;
+    }
+
+    uint32_t ResourceManager::addMetalRoughnessTexture(const std::string& path, const uint32_t materialIndex) {
+        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::METAL_ROUGHNESS);
+        mSceneLoader.mTextures.push_back(toTexture(mContext, cmTexture));
+        const auto index = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);
+        Material& material = mSceneLoader.mMaterials[materialIndex];
+        material.metalRoughnessTexIndex = index;
+        material.metalRoughnessTexName = std::filesystem::path(path).filename().string();
+        updateMaterial(materialIndex);
+        return index;
+    }
+
     void ResourceManager::updateEmissiveIndices() {
         auto& indices   = mSceneLoader.mEmissiveIndices;
         const auto& instances = mSceneLoader.mInstances;

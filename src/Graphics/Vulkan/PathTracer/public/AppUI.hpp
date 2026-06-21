@@ -43,7 +43,7 @@ namespace crv::graphics::vulkan {
 
         void setUpdateImageCallBack(const std::function<void()>& callBack) { mUpdateImage = callBack; }
         void setCameraSetCallBack(const std::function<void(cs::CameraType type)>& callBack) { mCameraSet = callBack; }
-        void setUploadTextureCallBack(const std::function<void(const std::string& path, uint32_t materialIndex)>& callBack) { mUploadTexture = callBack; }
+        void setUploadTextureCallBack(const std::function<void(const std::string& path, uint32_t materialIndex, int textureType)>& callBack) { mUploadTexture = callBack; }
         void setSaveImageCallBack(const std::function<void()>& callBack) { mSaveImage = callBack; }
         void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
 
@@ -71,7 +71,7 @@ namespace crv::graphics::vulkan {
         int              mSPP             = 1;
         int              mMinDepth        = 0;
         int              mMaxDepth        = 2;
-        int              mDisplayMode     = 4;
+        int              mDisplayMode     = 0;
         bool             mNee             = false;
         float            mExposure        = 1.0f;
         bool             mTonemap         = true;
@@ -81,7 +81,8 @@ namespace crv::graphics::vulkan {
 
         std::function<void()> mUpdateImage{};
         std::function<void(cs::CameraType type)> mCameraSet{};
-        std::function<void(const std::string& path, uint32_t materialIndex)> mUploadTexture{};
+        std::function<void(const std::string& path, uint32_t materialIndex, int textureType)> mUploadTexture{};
+        int              mUploadTextureType = 0;
         std::function<void()> mSaveImage{};
         std::function<void()> mSaveScene{};
     };

@@ -228,6 +228,7 @@ namespace crv::graphics::vulkan {
             };
             const cm::Texture &baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
             const cm::Texture &normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];
+            const cm::Texture &metalRoughnessTexture = loaderMaterial.mTextures[cm::Texture::METAL_ROUGHNESS];
             if (!baseColorTexture.empty()) {
                 mTextures.push_back(toTexture(mContext, baseColorTexture));
                 material.baseColorTexIndex = mTextures.size() - 1;
@@ -236,6 +237,12 @@ namespace crv::graphics::vulkan {
             if (!normalTexture.empty()) {
                 mTextures.push_back(toTexture(mContext, normalTexture));
                 material.normalTexIndex = mTextures.size() - 1;
+                material.normalTexName = normalTexture.mName;
+            }
+            if (!metalRoughnessTexture.empty()) {
+                mTextures.push_back(toTexture(mContext, metalRoughnessTexture));
+                material.metalRoughnessTexIndex = mTextures.size() - 1;
+                material.metalRoughnessTexName = metalRoughnessTexture.mName;
             }
             mMaterials.push_back(material);
         }
@@ -373,6 +380,8 @@ namespace crv::graphics::vulkan {
             jm["attenuationColor"]     = { material.attenuationColor.r, material.attenuationColor.g, material.attenuationColor.b };
             jm["absorption"]           = material.absorption;
             if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
+            if (!material.normalTexName.empty()) jm["normalTex"] = material.normalTexName;
+            if (!material.metalRoughnessTexName.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexName;
             materials.push_back(jm);
         }
         scene["materialsResolved"] = materials;
