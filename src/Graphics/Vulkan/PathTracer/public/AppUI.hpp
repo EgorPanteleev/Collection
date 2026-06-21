@@ -70,9 +70,9 @@ namespace crv::graphics::vulkan {
 
         int              mSPP             = 1;
         int              mMinDepth        = 0;
-        int              mMaxDepth        = 1;
+        int              mMaxDepth        = 2;
         int              mDisplayMode     = 4;
-        bool             mNee             = true;
+        bool             mNee             = false;
         float            mExposure        = 1.0f;
         bool             mTonemap         = true;
 
