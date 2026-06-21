@@ -251,23 +251,29 @@ namespace crv::graphics::vulkan {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
+            }
+            if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::SliderFloat("Weight##specular", &material.specular, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+            }
+            if (ImGui::CollapsingHeader("Transmission", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::SliderFloat("Weight##transmission", &material.transmission, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
                 if (ImGui::SliderFloat("IOR", &material.ior, 1.0f, 3.0f, "%.2f")) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
-                if (ImGui::SliderFloat("Specular", &material.specular, 0.0f, 1.0f, "%.2f")) {
+            }
+            if (ImGui::CollapsingHeader("Coating", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::SliderFloat("Weight##coating", &material.clearcoat, 0.0f, 1.0f, "%.2f")) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
-                if (ImGui::SliderFloat("Transmission", &material.transmission, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mUpdateImage();
-                }
-                if (ImGui::SliderFloat("Clearcoat", &material.clearcoat, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mUpdateImage();
-                }
-                if (ImGui::SliderFloat("Clearcoat Roughness", &material.clearcoatRoughness, 0.0f, 1.0f, "%.2f")) {
+                if (ImGui::SliderFloat("Roughness##coating", &material.clearcoatRoughness, 0.0f, 1.0f, "%.2f")) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
