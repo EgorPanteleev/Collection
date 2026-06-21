@@ -111,6 +111,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     Surface surf = makeSurface(baseColor, material.metalness, material.roughness,
                                material.ior, material.specular,
+                               material.clearcoat, material.clearcoatRoughness,
                                hit.N, -WorldRayDirection());
     Scatter scatter = sampleBSDF(payload.seed, surf);
 

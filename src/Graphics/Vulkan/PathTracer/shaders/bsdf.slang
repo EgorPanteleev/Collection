@@ -15,6 +15,9 @@ public struct Surface {
     public float3 F0;
     public float  alpha;
     public float  pSpec;
+    public float  ccWeight;
+    public float  ccAlpha;
+    public float  pClearcoat;
 };
 
 public void createONB(float3 N, out float3 tangent, out float3 bitangent) {
@@ -33,7 +36,8 @@ public float3 cosineSample(inout uint seed) {
     return float3(r * cos(azimuth), r * sin(azimuth), sqrt(1.0 - u));
 }
 
-public Surface makeSurface(float3 baseColor, float metalness, float roughness, float ior, float specular, float3 N, float3 wo) {
+public Surface makeSurface(float3 baseColor, float metalness, float roughness, float ior, float specular,
+                           float clearcoat, float clearcoatRoughness, float3 N, float3 wo) {
     Surface s;
     s.N         = N;
     s.wo        = wo;
@@ -45,6 +49,9 @@ public Surface makeSurface(float3 baseColor, float metalness, float roughness, f
     float fl    = luminance(s.F0);
     float dl    = luminance(s.diffColor);
     s.pSpec     = clamp(fl / (fl + dl + 1e-4), 0.1, 0.9);
+    s.ccWeight  = clearcoat;
+    s.ccAlpha   = max(clearcoatRoughness * clearcoatRoughness, 1e-3);
+    s.pClearcoat = clamp(clearcoat * 0.25, 0.0, 0.25);
     return s;
 }
 
@@ -96,6 +103,17 @@ public Scatter sampleDielectric(inout uint seed, float3 N, float3 wo, float ior,
     return scatter;
 }
 
+float3 sampleGGX(inout uint seed, float3 wo, float3 tangent, float3 bitangent, float3 N, float alpha) {
+    float u    = rand01(seed);
+    float v    = rand01(seed);
+    float phi  = 2.0 * M_PI * u;
+    float cosT = sqrt((1.0 - v) / (1.0 + (alpha * alpha - 1.0) * v));
+    float sinT = sqrt(max(0.0, 1.0 - cosT * cosT));
+    float3 Hl  = float3(sinT * cos(phi), sinT * sin(phi), cosT);
+    float3 H   = Hl.x * tangent + Hl.y * bitangent + Hl.z * N;
+    return reflect(-wo, H);
+}
+
 public void evalBSDF(Surface s, float3 wi, out float3 brdf, out float pdf) {
     brdf = float3(0.0);
     pdf  = 0.0;
@@ -114,11 +132,20 @@ public void evalBSDF(Surface s, float3 wi, out float3 brdf, out float pdf) {
 
     float3 specular = D * Vis * F;
     float3 diffuse  = s.diffColor * M_1_PI * (1.0 - F);
-    brdf = diffuse + specular;
+    float3 baseBrdf = diffuse + specular;
 
     float diffPdf = NdotL * M_1_PI;
     float specPdf = D * NdotH / max(4.0 * VdotH, 1e-7);
-    pdf = lerp(diffPdf, specPdf, s.pSpec);
+    float basePdf = lerp(diffPdf, specPdf, s.pSpec);
+
+    float  Fcc    = 0.04 + 0.96 * pow(saturate(1.0 - VdotH), 5.0);
+    float  Dcc    = D_GGX(NdotH, s.ccAlpha);
+    float  Viscc  = V_SmithGGXCorrelated(NdotV, NdotL, s.ccAlpha);
+    float  ccSpec = Dcc * Viscc * Fcc * s.ccWeight;
+    float  ccPdf  = Dcc * NdotH / max(4.0 * VdotH, 1e-7);
+
+    brdf = baseBrdf * (1.0 - s.ccWeight * Fcc) + ccSpec;
+    pdf  = lerp(basePdf, ccPdf, s.pClearcoat);
 }
 
 public Scatter sampleBSDF(inout uint seed, Surface s) {
@@ -127,15 +154,10 @@ public Scatter sampleBSDF(inout uint seed, Surface s) {
     createONB(s.N, tangent, bitangent);
 
     float3 wi;
-    if (rand01(seed) < s.pSpec) {
-        float u    = rand01(seed);
-        float v    = rand01(seed);
-        float phi  = 2.0 * M_PI * u;
-        float cosT = sqrt((1.0 - v) / (1.0 + (s.alpha * s.alpha - 1.0) * v));
-        float sinT = sqrt(max(0.0, 1.0 - cosT * cosT));
-        float3 Hl  = float3(sinT * cos(phi), sinT * sin(phi), cosT);
-        float3 H   = Hl.x * tangent + Hl.y * bitangent + Hl.z * s.N;
-        wi = reflect(-s.wo, H);
+    if (rand01(seed) < s.pClearcoat) {
+        wi = sampleGGX(seed, s.wo, tangent, bitangent, s.N, s.ccAlpha);
+    } else if (rand01(seed) < s.pSpec) {
+        wi = sampleGGX(seed, s.wo, tangent, bitangent, s.N, s.alpha);
     } else {
         float3 local = cosineSample(seed);
         wi = local.x * tangent + local.y * bitangent + local.z * s.N;
