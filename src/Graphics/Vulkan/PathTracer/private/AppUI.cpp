@@ -99,6 +99,13 @@ namespace crv::graphics::vulkan {
         if (ImGui::Begin("Overview", nullptr, ImGuiWindowFlags_MenuBar)) {
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File")) {
+                    if (ImGui::MenuItem(ICON_FA_CAMERA " Save Image") && mSaveImage) {
+                        mSaveImage();
+                    }
+                    if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK " Save Scene") && mSaveScene) {
+                        mSaveScene();
+                    }
+                    ImGui::Separator();
                     if (ImGui::MenuItem("Save Panel Configuration")) {
                         VkImGui::saveConfigFile(PROJECT_PATH"imgui.ini");
                     }
@@ -164,11 +171,6 @@ namespace crv::graphics::vulkan {
         }
         ImGui::SameLine();
         ImGui::Text("Type");
-        if (ImGui::CollapsingHeader("Capture", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::Button(ICON_FA_CAMERA " Save Image") && mSaveImage) {
-                mSaveImage();
-            }
-        }
     }
 
     void AppUI::drawRenderTab(const AppUIDrawInfo& info) {

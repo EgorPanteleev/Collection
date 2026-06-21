@@ -5,6 +5,9 @@
 #ifndef COLLECTION_BLAS_HPP
 #define COLLECTION_BLAS_HPP
 
+#include <string>
+#include <vector>
+
 #include "Buffer.hpp"
 #include "AccelerationStructure.hpp"
 #include "SharedTypes.h"
@@ -21,6 +24,9 @@ namespace crv::graphics::vulkan {
         AccelerationStructure blas         = CRV_NULL_HANDLE;
         uint32_t              indexCount   = 0;
         float                 area         = 0;
+        uint32_t              modelIndex   = 0;
+        std::string           meshName{};
+        std::vector<float>    triAreas{};
     };
 
     inline BLASData::GPU BLASData::gpu(VkDevice device) const {

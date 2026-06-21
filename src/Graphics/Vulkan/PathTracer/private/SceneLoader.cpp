@@ -41,6 +41,7 @@ namespace crv::graphics::vulkan {
 
     void SceneLoader::loadScene(const json& scene) {
         mJson = scene;
+        mExplicit = mJson.value("version", 1) >= 2;
         auto directLight = mJson["directLight"];
         mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
         mDirectLight.intensity = directLight["intensity"];
@@ -52,6 +53,12 @@ namespace crv::graphics::vulkan {
         }
         if (mTextures.empty())
             mTextures.push_back(toTexture(mContext, cm::AbsLoader::emptyTexture(cm::Texture::BASE_COLOR)));
+
+        if (mExplicit) {
+            applyResolvedMaterials();
+            loadExplicitInstances();
+            buildEmissiveAliasTables();
+        }
 
         for (uint32_t i = 0; i < mInstances.size(); ++i) {
             if (mMaterials[mInstances[i].materialIndex].luminance == 0) continue;
@@ -102,6 +109,9 @@ namespace crv::graphics::vulkan {
             BLASData &blasData = mBLASDatas.back();
             blasData.area = area;
             blasData.indexCount = indices.size();
+            blasData.modelIndex = modelIndex;
+            blasData.meshName = mesh.name;
+            blasData.triAreas = triAreas;
             const size_t verticesSize = sizeof(Vertex) * vertices.size();
             const BufferCreateInfo vertexBufferCreateInfo{
                 .allocator = mContext->allocator(),
@@ -158,6 +168,8 @@ namespace crv::graphics::vulkan {
                 .indexCount = static_cast<uint32_t>(indices.size())
             };
             blasData.blas = AccelerationStructure(blasCreateInfo);
+            if (mExplicit) continue;
+
             auto allInstances = mJson["instances"];
             decltype(allInstances) jsonInstances;
             for (const auto &instance: allInstances) {
@@ -197,29 +209,7 @@ namespace crv::graphics::vulkan {
                     break;
                 }
             }
-            if (meshEmissive && !triAreas.empty()) {
-                auto aliasTable = buildAliasTable(triAreas);
-                const size_t aliasSize = sizeof(AliasEntry) * aliasTable.size();
-                const BufferCreateInfo aliasBufferCreateInfo{
-                    .allocator = mContext->allocator(),
-                    .size = aliasSize,
-                    .bufferUsage = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                                   VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                    .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
-                };
-                blasData.aliasBuffer = Buffer(aliasBufferCreateInfo);
-                const CopyDataToGPUBufferInfo aliasCopyInfo{
-                    .data = aliasTable.data(),
-                    .size = aliasSize,
-                    .allocator = mContext->allocator(),
-                    .buffer = blasData.aliasBuffer.get(),
-                    .device = mContext->device(),
-                    .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
-                    .queue = mContext->queue(QueueFamilyType::GRAPHICS)
-                };
-                Buffer::copy(aliasCopyInfo);
-            }
+            if (meshEmissive) buildAlias(blasData);
         }
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
         mMaterials.reserve(mMaterials.size() + loader->materials().size());
@@ -267,5 +257,122 @@ namespace crv::graphics::vulkan {
                 .specular = jsonMaterial.value("specular", 1.0f)
             };
         }
+    }
+
+    void SceneLoader::buildAlias(BLASData& blasData) {
+        if (blasData.triAreas.empty() || blasData.aliasBuffer.get() != VK_NULL_HANDLE) return;
+        auto aliasTable = buildAliasTable(blasData.triAreas);
+        const size_t aliasSize = sizeof(AliasEntry) * aliasTable.size();
+        const BufferCreateInfo aliasBufferCreateInfo{
+            .allocator = mContext->allocator(),
+            .size = aliasSize,
+            .bufferUsage = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
+        };
+        blasData.aliasBuffer = Buffer(aliasBufferCreateInfo);
+        const CopyDataToGPUBufferInfo aliasCopyInfo{
+            .data = aliasTable.data(),
+            .size = aliasSize,
+            .allocator = mContext->allocator(),
+            .buffer = blasData.aliasBuffer.get(),
+            .device = mContext->device(),
+            .queueFamilyIndex = mContext->familyIndex(QueueFamilyType::GRAPHICS).value(),
+            .queue = mContext->queue(QueueFamilyType::GRAPHICS)
+        };
+        Buffer::copy(aliasCopyInfo);
+    }
+
+    void SceneLoader::applyResolvedMaterials() {
+        if (!mJson.contains("materialsResolved")) return;
+        const auto& resolved = mJson["materialsResolved"];
+        for (size_t i = 0; i < resolved.size() && i < mMaterials.size(); ++i) {
+            const auto& jm = resolved[i];
+            Material& material = mMaterials[i];
+            material.baseColor = toVec3(jm["color"]);
+            if (jm.contains("emissionColor")) material.emissionColor = toVec3(jm["emissionColor"]);
+            material.luminance = jm["luminance"];
+            material.metalness = jm.value("metalness", material.metalness);
+            material.roughness = jm.value("roughness", material.roughness);
+            material.ior       = jm.value("ior", material.ior);
+            material.specular  = jm.value("specular", material.specular);
+        }
+    }
+
+    void SceneLoader::loadExplicitInstances() {
+        mInstances.clear();
+        for (const auto& ji : mJson["instances"]) {
+            const uint32_t meshIndex = ji["meshIndex"];
+            if (meshIndex >= mBLASDatas.size()) continue;
+            Transform transform;
+            transform.position = toVec3(ji["localPosition"]);
+            transform.scale = toVec3(ji["localScale"]);
+            const auto& q = ji["rotation"];
+            transform.rotation = glm::quat(q[3].get<float>(), q[0].get<float>(),
+                                           q[1].get<float>(), q[2].get<float>());
+            InstanceData instanceData{
+                .name = ji["name"],
+                .meshName = ji.value("meshName", mBLASDatas[meshIndex].meshName),
+                .transform = transform,
+                .meshIndex = meshIndex,
+                .materialIndex = ji["materialIndex"],
+                .indexCount = mBLASDatas[meshIndex].indexCount
+            };
+            mInstances.push_back(instanceData);
+        }
+    }
+
+    void SceneLoader::buildEmissiveAliasTables() {
+        std::vector<bool> emissiveMesh(mBLASDatas.size(), false);
+        for (const auto& instance : mInstances) {
+            if (mMaterials[instance.materialIndex].luminance > 0.0f)
+                emissiveMesh[instance.meshIndex] = true;
+        }
+        for (size_t i = 0; i < mBLASDatas.size(); ++i) {
+            if (emissiveMesh[i]) buildAlias(mBLASDatas[i]);
+        }
+    }
+
+    json SceneLoader::save() const {
+        json scene = mJson;
+        scene["version"] = 2;
+        scene["directLight"]["direction"] = { mDirectLight.dir.x, mDirectLight.dir.y, mDirectLight.dir.z };
+        scene["directLight"]["intensity"] = mDirectLight.intensity;
+
+        json materials = json::array();
+        for (const auto& material : mMaterials) {
+            json jm;
+            jm["name"]          = material.name;
+            jm["color"]         = { material.baseColor.r, material.baseColor.g, material.baseColor.b };
+            jm["emissionColor"] = { material.emissionColor.r, material.emissionColor.g, material.emissionColor.b };
+            jm["luminance"]     = material.luminance;
+            jm["metalness"]     = material.metalness;
+            jm["roughness"]     = material.roughness;
+            jm["ior"]           = material.ior;
+            jm["specular"]      = material.specular;
+            if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
+            materials.push_back(jm);
+        }
+        scene["materialsResolved"] = materials;
+
+        json instances = json::array();
+        for (const auto& instance : mInstances) {
+            const Transform& t = instance.transform;
+            const glm::vec3 euler = glm::degrees(glm::eulerAngles(t.rotation));
+            json ji;
+            ji["name"]          = instance.name;
+            ji["meshName"]      = instance.meshName;
+            ji["modelIndex"]    = mBLASDatas[instance.meshIndex].modelIndex;
+            ji["meshIndex"]     = instance.meshIndex;
+            ji["materialIndex"] = instance.materialIndex;
+            ji["localPosition"] = { t.position.x, t.position.y, t.position.z };
+            ji["localRotation"] = { euler.x, euler.y, euler.z };
+            ji["localScale"]    = { t.scale.x, t.scale.y, t.scale.z };
+            ji["rotation"]      = { t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w };
+            instances.push_back(ji);
+        }
+        scene["instances"] = instances;
+        return scene;
     }
 }

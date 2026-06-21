@@ -36,12 +36,18 @@ namespace crv::graphics::vulkan {
         SceneLoader() = default;
         explicit SceneLoader(const SceneLoaderCreateInfo& info);
         void loadScene(const json& scene);
+        [[nodiscard]] json save() const;
     private:
         void loadModel(uint32_t modelIndex, const std::string& path);
         void loadMaterials();
+        void buildAlias(BLASData& blasData);
+        void applyResolvedMaterials();
+        void loadExplicitInstances();
+        void buildEmissiveAliasTables();
 
         json     mJson{};
-        Context* mContext = nullptr;
+        Context* mContext  = nullptr;
+        bool     mExplicit = false;
     public:
         DirectLight                  mDirectLight{};
         std::vector<BLASData>        mBLASDatas{};

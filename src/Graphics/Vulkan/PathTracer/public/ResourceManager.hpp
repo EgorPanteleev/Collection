@@ -18,6 +18,7 @@ namespace crv::graphics::vulkan {
         ResourceManager() = default;
         explicit ResourceManager(const ResourceManagerCreateInfo& info);
         void load(const json& json);
+        [[nodiscard]] json saveScene() const { return mSceneLoader.save(); }
         void updateInstanceTransform(uint32_t index);
         void updateInstance(uint32_t index);
         void updateMaterial(uint32_t index);

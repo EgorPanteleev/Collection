@@ -372,6 +372,7 @@ namespace crv::graphics::vulkan {
             mRayTracerPass.bindTexture(index);
         });
         mUI.setSaveImageCallBack([this](){ saveImage(); });
+        mUI.setSaveSceneCallBack([this](){ saveScene(); });
     }
 
     void PathTracerApp::recordTracer() {
@@ -668,6 +669,21 @@ namespace crv::graphics::vulkan {
 
         if (ok) INFO << "Saved image: " << path;
         else    ERROR << "Failed to save image: " << path;
+    }
+
+    void PathTracerApp::saveScene() {
+        const json scene = mResourceManager.saveScene();
+        const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        char stamp[32];
+        std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
+        const std::string path = (fs::path(ASSETS_PATH) / ("scene_" + std::string(stamp) + ".json")).string();
+        std::ofstream out(path);
+        if (!out) {
+            ERROR << "Failed to save scene: " << path;
+            return;
+        }
+        out << scene.dump(2);
+        INFO << "Saved scene: " << path;
     }
 
     void PathTracerApp::updateSelectedInstance() {

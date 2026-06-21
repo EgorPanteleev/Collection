@@ -45,6 +45,7 @@ namespace crv::graphics::vulkan {
         void setCameraSetCallBack(const std::function<void(cs::CameraType type)>& callBack) { mCameraSet = callBack; }
         void setUploadTextureCallBack(const std::function<void(const std::string& path, uint32_t materialIndex)>& callBack) { mUploadTexture = callBack; }
         void setSaveImageCallBack(const std::function<void()>& callBack) { mSaveImage = callBack; }
+        void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
 
         [[nodiscard]] uint32_t spp() const { return mSPP; }
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
@@ -82,6 +83,7 @@ namespace crv::graphics::vulkan {
         std::function<void(cs::CameraType type)> mCameraSet{};
         std::function<void(const std::string& path, uint32_t materialIndex)> mUploadTexture{};
         std::function<void()> mSaveImage{};
+        std::function<void()> mSaveScene{};
     };
 }
 
