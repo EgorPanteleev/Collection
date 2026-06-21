@@ -191,15 +191,37 @@
       "rotation": [0.0, 0.0, 0.0, 1.0]
     },
     {
-      "localPosition": [0.0, -70.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [7.0, 1.2000000476837158, 7.0],
+      "localPosition": [2.0, -69.0, 42.0],
+      "localRotation": [0.0, 90.0, 0.0],
+      "localScale": [5.0, 10.0, 40.0],
       "materialIndex": 3,
-      "meshIndex": 12,
-      "meshName": "Sphere",
-      "modelIndex": 2,
-      "name": "lamp",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "meshIndex": 11,
+      "meshName": "Plane",
+      "modelIndex": 1,
+      "name": "lightPlane1",
+      "rotation": [0.0, 0.7071067690849304, 0.0, 0.7071067690849304]
+    },
+    {
+      "localPosition": [2.0, -69.0, 2.0],
+      "localRotation": [0.0, 90.0, 0.0],
+      "localScale": [5.0, 10.0, 40.0],
+      "materialIndex": 3,
+      "meshIndex": 11,
+      "meshName": "Plane",
+      "modelIndex": 1,
+      "name": "lightPlane2",
+      "rotation": [0.0, 0.7071067690849304, 0.0, 0.7071067690849304]
+    },
+    {
+      "localPosition": [2.0, -69.0, -38.0],
+      "localRotation": [0.0, 90.0, 0.0],
+      "localScale": [5.0, 10.0, 40.0],
+      "materialIndex": 3,
+      "meshIndex": 11,
+      "meshName": "Plane",
+      "modelIndex": 1,
+      "name": "lightPlane3",
+      "rotation": [0.0, 0.7071067690849304, 0.0, 0.7071067690849304]
     }
   ],
   "materials": [
@@ -291,7 +313,7 @@
       "color": [1.0, 1.0, 1.0],
       "emissionColor": [1.0, 1.0, 1.0],
       "ior": 1.5,
-      "luminance": 30.0,
+      "luminance": 3.0,
       "metalness": 0.0,
       "name": "light",
       "roughness": 1.0,
@@ -540,7 +562,7 @@
     }
   ],
   "modelImports": [
-    "scenes/Ford/ford.gltf",
+    "scenes/ford/ford.gltf",
     "meshes/plane.glb",
     "meshes/sphere.glb"
   ],
