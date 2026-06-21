@@ -82,9 +82,9 @@ float fresnelDielectric(float cosThetaI, float eta) {
     return 0.5 * (rs * rs + rp * rp);
 }
 
-public Scatter sampleDielectric(inout uint seed, float3 N, float3 wo, float ior, bool frontFace, float3 tint) {
+public Scatter sampleDielectric(inout uint seed, float3 N, float3 wo, float ior, bool inside) {
     Scatter scatter;
-    float  eta  = frontFace ? (1.0 / ior) : ior;
+    float  eta  = inside ? ior : (1.0 / ior);
     float  cosI = saturate(dot(N, wo));
     float  F    = fresnelDielectric(cosI, eta);
 
@@ -92,14 +92,32 @@ public Scatter sampleDielectric(inout uint seed, float3 N, float3 wo, float ior,
     float3 refractDir = refract(incident, N, eta);
     bool   tir        = dot(refractDir, refractDir) < 1e-8;
 
-    if (tir || rand01(seed) < F) {
+    if (tir || rand01(seed) < F)
+        scatter.wi = normalize(reflect(incident, N));
+    else
+        scatter.wi = normalize(refractDir);
+
+    scatter.brdf = float3(1.0);
+    scatter.pdf  = -1.0;
+    return scatter;
+}
+
+public Scatter sampleThinDielectric(inout uint seed, float3 N, float3 wo, float ior, float3 sigmaA, float thickness) {
+    Scatter scatter;
+    float  cosI = saturate(dot(N, wo));
+    float  F    = fresnelDielectric(cosI, 1.0 / ior);
+    float3 incident = -wo;
+    if (rand01(seed) < F) {
         scatter.wi   = normalize(reflect(incident, N));
         scatter.brdf = float3(1.0);
     } else {
-        scatter.wi   = normalize(refractDir);
-        scatter.brdf = tint;
+        scatter.wi   = incident;
+        float sinT2  = (1.0 - cosI * cosI) / (ior * ior);
+        float cosT   = sqrt(max(1.0 - sinT2, 1e-6));
+        float path   = thickness / cosT;
+        scatter.brdf = exp(-sigmaA * path);
     }
-    scatter.pdf = -1.0;
+    scatter.pdf  = -1.0;
     return scatter;
 }
 

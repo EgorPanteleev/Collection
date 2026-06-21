@@ -25,6 +25,7 @@ void rgenMain() {
     payload.depth       = 0;
     payload.prevBrdfPdf = -1.0;
     payload.done        = false;
+    payload.insideGlass = false;
 
     uint firstInstanceId = UINT_MAX;
     for (uint depth = 0; depth < pc.maxDepth; ++depth) {
@@ -97,8 +98,19 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     if (material.transmission > 0.0) {
         float pt = material.transmission;
         if (rand01(payload.seed) < pt) {
-            Scatter scatter = sampleDielectric(payload.seed, hit.N, -WorldRayDirection(),
-                                               material.ior, hit.frontFace, baseColor);
+            Scatter scatter;
+            float3 sigmaA = -log(max(material.attenuationColor, float3(1e-4))) * material.absorption;
+            if (material.thin > 0.0) {
+                scatter = sampleThinDielectric(payload.seed, hit.N, -WorldRayDirection(),
+                                               material.ior, sigmaA, material.thickness);
+            } else {
+                if (payload.insideGlass) {
+                    payload.throughput *= exp(-sigmaA * RayTCurrent());
+                }
+                scatter = sampleDielectric(payload.seed, hit.N, -WorldRayDirection(),
+                                           material.ior, payload.insideGlass);
+                if (dot(scatter.wi, hit.N) < 0.0) payload.insideGlass = !payload.insideGlass;
+            }
             payload.throughput *= scatter.brdf / pt;
             payload.origin      = movedPoint(hit.P, dot(scatter.wi, hit.gN) < 0.0 ? -hit.gN : hit.gN);
             payload.direction   = scatter.wi;

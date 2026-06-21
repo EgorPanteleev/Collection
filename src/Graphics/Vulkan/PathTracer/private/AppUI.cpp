@@ -267,6 +267,26 @@ namespace crv::graphics::vulkan {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
+                if (VkImGui::colorEdit3("Attenuation Color", material.attenuationColor)) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                if (ImGui::SliderFloat("Absorption", &material.absorption, 0.0f, 10.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                bool thin = material.thin > 0.0f;
+                if (ImGui::Checkbox("Thin", &thin)) {
+                    material.thin = thin ? 1.0f : 0.0f;
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::SliderFloat("##Thickness", &material.thickness, 0.0f, 10.0f, "Thickness %.3f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
             }
             if (ImGui::CollapsingHeader("Coating", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::SliderFloat("Weight##coating", &material.clearcoat, 0.0f, 1.0f, "%.2f")) {

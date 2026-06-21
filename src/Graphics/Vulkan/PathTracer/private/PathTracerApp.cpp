@@ -21,6 +21,44 @@ namespace fs = std::filesystem;
 namespace crv::graphics::vulkan {
     namespace cu = utils;
 
+    namespace {
+        void dumpScene(std::ostream& out, const json& j, int indent, int depth) {
+            const std::string pad(static_cast<size_t>(depth) * indent, ' ');
+            const std::string padIn(static_cast<size_t>(depth + 1) * indent, ' ');
+            if (j.is_object()) {
+                if (j.empty()) { out << "{}"; return; }
+                out << "{\n";
+                size_t i = 0;
+                for (auto it = j.begin(); it != j.end(); ++it) {
+                    out << padIn << json(it.key()).dump() << ": ";
+                    dumpScene(out, it.value(), indent, depth + 1);
+                    out << (++i < j.size() ? ",\n" : "\n");
+                }
+                out << pad << "}";
+            } else if (j.is_array()) {
+                bool inlineArray = true;
+                for (const auto& e : j) if (!e.is_number() && !e.is_boolean()) { inlineArray = false; break; }
+                if (inlineArray) {
+                    out << "[";
+                    size_t i = 0;
+                    for (const auto& e : j) out << (i++ ? ", " : "") << e.dump();
+                    out << "]";
+                } else {
+                    out << "[\n";
+                    size_t i = 0;
+                    for (const auto& e : j) {
+                        out << padIn;
+                        dumpScene(out, e, indent, depth + 1);
+                        out << (++i < j.size() ? ",\n" : "\n");
+                    }
+                    out << pad << "]";
+                }
+            } else {
+                out << j.dump();
+            }
+        }
+    }
+
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo) {
         readScene(createInfo.scenePath);
         createContext();
@@ -682,7 +720,8 @@ namespace crv::graphics::vulkan {
             ERROR << "Failed to save scene: " << path;
             return;
         }
-        out << scene.dump(2);
+        dumpScene(out, scene, 2, 0);
+        out << "\n";
         INFO << "Saved scene: " << path;
     }
 

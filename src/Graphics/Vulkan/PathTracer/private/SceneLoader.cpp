@@ -252,12 +252,16 @@ namespace crv::graphics::vulkan {
                 .baseColor = toVec3(jsonMaterial["color"]),
                 .luminance = jsonMaterial["luminance"],
                 .metalness = jsonMaterial.value("metalness", 0.0f),
-                .roughness = jsonMaterial.value("roughness", 1.0f),
+                .roughness = jsonMaterial.value("roughness", 0.0f),
                 .ior = jsonMaterial.value("ior", 1.5f),
-                .specular = jsonMaterial.value("specular", 1.0f),
+                .specular = jsonMaterial.value("specular", 0.0f),
                 .transmission = jsonMaterial.value("transmission", 0.0f),
                 .clearcoat = jsonMaterial.value("clearcoat", 0.0f),
-                .clearcoatRoughness = jsonMaterial.value("clearcoatRoughness", 0.0f)
+                .clearcoatRoughness = jsonMaterial.value("clearcoatRoughness", 0.0f),
+                .thin = jsonMaterial.value("thin", 0.0f),
+                .thickness = jsonMaterial.value("thickness", 0.0f),
+                .attenuationColor = jsonMaterial.contains("attenuationColor") ? toVec3(jsonMaterial["attenuationColor"]) : glm::vec3(1.0f),
+                .absorption = jsonMaterial.value("absorption", 1.0f)
             };
         }
     }
@@ -303,6 +307,10 @@ namespace crv::graphics::vulkan {
             material.transmission = jm.value("transmission", material.transmission);
             material.clearcoat          = jm.value("clearcoat", material.clearcoat);
             material.clearcoatRoughness = jm.value("clearcoatRoughness", material.clearcoatRoughness);
+            material.thin               = jm.value("thin", material.thin);
+            material.thickness          = jm.value("thickness", material.thickness);
+            if (jm.contains("attenuationColor")) material.attenuationColor = toVec3(jm["attenuationColor"]);
+            material.absorption = jm.value("absorption", material.absorption);
         }
     }
 
@@ -360,6 +368,10 @@ namespace crv::graphics::vulkan {
             jm["transmission"]  = material.transmission;
             jm["clearcoat"]            = material.clearcoat;
             jm["clearcoatRoughness"]   = material.clearcoatRoughness;
+            jm["thin"]                 = material.thin;
+            jm["thickness"]            = material.thickness;
+            jm["attenuationColor"]     = { material.attenuationColor.r, material.attenuationColor.g, material.attenuationColor.b };
+            jm["absorption"]           = material.absorption;
             if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
             materials.push_back(jm);
         }

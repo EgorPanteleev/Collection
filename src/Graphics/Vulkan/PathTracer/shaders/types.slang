@@ -14,4 +14,5 @@ public struct PathPayload {
     public uint   depth;
     public float  prevBrdfPdf;
     public bool   done;
+    public bool   insideGlass;
 };
