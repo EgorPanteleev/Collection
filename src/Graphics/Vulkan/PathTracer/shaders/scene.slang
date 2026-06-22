@@ -55,7 +55,9 @@ public void applyMetalRoughness(MaterialGPU material, float2 uv, inout float met
 public void applyNormalMap(inout HitGeometry hit, MaterialGPU material) {
     if (material.normalTexIndex == UINT_MAX) return;
     if (dot(hit.tangent.xyz, hit.tangent.xyz) < 1e-8) return;
-    float3 tn = textures[NonUniformResourceIndex(material.normalTexIndex)].SampleLevel(hit.uv, 0.0).rgb * 2.0 - 1.0;
+    float2 rg = textures[NonUniformResourceIndex(material.normalTexIndex)].SampleLevel(hit.uv, 0.0).rg * 2.0 - 1.0;
+    rg.y = -rg.y;
+    float3 tn = float3(rg, sqrt(saturate(1.0 - dot(rg, rg))));
     float3 N = hit.N;
     float3 T = normalize(hit.tangent.xyz - dot(hit.tangent.xyz, N) * N);
     float3 B = cross(N, T) * hit.tangent.w;

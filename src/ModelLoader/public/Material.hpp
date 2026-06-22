@@ -27,7 +27,9 @@ namespace crv::model {
             BC1_UNORM = 2,
             BC3_UNORM = 3,
             BC5_UNORM = 4,
-            UNDEFINED = 5,
+            BC7_UNORM = 5,
+            BC7_SRGB = 6,
+            UNDEFINED = 7,
         };
 
         Texture() = default;

@@ -68,6 +68,10 @@ namespace crv::model {
                 return Texture::BC3_UNORM;
             case gli::FORMAT_RG_ATI2N_UNORM_BLOCK16:
                 return Texture::BC5_UNORM;
+            case gli::FORMAT_RGBA_BP_UNORM_BLOCK16:
+                return Texture::BC7_UNORM;
+            case gli::FORMAT_RGBA_BP_SRGB_BLOCK16:
+                return Texture::BC7_SRGB;
             default:
                 INFO << "ID: " << gliFormat;
                 throw std::runtime_error("Unsupported gli format!");
@@ -84,13 +88,12 @@ namespace crv::model {
         } else {
             gli::texture tex = gli::load(path.c_str());
             if (tex.empty()) throw std::runtime_error("Failed to load texture!");
-            texture.mDataByLevel.resize(tex.levels());
-            int layer = 0; int face = 0;
-            for (int level = 0; level < tex.levels(); ++level) {
-                pixels = tex.data(layer, face, level);
-                texture.mDataByLevel[level] = {pixels, (uint32_t) tex.extent(level).x,
-                                             (uint32_t) tex.extent(level).y};
-            }
+            int layer = 0; int face = 0; int level = 0;
+            const size_t size = tex.size(level);
+            void* data = std::malloc(size);
+            memcpy(data, tex.data(layer, face, level), size);
+            texture.mDataByLevel.push_back({data, (uint32_t) tex.extent(level).x,
+                                         (uint32_t) tex.extent(level).y});
             texture.mFormat = toTextureFormat( tex.format() );
         }
         return texture;

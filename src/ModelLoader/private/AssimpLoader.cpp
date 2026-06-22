@@ -261,6 +261,8 @@ namespace crv::model {
         Texture texture;
         aiString aiPath;
         texture.mFormat = toTextureFormat(textureType);
+        if (textureType == Texture::BASE_COLOR && material->GetTextureCount(assimpType) <= 0)
+            assimpType = aiTextureType_DIFFUSE;
         if (material->GetTextureCount(assimpType) <= 0 or
             material->GetTexture(assimpType, 0, &aiPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
             return;

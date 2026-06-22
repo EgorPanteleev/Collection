@@ -24,6 +24,10 @@ namespace crv::graphics::vulkan {
                 return VK_FORMAT_BC3_UNORM_BLOCK;
             case cm::Texture::BC5_UNORM:
                 return VK_FORMAT_BC5_UNORM_BLOCK;
+            case cm::Texture::BC7_UNORM:
+                return VK_FORMAT_BC7_UNORM_BLOCK;
+            case cm::Texture::BC7_SRGB:
+                return VK_FORMAT_BC7_SRGB_BLOCK;
             default:
                 throw std::runtime_error("Unsupported texture format!");
         }
@@ -42,7 +46,7 @@ namespace crv::graphics::vulkan {
             .arrayLayers = info.arrayLayers,
             .samples = info.samples,
             .tiling = info.tiling,
-            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
             .memoryUsage = info.memoryUsage
         };
         mImage = Image(imageCreateInfo);
@@ -94,6 +98,9 @@ namespace crv::graphics::vulkan {
                 res = ((extent.width + 3) / 4) * ((extent.height + 3) / 4) * 8;
                 break;
             case VK_FORMAT_BC3_UNORM_BLOCK:
+            case VK_FORMAT_BC5_UNORM_BLOCK:
+            case VK_FORMAT_BC7_UNORM_BLOCK:
+            case VK_FORMAT_BC7_SRGB_BLOCK:
                 res = ((extent.width + 3) / 4) * ((extent.height + 3) / 4) * 16;
                 break;
             default:
