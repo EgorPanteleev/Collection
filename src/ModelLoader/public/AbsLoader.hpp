@@ -32,6 +32,7 @@ namespace crv::model {
         static Texture::Format toTextureFormat(Texture::Type modelTexType);
         static Texture::Format toTextureFormat(gli::texture::format_type gliFormat);
         [[nodiscard]] static Texture loadTexture(const std::string& path, Texture::Type type);
+        [[nodiscard]] static Texture loadSkybox(const std::string& path);
         [[nodiscard]] static Texture colorTexture(const glm::vec3& color, Texture::Type texType);
         [[nodiscard]] static Texture emptyTexture(Texture::Type texType);
         virtual bool load(const glm::mat4& model) = 0;

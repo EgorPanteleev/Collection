@@ -54,6 +54,12 @@ namespace crv::graphics::vulkan {
         if (mTextures.empty())
             mTextures.push_back(toTexture(mContext, cm::AbsLoader::emptyTexture(cm::Texture::BASE_COLOR)));
 
+        const std::string skyboxPath = mJson.value("skybox", std::string());
+        if (!skyboxPath.empty()) {
+            mTextures.push_back(toTexture(mContext, cm::AbsLoader::loadSkybox(ASSETS_PATH + skyboxPath)));
+            mSkyboxIndex = static_cast<uint32_t>(mTextures.size() - 1);
+        }
+
         if (mExplicit) {
             applyResolvedMaterials();
             loadExplicitInstances();

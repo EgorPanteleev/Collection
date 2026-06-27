@@ -40,6 +40,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Buffer& emissiveInstanceBuffer() { return mEmissiveInstanceBuffer; }
         [[nodiscard]] Buffer& materialBuffer() { return mMaterialBuffer; }
         [[nodiscard]] std::vector<Texture>& textures() { return mSceneLoader.mTextures; }
+        [[nodiscard]] uint32_t skyboxIndex() const { return mSceneLoader.mSkyboxIndex; }
     private:
         void createLoader();
         void buildTLAS();

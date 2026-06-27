@@ -55,6 +55,7 @@ namespace crv::graphics::vulkan {
         std::vector<uint32_t>        mEmissiveIndices{};
         std::vector<Material>        mMaterials{};
         std::vector<Texture>         mTextures{};
+        uint32_t                     mSkyboxIndex = UINT32_MAX;
     };
 }
 

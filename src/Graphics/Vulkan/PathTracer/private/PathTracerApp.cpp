@@ -431,7 +431,8 @@ namespace crv::graphics::vulkan {
                 .maxDepth = mUI.maxDepth(),
                 .displayMode = mUI.displayMode(),
                 .nee = mUI.nee() ? 1u : 0u,
-                .emissiveCount = static_cast<uint32_t>(mResourceManager.emissiveIndices().size())
+                .emissiveCount = static_cast<uint32_t>(mResourceManager.emissiveIndices().size()),
+                .skyboxIndex = mResourceManager.skyboxIndex()
             },
             .width = mSwapchain.extent().width,
             .height = mSwapchain.extent().height

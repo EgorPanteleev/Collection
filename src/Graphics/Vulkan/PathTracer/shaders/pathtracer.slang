@@ -60,7 +60,7 @@ void rgenMain() {
 [shader("miss")]
 void missMain(inout PathPayload payload) {
     if (pc.displayMode == 0u)
-        payload.radiance += payload.throughput * SKY_COLOR;
+        payload.radiance += payload.throughput * sampleEnvironment(WorldRayDirection());
     payload.done = true;
 }
 

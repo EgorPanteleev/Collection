@@ -28,6 +28,8 @@ namespace crv::graphics::vulkan {
                 return VK_FORMAT_BC7_UNORM_BLOCK;
             case cm::Texture::BC7_SRGB:
                 return VK_FORMAT_BC7_SRGB_BLOCK;
+            case cm::Texture::R16G16B16A16_SFLOAT:
+                return VK_FORMAT_R16G16B16A16_SFLOAT;
             default:
                 throw std::runtime_error("Unsupported texture format!");
         }
@@ -102,6 +104,9 @@ namespace crv::graphics::vulkan {
             case VK_FORMAT_BC7_UNORM_BLOCK:
             case VK_FORMAT_BC7_SRGB_BLOCK:
                 res = ((extent.width + 3) / 4) * ((extent.height + 3) / 4) * 16;
+                break;
+            case VK_FORMAT_R16G16B16A16_SFLOAT:
+                res = static_cast<uint64_t>(extent.width) * extent.height * 8;
                 break;
             default:
                 res = extent.width * extent.height * 4;

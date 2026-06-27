@@ -99,6 +99,32 @@ namespace crv::model {
         return texture;
     }
 
+    static uint16_t floatToHalf(float value) {
+        uint32_t bits;
+        std::memcpy(&bits, &value, sizeof(bits));
+        const uint32_t sign = (bits >> 16) & 0x8000u;
+        int32_t exponent = static_cast<int32_t>((bits >> 23) & 0xffu) - 127 + 15;
+        const uint32_t mantissa = bits & 0x7fffffu;
+        if (exponent <= 0)  return static_cast<uint16_t>(sign);
+        if (exponent >= 31) return static_cast<uint16_t>(sign | 0x7c00u);
+        return static_cast<uint16_t>(sign | (static_cast<uint32_t>(exponent) << 10) | (mantissa >> 13));
+    }
+
+    Texture AbsLoader::loadSkybox(const std::string& path) {
+        Texture texture;
+        int width, height, channels;
+        float* pixels = stbi_loadf(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+        if (!pixels) throw std::runtime_error("Failed to load skybox: " + path);
+        const size_t count = static_cast<size_t>(width) * height * 4;
+        auto* halfData = static_cast<uint16_t*>(std::malloc(count * sizeof(uint16_t)));
+        for (size_t i = 0; i < count; ++i) halfData[i] = floatToHalf(pixels[i]);
+        stbi_image_free(pixels);
+        texture.mFormat = Texture::R16G16B16A16_SFLOAT;
+        texture.mDataByLevel.emplace_back(static_cast<void*>(halfData),
+                                          static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+        return texture;
+    }
+
     static glm::vec3 toEmptyColor(Texture::Type texType) {
         switch(texType) {
             case Texture::Type::BASE_COLOR:

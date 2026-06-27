@@ -65,7 +65,8 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
         mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, MAX_TEXTURES);
+        mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                                  VK_SHADER_STAGE_MISS_BIT_KHR, MAX_TEXTURES);
 
         const DescriptorBuildInfo buildInfo {
             .context = mContext,

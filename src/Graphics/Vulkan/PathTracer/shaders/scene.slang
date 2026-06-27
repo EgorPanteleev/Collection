@@ -14,6 +14,7 @@ public struct PushConstants {
     public uint displayMode;
     public uint nee;
     public uint emissiveCount;
+    public uint skyboxIndex;
 };
 [[vk::push_constant]] public PushConstants pc;
 
@@ -37,6 +38,13 @@ public struct DirectLightData {
 [[vk::binding(7)]] public StructuredBuffer<uint>          emissiveIndices;
 [[vk::binding(8)]] public StructuredBuffer<MaterialGPU>  materials;
 [[vk::binding(9)]] public Sampler2D                       textures[];
+
+public float3 sampleEnvironment(float3 dir) {
+    if (pc.skyboxIndex == UINT_MAX) return SKY_COLOR;
+    float2 uv = float2(atan2(dir.z, dir.x) * 0.15915494309 + 0.5,
+                       acos(clamp(-dir.y, -1.0, 1.0)) * 0.31830988618);
+    return textures[pc.skyboxIndex].SampleLevel(uv, 0.0).rgb;
+}
 
 public float3 getBaseColor(MaterialGPU material, float2 uv) {
     float3 baseColor = material.baseColor;

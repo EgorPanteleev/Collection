@@ -22,6 +22,7 @@ namespace crv::graphics::vulkan {
         uint32_t displayMode = 0;
         uint32_t nee         = 1;
         uint32_t emissiveCount = 0;
+        uint32_t skyboxIndex = UINT32_MAX;
     };
 
     struct PostprocessPushConstants {
