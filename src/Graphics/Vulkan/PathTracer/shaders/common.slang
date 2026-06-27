@@ -16,6 +16,7 @@ public static const float SHADOW_EPS       = 1e-3;
 
 public static const float PDF_EPS   = 1e-4;
 public static const float NEE_CLAMP = 50.0;
+public static const float FIREFLY_CLAMP = 10.0;
 
 public uint pcg(uint v) {
     uint state = v * 747796405u + 2891336453u;

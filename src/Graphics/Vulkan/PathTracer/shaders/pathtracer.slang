@@ -59,8 +59,14 @@ void rgenMain() {
 
 [shader("miss")]
 void missMain(inout PathPayload payload) {
-    if (pc.displayMode == 0u)
-        payload.radiance += payload.throughput * sampleEnvironment(WorldRayDirection());
+    if (pc.displayMode == 0u) {
+        float3 contrib = payload.throughput * sampleEnvironment(WorldRayDirection());
+        if (payload.depth > 0u) {
+            float lum = luminance(contrib);
+            if (lum > FIREFLY_CLAMP) contrib *= FIREFLY_CLAMP / lum;
+        }
+        payload.radiance += contrib;
+    }
     payload.done = true;
 }
 
