@@ -414,6 +414,16 @@ namespace crv::graphics::vulkan {
             }
             mRayTracerPass.bindTexture(index);
         });
+        mUI.setLoadSkyboxCallBack([this](const std::string& path){
+            vkDeviceWaitIdle(mContext.device());
+            const uint32_t index = mResourceManager.addSkybox(path);
+            mRayTracerPass.bindTexture(index);
+            updateImage();
+        });
+        mUI.setRemoveSkyboxCallBack([this](){
+            mResourceManager.removeSkybox();
+            updateImage();
+        });
         mUI.setSaveImageCallBack([this](){ saveImage(); });
         mUI.setSaveSceneCallBack([this](){ saveScene(); });
     }

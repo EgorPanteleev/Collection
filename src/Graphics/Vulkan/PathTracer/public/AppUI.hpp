@@ -44,6 +44,8 @@ namespace crv::graphics::vulkan {
         void setUpdateImageCallBack(const std::function<void()>& callBack) { mUpdateImage = callBack; }
         void setCameraSetCallBack(const std::function<void(cs::CameraType type)>& callBack) { mCameraSet = callBack; }
         void setUploadTextureCallBack(const std::function<void(const std::string& path, uint32_t materialIndex, int textureType)>& callBack) { mUploadTexture = callBack; }
+        void setLoadSkyboxCallBack(const std::function<void(const std::string& path)>& callBack) { mLoadSkybox = callBack; }
+        void setRemoveSkyboxCallBack(const std::function<void()>& callBack) { mRemoveSkybox = callBack; }
         void setSaveImageCallBack(const std::function<void()>& callBack) { mSaveImage = callBack; }
         void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
 
@@ -83,6 +85,9 @@ namespace crv::graphics::vulkan {
         std::function<void(cs::CameraType type)> mCameraSet{};
         std::function<void(const std::string& path, uint32_t materialIndex, int textureType)> mUploadTexture{};
         int              mUploadTextureType = 0;
+        std::function<void(const std::string& path)> mLoadSkybox{};
+        std::function<void()> mRemoveSkybox{};
+        ImGuiFileDialog  mSkyboxFileDialog{};
         std::function<void()> mSaveImage{};
         std::function<void()> mSaveScene{};
     };

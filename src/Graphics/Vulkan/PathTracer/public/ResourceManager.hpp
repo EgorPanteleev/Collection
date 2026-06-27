@@ -26,6 +26,8 @@ namespace crv::graphics::vulkan {
         uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);
         uint32_t addNormalTexture(const std::string& path, uint32_t materialIndex);
         uint32_t addMetalRoughnessTexture(const std::string& path, uint32_t materialIndex);
+        uint32_t addSkybox(const std::string& path);
+        void removeSkybox();
 
         [[nodiscard]] DirectLight& directLight() { return mSceneLoader.mDirectLight; }
         [[nodiscard]] std::vector<InstanceData>& instances() { return mSceneLoader.mInstances; }
@@ -41,6 +43,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Buffer& materialBuffer() { return mMaterialBuffer; }
         [[nodiscard]] std::vector<Texture>& textures() { return mSceneLoader.mTextures; }
         [[nodiscard]] uint32_t skyboxIndex() const { return mSceneLoader.mSkyboxIndex; }
+        [[nodiscard]] const std::string& skyboxName() const { return mSceneLoader.mSkyboxName; }
     private:
         void createLoader();
         void buildTLAS();

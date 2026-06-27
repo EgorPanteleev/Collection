@@ -58,6 +58,8 @@ namespace crv::graphics::vulkan {
         if (!skyboxPath.empty()) {
             mTextures.push_back(toTexture(mContext, cm::AbsLoader::loadSkybox(ASSETS_PATH + skyboxPath)));
             mSkyboxIndex = static_cast<uint32_t>(mTextures.size() - 1);
+            mSkyboxName = fs::path(skyboxPath).filename().string();
+            mSkyboxPath = skyboxPath;
         }
 
         if (mExplicit) {
@@ -366,6 +368,9 @@ namespace crv::graphics::vulkan {
         scene["version"] = 2;
         scene["directLight"]["direction"] = { mDirectLight.dir.x, mDirectLight.dir.y, mDirectLight.dir.z };
         scene["directLight"]["intensity"] = mDirectLight.intensity;
+
+        if (mSkyboxIndex != UINT32_MAX) scene["skybox"] = mSkyboxPath;
+        else scene.erase("skybox");
 
         json materials = json::array();
         for (const auto& material : mMaterials) {

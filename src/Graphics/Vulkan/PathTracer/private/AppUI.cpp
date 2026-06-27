@@ -181,6 +181,22 @@ namespace crv::graphics::vulkan {
                 mUpdateImage();
             }
         }
+        if (ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_DefaultOpen)) {
+            const bool hasSkybox = mResourceManager->skyboxIndex() != UINT32_MAX;
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextDisabled("%s", hasSkybox ? mResourceManager->skyboxName().c_str() : "None");
+            ImGui::SameLine();
+            if (hasSkybox) {
+                if (ImGui::Button("Remove##skybox") && mRemoveSkybox) {
+                    mRemoveSkybox();
+                }
+            } else if (ImGui::Button("Load##skybox")) {
+                mSkyboxFileDialog.open(ASSETS_PATH, {".hdr", ".png", ".jpg", ".jpeg", ".bmp", ".tga"});
+            }
+            if (mSkyboxFileDialog.draw("Select Skybox") && mLoadSkybox) {
+                mLoadSkybox(mSkyboxFileDialog.result());
+            }
+        }
         if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat3("Direction", &mResourceManager->directLight().dir.x, 0.005f, -1.0f, 1.0f)) {
                 mUpdateImage();

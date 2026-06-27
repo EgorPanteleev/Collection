@@ -56,6 +56,8 @@ namespace crv::graphics::vulkan {
         std::vector<Material>        mMaterials{};
         std::vector<Texture>         mTextures{};
         uint32_t                     mSkyboxIndex = UINT32_MAX;
+        std::string                  mSkyboxName{};
+        std::string                  mSkyboxPath{};
     };
 }
 

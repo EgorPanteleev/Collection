@@ -100,6 +100,22 @@ namespace crv::graphics::vulkan {
         return index;
     }
 
+    uint32_t ResourceManager::addSkybox(const std::string& path) {
+        mSceneLoader.mTextures.push_back(toTexture(mContext, cm::AbsLoader::loadSkybox(path)));
+        mSceneLoader.mSkyboxIndex = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);
+        mSceneLoader.mSkyboxName = std::filesystem::path(path).filename().string();
+        std::error_code ec;
+        const std::filesystem::path relative = std::filesystem::relative(path, ASSETS_PATH, ec);
+        mSceneLoader.mSkyboxPath = (!ec && !relative.empty()) ? relative.generic_string() : path;
+        return mSceneLoader.mSkyboxIndex;
+    }
+
+    void ResourceManager::removeSkybox() {
+        mSceneLoader.mSkyboxIndex = UINT32_MAX;
+        mSceneLoader.mSkyboxName.clear();
+        mSceneLoader.mSkyboxPath.clear();
+    }
+
     uint32_t ResourceManager::addMetalRoughnessTexture(const std::string& path, const uint32_t materialIndex) {
         const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::METAL_ROUGHNESS);
         mSceneLoader.mTextures.push_back(toTexture(mContext, cmTexture));
