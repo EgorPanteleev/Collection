@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHADER_DIR=$1
 OUTPUT_DIR=$2
 
@@ -32,6 +33,7 @@ for SHADER_FILE in "${SHADER_FILES[@]}"; do
         -O3 \
         -I "$SHADER_DIR" \
         -o "$OUTPUT_FILE"; then
+        python3 "$SCRIPT_DIR/nonuniform_patch.py" "$OUTPUT_FILE"
         echo "Success: $SHADER_FILE compiled!"
     else
         echo "Error: Failed to compile $SHADER_FILE" >&2
