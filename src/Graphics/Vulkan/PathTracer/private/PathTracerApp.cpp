@@ -410,6 +410,8 @@ namespace crv::graphics::vulkan {
             switch (textureType) {
                 case 1:  index = mResourceManager.addNormalTexture(path, materialIndex); break;
                 case 2:  index = mResourceManager.addMetalRoughnessTexture(path, materialIndex); break;
+                case 3:  index = mResourceManager.addClearcoatTexture(path, materialIndex); break;
+                case 4:  index = mResourceManager.addClearcoatRoughnessTexture(path, materialIndex); break;
                 default: index = mResourceManager.addBaseColorTexture(path, materialIndex); break;
             }
             mRayTracerPass.bindTexture(index);

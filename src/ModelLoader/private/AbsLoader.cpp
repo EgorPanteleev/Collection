@@ -53,6 +53,8 @@ namespace crv::model {
                 return Texture::R8G8B8A8_SRGB;
             case Texture::Type::NORMAL:
             case Texture::Type::METAL_ROUGHNESS:
+            case Texture::Type::CLEARCOAT:
+            case Texture::Type::CLEARCOAT_ROUGHNESS:
                 return Texture::R8G8B8A8_UNORM;
             default:
                 INFO << "ID: " << modelTexType;

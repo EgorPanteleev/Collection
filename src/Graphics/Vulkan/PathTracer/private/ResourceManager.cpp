@@ -100,6 +100,28 @@ namespace crv::graphics::vulkan {
         return index;
     }
 
+    uint32_t ResourceManager::addClearcoatTexture(const std::string& path, const uint32_t materialIndex) {
+        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::CLEARCOAT);
+        mSceneLoader.mTextures.push_back(toTexture(mContext, cmTexture));
+        const auto index = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);
+        Material& material = mSceneLoader.mMaterials[materialIndex];
+        material.clearcoatTexIndex = index;
+        material.clearcoatTexName = std::filesystem::path(path).filename().string();
+        updateMaterial(materialIndex);
+        return index;
+    }
+
+    uint32_t ResourceManager::addClearcoatRoughnessTexture(const std::string& path, const uint32_t materialIndex) {
+        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::CLEARCOAT_ROUGHNESS);
+        mSceneLoader.mTextures.push_back(toTexture(mContext, cmTexture));
+        const auto index = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);
+        Material& material = mSceneLoader.mMaterials[materialIndex];
+        material.clearcoatRoughnessTexIndex = index;
+        material.clearcoatRoughnessTexName = std::filesystem::path(path).filename().string();
+        updateMaterial(materialIndex);
+        return index;
+    }
+
     uint32_t ResourceManager::addSkybox(const std::string& path) {
         mSceneLoader.mTextures.push_back(toTexture(mContext, cm::AbsLoader::loadSkybox(path)));
         mSceneLoader.mSkyboxIndex = static_cast<uint32_t>(mSceneLoader.mTextures.size() - 1);

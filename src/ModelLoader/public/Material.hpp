@@ -15,10 +15,12 @@
 namespace crv::model {
     struct Texture {
         enum Type {
-            BASE_COLOR      = 0,
-            NORMAL          = 1,
-            METAL_ROUGHNESS = 2,
-            UNKNOWN         = 3
+            BASE_COLOR          = 0,
+            NORMAL              = 1,
+            METAL_ROUGHNESS     = 2,
+            CLEARCOAT           = 3,
+            CLEARCOAT_ROUGHNESS = 4,
+            UNKNOWN             = 5
         };
 
         enum Format {
@@ -50,9 +52,11 @@ namespace crv::model {
     };
 
     static std::map<Texture::Type, aiTextureType> toAssimpTypeMap{
-            {Texture::BASE_COLOR     , aiTextureType_BASE_COLOR},
-            {Texture::NORMAL         , aiTextureType_NORMALS},
-            {Texture::METAL_ROUGHNESS, aiTextureType_METALNESS},
+            {Texture::BASE_COLOR         , aiTextureType_BASE_COLOR},
+            {Texture::NORMAL             , aiTextureType_NORMALS},
+            {Texture::METAL_ROUGHNESS    , aiTextureType_DIFFUSE_ROUGHNESS},
+            {Texture::CLEARCOAT          , aiTextureType_CLEARCOAT},
+            {Texture::CLEARCOAT_ROUGHNESS, aiTextureType_CLEARCOAT},
     };
 
     struct Material {
@@ -69,6 +73,8 @@ namespace crv::model {
         float emissiveStrength = 1.0f;
         float metallic         = 0.0f;
         float roughness        = 1.0f;
+        float clearcoat          = 0.0f;
+        float clearcoatRoughness = 0.0f;
         float ior              = 1.5f;
         float specularFactor   = 1.0f;
 

@@ -93,10 +93,15 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         float dmMetal = material.metalness;
         float dmRough = material.roughness;
         applyMetalRoughness(material, hit.uv, dmMetal, dmRough);
+        float dmClearcoat = material.clearcoat;
+        float dmClearcoatRough = material.clearcoatRoughness;
+        applyClearcoat(material, hit.uv, dmClearcoat, dmClearcoatRough);
         float3 aov = baseColor;
         if (pc.displayMode == 2u) aov = hit.N * 0.5 + 0.5;
         else if (pc.displayMode == 3u) aov = float3(dmRough);
         else if (pc.displayMode == 4u) aov = float3(dmMetal);
+        else if (pc.displayMode == 5u) aov = float3(dmClearcoat);
+        else if (pc.displayMode == 6u) aov = float3(dmClearcoatRough);
         payload.radiance = aov;
         payload.done     = true;
         return;
@@ -145,9 +150,12 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     float metalness = material.metalness;
     float roughness = material.roughness;
     applyMetalRoughness(material, hit.uv, metalness, roughness);
+    float clearcoat = material.clearcoat;
+    float clearcoatRoughness = material.clearcoatRoughness;
+    applyClearcoat(material, hit.uv, clearcoat, clearcoatRoughness);
     Surface surf = makeSurface(baseColor, metalness, roughness,
                                material.ior, material.specular,
-                               material.clearcoat, material.clearcoatRoughness,
+                               clearcoat, clearcoatRoughness,
                                hit.N, -WorldRayDirection());
     Scatter scatter = sampleBSDF(payload.seed, surf);
 

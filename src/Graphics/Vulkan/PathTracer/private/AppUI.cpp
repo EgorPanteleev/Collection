@@ -176,7 +176,7 @@ namespace crv::graphics::vulkan {
     void AppUI::drawRenderTab(const AppUIDrawInfo& info) {
         ImGui::Indent(4.0f);
         if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
-            const char* displayModes[] = {"Rendered", "Base Color", "Normal", "Roughness", "Metalness"};
+            const char* displayModes[] = {"Rendered", "Base Color", "Normal", "Roughness", "Metalness", "Clearcoat", "Clearcoat Roughness"};
             if (ImGui::Combo("Mode", &mDisplayMode, displayModes, IM_ARRAYSIZE(displayModes))) {
                 mUpdateImage();
             }
@@ -398,6 +398,50 @@ namespace crv::graphics::vulkan {
                         }
                     } else if (ImGui::Button("Upload##metalrough")) {
                         mUploadTextureType = 2;
+                        mFileDialog.open(ASSETS_PATH, extensions);
+                    }
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", "Clearcoat");
+                    const bool hasClearcoat = material.clearcoatTexIndex != UINT32_MAX;
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", hasClearcoat ? material.clearcoatTexName.c_str() : "None");
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::AlignTextToFramePadding();
+                    if (hasClearcoat) {
+                        if (ImGui::Button("Clear##clearcoat")) {
+                            material.clearcoatTexIndex = UINT32_MAX;
+                            material.clearcoatTexName.clear();
+                            mResourceManager->updateMaterial(instance.materialIndex);
+                            mUpdateImage();
+                        }
+                    } else if (ImGui::Button("Upload##clearcoat")) {
+                        mUploadTextureType = 3;
+                        mFileDialog.open(ASSETS_PATH, extensions);
+                    }
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", "Clearcoat Rough");
+                    const bool hasClearcoatRough = material.clearcoatRoughnessTexIndex != UINT32_MAX;
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", hasClearcoatRough ? material.clearcoatRoughnessTexName.c_str() : "None");
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::AlignTextToFramePadding();
+                    if (hasClearcoatRough) {
+                        if (ImGui::Button("Clear##clearcoatrough")) {
+                            material.clearcoatRoughnessTexIndex = UINT32_MAX;
+                            material.clearcoatRoughnessTexName.clear();
+                            mResourceManager->updateMaterial(instance.materialIndex);
+                            mUpdateImage();
+                        }
+                    } else if (ImGui::Button("Upload##clearcoatrough")) {
+                        mUploadTextureType = 4;
                         mFileDialog.open(ASSETS_PATH, extensions);
                     }
 

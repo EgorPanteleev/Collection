@@ -233,6 +233,8 @@ namespace crv::graphics::vulkan {
                 .roughness = loaderMaterial.roughness,
                 .ior = loaderMaterial.ior,
                 .specular = loaderMaterial.specularFactor,
+                .clearcoat = loaderMaterial.clearcoat,
+                .clearcoatRoughness = loaderMaterial.clearcoatRoughness,
             };
             const cm::Texture &baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
             const cm::Texture &normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];
@@ -251,6 +253,18 @@ namespace crv::graphics::vulkan {
                 mTextures.push_back(toTexture(mContext, metalRoughnessTexture));
                 material.metalRoughnessTexIndex = mTextures.size() - 1;
                 material.metalRoughnessTexName = metalRoughnessTexture.mName;
+            }
+            const cm::Texture &clearcoatTexture = loaderMaterial.mTextures[cm::Texture::CLEARCOAT];
+            const cm::Texture &clearcoatRoughnessTexture = loaderMaterial.mTextures[cm::Texture::CLEARCOAT_ROUGHNESS];
+            if (!clearcoatTexture.empty()) {
+                mTextures.push_back(toTexture(mContext, clearcoatTexture));
+                material.clearcoatTexIndex = mTextures.size() - 1;
+                material.clearcoatTexName = clearcoatTexture.mName;
+            }
+            if (!clearcoatRoughnessTexture.empty()) {
+                mTextures.push_back(toTexture(mContext, clearcoatRoughnessTexture));
+                material.clearcoatRoughnessTexIndex = mTextures.size() - 1;
+                material.clearcoatRoughnessTexName = clearcoatRoughnessTexture.mName;
             }
             mMaterials.push_back(material);
         }
@@ -393,6 +407,8 @@ namespace crv::graphics::vulkan {
             if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
             if (!material.normalTexName.empty()) jm["normalTex"] = material.normalTexName;
             if (!material.metalRoughnessTexName.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexName;
+            if (!material.clearcoatTexName.empty()) jm["clearcoatTex"] = material.clearcoatTexName;
+            if (!material.clearcoatRoughnessTexName.empty()) jm["clearcoatRoughnessTex"] = material.clearcoatRoughnessTexName;
             materials.push_back(jm);
         }
         scene["materialsResolved"] = materials;

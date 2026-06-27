@@ -263,8 +263,9 @@ namespace crv::model {
         texture.mFormat = toTextureFormat(textureType);
         if (textureType == Texture::BASE_COLOR && material->GetTextureCount(assimpType) <= 0)
             assimpType = aiTextureType_DIFFUSE;
-        if (material->GetTextureCount(assimpType) <= 0 or
-            material->GetTexture(assimpType, 0, &aiPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
+        const unsigned int assimpIndex = textureType == Texture::CLEARCOAT_ROUGHNESS ? 1u : 0u;
+        if (material->GetTextureCount(assimpType) <= assimpIndex or
+            material->GetTexture(assimpType, assimpIndex, &aiPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
             return;
         }
         std::string path = aiPath.C_Str();
@@ -327,6 +328,8 @@ namespace crv::model {
         aiMat->Get(AI_MATKEY_EMISSIVE_INTENSITY, material.emissiveStrength);
         aiMat->Get(AI_MATKEY_METALLIC_FACTOR, material.metallic);
         aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, material.roughness);
+        aiMat->Get(AI_MATKEY_CLEARCOAT_FACTOR, material.clearcoat);
+        aiMat->Get(AI_MATKEY_CLEARCOAT_ROUGHNESS_FACTOR, material.clearcoatRoughness);
         aiMat->Get(AI_MATKEY_REFRACTI, material.ior);
         aiMat->Get(AI_MATKEY_SPECULAR_FACTOR, material.specularFactor);
 

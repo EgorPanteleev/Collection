@@ -26,6 +26,8 @@ namespace crv::graphics::vulkan {
         uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);
         uint32_t addNormalTexture(const std::string& path, uint32_t materialIndex);
         uint32_t addMetalRoughnessTexture(const std::string& path, uint32_t materialIndex);
+        uint32_t addClearcoatTexture(const std::string& path, uint32_t materialIndex);
+        uint32_t addClearcoatRoughnessTexture(const std::string& path, uint32_t materialIndex);
         uint32_t addSkybox(const std::string& path);
         void removeSkybox();
 

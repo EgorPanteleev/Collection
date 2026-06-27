@@ -60,6 +60,13 @@ public void applyMetalRoughness(MaterialGPU material, float2 uv, inout float met
     metalness *= mr.b;
 }
 
+public void applyClearcoat(MaterialGPU material, float2 uv, inout float clearcoat, inout float clearcoatRoughness) {
+    if (material.clearcoatTexIndex != UINT_MAX)
+        clearcoat *= textures[NonUniformResourceIndex(material.clearcoatTexIndex)].SampleLevel(uv, 0.0).r;
+    if (material.clearcoatRoughnessTexIndex != UINT_MAX)
+        clearcoatRoughness *= textures[NonUniformResourceIndex(material.clearcoatRoughnessTexIndex)].SampleLevel(uv, 0.0).g;
+}
+
 public void applyNormalMap(inout HitGeometry hit, MaterialGPU material) {
     if (material.normalTexIndex == UINT_MAX) return;
     if (dot(hit.tangent.xyz, hit.tangent.xyz) < 1e-8) return;
