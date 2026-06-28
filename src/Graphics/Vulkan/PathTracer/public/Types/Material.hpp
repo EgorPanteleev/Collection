@@ -31,8 +31,7 @@ namespace crv::graphics::vulkan {
         float       transmission      = 0.0f;
         float       clearcoat          = 0.0f;
         float       clearcoatRoughness = 0.0f;
-        glm::vec3   attenuationColor   = {1, 1, 1};
-        float       absorption         = 1.0f;
+        glm::vec3   absorption         = {1, 1, 1};
         float       opacity            = 1.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
@@ -53,7 +52,6 @@ namespace crv::graphics::vulkan {
             .transmission = transmission,
             .clearcoat = clearcoat,
             .clearcoatRoughness = clearcoatRoughness,
-            .attenuationColor = attenuationColor,
             .absorption = absorption,
             .baseColorTexIndex = baseColorTexIndex,
             .normalTexIndex = normalTexIndex,

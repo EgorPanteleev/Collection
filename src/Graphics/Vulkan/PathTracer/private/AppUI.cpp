@@ -293,11 +293,7 @@ namespace crv::graphics::vulkan {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }
-                if (VkImGui::colorEdit3("Attenuation Color", material.attenuationColor)) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mUpdateImage();
-                }
-                if (ImGui::SliderFloat("Absorption", &material.absorption, 0.0f, 10.0f, "%.2f")) {
+                if (VkImGui::colorEdit3("Absorption", material.absorption)) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }

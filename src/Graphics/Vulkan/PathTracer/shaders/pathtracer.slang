@@ -133,7 +133,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     if (material.transmission > 0.0) {
         float pt = material.transmission;
         if (rand01(payload.seed) < pt) {
-            float3 sigmaA = -log(max(material.attenuationColor, float3(1e-4))) * material.absorption;
+            float3 sigmaA = -log(max(material.absorption, float3(1e-4)));
             if (payload.insideGlass) {
                 payload.throughput *= exp(-sigmaA * RayTCurrent());
             }
