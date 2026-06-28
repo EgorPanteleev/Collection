@@ -73,7 +73,7 @@ namespace crv::graphics::vulkan {
         app->updateImage();
     }
 
-    static void objectSelected(GLFWwindow* window) {
+    static void objectSelected(GLFWwindow* window, bool additive) {
         auto app = static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -85,7 +85,7 @@ namespace crv::graphics::vulkan {
         float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
         auto x = static_cast<uint32_t>(mouseX * scaleX);
         auto y = static_cast<uint32_t>(mouseY * scaleY);
-        app->pixelClicked(x, y);
+        app->pixelClicked(x, y, additive);
     }
 
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -98,7 +98,7 @@ namespace crv::graphics::vulkan {
             app->toggleControlPanel();
         }
         if (action == GLFW_PRESS && key == GLFW_KEY_X) {
-            objectSelected(window);
+            objectSelected(window, (mods & GLFW_MOD_SHIFT) != 0);
         }
         if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
             app->clearSelection();
@@ -117,7 +117,7 @@ namespace crv::graphics::vulkan {
         }
         if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
             if (action == GLFW_RELEASE) {
-                objectSelected(window);
+                objectSelected(window, (mods & GLFW_MOD_SHIFT) != 0);
             }
         }
     }

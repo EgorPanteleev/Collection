@@ -5,10 +5,11 @@ struct MVP {
 };
 [[vk::binding(0)]] ConstantBuffer<MVP> mvp;
 
-struct InstanceData {
+struct PushConstants {
     float4x4 model;
+    uint     id;
 };
-[[vk::binding(1)]] ConstantBuffer<InstanceData> instance;
+[[vk::push_constant]] PushConstants pc;
 
 struct VSInput {
     [[vk::location(0)]] float3 position;
@@ -19,10 +20,10 @@ struct VSInput {
 
 [shader("vertex")]
 float4 vertMain(VSInput input) : SV_Position {
-    return mul(mvp.proj, mul(mvp.view, mul(instance.model, float4(input.position, 1.0))));
+    return mul(mvp.proj, mul(mvp.view, mul(pc.model, float4(input.position, 1.0))));
 }
 
 [shader("fragment")]
 uint fragMain() : SV_Target0 {
-    return 1u;
+    return pc.id;
 }

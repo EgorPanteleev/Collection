@@ -23,10 +23,6 @@ namespace crv::graphics::vulkan {
             .proj = info.camera->projectionMatrix(),
         };
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &MVP, sizeof(MVPGPU), mMVPBuffers[info.currentFrame]);
-
-        const glm::mat4 instanceModel = info.instance->transform.matrix();
-        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &instanceModel, sizeof(glm::mat4),
-            mInstanceBuffers[info.currentFrame]);
     }
 
     void RasterizerPass::record(const RasterizerPassRecordInfo& info) {
@@ -69,13 +65,17 @@ namespace crv::graphics::vulkan {
 
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout.get(),
                                 0, 1, &mDescriptorManager.set(info.currentFrame), 0, nullptr);
-        if (info.vertexBuffer and info.indexBuffer) {
-            VkBuffer vertexBuffers[] = { info.vertexBuffer->get() };
+        for (const RasterizerDraw& draw : info.draws) {
+            if (!draw.vertexBuffer or !draw.indexBuffer) continue;
+            const RasterizerPushConstants push { .model = draw.model, .id = draw.id };
+            vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(),
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                0, sizeof(RasterizerPushConstants), &push);
+            VkBuffer vertexBuffers[] = { draw.vertexBuffer->get() };
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(info.commandBuffer, 0, 1, vertexBuffers, offsets);
-            vkCmdBindIndexBuffer(info.commandBuffer, info.indexBuffer->get(), 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(info.commandBuffer, info.indexCount, 1,
-      0, 0, 0);
+            vkCmdBindIndexBuffer(info.commandBuffer, draw.indexBuffer->get(), 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(info.commandBuffer, draw.indexCount, 1, 0, 0, 0);
         }
         vkCmdEndRendering(info.commandBuffer);
     }
@@ -120,7 +120,6 @@ namespace crv::graphics::vulkan {
 
     void RasterizerPass::createDescriptorManager() {
         mDescriptorManager.add(BindingType::UBO    , VK_SHADER_STAGE_VERTEX_BIT  );
-        mDescriptorManager.add(BindingType::UBO    , VK_SHADER_STAGE_VERTEX_BIT  );
 
         const DescriptorBuildInfo buildInfo {
             .context = mContext,
@@ -131,15 +130,20 @@ namespace crv::graphics::vulkan {
 
         for (int i = 0; i < mFramesInFlight; ++i) {
             mDescriptorManager.bind(i, BufferResource(mMVPBuffers[i]  ));
-            mDescriptorManager.bind(i, BufferResource(mInstanceBuffers[i] ));
         }
         mDescriptorManager.update();
     }
 
     void RasterizerPass::createPipelineLayout() {
+        const VkPushConstantRange pushRange {
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            .offset = 0,
+            .size = sizeof(RasterizerPushConstants)
+        };
         const PipelineLayoutCreateInfo createInfo {
             .device = mContext->device(),
             .layouts = mDescriptorManager.layouts(mFramesInFlight),
+            .ranges = {pushRange}
         };
         mPipelineLayout = PipelineLayout(createInfo);
     }
@@ -219,11 +223,9 @@ namespace crv::graphics::vulkan {
 
     void RasterizerPass::createBuffers() {
         mMVPBuffers.resize(mFramesInFlight);
-        mInstanceBuffers.resize(mFramesInFlight);
         UBOData uboData{};
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             uboData.add<MVPGPU>(mMVPBuffers[i]);
-            uboData.add<glm::mat4>(mInstanceBuffers[i]);
         }
         uboData.createAll(mContext);
     }

@@ -28,10 +28,11 @@ namespace crv::graphics::vulkan {
     };
 
     struct AppUIDrawInfo {
-        bool           drawUI                = false;
-        cs::AbsCamera* camera                = nullptr;
-        uint32_t       selectedInstanceIndex = 0;
-        uint32_t       frameCount            = 0;
+        bool                         drawUI            = false;
+        cs::AbsCamera*               camera            = nullptr;
+        const std::vector<uint32_t>* selectedInstances = nullptr;
+        uint32_t                     activeInstance    = UINT32_MAX;
+        uint32_t                     frameCount        = 0;
     };
 
     class AppUI {
@@ -48,8 +49,8 @@ namespace crv::graphics::vulkan {
         void setRemoveSkyboxCallBack(const std::function<void()>& callBack) { mRemoveSkybox = callBack; }
         void setSaveImageCallBack(const std::function<void()>& callBack) { mSaveImage = callBack; }
         void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
-        void setAddInstanceCallBack(const std::function<void(uint32_t srcIndex)>& callBack) { mAddInstance = callBack; }
-        void setRemoveInstanceCallBack(const std::function<void(uint32_t index)>& callBack) { mRemoveInstance = callBack; }
+        void setDuplicateInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mDuplicateInstances = callBack; }
+        void setRemoveInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mRemoveInstances = callBack; }
 
         [[nodiscard]] uint32_t spp() const { return mSPP; }
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
@@ -92,8 +93,8 @@ namespace crv::graphics::vulkan {
         ImGuiFileDialog  mSkyboxFileDialog{};
         std::function<void()> mSaveImage{};
         std::function<void()> mSaveScene{};
-        std::function<void(uint32_t srcIndex)> mAddInstance{};
-        std::function<void(uint32_t index)> mRemoveInstance{};
+        std::function<void(const std::vector<uint32_t>& indices)> mDuplicateInstances{};
+        std::function<void(const std::vector<uint32_t>& indices)> mRemoveInstances{};
     };
 }
 

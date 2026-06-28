@@ -12,6 +12,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <filesystem>
@@ -95,10 +96,11 @@ namespace crv::graphics::vulkan {
         vkDeviceWaitIdle(mContext.device());
     }
 
-    void PathTracerApp::pixelClicked(uint32_t x, uint32_t y) {
+    void PathTracerApp::pixelClicked(uint32_t x, uint32_t y, bool additive) {
         auto [width, height] = mSwapchain.extent();
         if (x > width or y > height) return;
         mClickedPixel = {x, y};
+        mAdditiveSelect = additive;
     }
 
     void PathTracerApp::readScene(const std::string& scenePath) {
@@ -428,17 +430,18 @@ namespace crv::graphics::vulkan {
         });
         mUI.setSaveImageCallBack([this](){ saveImage(); });
         mUI.setSaveSceneCallBack([this](){ saveScene(); });
-        mUI.setAddInstanceCallBack([this](uint32_t srcIndex){
+        mUI.setDuplicateInstancesCallBack([this](const std::vector<uint32_t>& indices){
             vkDeviceWaitIdle(mContext.device());
-            InstanceData instance = mResourceManager.instances()[srcIndex];
-            const uint32_t index = mResourceManager.addInstance(instance);
+            const std::vector<uint32_t> created = mResourceManager.duplicateInstances(indices);
             mRayTracerPass.bindInstances();
-            setSelectedInstance(index + 1);
+            mSelectedInstances = created;
+            mActiveInstance = created.empty() ? UINT32_MAX : created.back();
+            mPendingSelection = false;
             updateImage();
         });
-        mUI.setRemoveInstanceCallBack([this](uint32_t index){
+        mUI.setRemoveInstancesCallBack([this](const std::vector<uint32_t>& indices){
             vkDeviceWaitIdle(mContext.device());
-            mResourceManager.removeInstance(index);
+            mResourceManager.removeInstances(indices);
             mRayTracerPass.bindInstances();
             clearSelection();
             updateImage();
@@ -473,28 +476,26 @@ namespace crv::graphics::vulkan {
         VkCommandBuffer commandBuffer = mRasterCommandBuffers[mCurrentFrame];
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
-        RasterizerPassRecordInfo recordInfo{};
-        if (mSelectedInstanceId != 0) {
-            const InstanceData& instance = mResourceManager.instances()[mSelectedInstanceId - 1];
+        std::vector<RasterizerDraw> draws;
+        draws.reserve(mSelectedInstances.size());
+        uint32_t outlineId = 1;
+        for (const uint32_t index : mSelectedInstances) {
+            const InstanceData& instance = mResourceManager.instances()[index];
             BLASData& blasData = mResourceManager.blasDatas()[instance.meshIndex];
-            recordInfo = {
-                .commandBuffer = commandBuffer,
+            draws.push_back({
                 .vertexBuffer = &blasData.vertexBuffer,
                 .indexBuffer = &blasData.indexBuffer,
                 .indexCount = instance.indexCount,
-                .extent = mSwapchain.extent(),
-                .currentFrame = mCurrentFrame
-            };
-        } else {
-            recordInfo = {
-                .commandBuffer = commandBuffer,
-                .vertexBuffer = nullptr,
-                .indexBuffer = nullptr,
-                .indexCount = 0,
-                .extent = mSwapchain.extent(),
-                .currentFrame = mCurrentFrame
-            };
+                .model = instance.transform.matrix(),
+                .id = outlineId++
+            });
         }
+        const RasterizerPassRecordInfo recordInfo {
+            .commandBuffer = commandBuffer,
+            .draws = std::move(draws),
+            .extent = mSwapchain.extent(),
+            .currentFrame = mCurrentFrame
+        };
         mRasterizerPass.record(recordInfo);
         endCommandBuffer(commandBuffer);
     }
@@ -636,6 +637,7 @@ namespace crv::graphics::vulkan {
 
         Image::inverseTransit(transitInfo);
         mClickedPixel = {UINT32_MAX, UINT32_MAX};
+        mPendingSelection = true;
     }
 
     void PathTracerApp::saveImage() {
@@ -760,22 +762,38 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::updateSelectedInstance() {
+        if (!mPendingSelection) return;
+        mPendingSelection = false;
         uint32_t* data = nullptr;
         vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
-        mSelectedInstanceId = *data;
+        const uint32_t id = *data;
         vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
+        applySelection(id, mAdditiveSelect);
+    }
+
+    void PathTracerApp::applySelection(const uint32_t id, const bool additive) {
+        if (id == 0) {
+            if (!additive) clearSelection();
+            return;
+        }
+        const uint32_t index = id - 1;
+        const auto it = std::find(mSelectedInstances.begin(), mSelectedInstances.end(), index);
+        if (!additive) {
+            mSelectedInstances = {index};
+            mActiveInstance = index;
+        } else if (it != mSelectedInstances.end()) {
+            mSelectedInstances.erase(it);
+            mActiveInstance = mSelectedInstances.empty() ? UINT32_MAX : mSelectedInstances.back();
+        } else {
+            mSelectedInstances.push_back(index);
+            mActiveInstance = index;
+        }
     }
 
     void PathTracerApp::clearSelection() {
-        setSelectedInstance(0);
-    }
-
-    void PathTracerApp::setSelectedInstance(const uint32_t id) {
-        uint32_t* data = nullptr;
-        vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
-        *data = id;
-        vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
-        mSelectedInstanceId = id;
+        mSelectedInstances.clear();
+        mActiveInstance = UINT32_MAX;
+        mPendingSelection = false;
     }
 
     void PathTracerApp::update() {
@@ -786,10 +804,8 @@ namespace crv::graphics::vulkan {
         };
         mRayTracerPass.update(tracerUpdateInfo);
 
-        if (mSelectedInstanceId == 0) return;
         const RasterizerPassUpdateInfo rasterUpdateInfo {
             .camera = mCamera,
-            .instance = &mResourceManager.instances()[mSelectedInstanceId - 1],
             .currentFrame = mCurrentFrame
         };
         mRasterizerPass.update(rasterUpdateInfo);
@@ -891,7 +907,8 @@ namespace crv::graphics::vulkan {
         const AppUIDrawInfo drawInfo {
             .drawUI = mRenderImGui,
             .camera = mCamera,
-            .selectedInstanceIndex = mSelectedInstanceId,
+            .selectedInstances = &mSelectedInstances,
+            .activeInstance = mActiveInstance,
             .frameCount = mFrameCount
         };
         mUI.draw(drawInfo);

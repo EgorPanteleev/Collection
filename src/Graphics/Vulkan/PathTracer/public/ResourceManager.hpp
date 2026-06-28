@@ -21,8 +21,8 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] json saveScene() const { return mSceneLoader.save(); }
         void updateInstanceTransform(uint32_t index);
         void updateInstance(uint32_t index);
-        uint32_t addInstance(const InstanceData& instance);
-        void removeInstance(uint32_t index);
+        std::vector<uint32_t> duplicateInstances(const std::vector<uint32_t>& indices);
+        void removeInstances(const std::vector<uint32_t>& indices);
         void updateMaterial(uint32_t index);
         void updateEmissiveIndices();
         uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);

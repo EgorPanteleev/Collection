@@ -35,7 +35,7 @@ namespace crv::graphics::vulkan {
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
         void updateImage() { mFrameCount = 0; }
-        void pixelClicked(uint32_t x, uint32_t y);
+        void pixelClicked(uint32_t x, uint32_t y, bool additive);
         void clearSelection();
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
@@ -66,7 +66,7 @@ namespace crv::graphics::vulkan {
         void saveImage();
         void saveScene();
         void updateSelectedInstance();
-        void setSelectedInstance(uint32_t id);
+        void applySelection(uint32_t id, bool additive);
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);
@@ -84,7 +84,10 @@ namespace crv::graphics::vulkan {
         uint32_t                     mFramesInFlight       = 1;
         uint32_t                     mCurrentFrame         = 0;
         uint32_t                     mFrameCount           = 0;
-        uint32_t                     mSelectedInstanceId   = UINT32_MAX;
+        std::vector<uint32_t>        mSelectedInstances{};
+        uint32_t                     mActiveInstance       = UINT32_MAX;
+        bool                         mAdditiveSelect       = false;
+        bool                         mPendingSelection     = false;
         ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
 
         json                         mJson{};

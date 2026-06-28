@@ -31,7 +31,7 @@ float4 outline(int2 pixel, float3 baseColor, const int thickness) {
     uint instanceId = instanceIdImage[pixel];
     uint2 size;
     instanceIdImage.GetDimensions(size.x, size.y);
-    if (instanceId != 1) {
+    if (instanceId == 0) {
         return float4(baseColor, 1);
     }
     bool edge = false;
@@ -43,7 +43,7 @@ float4 outline(int2 pixel, float3 baseColor, const int thickness) {
             if (x * x + y * y > thickness * thickness)
                 continue;
             uint id = instanceIdImage[q];
-            if (id != instanceId) {
+            if (id == 0u || id > instanceId) {
                 edge = true;
                 break;
             }

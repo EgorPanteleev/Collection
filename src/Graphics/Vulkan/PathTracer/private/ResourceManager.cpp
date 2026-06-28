@@ -61,15 +61,29 @@ namespace crv::graphics::vulkan {
         updateEmissiveIndices();
     }
 
-    uint32_t ResourceManager::addInstance(const InstanceData& instance) {
-        mSceneLoader.mInstances.push_back(instance);
-        rebuildInstanceBuffers();
-        return static_cast<uint32_t>(mSceneLoader.mInstances.size() - 1);
+    std::vector<uint32_t> ResourceManager::duplicateInstances(const std::vector<uint32_t>& indices) {
+        auto& instances = mSceneLoader.mInstances;
+        std::vector<uint32_t> newIndices;
+        newIndices.reserve(indices.size());
+        for (const uint32_t index : indices) {
+            if (index >= instances.size()) continue;
+            const InstanceData copy = instances[index];
+            instances.push_back(copy);
+            newIndices.push_back(static_cast<uint32_t>(instances.size() - 1));
+        }
+        if (!newIndices.empty()) rebuildInstanceBuffers();
+        return newIndices;
     }
 
-    void ResourceManager::removeInstance(const uint32_t index) {
-        if (index >= mSceneLoader.mInstances.size() || mSceneLoader.mInstances.size() <= 1) return;
-        mSceneLoader.mInstances.erase(mSceneLoader.mInstances.begin() + index);
+    void ResourceManager::removeInstances(const std::vector<uint32_t>& indices) {
+        auto& instances = mSceneLoader.mInstances;
+        std::vector<uint32_t> sorted(indices);
+        std::sort(sorted.begin(), sorted.end(), std::greater<>());
+        sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
+        if (sorted.empty() || sorted.size() >= instances.size()) return;
+        for (const uint32_t index : sorted) {
+            if (index < instances.size()) instances.erase(instances.begin() + index);
+        }
         rebuildInstanceBuffers();
     }
 

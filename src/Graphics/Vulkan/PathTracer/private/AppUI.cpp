@@ -48,7 +48,7 @@ namespace crv::graphics::vulkan {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
         mImGui.beginFrame();
-        if (info.selectedInstanceIndex != 0) {
+        if (info.selectedInstances && !info.selectedInstances->empty()) {
             drawGizmo(info);
         }
         if (!info.drawUI) {
@@ -68,17 +68,18 @@ namespace crv::graphics::vulkan {
     }
 
     void AppUI::drawGizmo(const AppUIDrawInfo& info) {
+        if (info.activeInstance == UINT32_MAX) return;
         if (!ImGui::GetIO().WantTextInput) {
             if (ImGui::IsKeyPressed(ImGuiKey_T)) mGizmoOp = ImGuizmo::TRANSLATE;
             if (ImGui::IsKeyPressed(ImGuiKey_R)) mGizmoOp = ImGuizmo::ROTATE;
         }
 
-        InstanceData& instance = mResourceManager->instances()[info.selectedInstanceIndex - 1];
+        auto& instances = mResourceManager->instances();
+        const Transform& pivot = instances[info.activeInstance].transform;
         glm::mat4 view  = info.camera->viewMatrix();
         glm::mat4 proj  = info.camera->projectionMatrix();
         proj[1][1] *= -1.0f;
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), instance.transform.position)
-                        * glm::toMat4(instance.transform.rotation);
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), pivot.position) * glm::toMat4(pivot.rotation);
 
         const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
         const ImGuizmo::MODE mode = mGizmoOp == ImGuizmo::ROTATE ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
@@ -86,11 +87,17 @@ namespace crv::graphics::vulkan {
         ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
         ImGuizmo::SetRect(0.0f, 0.0f, displaySize.x, displaySize.y);
 
+        glm::mat4 delta(1.0f);
         if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
-            mGizmoOp, mode, glm::value_ptr(model))) {
-            instance.transform.position = glm::vec3(model[3]);
-            instance.transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(model)));
-            mResourceManager->updateInstanceTransform(info.selectedInstanceIndex - 1);
+            mGizmoOp, mode, glm::value_ptr(model), glm::value_ptr(delta))) {
+            for (const uint32_t index : *info.selectedInstances) {
+                Transform& transform = instances[index].transform;
+                const glm::mat4 updated = delta *
+                    (glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.rotation));
+                transform.position = glm::vec3(updated[3]);
+                transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
+                mResourceManager->updateInstanceTransform(index);
+            }
             mUpdateImage();
         }
     }
@@ -227,26 +234,34 @@ namespace crv::graphics::vulkan {
     }
 
     void AppUI::drawObjectTab(const AppUIDrawInfo& info) {
-        if (info.selectedInstanceIndex == 0) {
+        if (!info.selectedInstances || info.selectedInstances->empty()) {
             ImGui::Text("Click a mesh in the viewport");
             return;
         }
-        InstanceData& instance = mResourceManager->instances()[info.selectedInstanceIndex - 1];
+        const std::vector<uint32_t>& selected = *info.selectedInstances;
 
-        if (ImGui::Button(ICON_FA_COPY " Duplicate") && mAddInstance) {
-            mAddInstance(info.selectedInstanceIndex - 1);
+        if (ImGui::Button(ICON_FA_COPY " Duplicate") && mDuplicateInstances) {
+            mDuplicateInstances(selected);
             return;
         }
         ImGui::SameLine();
-        const bool canDelete = mResourceManager->instances().size() > 1;
+        const bool canDelete = mResourceManager->instances().size() > selected.size();
         ImGui::BeginDisabled(!canDelete);
         const bool deleteClicked = ImGui::Button(ICON_FA_TRASH " Delete");
         ImGui::EndDisabled();
-        if (deleteClicked && canDelete && mRemoveInstance) {
-            mRemoveInstance(info.selectedInstanceIndex - 1);
+        if (deleteClicked && canDelete && mRemoveInstances) {
+            mRemoveInstances(selected);
             return;
         }
 
+        if (selected.size() > 1) {
+            ImGui::Separator();
+            ImGui::Text("%zu objects selected", selected.size());
+            ImGui::TextDisabled("Use the gizmo (T/R) to move or rotate them together.");
+            return;
+        }
+
+        InstanceData& instance = mResourceManager->instances()[info.activeInstance];
         if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
             if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                 VkImGui::row("Name"         , instance.name.c_str());
@@ -269,7 +284,7 @@ namespace crv::graphics::vulkan {
                 for (size_t i = 0; i < materials.size(); ++i) {
                     if (ImGui::Selectable(materialItems[i].c_str())) {
                         instance.materialIndex = i;
-                        mResourceManager->updateInstance(info.selectedInstanceIndex - 1);
+                        mResourceManager->updateInstance(info.activeInstance);
                         mUpdateImage();
                     }
                 }
@@ -466,10 +481,10 @@ namespace crv::graphics::vulkan {
             static glm::vec3 uiRotation{};
             static glm::quat cachedRotation{};
             static uint32_t cachedInstance = UINT32_MAX;
-            if (info.selectedInstanceIndex != cachedInstance ||
+            if (info.activeInstance != cachedInstance ||
                 instance.transform.rotation != cachedRotation) {
                 uiRotation = glm::degrees(glm::eulerAngles(instance.transform.rotation));
-                cachedInstance = info.selectedInstanceIndex;
+                cachedInstance = info.activeInstance;
             }
             if (ImGui::DragFloat3("Rotation", &uiRotation[0], 0.5f)) {
                 uiRotation = clampRotation(uiRotation);
@@ -482,7 +497,7 @@ namespace crv::graphics::vulkan {
                 changed = true;
 
             if (changed) {
-                mResourceManager->updateInstanceTransform(info.selectedInstanceIndex - 1);
+                mResourceManager->updateInstanceTransform(info.activeInstance);
                 mUpdateImage();
             }
             VkImGui::endGroup();

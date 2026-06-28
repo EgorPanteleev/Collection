@@ -26,17 +26,27 @@ namespace crv::graphics::vulkan {
 
     struct RasterizerPassUpdateInfo {
         cs::AbsCamera* camera       = nullptr;
-        InstanceData*  instance     = nullptr;
         uint32_t       currentFrame = 0;
     };
 
+    struct RasterizerDraw {
+        Buffer*   vertexBuffer = nullptr;
+        Buffer*   indexBuffer  = nullptr;
+        uint32_t  indexCount   = 0;
+        glm::mat4 model        = glm::mat4(1.0f);
+        uint32_t  id           = 1;
+    };
+
+    struct RasterizerPushConstants {
+        glm::mat4 model;
+        uint32_t  id;
+    };
+
     struct RasterizerPassRecordInfo {
-        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-        Buffer*         vertexBuffer  = nullptr;
-        Buffer*         indexBuffer   = nullptr;
-        uint32_t        indexCount    = 0;
-        VkExtent2D      extent{};
-        uint32_t        currentFrame  = 0;
+        VkCommandBuffer             commandBuffer = VK_NULL_HANDLE;
+        std::vector<RasterizerDraw> draws{};
+        VkExtent2D                  extent{};
+        uint32_t                    currentFrame  = 0;
     };
 
     class RasterizerPass {
@@ -70,7 +80,6 @@ namespace crv::graphics::vulkan {
         VkFormat                   mOutputFormat       = VK_FORMAT_UNDEFINED;
 
         std::vector<Buffer>        mMVPBuffers{};
-        std::vector<Buffer>        mInstanceBuffers{};
     };
 }
 
