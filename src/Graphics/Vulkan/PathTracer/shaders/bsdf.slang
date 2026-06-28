@@ -102,25 +102,6 @@ public Scatter sampleDielectric(inout uint seed, float3 N, float3 wo, float ior,
     return scatter;
 }
 
-public Scatter sampleThinDielectric(inout uint seed, float3 N, float3 wo, float ior, float3 sigmaA, float thickness) {
-    Scatter scatter;
-    float  cosI = saturate(dot(N, wo));
-    float  F    = fresnelDielectric(cosI, 1.0 / ior);
-    float3 incident = -wo;
-    if (rand01(seed) < F) {
-        scatter.wi   = normalize(reflect(incident, N));
-        scatter.brdf = float3(1.0);
-    } else {
-        scatter.wi   = incident;
-        float sinT2  = (1.0 - cosI * cosI) / (ior * ior);
-        float cosT   = sqrt(max(1.0 - sinT2, 1e-6));
-        float path   = thickness / cosT;
-        scatter.brdf = exp(-sigmaA * path);
-    }
-    scatter.pdf  = -1.0;
-    return scatter;
-}
-
 float3 sampleGGX(inout uint seed, float3 wo, float3 tangent, float3 bitangent, float3 N, float alpha) {
     float u    = rand01(seed);
     float v    = rand01(seed);

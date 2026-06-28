@@ -107,6 +107,15 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    if (material.opacity < 1.0 && rand01(payload.seed) >= material.opacity) {
+        float3 dir = WorldRayDirection();
+        payload.origin      = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
+        payload.direction   = dir;
+        payload.prevBrdfPdf = -1.0;
+        payload.done        = false;
+        return;
+    }
+
     if (material.luminance > 0.0) {
         float weight = 1.0;
         if (pc.nee != 0u && payload.prevBrdfPdf >= 0.0) {
@@ -124,19 +133,13 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     if (material.transmission > 0.0) {
         float pt = material.transmission;
         if (rand01(payload.seed) < pt) {
-            Scatter scatter;
             float3 sigmaA = -log(max(material.attenuationColor, float3(1e-4))) * material.absorption;
-            if (material.thin > 0.0) {
-                scatter = sampleThinDielectric(payload.seed, hit.N, -WorldRayDirection(),
-                                               material.ior, sigmaA, material.thickness);
-            } else {
-                if (payload.insideGlass) {
-                    payload.throughput *= exp(-sigmaA * RayTCurrent());
-                }
-                scatter = sampleDielectric(payload.seed, hit.N, -WorldRayDirection(),
-                                           material.ior, payload.insideGlass);
-                if (dot(scatter.wi, hit.N) < 0.0) payload.insideGlass = !payload.insideGlass;
+            if (payload.insideGlass) {
+                payload.throughput *= exp(-sigmaA * RayTCurrent());
             }
+            Scatter scatter = sampleDielectric(payload.seed, hit.N, -WorldRayDirection(),
+                                               material.ior, payload.insideGlass);
+            if (dot(scatter.wi, hit.N) < 0.0) payload.insideGlass = !payload.insideGlass;
             payload.throughput *= scatter.brdf / pt;
             payload.origin      = movedPoint(hit.P, dot(scatter.wi, hit.gN) < 0.0 ? -hit.gN : hit.gN);
             payload.direction   = scatter.wi;

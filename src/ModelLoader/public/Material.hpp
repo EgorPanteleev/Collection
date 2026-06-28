@@ -75,6 +75,7 @@ namespace crv::model {
         float roughness        = 1.0f;
         float clearcoat          = 0.0f;
         float clearcoatRoughness = 0.0f;
+        float transmission       = 0.0f;
         float ior              = 1.5f;
         float specularFactor   = 1.0f;
 

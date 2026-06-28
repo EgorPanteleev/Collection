@@ -330,6 +330,7 @@ namespace crv::model {
         aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, material.roughness);
         aiMat->Get(AI_MATKEY_CLEARCOAT_FACTOR, material.clearcoat);
         aiMat->Get(AI_MATKEY_CLEARCOAT_ROUGHNESS_FACTOR, material.clearcoatRoughness);
+        aiMat->Get(AI_MATKEY_TRANSMISSION_FACTOR, material.transmission);
         aiMat->Get(AI_MATKEY_REFRACTI, material.ior);
         aiMat->Get(AI_MATKEY_SPECULAR_FACTOR, material.specularFactor);
 

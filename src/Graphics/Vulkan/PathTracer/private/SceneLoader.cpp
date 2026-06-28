@@ -233,8 +233,10 @@ namespace crv::graphics::vulkan {
                 .roughness = loaderMaterial.roughness,
                 .ior = loaderMaterial.ior,
                 .specular = loaderMaterial.specularFactor,
+                .transmission = loaderMaterial.transmission,
                 .clearcoat = loaderMaterial.clearcoat,
                 .clearcoatRoughness = loaderMaterial.clearcoatRoughness,
+                .opacity = 1.0f - loaderMaterial.mTransparencyFactor,
             };
             const cm::Texture &baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
             const cm::Texture &normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];
@@ -287,10 +289,9 @@ namespace crv::graphics::vulkan {
                 .transmission = jsonMaterial.value("transmission", 0.0f),
                 .clearcoat = jsonMaterial.value("clearcoat", 0.0f),
                 .clearcoatRoughness = jsonMaterial.value("clearcoatRoughness", 0.0f),
-                .thin = jsonMaterial.value("thin", 0.0f),
-                .thickness = jsonMaterial.value("thickness", 0.0f),
                 .attenuationColor = jsonMaterial.contains("attenuationColor") ? toVec3(jsonMaterial["attenuationColor"]) : glm::vec3(1.0f),
-                .absorption = jsonMaterial.value("absorption", 1.0f)
+                .absorption = jsonMaterial.value("absorption", 1.0f),
+                .opacity = jsonMaterial.value("opacity", 1.0f)
             };
         }
     }
@@ -336,10 +337,9 @@ namespace crv::graphics::vulkan {
             material.transmission = jm.value("transmission", material.transmission);
             material.clearcoat          = jm.value("clearcoat", material.clearcoat);
             material.clearcoatRoughness = jm.value("clearcoatRoughness", material.clearcoatRoughness);
-            material.thin               = jm.value("thin", material.thin);
-            material.thickness          = jm.value("thickness", material.thickness);
             if (jm.contains("attenuationColor")) material.attenuationColor = toVec3(jm["attenuationColor"]);
             material.absorption = jm.value("absorption", material.absorption);
+            material.opacity = jm.value("opacity", material.opacity);
         }
     }
 
@@ -400,10 +400,9 @@ namespace crv::graphics::vulkan {
             jm["transmission"]  = material.transmission;
             jm["clearcoat"]            = material.clearcoat;
             jm["clearcoatRoughness"]   = material.clearcoatRoughness;
-            jm["thin"]                 = material.thin;
-            jm["thickness"]            = material.thickness;
             jm["attenuationColor"]     = { material.attenuationColor.r, material.attenuationColor.g, material.attenuationColor.b };
             jm["absorption"]           = material.absorption;
+            jm["opacity"]              = material.opacity;
             if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
             if (!material.normalTexName.empty()) jm["normalTex"] = material.normalTexName;
             if (!material.metalRoughnessTexName.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexName;
