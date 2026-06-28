@@ -99,6 +99,17 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void RayTracerPass::bindInstances() {
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.bind(0, i, ASResource(mTLAS->get()));
+            mDescriptorManager.bind(6, i, BufferResource(*mInstanceBuffer));
+            mDescriptorManager.bind(7, i, BufferResource(*mEmissiveInstanceBuffer));
+            mDescriptorManager.update(0, i);
+            mDescriptorManager.update(6, i);
+            mDescriptorManager.update(7, i);
+        }
+    }
+
     void RayTracerPass::createShaders() {
         ShaderModuleCreateInfo createInfo {
             .device = mContext->device(),

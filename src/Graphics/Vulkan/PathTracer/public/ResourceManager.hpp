@@ -21,6 +21,8 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] json saveScene() const { return mSceneLoader.save(); }
         void updateInstanceTransform(uint32_t index);
         void updateInstance(uint32_t index);
+        uint32_t addInstance(const InstanceData& instance);
+        void removeInstance(uint32_t index);
         void updateMaterial(uint32_t index);
         void updateEmissiveIndices();
         uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);
@@ -50,6 +52,7 @@ namespace crv::graphics::vulkan {
         void createLoader();
         void buildTLAS();
         void createBuffers();
+        void rebuildInstanceBuffers();
 
         Context*              mContext          = nullptr;
         SceneLoader           mSceneLoader{};

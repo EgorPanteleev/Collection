@@ -66,6 +66,7 @@ namespace crv::graphics::vulkan {
         void saveImage();
         void saveScene();
         void updateSelectedInstance();
+        void setSelectedInstance(uint32_t id);
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);

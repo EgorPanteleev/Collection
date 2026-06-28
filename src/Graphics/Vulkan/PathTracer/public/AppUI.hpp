@@ -48,6 +48,8 @@ namespace crv::graphics::vulkan {
         void setRemoveSkyboxCallBack(const std::function<void()>& callBack) { mRemoveSkybox = callBack; }
         void setSaveImageCallBack(const std::function<void()>& callBack) { mSaveImage = callBack; }
         void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
+        void setAddInstanceCallBack(const std::function<void(uint32_t srcIndex)>& callBack) { mAddInstance = callBack; }
+        void setRemoveInstanceCallBack(const std::function<void(uint32_t index)>& callBack) { mRemoveInstance = callBack; }
 
         [[nodiscard]] uint32_t spp() const { return mSPP; }
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
@@ -90,6 +92,8 @@ namespace crv::graphics::vulkan {
         ImGuiFileDialog  mSkyboxFileDialog{};
         std::function<void()> mSaveImage{};
         std::function<void()> mSaveScene{};
+        std::function<void(uint32_t srcIndex)> mAddInstance{};
+        std::function<void(uint32_t index)> mRemoveInstance{};
     };
 }
 

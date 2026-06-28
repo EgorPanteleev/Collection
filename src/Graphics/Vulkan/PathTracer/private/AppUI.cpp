@@ -232,6 +232,21 @@ namespace crv::graphics::vulkan {
             return;
         }
         InstanceData& instance = mResourceManager->instances()[info.selectedInstanceIndex - 1];
+
+        if (ImGui::Button(ICON_FA_COPY " Duplicate") && mAddInstance) {
+            mAddInstance(info.selectedInstanceIndex - 1);
+            return;
+        }
+        ImGui::SameLine();
+        const bool canDelete = mResourceManager->instances().size() > 1;
+        ImGui::BeginDisabled(!canDelete);
+        const bool deleteClicked = ImGui::Button(ICON_FA_TRASH " Delete");
+        ImGui::EndDisabled();
+        if (deleteClicked && canDelete && mRemoveInstance) {
+            mRemoveInstance(info.selectedInstanceIndex - 1);
+            return;
+        }
+
         if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
             if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                 VkImGui::row("Name"         , instance.name.c_str());

@@ -428,6 +428,21 @@ namespace crv::graphics::vulkan {
         });
         mUI.setSaveImageCallBack([this](){ saveImage(); });
         mUI.setSaveSceneCallBack([this](){ saveScene(); });
+        mUI.setAddInstanceCallBack([this](uint32_t srcIndex){
+            vkDeviceWaitIdle(mContext.device());
+            InstanceData instance = mResourceManager.instances()[srcIndex];
+            const uint32_t index = mResourceManager.addInstance(instance);
+            mRayTracerPass.bindInstances();
+            setSelectedInstance(index + 1);
+            updateImage();
+        });
+        mUI.setRemoveInstanceCallBack([this](uint32_t index){
+            vkDeviceWaitIdle(mContext.device());
+            mResourceManager.removeInstance(index);
+            mRayTracerPass.bindInstances();
+            clearSelection();
+            updateImage();
+        });
     }
 
     void PathTracerApp::recordTracer() {
@@ -752,11 +767,15 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::clearSelection() {
+        setSelectedInstance(0);
+    }
+
+    void PathTracerApp::setSelectedInstance(const uint32_t id) {
         uint32_t* data = nullptr;
         vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
-        *data = 0;
+        *data = id;
         vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
-        mSelectedInstanceId = 0;
+        mSelectedInstanceId = id;
     }
 
     void PathTracerApp::update() {

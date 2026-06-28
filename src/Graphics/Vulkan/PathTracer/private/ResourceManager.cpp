@@ -61,6 +61,18 @@ namespace crv::graphics::vulkan {
         updateEmissiveIndices();
     }
 
+    uint32_t ResourceManager::addInstance(const InstanceData& instance) {
+        mSceneLoader.mInstances.push_back(instance);
+        rebuildInstanceBuffers();
+        return static_cast<uint32_t>(mSceneLoader.mInstances.size() - 1);
+    }
+
+    void ResourceManager::removeInstance(const uint32_t index) {
+        if (index >= mSceneLoader.mInstances.size() || mSceneLoader.mInstances.size() <= 1) return;
+        mSceneLoader.mInstances.erase(mSceneLoader.mInstances.begin() + index);
+        rebuildInstanceBuffers();
+    }
+
     void ResourceManager::updateMaterial(const uint32_t index) {
         Material::GPU materialGPU = mSceneLoader.mMaterials[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
@@ -237,6 +249,26 @@ namespace crv::graphics::vulkan {
         ssboData.add(emissiveIndices, mEmissiveInstanceBuffer);
         const auto materialsGPU = Material::gpu(mSceneLoader.mMaterials);
         ssboData.add(materialsGPU, mMaterialBuffer);
+        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+    }
+
+    void ResourceManager::rebuildInstanceBuffers() {
+        buildTLAS();
+
+        auto& emissive = mSceneLoader.mEmissiveIndices;
+        emissive.clear();
+        for (uint32_t i = 0; i < mSceneLoader.mInstances.size(); ++i) {
+            if (mSceneLoader.mMaterials[mSceneLoader.mInstances[i].materialIndex].luminance == 0) continue;
+            emissive.push_back(i);
+        }
+
+        SSBOData ssboData{};
+        const auto instancesGPU = InstanceData::gpu(mSceneLoader.mInstances);
+        ssboData.add(instancesGPU, mInstanceBuffer);
+        const uint32_t emissiveCapacity = std::max<uint32_t>(mSceneLoader.mInstances.size(), 1u);
+        std::vector emissiveIndices(emissiveCapacity, 0u);
+        std::copy(emissive.begin(), emissive.end(), emissiveIndices.begin());
+        ssboData.add(emissiveIndices, mEmissiveInstanceBuffer);
         ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
     }
 }
