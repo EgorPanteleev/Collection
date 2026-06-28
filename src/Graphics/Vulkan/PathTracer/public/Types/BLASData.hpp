@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <glm/glm.hpp>
 
 #include "Buffer.hpp"
 #include "AccelerationStructure.hpp"
@@ -27,6 +28,8 @@ namespace crv::graphics::vulkan {
         uint32_t              modelIndex   = 0;
         std::string           meshName{};
         std::vector<float>    triAreas{};
+        glm::vec3             aabbMin      = glm::vec3(0.0f);
+        glm::vec3             aabbMax      = glm::vec3(0.0f);
     };
 
     inline BLASData::GPU BLASData::gpu(VkDevice device) const {

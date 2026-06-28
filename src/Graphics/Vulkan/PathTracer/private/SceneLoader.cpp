@@ -113,6 +113,13 @@ namespace crv::graphics::vulkan {
                 triAreas.push_back(triArea);
                 area += triArea;
             }
+            glm::vec3 aabbMin(std::numeric_limits<float>::max());
+            glm::vec3 aabbMax(std::numeric_limits<float>::lowest());
+            for (const Vertex &vertex: vertices) {
+                aabbMin = glm::min(aabbMin, vertex.pos);
+                aabbMax = glm::max(aabbMax, vertex.pos);
+            }
+
             mBLASDatas.emplace_back();
             BLASData &blasData = mBLASDatas.back();
             blasData.area = area;
@@ -120,6 +127,8 @@ namespace crv::graphics::vulkan {
             blasData.modelIndex = modelIndex;
             blasData.meshName = mesh.name;
             blasData.triAreas = triAreas;
+            blasData.aabbMin = aabbMin;
+            blasData.aabbMax = aabbMax;
             const size_t verticesSize = sizeof(Vertex) * vertices.size();
             const BufferCreateInfo vertexBufferCreateInfo{
                 .allocator = mContext->allocator(),

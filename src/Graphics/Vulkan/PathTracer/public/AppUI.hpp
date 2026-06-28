@@ -51,6 +51,7 @@ namespace crv::graphics::vulkan {
         void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
         void setDuplicateInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mDuplicateInstances = callBack; }
         void setRemoveInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mRemoveInstances = callBack; }
+        void setRegionSelectCallBack(const std::function<void(int x0, int y0, int x1, int y1, bool additive)>& callBack) { mRegionSelect = callBack; }
 
         [[nodiscard]] uint32_t spp() const { return mSPP; }
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
@@ -61,6 +62,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] bool     tonemap() const { return mTonemap; }
     private:
         void drawGizmo(const AppUIDrawInfo& info);
+        void handleMarquee();
         void drawCursorDot();
         void drawOverView(const AppUIDrawInfo& info);
         void drawCameraTab(const AppUIDrawInfo& info);
@@ -95,6 +97,9 @@ namespace crv::graphics::vulkan {
         std::function<void()> mSaveScene{};
         std::function<void(const std::vector<uint32_t>& indices)> mDuplicateInstances{};
         std::function<void(const std::vector<uint32_t>& indices)> mRemoveInstances{};
+        std::function<void(int x0, int y0, int x1, int y1, bool additive)> mRegionSelect{};
+        bool    mMarqueeActive = false;
+        ImVec2  mMarqueeStart{};
     };
 }
 

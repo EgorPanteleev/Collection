@@ -16,6 +16,7 @@
 #include <chrono>
 #include <fstream>
 #include <filesystem>
+#include <limits>
 
 namespace fs = std::filesystem;
 
@@ -446,6 +447,9 @@ namespace crv::graphics::vulkan {
             clearSelection();
             updateImage();
         });
+        mUI.setRegionSelectCallBack([this](int x0, int y0, int x1, int y1, bool additive){
+            regionSelect(x0, y0, x1, y1, additive);
+        });
     }
 
     void PathTracerApp::recordTracer() {
@@ -640,6 +644,51 @@ namespace crv::graphics::vulkan {
         mPendingSelection = true;
     }
 
+    void PathTracerApp::regionSelect(int x0, int y0, int x1, int y1, bool additive) {
+        auto [width, height] = mSwapchain.extent();
+        const float fw = static_cast<float>(width);
+        const float fh = static_cast<float>(height);
+        const float nx0 = static_cast<float>(std::min(x0, x1)) / fw * 2.0f - 1.0f;
+        const float nx1 = static_cast<float>(std::max(x0, x1)) / fw * 2.0f - 1.0f;
+        const float ny0 = static_cast<float>(std::min(y0, y1)) / fh * 2.0f - 1.0f;
+        const float ny1 = static_cast<float>(std::max(y0, y1)) / fh * 2.0f - 1.0f;
+
+        const glm::mat4 viewProj = mCamera->projectionMatrix() * mCamera->viewMatrix();
+        const auto& instances = mResourceManager.instances();
+        const auto& blasDatas = mResourceManager.blasDatas();
+
+        if (!additive) mSelectedInstances.clear();
+        for (uint32_t i = 0; i < instances.size(); ++i) {
+            const InstanceData& instance = instances[i];
+            const BLASData& mesh = blasDatas[instance.meshIndex];
+            const glm::mat4 mvp = viewProj * instance.transform.matrix();
+
+            glm::vec2 boxMin(std::numeric_limits<float>::max());
+            glm::vec2 boxMax(std::numeric_limits<float>::lowest());
+            bool anyInFront = false;
+            for (int c = 0; c < 8; ++c) {
+                const glm::vec4 corner {
+                    (c & 1) ? mesh.aabbMax.x : mesh.aabbMin.x,
+                    (c & 2) ? mesh.aabbMax.y : mesh.aabbMin.y,
+                    (c & 4) ? mesh.aabbMax.z : mesh.aabbMin.z,
+                    1.0f
+                };
+                const glm::vec4 clip = mvp * corner;
+                if (clip.w <= 1e-4f) continue;
+                anyInFront = true;
+                const glm::vec2 ndc = glm::vec2(clip) / clip.w;
+                boxMin = glm::min(boxMin, ndc);
+                boxMax = glm::max(boxMax, ndc);
+            }
+            if (!anyInFront) continue;
+            if (boxMax.x < nx0 || boxMin.x > nx1 || boxMax.y < ny0 || boxMin.y > ny1) continue;
+
+            if (std::find(mSelectedInstances.begin(), mSelectedInstances.end(), i) == mSelectedInstances.end())
+                mSelectedInstances.push_back(i);
+        }
+        mActiveInstance = mSelectedInstances.empty() ? UINT32_MAX : mSelectedInstances.back();
+    }
+
     void PathTracerApp::saveImage() {
         vkDeviceWaitIdle(mContext.device());
         auto [width, height] = mSwapchain.extent();
@@ -762,13 +811,14 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::updateSelectedInstance() {
-        if (!mPendingSelection) return;
-        mPendingSelection = false;
-        uint32_t* data = nullptr;
-        vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
-        const uint32_t id = *data;
-        vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
-        applySelection(id, mAdditiveSelect);
+        if (mPendingSelection) {
+            mPendingSelection = false;
+            uint32_t* data = nullptr;
+            vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
+            const uint32_t id = *data;
+            vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
+            applySelection(id, mAdditiveSelect);
+        }
     }
 
     void PathTracerApp::applySelection(const uint32_t id, const bool additive) {

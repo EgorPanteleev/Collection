@@ -5,6 +5,7 @@
 #include "AppUI.hpp"
 #include "IconsFontAwesome6.h"
 #include <ImGuizmo.h>
+#include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -51,6 +52,7 @@ namespace crv::graphics::vulkan {
         if (info.selectedInstances && !info.selectedInstances->empty()) {
             drawGizmo(info);
         }
+        handleMarquee();
         if (!info.drawUI) {
             drawCursorDot();
             mImGui.endFrame();
@@ -61,10 +63,38 @@ namespace crv::graphics::vulkan {
         mImGui.endFrame();
     }
 
+    void AppUI::handleMarquee() {
+        ImGuiIO& io = ImGui::GetIO();
+        const bool blocked = io.WantCaptureMouse || ImGuizmo::IsOver() || ImGuizmo::IsUsing();
+        if (!mMarqueeActive) {
+            if (!blocked && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                mMarqueeActive = true;
+                mMarqueeStart = io.MousePos;
+            }
+            return;
+        }
+
+        const ImVec2 cur = io.MousePos;
+        const ImVec2 a(std::min(mMarqueeStart.x, cur.x), std::min(mMarqueeStart.y, cur.y));
+        const ImVec2 b(std::max(mMarqueeStart.x, cur.x), std::max(mMarqueeStart.y, cur.y));
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        drawList->AddRectFilled(a, b, IM_COL32(95, 40, 120, 40));
+        drawList->AddRect(a, b, IM_COL32(95, 40, 120, 200));
+
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+            mMarqueeActive = false;
+            if (b.x - a.x > 3.0f && b.y - a.y > 3.0f && mRegionSelect) {
+                const ImVec2 scale = io.DisplayFramebufferScale;
+                mRegionSelect(static_cast<int>(a.x * scale.x), static_cast<int>(a.y * scale.y),
+                              static_cast<int>(b.x * scale.x), static_cast<int>(b.y * scale.y), io.KeyShift);
+            }
+        }
+    }
+
     void AppUI::drawCursorDot() {
         if (!ImGui::IsMousePosValid()) return;
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-        ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetIO().MousePos, 3.0f, IM_COL32(0, 0, 0, 255));
+        ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetIO().MousePos, 3.0f, IM_COL32(95, 40, 120, 255));
     }
 
     void AppUI::drawGizmo(const AppUIDrawInfo& info) {
