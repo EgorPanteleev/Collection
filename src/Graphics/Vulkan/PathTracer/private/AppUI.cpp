@@ -179,6 +179,23 @@ namespace crv::graphics::vulkan {
             }
 
             if (VkImGui::beginGroup(ICON_FA_CUBES " Scene")) {
+                const auto& instances = mResourceManager->instances();
+                static const std::vector<uint32_t> emptySelection{};
+                const std::vector<uint32_t>& selected =
+                    info.selectedInstances ? *info.selectedInstances : emptySelection;
+
+                ImGui::TextDisabled("%zu instances", instances.size());
+                ImGui::BeginChild("##scene_list", ImVec2(0, 200), ImGuiChildFlags_Borders);
+                for (uint32_t i = 0; i < instances.size(); ++i) {
+                    const bool isSelected =
+                        std::find(selected.begin(), selected.end(), i) != selected.end();
+                    const std::string& name = instances[i].meshName;
+                    std::string label = (name.empty() ? "Mesh" : name) + "##inst" + std::to_string(i);
+                    if (ImGui::Selectable(label.c_str(), isSelected) && mSelectInstance) {
+                        mSelectInstance(i, ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift);
+                    }
+                }
+                ImGui::EndChild();
                 VkImGui::endGroup();
             }
 

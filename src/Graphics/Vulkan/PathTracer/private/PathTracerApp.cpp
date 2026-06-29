@@ -434,6 +434,9 @@ namespace crv::graphics::vulkan {
         mUI.setRegionSelectCallBack([this](int x0, int y0, int x1, int y1, bool additive){
             regionSelect(x0, y0, x1, y1, additive);
         });
+        mUI.setSelectInstanceCallBack([this](uint32_t index, bool additive){
+            applySelection(index + 1, additive);
+        });
     }
 
     void PathTracerApp::recordTracer() {

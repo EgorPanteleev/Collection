@@ -52,6 +52,7 @@ namespace crv::graphics::vulkan {
         void setDuplicateInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mDuplicateInstances = callBack; }
         void setRemoveInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mRemoveInstances = callBack; }
         void setRegionSelectCallBack(const std::function<void(int x0, int y0, int x1, int y1, bool additive)>& callBack) { mRegionSelect = callBack; }
+        void setSelectInstanceCallBack(const std::function<void(uint32_t index, bool additive)>& callBack) { mSelectInstance = callBack; }
 
         [[nodiscard]] uint32_t spp() const { return mSPP; }
         [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
@@ -98,6 +99,7 @@ namespace crv::graphics::vulkan {
         std::function<void(const std::vector<uint32_t>& indices)> mDuplicateInstances{};
         std::function<void(const std::vector<uint32_t>& indices)> mRemoveInstances{};
         std::function<void(int x0, int y0, int x1, int y1, bool additive)> mRegionSelect{};
+        std::function<void(uint32_t index, bool additive)> mSelectInstance{};
         bool    mMarqueeActive = false;
         ImVec2  mMarqueeStart{};
     };
