@@ -236,7 +236,6 @@ namespace crv::graphics::vulkan {
             Material material{
                 .name = loaderMaterial.mName.empty() ? "Unknown" : loaderMaterial.mName,
                 .baseColor = loaderMaterial.diffuseColor,
-                .emissionColor = emissionLum > 0.0f ? emission / emissionLum : glm::vec3(1.0f),
                 .luminance = emissionLum,
                 .metalness = loaderMaterial.metallic,
                 .roughness = loaderMaterial.roughness,
@@ -336,7 +335,6 @@ namespace crv::graphics::vulkan {
             const auto& jm = resolved[i];
             Material& material = mMaterials[i];
             material.baseColor = toVec3(jm["color"]);
-            if (jm.contains("emissionColor")) material.emissionColor = toVec3(jm["emissionColor"]);
             material.luminance = jm["luminance"];
             material.metalness = jm.value("metalness", material.metalness);
             material.roughness = jm.value("roughness", material.roughness);
@@ -398,7 +396,6 @@ namespace crv::graphics::vulkan {
             json jm;
             jm["name"]          = material.name;
             jm["color"]         = { material.baseColor.r, material.baseColor.g, material.baseColor.b };
-            jm["emissionColor"] = { material.emissionColor.r, material.emissionColor.g, material.emissionColor.b };
             jm["luminance"]     = material.luminance;
             jm["metalness"]     = material.metalness;
             jm["roughness"]     = material.roughness;

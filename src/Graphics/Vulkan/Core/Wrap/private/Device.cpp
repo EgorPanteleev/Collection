@@ -82,11 +82,6 @@ namespace crv::graphics::vulkan {
             createInfo.pNext = &rtFeatures;
         }
 
-        if (info.enableValidationLayers) {
-            createInfo.enabledLayerCount = static_cast<uint32_t>(info.validationLayers.size());
-            createInfo.ppEnabledLayerNames = info.validationLayers.data();
-        }
-
         if (vkCreateDevice(info.physicalDevice, &createInfo, nullptr, &mHandle) != VK_SUCCESS)
             throw std::runtime_error("Failed to create logical device!");
 

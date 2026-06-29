@@ -125,7 +125,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
             weight = emitterMisWeight(mesh, objArea, we1, we2, hit.N, WorldRayDirection(),
                                       RayTCurrent(), pc.emissiveCount, payload.prevBrdfPdf);
         }
-        payload.radiance += payload.throughput * material.emissionColor * material.luminance * weight;
+        payload.radiance += payload.throughput * baseColor * material.luminance * weight;
         payload.done = true;
         return;
     }

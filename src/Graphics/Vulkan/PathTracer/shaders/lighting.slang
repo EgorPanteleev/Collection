@@ -6,6 +6,7 @@ import types;
 public struct LightSample {
     public float3 P;
     public float3 N;
+    public float2 uv;
     public float3 emission;
     public float  pdf;
 };
@@ -61,7 +62,8 @@ public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, Mes
     LightSample ls;
     ls.P        = lP;
     ls.N        = lN;
-    ls.emission = material.emissionColor * material.luminance;
+    ls.uv       = bu * v0.texCoord + bv * v1.texCoord + bw * v2.texCoord;
+    ls.emission = material.baseColor * material.luminance;
     float selectProb = useAlias ? (objArea / mesh.area) : (1.0 / float(triCount));
     ls.pdf      = (worldArea > PDF_EPS) ? selectProb / worldArea : 0.0;
     return ls;

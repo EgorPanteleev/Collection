@@ -258,22 +258,6 @@ namespace crv::graphics::vulkan {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             };
             mSwapchainImageViews.emplace_back(imageViewCreateInfo);
-            const ImageTransitInfo imageTransitInfo {
-                .commandBuffer = commandBuffer,
-                .image = mSwapchainImages[i],
-                .srcAccessMask = VK_ACCESS_NONE,
-                .dstAccessMask = VK_ACCESS_NONE,
-                .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-                .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
-            };
-            Image::transit(imageTransitInfo);
         }
         endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::COMPUTE));
     }
@@ -555,7 +539,7 @@ namespace crv::graphics::vulkan {
             .dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
             .srcStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
             .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };

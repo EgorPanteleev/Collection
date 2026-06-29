@@ -22,7 +22,6 @@ namespace crv::graphics::vulkan {
         std::string clearcoatTexName{};
         std::string clearcoatRoughnessTexName{};
         glm::vec3   baseColor{};
-        glm::vec3   emissionColor     = {1, 1, 1};
         float       luminance         = 0;
         float       metalness         = 0.0f;
         float       roughness         = 0.0f;
@@ -43,7 +42,6 @@ namespace crv::graphics::vulkan {
     inline Material::GPU Material::gpu() const {
         return {
             .baseColor = baseColor,
-            .emissionColor = emissionColor,
             .luminance = luminance,
             .metalness = metalness,
             .roughness = roughness,

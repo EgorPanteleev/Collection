@@ -121,6 +121,7 @@ public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, 
     MeshGPU     lightMesh     = meshes[lightInstance.meshIndex];
     MaterialGPU lightMaterial = materials[lightInstance.materialIndex];
     LightSample  ls            = sampleEmissiveMesh(payload.seed, lightInstance, lightMesh, lightMaterial);
+    ls.emission = getBaseColor(lightMaterial, ls.uv) * lightMaterial.luminance;
 
     float3 toLight = ls.P - P;
     float  distSq  = dot(toLight, toLight);

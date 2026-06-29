@@ -369,10 +369,6 @@ namespace crv::graphics::vulkan {
                 }
             }
             if (ImGui::CollapsingHeader("Emission", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (VkImGui::colorEdit3("Color", material.emissionColor)) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mUpdateImage();
-                }
                 if (ImGui::DragFloat("Luminance", &material.luminance, 0.05f, 0.0f, 100.0f)) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
