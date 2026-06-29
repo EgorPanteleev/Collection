@@ -345,7 +345,35 @@ namespace crv::graphics::vulkan {
             material.clearcoatRoughness = jm.value("clearcoatRoughness", material.clearcoatRoughness);
             if (jm.contains("absorption") && jm["absorption"].is_array()) material.absorption = toVec3(jm["absorption"]);
             material.opacity = jm.value("opacity", material.opacity);
+
+            loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
+                material.baseColorTexIndex, material.baseColorTexName, material.baseColorTexPath);
+            loadResolvedTexture(jm, "normalTex", cm::Texture::NORMAL,
+                material.normalTexIndex, material.normalTexName, material.normalTexPath);
+            loadResolvedTexture(jm, "metalRoughnessTex", cm::Texture::METAL_ROUGHNESS,
+                material.metalRoughnessTexIndex, material.metalRoughnessTexName, material.metalRoughnessTexPath);
+            loadResolvedTexture(jm, "clearcoatTex", cm::Texture::CLEARCOAT,
+                material.clearcoatTexIndex, material.clearcoatTexName, material.clearcoatTexPath);
+            loadResolvedTexture(jm, "clearcoatRoughnessTex", cm::Texture::CLEARCOAT_ROUGHNESS,
+                material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexName, material.clearcoatRoughnessTexPath);
         }
+    }
+
+    void SceneLoader::loadResolvedTexture(const json& jm, const char* key, int textureType,
+                                          uint32_t& texIndex, std::string& texName, std::string& texPath) {
+        if (!jm.contains(key)) return;
+        const std::string rel = jm[key];
+        const std::string full = (fs::path(ASSETS_PATH) / rel).string();
+        std::error_code ec;
+        if (!fs::exists(full, ec)) {
+            WARNING << "Scene texture not found: " << full;
+            return;
+        }
+        mTextures.push_back(toTexture(mContext,
+            cm::AbsLoader::loadTexture(full, static_cast<cm::Texture::Type>(textureType))));
+        texIndex = static_cast<uint32_t>(mTextures.size() - 1);
+        texName  = fs::path(rel).filename().string();
+        texPath  = rel;
     }
 
     void SceneLoader::loadExplicitInstances() {
@@ -406,11 +434,11 @@ namespace crv::graphics::vulkan {
             jm["clearcoatRoughness"]   = material.clearcoatRoughness;
             jm["absorption"]           = { material.absorption.r, material.absorption.g, material.absorption.b };
             jm["opacity"]              = material.opacity;
-            if (!material.baseColorTexName.empty()) jm["baseColorTex"] = material.baseColorTexName;
-            if (!material.normalTexName.empty()) jm["normalTex"] = material.normalTexName;
-            if (!material.metalRoughnessTexName.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexName;
-            if (!material.clearcoatTexName.empty()) jm["clearcoatTex"] = material.clearcoatTexName;
-            if (!material.clearcoatRoughnessTexName.empty()) jm["clearcoatRoughnessTex"] = material.clearcoatRoughnessTexName;
+            if (!material.baseColorTexPath.empty()) jm["baseColorTex"] = material.baseColorTexPath;
+            if (!material.normalTexPath.empty()) jm["normalTex"] = material.normalTexPath;
+            if (!material.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexPath;
+            if (!material.clearcoatTexPath.empty()) jm["clearcoatTex"] = material.clearcoatTexPath;
+            if (!material.clearcoatRoughnessTexPath.empty()) jm["clearcoatRoughnessTex"] = material.clearcoatRoughnessTexPath;
             materials.push_back(jm);
         }
         scene["materialsResolved"] = materials;

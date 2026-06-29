@@ -42,6 +42,8 @@ namespace crv::graphics::vulkan {
         void loadMaterials();
         void buildAlias(BLASData& blasData);
         void applyResolvedMaterials();
+        void loadResolvedTexture(const json& jm, const char* key, int textureType,
+                                 uint32_t& texIndex, std::string& texName, std::string& texPath);
         void loadExplicitInstances();
         void buildEmissiveAliasTables();
 

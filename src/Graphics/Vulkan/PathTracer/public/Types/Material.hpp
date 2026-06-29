@@ -21,6 +21,11 @@ namespace crv::graphics::vulkan {
         std::string metalRoughnessTexName{};
         std::string clearcoatTexName{};
         std::string clearcoatRoughnessTexName{};
+        std::string baseColorTexPath{};
+        std::string normalTexPath{};
+        std::string metalRoughnessTexPath{};
+        std::string clearcoatTexPath{};
+        std::string clearcoatRoughnessTexPath{};
         glm::vec3   baseColor{};
         float       luminance         = 0;
         float       metalness         = 0.0f;

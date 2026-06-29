@@ -7,6 +7,12 @@
 #include <filesystem>
 
 namespace crv::graphics::vulkan {
+    static std::string relativeToAssets(const std::string& path) {
+        std::error_code ec;
+        const std::filesystem::path rel = std::filesystem::relative(path, ASSETS_PATH, ec);
+        return (!ec && !rel.empty()) ? rel.generic_string() : path;
+    }
+
     ResourceManager::ResourceManager(const ResourceManagerCreateInfo& info):
     mContext(info.context) {
         createLoader();
@@ -111,6 +117,7 @@ namespace crv::graphics::vulkan {
         Material& material = mSceneLoader.mMaterials[materialIndex];
         material.baseColorTexIndex = index;
         material.baseColorTexName = std::filesystem::path(path).filename().string();
+        material.baseColorTexPath = relativeToAssets(path);
         updateMaterial(materialIndex);
         return index;
     }
@@ -122,6 +129,7 @@ namespace crv::graphics::vulkan {
         Material& material = mSceneLoader.mMaterials[materialIndex];
         material.normalTexIndex = index;
         material.normalTexName = std::filesystem::path(path).filename().string();
+        material.normalTexPath = relativeToAssets(path);
         updateMaterial(materialIndex);
         return index;
     }
@@ -133,6 +141,7 @@ namespace crv::graphics::vulkan {
         Material& material = mSceneLoader.mMaterials[materialIndex];
         material.clearcoatTexIndex = index;
         material.clearcoatTexName = std::filesystem::path(path).filename().string();
+        material.clearcoatTexPath = relativeToAssets(path);
         updateMaterial(materialIndex);
         return index;
     }
@@ -144,6 +153,7 @@ namespace crv::graphics::vulkan {
         Material& material = mSceneLoader.mMaterials[materialIndex];
         material.clearcoatRoughnessTexIndex = index;
         material.clearcoatRoughnessTexName = std::filesystem::path(path).filename().string();
+        material.clearcoatRoughnessTexPath = relativeToAssets(path);
         updateMaterial(materialIndex);
         return index;
     }
@@ -171,6 +181,7 @@ namespace crv::graphics::vulkan {
         Material& material = mSceneLoader.mMaterials[materialIndex];
         material.metalRoughnessTexIndex = index;
         material.metalRoughnessTexName = std::filesystem::path(path).filename().string();
+        material.metalRoughnessTexPath = relativeToAssets(path);
         updateMaterial(materialIndex);
         return index;
     }
