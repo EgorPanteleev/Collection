@@ -51,8 +51,7 @@ namespace crv::model {
                            aiProcess_FindInvalidData          | \
                            aiProcess_GenUVCoords              | \
                            aiProcess_CalcTangentSpace         | \
-                           aiProcess_FlipUVs                  | \
-                           aiProcess_PreTransformVertices)
+                           aiProcess_FlipUVs)
 
 //#define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | \
 //                           aiProcess_FlipUVs     | \
@@ -112,9 +111,9 @@ namespace crv::model {
             const uint meshIndex = node->mMeshes[i];
             Mesh& mesh = mMeshes[meshIndex];
             mesh.materialIndex = static_cast<int>(mScene->mMeshes[meshIndex]->mMaterialIndex);
-            mesh.validFaces    = countValidFaces(mScene->mMeshes[i]);
-            mesh.numIndices    = mMeshes[i].validFaces * 3;
-            mesh.numVertices   = mScene->mMeshes[i]->mNumVertices;
+            mesh.validFaces    = countValidFaces(mScene->mMeshes[meshIndex]);
+            mesh.numIndices    = mesh.validFaces * 3;
+            mesh.numVertices   = mScene->mMeshes[meshIndex]->mNumVertices;
 
             std::vector<Vertex> vertices;
             std::vector<uint32_t> indices;
