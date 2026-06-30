@@ -3,14 +3,17 @@
   "materials": [{
     "name": "red",
     "color": [0.8, 0.14, 0.12],
+    "roughness": 0.7,
     "luminance": 0
   }, {
     "name": "green",
     "color": [0.13, 0.7, 0.16],
+    "roughness": 0.7,
     "luminance": 0
   }, {
     "name": "gray",
     "color": [0.73, 0.73, 0.73],
+    "roughness": 0.7,
     "luminance": 0
   }, {
     "name": "light",
