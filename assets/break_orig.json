@@ -1,0 +1,52 @@
+{
+  "modelImports":	["scenes/Spaceship/spaceship.glb", "meshes/plane.glb"],
+  "materials": [
+    {
+      "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
+      "emissionColor": [1.0, 1.0, 1.0],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "gray",
+      "roughness": 1.0,
+      "specular": 0.0,
+      "thickness": 0.0,
+      "thin": 0.0,
+      "transmission": 0.0
+    },
+    {
+    "color": [1.0, 1.0, 1.0],
+    "emissionColor": [1.0, 1.0, 1.0],
+    "luminance": 3.0,
+    "name": "light"
+    }],
+  "instances":	[
+    {
+      "localPosition": [0.0, 0.0, 0.0],
+      "localRotation": [0.0, 0.0, 0.0],
+      "localScale": [10.0, -10.0, 10.0],
+      "texIndex": -1,
+      "modelIndex": 0,
+      "name": "main"
+    }
+  ],
+  "directLight": {
+    "direction": [-0.468, 0.318, -0.824],
+    "intensity": 0
+  },
+  "window": {
+    "name": "GPU Path Tracer",
+    "width": 800,
+    "height": 600
+  },
+  "camera":	{
+    "type": "Fly",
+    "position":	[4, -15, 66],
+    "target":	[0, 0, -100],
+    "up":	[0, 1, 0],
+    "zoom": 1,
+    "fov": 60,
+    "nearPlane": 0.1,
+    "farPlane": 5000.0
+  }
+}
