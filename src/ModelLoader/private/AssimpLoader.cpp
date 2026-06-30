@@ -46,7 +46,6 @@ namespace crv::model {
                            aiProcess_LimitBoneWeights         | \
                            aiProcess_SplitLargeMeshes         | \
                            aiProcess_ImproveCacheLocality     | \
-                           aiProcess_RemoveRedundantMaterials | \
                            aiProcess_FindDegenerates          | \
                            aiProcess_FindInvalidData          | \
                            aiProcess_GenUVCoords              | \

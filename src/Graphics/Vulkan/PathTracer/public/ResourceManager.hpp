@@ -23,6 +23,7 @@ namespace crv::graphics::vulkan {
         void updateInstance(uint32_t index);
         std::vector<uint32_t> duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);
+        uint32_t addMaterial(const Material& material);
         void updateMaterial(uint32_t index);
         void updateEmissiveIndices();
         uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);
@@ -53,6 +54,7 @@ namespace crv::graphics::vulkan {
         void buildTLAS();
         void createBuffers();
         void rebuildInstanceBuffers();
+        void buildMaterialBuffer();
 
         Context*              mContext          = nullptr;
         SceneLoader           mSceneLoader{};

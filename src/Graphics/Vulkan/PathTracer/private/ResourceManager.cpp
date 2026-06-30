@@ -93,6 +93,19 @@ namespace crv::graphics::vulkan {
         rebuildInstanceBuffers();
     }
 
+    uint32_t ResourceManager::addMaterial(const Material& material) {
+        mSceneLoader.mMaterials.push_back(material);
+        buildMaterialBuffer();
+        return static_cast<uint32_t>(mSceneLoader.mMaterials.size() - 1);
+    }
+
+    void ResourceManager::buildMaterialBuffer() {
+        SSBOData ssboData{};
+        const auto materialsGPU = Material::gpu(mSceneLoader.mMaterials);
+        ssboData.add(materialsGPU, mMaterialBuffer);
+        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+    }
+
     void ResourceManager::updateMaterial(const uint32_t index) {
         Material::GPU materialGPU = mSceneLoader.mMaterials[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {

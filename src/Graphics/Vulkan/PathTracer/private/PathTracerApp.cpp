@@ -437,6 +437,18 @@ namespace crv::graphics::vulkan {
         mUI.setSelectInstanceCallBack([this](uint32_t index, bool additive){
             applySelection(index + 1, additive);
         });
+        mUI.setAddMaterialCallBack([this](uint32_t instanceIndex){
+            vkDeviceWaitIdle(mContext.device());
+            auto& instances = mResourceManager.instances();
+            if (instanceIndex >= instances.size()) return;
+            Material newMaterial = mResourceManager.materials()[instances[instanceIndex].materialIndex];
+            newMaterial.name += " copy";
+            const uint32_t index = mResourceManager.addMaterial(newMaterial);
+            instances[instanceIndex].materialIndex = index;
+            mResourceManager.updateInstance(instanceIndex);
+            mRayTracerPass.bindMaterials();
+            updateImage();
+        });
     }
 
     void PathTracerApp::recordTracer() {

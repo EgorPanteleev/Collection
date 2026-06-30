@@ -6,6 +6,7 @@
 #include "IconsFontAwesome6.h"
 #include <ImGuizmo.h>
 #include <algorithm>
+#include <cstring>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -308,7 +309,8 @@ namespace crv::graphics::vulkan {
             return;
         }
 
-        InstanceData& instance = mResourceManager->instances()[info.activeInstance];
+        const uint32_t active = selected.front();
+        InstanceData& instance = mResourceManager->instances()[active];
         if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
             if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                 VkImGui::row("Name"         , instance.name.c_str());
@@ -331,11 +333,22 @@ namespace crv::graphics::vulkan {
                 for (size_t i = 0; i < materials.size(); ++i) {
                     if (ImGui::Selectable(materialItems[i].c_str())) {
                         instance.materialIndex = i;
-                        mResourceManager->updateInstance(info.activeInstance);
+                        mResourceManager->updateInstance(active);
                         mUpdateImage();
                     }
                 }
                 ImGui::EndCombo();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_PLUS) && mAddMaterial) {
+                mAddMaterial(active);
+                VkImGui::endGroup();
+                return;
+            }
+            char nameBuffer[128]{};
+            std::strncpy(nameBuffer, material.name.c_str(), sizeof(nameBuffer) - 1);
+            if (ImGui::InputText("Name##material", nameBuffer, sizeof(nameBuffer))) {
+                material.name = nameBuffer;
             }
             if (ImGui::CollapsingHeader("Surface", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (VkImGui::colorEdit3("Base Color", material.baseColor)) {
@@ -410,6 +423,7 @@ namespace crv::graphics::vulkan {
                         if (ImGui::Button("Clear##basecolor")) {
                             material.baseColorTexIndex = UINT32_MAX;
                             material.baseColorTexName.clear();
+                            material.baseColorTexPath.clear();
                             mResourceManager->updateMaterial(instance.materialIndex);
                             mUpdateImage();
                         }
@@ -432,6 +446,7 @@ namespace crv::graphics::vulkan {
                         if (ImGui::Button("Clear##normal")) {
                             material.normalTexIndex = UINT32_MAX;
                             material.normalTexName.clear();
+                            material.normalTexPath.clear();
                             mResourceManager->updateMaterial(instance.materialIndex);
                             mUpdateImage();
                         }
@@ -454,6 +469,7 @@ namespace crv::graphics::vulkan {
                         if (ImGui::Button("Clear##metalrough")) {
                             material.metalRoughnessTexIndex = UINT32_MAX;
                             material.metalRoughnessTexName.clear();
+                            material.metalRoughnessTexPath.clear();
                             mResourceManager->updateMaterial(instance.materialIndex);
                             mUpdateImage();
                         }
@@ -476,6 +492,7 @@ namespace crv::graphics::vulkan {
                         if (ImGui::Button("Clear##clearcoat")) {
                             material.clearcoatTexIndex = UINT32_MAX;
                             material.clearcoatTexName.clear();
+                            material.clearcoatTexPath.clear();
                             mResourceManager->updateMaterial(instance.materialIndex);
                             mUpdateImage();
                         }
@@ -498,6 +515,7 @@ namespace crv::graphics::vulkan {
                         if (ImGui::Button("Clear##clearcoatrough")) {
                             material.clearcoatRoughnessTexIndex = UINT32_MAX;
                             material.clearcoatRoughnessTexName.clear();
+                            material.clearcoatRoughnessTexPath.clear();
                             mResourceManager->updateMaterial(instance.materialIndex);
                             mUpdateImage();
                         }
@@ -524,10 +542,10 @@ namespace crv::graphics::vulkan {
             static glm::vec3 uiRotation{};
             static glm::quat cachedRotation{};
             static uint32_t cachedInstance = UINT32_MAX;
-            if (info.activeInstance != cachedInstance ||
+            if (active != cachedInstance ||
                 instance.transform.rotation != cachedRotation) {
                 uiRotation = glm::degrees(glm::eulerAngles(instance.transform.rotation));
-                cachedInstance = info.activeInstance;
+                cachedInstance = active;
             }
             if (ImGui::DragFloat3("Rotation", &uiRotation[0], 0.5f)) {
                 uiRotation = clampRotation(uiRotation);
@@ -540,7 +558,7 @@ namespace crv::graphics::vulkan {
                 changed = true;
 
             if (changed) {
-                mResourceManager->updateInstanceTransform(info.activeInstance);
+                mResourceManager->updateInstanceTransform(active);
                 mUpdateImage();
             }
             VkImGui::endGroup();

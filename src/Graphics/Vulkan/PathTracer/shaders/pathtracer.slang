@@ -139,7 +139,10 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
             }
             Scatter scatter = sampleDielectric(payload.seed, hit.N, -WorldRayDirection(),
                                                material.ior, payload.insideGlass);
-            if (dot(scatter.wi, hit.N) < 0.0) payload.insideGlass = !payload.insideGlass;
+            if (dot(scatter.wi, hit.N) < 0.0) {
+                payload.insideGlass = !payload.insideGlass;
+                payload.throughput *= baseColor;
+            }
             payload.throughput *= scatter.brdf / pt;
             payload.origin      = movedPoint(hit.P, dot(scatter.wi, hit.gN) < 0.0 ? -hit.gN : hit.gN);
             payload.direction   = scatter.wi;

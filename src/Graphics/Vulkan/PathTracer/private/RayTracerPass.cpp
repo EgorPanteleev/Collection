@@ -110,6 +110,13 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void RayTracerPass::bindMaterials() {
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.bind(8, i, BufferResource(*mMaterialBuffer));
+            mDescriptorManager.update(8, i);
+        }
+    }
+
     void RayTracerPass::createShaders() {
         ShaderModuleCreateInfo createInfo {
             .device = mContext->device(),

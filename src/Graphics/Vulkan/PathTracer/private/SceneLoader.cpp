@@ -331,9 +331,11 @@ namespace crv::graphics::vulkan {
     void SceneLoader::applyResolvedMaterials() {
         if (!mJson.contains("materialsResolved")) return;
         const auto& resolved = mJson["materialsResolved"];
-        for (size_t i = 0; i < resolved.size() && i < mMaterials.size(); ++i) {
+        if (resolved.size() > mMaterials.size()) mMaterials.resize(resolved.size());
+        for (size_t i = 0; i < resolved.size(); ++i) {
             const auto& jm = resolved[i];
             Material& material = mMaterials[i];
+            material.name = jm.value("name", material.name);
             material.baseColor = toVec3(jm["color"]);
             material.luminance = jm["luminance"];
             material.metalness = jm.value("metalness", material.metalness);
