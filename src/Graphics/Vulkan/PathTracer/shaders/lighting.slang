@@ -25,7 +25,7 @@ public float emitterMisWeight(MeshGPU mesh, float objArea, float3 we1, float3 we
     return powerHeuristic(prevBrdfPdf, pdfLight);
 }
 
-public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, MeshGPU mesh, MaterialGPU material) {
+public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, MeshGPU mesh) {
     uint triCount = mesh.indexCount / 3;
 
     bool useAlias = mesh.aliasAddress != 0 && mesh.area > 0.0;
@@ -63,7 +63,7 @@ public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, Mes
     ls.P        = lP;
     ls.N        = lN;
     ls.uv       = bu * v0.texCoord + bv * v1.texCoord + bw * v2.texCoord;
-    ls.emission = material.baseColor * material.luminance;
+    ls.emission = float3(0.0); // textured emission applied by the caller (texture access lives in the scene module)
     float selectProb = useAlias ? (objArea / mesh.area) : (1.0 / float(triCount));
     ls.pdf      = (worldArea > PDF_EPS) ? selectProb / worldArea : 0.0;
     return ls;
