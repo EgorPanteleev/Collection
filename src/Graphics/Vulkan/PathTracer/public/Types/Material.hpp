@@ -37,6 +37,7 @@ namespace crv::graphics::vulkan {
         float       clearcoatRoughness = 0.0f;
         glm::vec3   absorption         = {1, 1, 1};
         float       opacity            = 1.0f;
+        float       normalScale        = 1.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
         uint32_t    metalRoughnessTexIndex = UINT32_MAX;
@@ -62,6 +63,7 @@ namespace crv::graphics::vulkan {
             .clearcoatTexIndex = clearcoatTexIndex,
             .clearcoatRoughnessTexIndex = clearcoatRoughnessTexIndex,
             .opacity = opacity,
+            .normalScale = normalScale,
         };
     }
 

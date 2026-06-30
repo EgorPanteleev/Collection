@@ -72,6 +72,7 @@ public void applyNormalMap(inout HitGeometry hit, MaterialGPU material) {
     if (dot(hit.tangent.xyz, hit.tangent.xyz) < 1e-8) return;
     float2 rg = textures[NonUniformResourceIndex(material.normalTexIndex)].SampleLevel(hit.uv, 0.0).rg * 2.0 - 1.0;
     rg.y = -rg.y;
+    rg *= material.normalScale;
     float3 tn = float3(rg, sqrt(saturate(1.0 - dot(rg, rg))));
     float3 N = hit.N;
     float3 T = normalize(hit.tangent.xyz - dot(hit.tangent.xyz, N) * N);

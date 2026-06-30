@@ -458,6 +458,17 @@ namespace crv::graphics::vulkan {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
                     ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", "Normal Scale");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    if (ImGui::SliderFloat("##normalScale", &material.normalScale, 0.0f, 2.0f, "%.2f")) {
+                        mResourceManager->updateMaterial(instance.materialIndex);
+                        mUpdateImage();
+                    }
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::AlignTextToFramePadding();
                     ImGui::TextDisabled("%s", "Metal/Rough");
                     const bool hasMetalRough = material.metalRoughnessTexIndex != UINT32_MAX;
                     ImGui::TableSetColumnIndex(1);
