@@ -234,13 +234,20 @@ namespace crv::graphics::vulkan {
             0, groupCount, handles.size(), handles.data());
 
         constexpr auto alignUp = [](const uint32_t v, const uint32_t a){ return (v + a - 1) & ~(a - 1); };
-        uint32_t stride = alignUp(props.shaderGroupHandleSize, props.shaderGroupHandleAlignment);
-        uint32_t baseAlign     = props.shaderGroupBaseAlignment;
-        uint32_t raygenOffset     = 0;
-        uint32_t missOffset       = alignUp(raygenOffset     + stride, baseAlign);
-        uint32_t shadowMissOffset = alignUp(missOffset       + stride, baseAlign);
-        uint32_t hitOffset        = alignUp(shadowMissOffset + stride, baseAlign);
-        uint32_t sbtSize          = hitOffset + stride;
+        uint32_t stride     = alignUp(handleSize, props.shaderGroupHandleAlignment);
+        uint32_t baseAlign  = props.shaderGroupBaseAlignment;
+
+        // Records within a region are spaced by `stride`; only each region's base
+        // needs shaderGroupBaseAlignment. The miss region packs two records
+        // (missMain, shadowMissMain) contiguously.
+        uint32_t raygenRegionSize = alignUp(stride,      baseAlign);
+        uint32_t missRegionSize   = alignUp(stride * 2u, baseAlign);
+        uint32_t hitRegionSize    = alignUp(stride,      baseAlign);
+
+        uint32_t raygenOffset = 0;
+        uint32_t missOffset   = raygenOffset + raygenRegionSize;
+        uint32_t hitOffset    = missOffset   + missRegionSize;
+        uint32_t sbtSize      = hitOffset    + hitRegionSize;
 
         const BufferCreateInfo sbtCreateInfo {
             .allocator = mContext->allocator(),
@@ -264,10 +271,10 @@ namespace crv::graphics::vulkan {
         };
         Buffer stagingBuffer = Buffer(stagingBufferCreateInfo);
         auto mapped = static_cast<uint8_t*>(stagingBuffer.map());
-        memcpy(mapped + raygenOffset    , handles.data() + 0 * handleSize, handleSize);
-        memcpy(mapped + missOffset      , handles.data() + 1 * handleSize, handleSize);
-        memcpy(mapped + shadowMissOffset, handles.data() + 2 * handleSize, handleSize);
-        memcpy(mapped + hitOffset       , handles.data() + 3 * handleSize, handleSize);
+        memcpy(mapped + raygenOffset         , handles.data() + 0 * handleSize, handleSize);
+        memcpy(mapped + missOffset           , handles.data() + 1 * handleSize, handleSize);
+        memcpy(mapped + missOffset + stride  , handles.data() + 2 * handleSize, handleSize);
+        memcpy(mapped + hitOffset            , handles.data() + 3 * handleSize, handleSize);
         stagingBuffer.unmap();
 
         CopyBufferToBufferInfo copyInfo {
@@ -286,9 +293,9 @@ namespace crv::graphics::vulkan {
         };
         VkDeviceAddress sbtAddr = vkGetBufferDeviceAddress(mContext->device(), &addrInfo);
 
-        mRaygenRegion     = {sbtAddr + raygenOffset    , stride, stride};
-        mMissRegion       = {sbtAddr + missOffset      , stride, stride * 2};
-        mHitRegion        = {sbtAddr + hitOffset       , stride, stride};
+        mRaygenRegion     = {sbtAddr + raygenOffset, raygenRegionSize, raygenRegionSize};
+        mMissRegion       = {sbtAddr + missOffset  , stride,           missRegionSize};
+        mHitRegion        = {sbtAddr + hitOffset   , stride,           hitRegionSize};
         mCallRegion       = {};
     }
 

@@ -12,49 +12,60 @@ void rgenMain() {
     int2  pixel      = int2(launchID);
     uint  seed       = launchID.x + launchID.y * launchSize.x + pc.frame * 16777619u;
 
-    float3 origin, dir;
-    primaryRay(launchID, launchSize, seed, origin, dir);
+    uint   sampleCount    = max(pc.spp, 1u);
+    float3 radianceSum    = float3(0.0);
+    uint   firstInstanceId = UINT_MAX;
 
-    PathPayload payload;
-    payload.throughput  = float3(1.0);
-    payload.radiance    = float3(0.0);
-    payload.origin      = origin;
-    payload.direction   = dir;
-    payload.instanceId  = UINT_MAX;
-    payload.seed        = seed;
-    payload.depth       = 0;
-    payload.prevBrdfPdf = -1.0;
-    payload.done        = false;
-    payload.insideGlass = false;
+    for (uint s = 0; s < sampleCount; ++s) {
+        float3 origin, dir;
+        primaryRay(launchID, launchSize, seed, origin, dir);
 
-    uint firstInstanceId = UINT_MAX;
-    for (uint depth = 0; depth < pc.maxDepth; ++depth) {
-        payload.depth = depth;
-        RayDesc ray;
-        ray.Origin    = payload.origin;
-        ray.TMin      = 0.0;
-        ray.Direction = payload.direction;
-        ray.TMax      = T_MAX;
-        TraceRay(tlas, RAY_FLAG_NONE, ALL_OBJECTS, 0, 0, 0, ray, payload);
+        PathPayload payload;
+        payload.throughput  = float3(1.0);
+        payload.radiance    = float3(0.0);
+        payload.origin      = origin;
+        payload.direction   = dir;
+        payload.instanceId  = UINT_MAX;
+        payload.seed        = seed;
+        payload.depth       = 0;
+        payload.prevBrdfPdf = -1.0;
+        payload.done        = false;
+        payload.insideGlass = false;
 
-        if (depth == 0) firstInstanceId = payload.instanceId;
-        if (payload.done) break;
+        for (uint depth = 0; depth < pc.maxDepth; ++depth) {
+            payload.depth = depth;
+            RayDesc ray;
+            ray.Origin    = payload.origin;
+            ray.TMin      = 0.0;
+            ray.Direction = payload.direction;
+            ray.TMax      = T_MAX;
+            TraceRay(tlas, RAY_FLAG_NONE, ALL_OBJECTS, 0, 0, 0, ray, payload);
 
-        if (depth >= pc.minDepth) {
-            float p = clamp(luminance(payload.throughput), 0.01, 1.0);
-            if (rand01(payload.seed) > p) break;
-            payload.throughput /= p;
+            if (depth == 0 && s == 0) firstInstanceId = payload.instanceId;
+            if (payload.done) break;
+
+            if (depth >= pc.minDepth) {
+                float p = clamp(luminance(payload.throughput), 0.01, 1.0);
+                if (rand01(payload.seed) > p) break;
+                payload.throughput /= p;
+            }
         }
+
+        radianceSum += payload.radiance;
+        seed = payload.seed;
     }
 
+    float3 radiance = radianceSum / float(sampleCount);
+
+    outputInstanceIdImage[pixel] = firstInstanceId + 1;
+
     if (pc.frame == 0) {
-        outputImage[pixel] = float4(payload.radiance, 1.0);
+        outputImage[pixel] = float4(radiance, 1.0);
         return;
     }
     float3 imageColor = outputImage[pixel].rgb;
-    float3 newColor   = (imageColor * float(pc.frame) + payload.radiance) / float(pc.frame + 1);
-    outputImage[pixel]           = float4(newColor, 1.0);
-    outputInstanceIdImage[pixel] = firstInstanceId + 1;
+    float3 newColor   = (imageColor * float(pc.frame) + radiance) / float(pc.frame + 1);
+    outputImage[pixel] = float4(newColor, 1.0);
 }
 
 [shader("miss")]
