@@ -6,23 +6,6 @@ import bsdf;
 import lighting;
 import geometry;
 
-public struct PushConstants {
-    public uint frame;
-    public uint spp;
-    public uint minDepth;
-    public uint maxDepth;
-    public uint displayMode;
-    public uint nee;
-    public uint emissiveCount;
-    public uint skyboxIndex;
-    public float    envIntegral;
-    public uint     envNee;
-    public uint64_t envMarginalCdfAddr;
-    public uint64_t envCondCdfAddr;
-    public uint64_t envCondFuncAddr;
-};
-[[vk::push_constant]] public PushConstants pc;
-
 public struct CameraData {
     public float4x4 invView;
     public float4x4 invProj;

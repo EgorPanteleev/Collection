@@ -10,13 +10,14 @@ void rgenMain() {
     uint2 launchID   = DispatchRaysIndex().xy;
     uint2 launchSize = DispatchRaysDimensions().xy;
     int2  pixel      = int2(launchID);
-    uint  seed       = launchID.x + launchID.y * launchSize.x + pc.frame * 16777619u;
+    uint  pixelId    = launchID.x + launchID.y * launchSize.x;
 
     uint   sampleCount    = max(pc.spp, 1u);
     float3 radianceSum    = float3(0.0);
     uint   firstInstanceId = UINT_MAX;
 
     for (uint s = 0; s < sampleCount; ++s) {
+        uint seed = pcg(pixelId + s * 0x9e3779b9u);
         float3 origin, dir;
         primaryRay(launchID, launchSize, seed, origin, dir);
 
@@ -52,7 +53,6 @@ void rgenMain() {
         }
 
         radianceSum += payload.radiance;
-        seed = payload.seed;
     }
 
     float3 radiance = radianceSum / float(sampleCount);

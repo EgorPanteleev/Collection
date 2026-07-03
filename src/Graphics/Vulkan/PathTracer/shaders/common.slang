@@ -18,15 +18,48 @@ public static const float PDF_EPS   = 1e-4;
 public static const float NEE_CLAMP = 50.0;
 public static const float FIREFLY_CLAMP = 10.0;
 
+public struct PushConstants {
+    public uint frame;
+    public uint spp;
+    public uint minDepth;
+    public uint maxDepth;
+    public uint displayMode;
+    public uint nee;
+    public uint emissiveCount;
+    public uint skyboxIndex;
+    public float    envIntegral;
+    public uint     envNee;
+    public uint64_t envMarginalCdfAddr;
+    public uint64_t envCondCdfAddr;
+    public uint64_t envCondFuncAddr;
+};
+[[vk::push_constant]] public PushConstants pc;
+
 public uint pcg(uint v) {
     uint state = v * 747796405u + 2891336453u;
     uint word  = ((state >> ((state >> 28) + 4)) ^ state) * 277803737u;
     return (word >> 22) ^ word;
 }
 
+public uint owenScramble(uint x, uint seed) {
+    x = reversebits(x);
+    x ^= x * 0x3d20adeau;
+    x += seed;
+    x *= (seed >> 16) | 1u;
+    x ^= x * 0x05526c56u;
+    x ^= x * 0x53a22864u;
+    x = reversebits(x);
+    return x;
+}
+
 public float rand01(inout uint seed) {
     seed = pcg(seed);
-    return float(seed) / 4294967296.0;
+    uint keyIndex = seed;
+    seed = pcg(seed);
+    uint keyValue = seed;
+    uint index = owenScramble(pc.frame, keyIndex);
+    uint value = owenScramble(reversebits(index), keyValue);
+    return float(value >> 8) * (1.0 / 16777216.0);
 }
 
 public float luminance(float3 c) {
