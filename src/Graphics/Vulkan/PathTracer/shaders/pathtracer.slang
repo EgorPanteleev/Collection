@@ -103,11 +103,11 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     Triangle    tri = fetchTriangle(mesh, PrimitiveIndex());
     HitGeometry hit = interpolateHit(tri, attr.barycentrics, o2w, WorldRayDirection());
 
-    MaterialGPU material  = materials[instance.materialIndex];
-    applyNormalMap(hit, material);
-    float3       baseColor = getBaseColor(material, hit.uv);
+    MaterialGPU material = materials[instance.materialIndex];
 
     if (pc.displayMode != 0u && payload.depth == 0u) {
+        applyNormalMap(hit, material);
+        float3 baseColor = getBaseColor(material, hit.uv);
         float dmMetal = material.metalness;
         float dmRough = material.roughness;
         applyMetalRoughness(material, hit.uv, dmMetal, dmRough);
@@ -134,6 +134,8 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    float3 baseColor = getBaseColor(material, hit.uv);
+
     if (material.luminance > 0.0) {
         float weight = 1.0;
         if (pc.nee != 0u && payload.prevBrdfPdf >= 0.0) {
@@ -147,6 +149,8 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         payload.done = true;
         return;
     }
+
+    applyNormalMap(hit, material);
 
     if (material.transmission > 0.0) {
         float pt = material.transmission;
@@ -184,8 +188,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     Scatter scatter = sampleBSDF(payload.seed, surf);
 
     directLightContribution(payload, hit.P, hit.gN, surf);
-    nextEventEstimation(payload, hit.P, hit.gN, surf);
-    environmentNEE(payload, hit.P, hit.gN, surf);
+    sampledLightNEE(payload, hit.P, hit.gN, surf);
 
     if (scatter.pdf <= PDF_EPS) {
         payload.done = true;

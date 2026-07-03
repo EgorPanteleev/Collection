@@ -205,7 +205,7 @@ public void directLightContribution(inout PathPayload payload, float3 P, float3 
     payload.radiance += payload.throughput * brdf * NdotL * directLight.intensity * vis;
 }
 
-public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, Surface surf) {
+public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, Surface surf, float scale) {
     if (pc.nee == 0u || pc.emissiveCount == 0u) return;
 
     uint lightIdx      = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
@@ -234,13 +234,13 @@ public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, 
     float pdfLight = ls.pdf * distSq / LNdotWi / float(pc.emissiveCount);
     float weight   = powerHeuristic(pdfLight, pdfBrdf);
 
-    float3 contrib = payload.throughput * brdf * ls.emission * NdotWi * vis * weight / pdfLight;
+    float3 contrib = payload.throughput * brdf * ls.emission * NdotWi * vis * weight * scale / pdfLight;
     float  lum     = luminance(contrib);
     if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
     payload.radiance += contrib;
 }
 
-public void environmentNEE(inout PathPayload payload, float3 P, float3 gN, Surface surf) {
+public void environmentNEE(inout PathPayload payload, float3 P, float3 gN, Surface surf, float scale) {
     if (!envSamplingEnabled()) return;
 
     EnvSample es = sampleEnvLight(payload.seed);
@@ -255,8 +255,23 @@ public void environmentNEE(inout PathPayload payload, float3 P, float3 gN, Surfa
 
     float  vis     = traceShadow(P, gN, es.dir, T_MAX);
     float  weight  = powerHeuristic(es.pdf, pdfBrdf);
-    float3 contrib = payload.throughput * brdf * es.radiance * NdotL * vis * weight / es.pdf;
+    float3 contrib = payload.throughput * brdf * es.radiance * NdotL * vis * weight * scale / es.pdf;
     float  lum     = luminance(contrib);
     if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
     payload.radiance += contrib;
+}
+
+public void sampledLightNEE(inout PathPayload payload, float3 P, float3 gN, Surface surf) {
+    bool meshActive = pc.nee != 0u && pc.emissiveCount != 0u;
+    bool envActive  = envSamplingEnabled();
+    if (!meshActive && !envActive) return;
+
+    if (meshActive && envActive) {
+        if (rand01(payload.seed) < 0.5) nextEventEstimation(payload, P, gN, surf, 2.0);
+        else                            environmentNEE(payload, P, gN, surf, 2.0);
+    } else if (meshActive) {
+        nextEventEstimation(payload, P, gN, surf, 1.0);
+    } else {
+        environmentNEE(payload, P, gN, surf, 1.0);
+    }
 }
