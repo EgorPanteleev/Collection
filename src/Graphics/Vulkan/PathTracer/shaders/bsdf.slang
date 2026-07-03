@@ -113,6 +113,17 @@ float3 sampleGGX(inout uint seed, float3 wo, float3 tangent, float3 bitangent, f
     return reflect(-wo, H);
 }
 
+float3 multiScatterComp(float3 F0, float NdotV, float alpha) {
+    float  roughness = sqrt(alpha);
+    float4 c0 = float4(-1.0, -0.0275, -0.572, 0.022);
+    float4 c1 = float4(1.0, 0.0425, 1.04, -0.04);
+    float4 r  = roughness * c0 + c1;
+    float  a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    float2 AB   = float2(-1.04, 1.04) * a004 + r.zw;
+    float  Ess  = AB.x + AB.y;
+    return 1.0 + F0 * (1.0 - Ess) / max(Ess, 1e-3);
+}
+
 public void evalBSDF(Surface s, float3 wi, out float3 brdf, out float pdf) {
     brdf = float3(0.0);
     pdf  = 0.0;
@@ -129,7 +140,7 @@ public void evalBSDF(Surface s, float3 wi, out float3 brdf, out float pdf) {
     float  D   = D_GGX(NdotH, s.alpha);
     float  Vis = V_SmithGGXCorrelated(NdotV, NdotL, s.alpha);
 
-    float3 specular = D * Vis * F;
+    float3 specular = D * Vis * F * multiScatterComp(s.F0, NdotV, s.alpha);
     float3 diffuse  = s.diffColor * M_1_PI * (1.0 - F);
     float3 baseBrdf = diffuse + specular;
 
