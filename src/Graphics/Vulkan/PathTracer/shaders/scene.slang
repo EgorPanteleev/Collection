@@ -205,15 +205,26 @@ public void directLightContribution(inout PathPayload payload, float3 P, float3 
     payload.radiance += payload.throughput * brdf * NdotL * directLight.intensity * vis;
 }
 
-public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, Surface surf, float scale) {
-    if (pc.nee == 0u || pc.emissiveCount == 0u) return;
+public struct LightCandidate {
+    public float3 wi;
+    public float3 value;
+    public float  tMax;
+    public bool   valid;
+};
 
-    uint lightIdx      = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
+LightCandidate emitterCandidate(inout uint seed, float3 P, Surface surf) {
+    LightCandidate c;
+    c.wi    = float3(0.0, 1.0, 0.0);
+    c.value = float3(0.0);
+    c.tMax  = 0.0;
+    c.valid = false;
+
+    uint lightIdx      = min(uint(rand01(seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
     uint instanceIndex = emissiveIndices[lightIdx];
     InstanceGPU  lightInstance = instances[instanceIndex];
     MeshGPU     lightMesh     = meshes[lightInstance.meshIndex];
     MaterialGPU lightMaterial = materials[lightInstance.materialIndex];
-    LightSample  ls            = sampleEmissiveMesh(payload.seed, lightInstance, lightMesh);
+    LightSample  ls            = sampleEmissiveMesh(seed, lightInstance, lightMesh);
     ls.emission = getBaseColor(lightMaterial, ls.uv) * lightMaterial.luminance;
 
     float3 toLight = ls.P - P;
@@ -223,42 +234,43 @@ public void nextEventEstimation(inout PathPayload payload, float3 P, float3 gN, 
 
     float NdotWi  = max(dot(surf.N, wi), 0.0);
     float LNdotWi = max(dot(ls.N, -wi), 0.0);
-
-    if (NdotWi <= 0.0 || LNdotWi <= PDF_EPS || ls.pdf <= 0.0 || distSq <= PDF_EPS) return;
+    if (NdotWi <= 0.0 || LNdotWi <= PDF_EPS || ls.pdf <= 0.0 || distSq <= PDF_EPS) return c;
 
     float3 brdf;
     float  pdfBrdf;
     evalBSDF(surf, wi, brdf, pdfBrdf);
-
-    float vis      = traceShadow(P, gN, wi, dist * (1.0 - SHADOW_EPS));
     float pdfLight = ls.pdf * distSq / LNdotWi / float(pc.emissiveCount);
     float weight   = powerHeuristic(pdfLight, pdfBrdf);
 
-    float3 contrib = payload.throughput * brdf * ls.emission * NdotWi * vis * weight * scale / pdfLight;
-    float  lum     = luminance(contrib);
-    if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
-    payload.radiance += contrib;
+    c.wi    = wi;
+    c.value = brdf * ls.emission * NdotWi * weight / pdfLight;
+    c.tMax  = dist * (1.0 - SHADOW_EPS);
+    c.valid = true;
+    return c;
 }
 
-public void environmentNEE(inout PathPayload payload, float3 P, float3 gN, Surface surf, float scale) {
-    if (!envSamplingEnabled()) return;
+LightCandidate envCandidate(inout uint seed, Surface surf) {
+    LightCandidate c;
+    c.wi    = float3(0.0, 1.0, 0.0);
+    c.value = float3(0.0);
+    c.tMax  = 0.0;
+    c.valid = false;
 
-    EnvSample es = sampleEnvLight(payload.seed);
-    if (es.pdf <= PDF_EPS) return;
-
+    EnvSample es = sampleEnvLight(seed);
+    if (es.pdf <= PDF_EPS) return c;
     float NdotL = max(dot(surf.N, es.dir), 0.0);
-    if (NdotL <= 0.0) return;
+    if (NdotL <= 0.0) return c;
 
     float3 brdf;
     float  pdfBrdf;
     evalBSDF(surf, es.dir, brdf, pdfBrdf);
+    float weight = powerHeuristic(es.pdf, pdfBrdf);
 
-    float  vis     = traceShadow(P, gN, es.dir, T_MAX);
-    float  weight  = powerHeuristic(es.pdf, pdfBrdf);
-    float3 contrib = payload.throughput * brdf * es.radiance * NdotL * vis * weight * scale / es.pdf;
-    float  lum     = luminance(contrib);
-    if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
-    payload.radiance += contrib;
+    c.wi    = es.dir;
+    c.value = brdf * es.radiance * NdotL * weight / es.pdf;
+    c.tMax  = T_MAX;
+    c.valid = true;
+    return c;
 }
 
 public void sampledLightNEE(inout PathPayload payload, float3 P, float3 gN, Surface surf) {
@@ -266,12 +278,34 @@ public void sampledLightNEE(inout PathPayload payload, float3 P, float3 gN, Surf
     bool envActive  = envSamplingEnabled();
     if (!meshActive && !envActive) return;
 
+    LightCandidate chosen;
+    float selectProb = 1.0;
+
     if (meshActive && envActive) {
-        if (rand01(payload.seed) < 0.5) nextEventEstimation(payload, P, gN, surf, 2.0);
-        else                            environmentNEE(payload, P, gN, surf, 2.0);
+        LightCandidate cM = emitterCandidate(payload.seed, P, surf);
+        LightCandidate cE = envCandidate(payload.seed, surf);
+        float eM = cM.valid ? luminance(cM.value) : 0.0;
+        float eE = cE.valid ? luminance(cE.value) : 0.0;
+        if (eM <= 0.0 && eE <= 0.0) return;
+
+        float pEnv;
+        if      (eM <= 0.0) pEnv = 1.0;
+        else if (eE <= 0.0) pEnv = 0.0;
+        else                pEnv = clamp(eE / (eE + eM), 0.05, 0.95);
+
+        if (rand01(payload.seed) < pEnv) { chosen = cE; selectProb = pEnv; }
+        else                             { chosen = cM; selectProb = 1.0 - pEnv; }
     } else if (meshActive) {
-        nextEventEstimation(payload, P, gN, surf, 1.0);
+        chosen = emitterCandidate(payload.seed, P, surf);
     } else {
-        environmentNEE(payload, P, gN, surf, 1.0);
+        chosen = envCandidate(payload.seed, surf);
     }
+
+    if (!chosen.valid) return;
+
+    float  vis     = traceShadow(P, gN, chosen.wi, chosen.tMax);
+    float3 contrib = payload.throughput * chosen.value * vis / selectProb;
+    float  lum     = luminance(contrib);
+    if (lum > NEE_CLAMP) contrib *= NEE_CLAMP / lum;
+    payload.radiance += contrib;
 }
