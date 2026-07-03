@@ -261,8 +261,16 @@ namespace crv::graphics::vulkan {
             }
         }
         if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::Checkbox("NEE", &mNee)) {
-                mUpdateImage();
+            if (ImGui::TreeNodeEx("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::Checkbox("Light sources", &mNee)) {
+                    mUpdateImage();
+                }
+                ImGui::BeginDisabled(mResourceManager->skyboxIndex() == UINT32_MAX);
+                if (ImGui::Checkbox("Environment", &mEnvNee)) {
+                    mUpdateImage();
+                }
+                ImGui::EndDisabled();
+                ImGui::TreePop();
             }
             if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
                 mUpdateImage();

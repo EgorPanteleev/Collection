@@ -23,6 +23,11 @@ namespace crv::graphics::vulkan {
         uint32_t nee         = 1;
         uint32_t emissiveCount = 0;
         uint32_t skyboxIndex = UINT32_MAX;
+        float    envIntegral = 0.0f;
+        uint32_t envNee      = 1;
+        uint64_t envMarginalCdfAddr = 0;
+        uint64_t envCondCdfAddr     = 0;
+        uint64_t envCondFuncAddr    = 0;
     };
 
     struct PostprocessPushConstants {

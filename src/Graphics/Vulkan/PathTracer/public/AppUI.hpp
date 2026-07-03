@@ -60,6 +60,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] uint32_t maxDepth() const { return mMaxDepth; }
         [[nodiscard]] uint32_t displayMode() const { return mDisplayMode; }
         [[nodiscard]] bool     nee() const { return mNee; }
+        [[nodiscard]] bool     envNee() const { return mEnvNee; }
         [[nodiscard]] float    exposure() const { return mExposure; }
         [[nodiscard]] bool     tonemap() const { return mTonemap; }
     private:
@@ -82,6 +83,7 @@ namespace crv::graphics::vulkan {
         int              mMaxDepth        = 2;
         int              mDisplayMode     = 0;
         bool             mNee             = false;
+        bool             mEnvNee          = false;
         float            mExposure        = 1.0f;
         bool             mTonemap         = true;
 

@@ -465,7 +465,12 @@ namespace crv::graphics::vulkan {
                 .displayMode = mUI.displayMode(),
                 .nee = mUI.nee() ? 1u : 0u,
                 .emissiveCount = static_cast<uint32_t>(mResourceManager.emissiveIndices().size()),
-                .skyboxIndex = mResourceManager.skyboxIndex()
+                .skyboxIndex = mResourceManager.skyboxIndex(),
+                .envIntegral = mResourceManager.envIntegral(),
+                .envNee = mUI.envNee() ? 1u : 0u,
+                .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
+                .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
+                .envCondFuncAddr = mResourceManager.envCondFuncAddr()
             },
             .width = mSwapchain.extent().width,
             .height = mSwapchain.extent().height

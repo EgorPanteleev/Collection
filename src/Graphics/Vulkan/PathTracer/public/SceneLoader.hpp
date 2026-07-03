@@ -37,6 +37,8 @@ namespace crv::graphics::vulkan {
         explicit SceneLoader(const SceneLoaderCreateInfo& info);
         void loadScene(const json& scene);
         [[nodiscard]] json save() const;
+        void buildEnvDistribution(const cm::Texture& skybox);
+        void disableEnvDistribution();
     private:
         void loadModel(uint32_t modelIndex, const std::string& path);
         void loadMaterials();
@@ -60,6 +62,14 @@ namespace crv::graphics::vulkan {
         uint32_t                     mSkyboxIndex = UINT32_MAX;
         std::string                  mSkyboxName{};
         std::string                  mSkyboxPath{};
+
+        Buffer   mEnvMarginalCdfBuffer = CRV_NULL_HANDLE;
+        Buffer   mEnvCondCdfBuffer     = CRV_NULL_HANDLE;
+        Buffer   mEnvCondFuncBuffer    = CRV_NULL_HANDLE;
+        uint64_t mEnvMarginalCdfAddr   = 0;
+        uint64_t mEnvCondCdfAddr       = 0;
+        uint64_t mEnvCondFuncAddr      = 0;
+        float    mEnvIntegral          = 0.0f;
     };
 }
 

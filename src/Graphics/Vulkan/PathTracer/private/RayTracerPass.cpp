@@ -237,9 +237,6 @@ namespace crv::graphics::vulkan {
         uint32_t stride     = alignUp(handleSize, props.shaderGroupHandleAlignment);
         uint32_t baseAlign  = props.shaderGroupBaseAlignment;
 
-        // Records within a region are spaced by `stride`; only each region's base
-        // needs shaderGroupBaseAlignment. The miss region packs two records
-        // (missMain, shadowMissMain) contiguously.
         uint32_t raygenRegionSize = alignUp(stride,      baseAlign);
         uint32_t missRegionSize   = alignUp(stride * 2u, baseAlign);
         uint32_t hitRegionSize    = alignUp(stride,      baseAlign);

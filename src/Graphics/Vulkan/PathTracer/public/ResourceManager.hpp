@@ -49,6 +49,10 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] std::vector<Texture>& textures() { return mSceneLoader.mTextures; }
         [[nodiscard]] uint32_t skyboxIndex() const { return mSceneLoader.mSkyboxIndex; }
         [[nodiscard]] const std::string& skyboxName() const { return mSceneLoader.mSkyboxName; }
+        [[nodiscard]] float envIntegral() const { return mSceneLoader.mEnvIntegral; }
+        [[nodiscard]] uint64_t envMarginalCdfAddr() const { return mSceneLoader.mEnvMarginalCdfAddr; }
+        [[nodiscard]] uint64_t envCondCdfAddr() const { return mSceneLoader.mEnvCondCdfAddr; }
+        [[nodiscard]] uint64_t envCondFuncAddr() const { return mSceneLoader.mEnvCondFuncAddr; }
     private:
         void createLoader();
         void buildTLAS();

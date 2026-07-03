@@ -56,6 +56,7 @@ void rgenMain() {
     }
 
     float3 radiance = radianceSum / float(sampleCount);
+    if (any(isnan(radiance)) || any(isinf(radiance))) radiance = float3(0.0);
 
     outputInstanceIdImage[pixel] = firstInstanceId + 1;
 
@@ -71,7 +72,13 @@ void rgenMain() {
 [shader("miss")]
 void missMain(inout PathPayload payload) {
     if (pc.displayMode == 0u) {
-        float3 contrib = payload.throughput * sampleEnvironment(WorldRayDirection());
+        float3 dir  = WorldRayDirection();
+        float  misW = 1.0;
+        if (payload.prevBrdfPdf >= 0.0) {
+            float ep = envPdf(dir);
+            if (ep > 0.0) misW = powerHeuristic(payload.prevBrdfPdf, ep);
+        }
+        float3 contrib = payload.throughput * sampleEnvironment(dir) * misW;
         if (payload.depth > 0u) {
             float lum = luminance(contrib);
             if (lum > FIREFLY_CLAMP) contrib *= FIREFLY_CLAMP / lum;
@@ -178,6 +185,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     directLightContribution(payload, hit.P, hit.gN, surf);
     nextEventEstimation(payload, hit.P, hit.gN, surf);
+    environmentNEE(payload, hit.P, hit.gN, surf);
 
     if (scatter.pdf <= PDF_EPS) {
         payload.done = true;
