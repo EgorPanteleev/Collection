@@ -61,6 +61,8 @@ SLANG_PUBLIC struct MaterialGPU {
     SLANG_PUBLIC uint   clearcoatRoughnessTexIndex;
     SLANG_PUBLIC float  opacity;
     SLANG_PUBLIC float  normalScale;
+    SLANG_PUBLIC float  anisotropy;
+    SLANG_PUBLIC float  sheen;
 };
 
 #ifdef __cplusplus
@@ -68,7 +70,7 @@ static_assert(sizeof(Vertex)       == 48, "Vertex layout must match the shader s
 static_assert(sizeof(AliasEntry)   ==  8, "AliasEntry layout must match the shader scalar buffer layout");
 static_assert(sizeof(MeshGPU)     == 32, "MeshGPU layout must match the shader scalar buffer layout");
 static_assert(sizeof(InstanceGPU)  == 72, "InstanceGPU layout must match the shader scalar buffer layout");
-static_assert(sizeof(MaterialGPU) == 84, "MaterialGPU layout must match the shader scalar buffer layout");
+static_assert(sizeof(MaterialGPU) == 92, "MaterialGPU layout must match the shader scalar buffer layout");
 } // namespace crv::graphics::vulkan
   #undef float2
   #undef float3

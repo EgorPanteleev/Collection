@@ -263,18 +263,23 @@ namespace crv::graphics::vulkan {
                 mUpdateImage();
             }
         }
-        if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::TreeNodeEx("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ImGui::Checkbox("Light sources", &mNee)) {
-                    mUpdateImage();
-                }
-                ImGui::BeginDisabled(mResourceManager->skyboxIndex() == UINT32_MAX);
-                if (ImGui::Checkbox("Environment", &mEnvNee)) {
-                    mUpdateImage();
-                }
-                ImGui::EndDisabled();
-                ImGui::TreePop();
+        if (ImGui::CollapsingHeader("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Checkbox("Light sources", &mNee)) {
+                mUpdateImage();
             }
+            ImGui::BeginDisabled(mResourceManager->skyboxIndex() == UINT32_MAX);
+            if (ImGui::Checkbox("Environment", &mEnvNee)) {
+                mUpdateImage();
+            }
+            ImGui::EndDisabled();
+        }
+        if (ImGui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::DragInt("Render Scale", &mRenderScale, 0.05f, 1, 16)) {
+                mUpdateImage();
+            }
+            ImGui::DragInt("Motion Scale", &mMotionScale, 0.05f, mRenderScale, 16);
+        }
+        if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
                 mUpdateImage();
             }
@@ -284,10 +289,6 @@ namespace crv::graphics::vulkan {
             if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
                 mUpdateImage();
             }
-            if (ImGui::DragInt("Resolution Scale", &mRenderScale, 0.05f, 1, 16)) {
-                mUpdateImage();
-            }
-            ImGui::DragInt("Motion Scale", &mMotionScale, 0.05f, mRenderScale, 16);
         }
         if (ImGui::CollapsingHeader("Depth of Field", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat("Aperture", &mAperture, 0.001f, 0.0f, 5.0f, "%.3f")) {
@@ -383,6 +384,14 @@ namespace crv::graphics::vulkan {
                     mUpdateImage();
                 }
                 if (ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                if (ImGui::SliderFloat("Anisotropy", &material.anisotropy, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                if (ImGui::SliderFloat("Sheen", &material.sheen, 0.0f, 1.0f, "%.2f")) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }

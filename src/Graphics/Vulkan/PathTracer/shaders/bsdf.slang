@@ -11,9 +11,13 @@ public struct Scatter {
 public struct Surface {
     public float3 N;
     public float3 wo;
+    public float3 T;
+    public float3 B;
     public float3 diffColor;
     public float3 F0;
-    public float  alpha;
+    public float  alphaX;
+    public float  alphaY;
+    public float  sheen;
     public float  pSpec;
     public float  ccWeight;
     public float  ccAlpha;
@@ -37,7 +41,8 @@ public float3 cosineSample(inout uint seed) {
 }
 
 public Surface makeSurface(float3 baseColor, float metalness, float roughness, float ior, float specular,
-                           float clearcoat, float clearcoatRoughness, float3 N, float3 wo) {
+                           float clearcoat, float clearcoatRoughness, float anisotropy, float sheen,
+                           float4 tangent, float3 N, float3 wo) {
     Surface s;
     s.N         = N;
     s.wo        = wo;
@@ -45,7 +50,23 @@ public Surface makeSurface(float3 baseColor, float metalness, float roughness, f
     float  dielectricF0 = min(r * r * specular, 1.0);
     s.diffColor = baseColor * (1.0 - metalness);
     s.F0        = lerp(float3(dielectricF0), baseColor, metalness);
-    s.alpha     = max(roughness * roughness, 1e-3);
+
+    float alpha  = max(roughness * roughness, 1e-3);
+    float aspect = sqrt(1.0 - 0.9 * saturate(anisotropy));
+    s.alphaX = max(alpha / aspect, 1e-3);
+    s.alphaY = max(alpha * aspect, 1e-3);
+
+    float3 T;
+    if (dot(tangent.xyz, tangent.xyz) > 1e-8) {
+        T = normalize(tangent.xyz - N * dot(tangent.xyz, N));
+    } else {
+        float3 bt;
+        createONB(N, T, bt);
+    }
+    s.T = T;
+    s.B = normalize(cross(N, T));
+
+    s.sheen     = sheen;
     float fl    = luminance(s.F0);
     float dl    = luminance(s.diffColor);
     s.pSpec     = clamp(fl / (fl + dl + 1e-4), 0.1, 0.9);
@@ -113,6 +134,34 @@ float3 sampleGGX(inout uint seed, float3 wo, float3 tangent, float3 bitangent, f
     return reflect(-wo, H);
 }
 
+float D_GGX_aniso(float3 H, float3 T, float3 B, float3 N, float ax, float ay) {
+    float HdotX = dot(H, T);
+    float HdotY = dot(H, B);
+    float HdotN = dot(H, N);
+    float d = HdotX * HdotX / (ax * ax) + HdotY * HdotY / (ay * ay) + HdotN * HdotN;
+    return 1.0 / max(M_PI * ax * ay * d * d, 1e-7);
+}
+
+float V_SmithGGX_aniso(float3 V, float3 L, float3 T, float3 B, float NdotV, float NdotL, float ax, float ay) {
+    float lambdaV = NdotL * length(float3(ax * dot(V, T), ay * dot(V, B), NdotV));
+    float lambdaL = NdotV * length(float3(ax * dot(L, T), ay * dot(L, B), NdotL));
+    return 0.5 / max(lambdaV + lambdaL, 1e-7);
+}
+
+float3 sampleGGXAniso(inout uint seed, Surface s) {
+    float u1 = rand01(seed);
+    float u2 = rand01(seed);
+    float phi = atan2(s.alphaY * sin(2.0 * M_PI * u1), s.alphaX * cos(2.0 * M_PI * u1));
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+    float denom = cosPhi * cosPhi / (s.alphaX * s.alphaX) + sinPhi * sinPhi / (s.alphaY * s.alphaY);
+    float tanTheta2 = u2 / (1.0 - u2) / max(denom, 1e-7);
+    float cosT = 1.0 / sqrt(1.0 + tanTheta2);
+    float sinT = sqrt(max(0.0, 1.0 - cosT * cosT));
+    float3 H = (sinT * cosPhi) * s.T + (sinT * sinPhi) * s.B + cosT * s.N;
+    return reflect(-s.wo, H);
+}
+
 float3 multiScatterComp(float3 F0, float NdotV, float alpha) {
     float  roughness = sqrt(alpha);
     float4 c0 = float4(-1.0, -0.0275, -0.572, 0.022);
@@ -137,12 +186,14 @@ public void evalBSDF(Surface s, float3 wi, out float3 brdf, out float pdf) {
     float  VdotH = saturate(dot(s.wo, H));
 
     float3 F   = fresnelSchlick(VdotH, s.F0);
-    float  D   = D_GGX(NdotH, s.alpha);
-    float  Vis = V_SmithGGXCorrelated(NdotV, NdotL, s.alpha);
+    float  D   = D_GGX_aniso(H, s.T, s.B, s.N, s.alphaX, s.alphaY);
+    float  Vis = V_SmithGGX_aniso(s.wo, wi, s.T, s.B, NdotV, NdotL, s.alphaX, s.alphaY);
 
-    float3 specular = D * Vis * F * multiScatterComp(s.F0, NdotV, s.alpha);
+    float  alphaAvg = sqrt(s.alphaX * s.alphaY);
+    float3 specular = D * Vis * F * multiScatterComp(s.F0, NdotV, alphaAvg);
     float3 diffuse  = s.diffColor * M_1_PI * (1.0 - F);
-    float3 baseBrdf = diffuse + specular;
+    float3 sheen    = float3(s.sheen * pow(saturate(1.0 - VdotH), 5.0));
+    float3 baseBrdf = diffuse + specular + sheen;
 
     float diffPdf = NdotL * M_1_PI;
     float specPdf = D * NdotH / max(4.0 * VdotH, 1e-7);
@@ -167,7 +218,7 @@ public Scatter sampleBSDF(inout uint seed, Surface s) {
     if (rand01(seed) < s.pClearcoat) {
         wi = sampleGGX(seed, s.wo, tangent, bitangent, s.N, s.ccAlpha);
     } else if (rand01(seed) < s.pSpec) {
-        wi = sampleGGX(seed, s.wo, tangent, bitangent, s.N, s.alpha);
+        wi = sampleGGXAniso(seed, s);
     } else {
         float3 local = cosineSample(seed);
         wi = local.x * tangent + local.y * bitangent + local.z * s.N;

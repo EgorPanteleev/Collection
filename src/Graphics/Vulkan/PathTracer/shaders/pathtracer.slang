@@ -184,7 +184,8 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     Surface surf = makeSurface(baseColor, metalness, roughness,
                                material.ior, material.specular,
                                clearcoat, clearcoatRoughness,
-                               hit.N, -WorldRayDirection());
+                               material.anisotropy, material.sheen,
+                               hit.tangent, hit.N, -WorldRayDirection());
     Scatter scatter = sampleBSDF(payload.seed, surf);
 
     directLightContribution(payload, hit.P, hit.gN, surf);

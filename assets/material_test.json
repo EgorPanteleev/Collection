@@ -1,0 +1,3356 @@
+{
+ "modelImports": [
+  "meshes/sphere.glb"
+ ],
+ "skybox": "skyboxes/zwartkops_straight_morning_4k.hdr",
+ "materials": [
+  {
+   "name": "die_rough_0.00",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "die_rough_0.17",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.16666666666666666,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "die_rough_0.33",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.3333333333333333,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "die_rough_0.50",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "die_rough_0.67",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.6666666666666666,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "die_rough_0.83",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.8333333333333334,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "die_rough_1.00",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 1.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_0.00",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_0.17",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.16666666666666666,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_0.33",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.3333333333333333,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_0.50",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_0.67",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.6666666666666666,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_0.83",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.8333333333333334,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "met_rough_1.00",
+   "color": [
+    1.0,
+    0.78,
+    0.34
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 1.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_0.00",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_0.17",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 0.16666666666666666,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_0.33",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 0.3333333333333333,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_0.50",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 0.5,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_0.67",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 0.6666666666666666,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_0.83",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 0.8333333333333334,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "metalness_1.00",
+   "color": [
+    0.95,
+    0.64,
+    0.54
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.18,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_0.00",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 0.0,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_0.17",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 0.16666666666666666,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_0.33",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 0.3333333333333333,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_0.50",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_0.67",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 0.6666666666666666,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_0.83",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 0.8333333333333334,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "specular_1.00",
+   "color": [
+    0.8,
+    0.8,
+    0.8
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.08,
+   "ior": 1.5,
+   "specular": 1.0,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_0.00",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_0.17",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.16666666666666666,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_0.33",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.3333333333333333,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_0.50",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.5,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_0.67",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.6666666666666666,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_0.83",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.8333333333333334,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_weight_1.00",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_0.00",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.0,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_0.17",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.16666666666666666,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_0.33",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.3333333333333333,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_0.50",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.5,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_0.67",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.6666666666666666,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_0.83",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 0.8333333333333334,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "cc_rough_1.00",
+   "color": [
+    0.8,
+    0.1,
+    0.1
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 1.0,
+   "clearcoatRoughness": 1.0,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_0.00",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_0.17",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.16666666666666666,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_0.33",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.3333333333333333,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_0.50",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.5,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_0.67",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.6666666666666666,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_0.83",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.8333333333333334,
+   "sheen": 0.0
+  },
+  {
+   "name": "aniso_1.00",
+   "color": [
+    0.95,
+    0.95,
+    0.97
+   ],
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 1.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "sheen_0.00",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "sheen_0.17",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.16666666666666666
+  },
+  {
+   "name": "sheen_0.33",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.3333333333333333
+  },
+  {
+   "name": "sheen_0.50",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.5
+  },
+  {
+   "name": "sheen_0.67",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.6666666666666666
+  },
+  {
+   "name": "sheen_0.83",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.8333333333333334
+  },
+  {
+   "name": "sheen_1.00",
+   "color": [
+    0.1,
+    0.6,
+    0.6
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 1.0
+  },
+  {
+   "name": "transmission_0.00",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "transmission_0.17",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.16666666666666666,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "transmission_0.33",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.3333333333333333,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "transmission_0.50",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.5,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "transmission_0.67",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.6666666666666666,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "transmission_0.83",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.8333333333333334,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "transmission_1.00",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_0.00",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.0,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_0.17",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.1666666666666667,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_0.33",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.3333333333333333,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_0.50",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_0.67",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.6666666666666665,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_0.83",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.8333333333333335,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "glass_ior_1.00",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 2.0,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "absorb_0.00",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "absorb_0.17",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    0.8583333333333334,
+    0.8583333333333334
+   ]
+  },
+  {
+   "name": "absorb_0.33",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    0.7166666666666667,
+    0.7166666666666667
+   ]
+  },
+  {
+   "name": "absorb_0.50",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    0.575,
+    0.575
+   ]
+  },
+  {
+   "name": "absorb_0.67",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    0.43333333333333335,
+    0.43333333333333335
+   ]
+  },
+  {
+   "name": "absorb_0.83",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    0.29166666666666663,
+    0.29166666666666663
+   ]
+  },
+  {
+   "name": "absorb_1.00",
+   "color": [
+    0.98,
+    0.98,
+    0.98
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.0,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 1.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0,
+   "absorption": [
+    1.0,
+    0.15000000000000002,
+    0.15000000000000002
+   ]
+  },
+  {
+   "name": "emissive_0.00",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "emissive_0.17",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 1.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "emissive_0.33",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 2.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "emissive_0.50",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 3.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "emissive_0.67",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 4.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "emissive_0.83",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 5.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  },
+  {
+   "name": "emissive_1.00",
+   "color": [
+    1.0,
+    0.7,
+    0.4
+   ],
+   "luminance": 6.0,
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "ior": 1.5,
+   "specular": 0.5,
+   "transmission": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.03,
+   "opacity": 1.0,
+   "anisotropy": 0.0,
+   "sheen": 0.0
+  }
+ ],
+ "instances": [
+  {
+   "name": "Dielectric Roughness 0.00",
+   "modelIndex": 0,
+   "texIndex": 0,
+   "localPosition": [
+    -7.800000000000001,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Dielectric Roughness 0.17",
+   "modelIndex": 0,
+   "texIndex": 1,
+   "localPosition": [
+    -5.2,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Dielectric Roughness 0.33",
+   "modelIndex": 0,
+   "texIndex": 2,
+   "localPosition": [
+    -2.6,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Dielectric Roughness 0.50",
+   "modelIndex": 0,
+   "texIndex": 3,
+   "localPosition": [
+    0.0,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Dielectric Roughness 0.67",
+   "modelIndex": 0,
+   "texIndex": 4,
+   "localPosition": [
+    2.6,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Dielectric Roughness 0.83",
+   "modelIndex": 0,
+   "texIndex": 5,
+   "localPosition": [
+    5.2,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Dielectric Roughness 1.00",
+   "modelIndex": 0,
+   "texIndex": 6,
+   "localPosition": [
+    7.800000000000001,
+    14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 0.00",
+   "modelIndex": 0,
+   "texIndex": 7,
+   "localPosition": [
+    -7.800000000000001,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 0.17",
+   "modelIndex": 0,
+   "texIndex": 8,
+   "localPosition": [
+    -5.2,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 0.33",
+   "modelIndex": 0,
+   "texIndex": 9,
+   "localPosition": [
+    -2.6,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 0.50",
+   "modelIndex": 0,
+   "texIndex": 10,
+   "localPosition": [
+    0.0,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 0.67",
+   "modelIndex": 0,
+   "texIndex": 11,
+   "localPosition": [
+    2.6,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 0.83",
+   "modelIndex": 0,
+   "texIndex": 12,
+   "localPosition": [
+    5.2,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metal Roughness 1.00",
+   "modelIndex": 0,
+   "texIndex": 13,
+   "localPosition": [
+    7.800000000000001,
+    11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 0.00",
+   "modelIndex": 0,
+   "texIndex": 14,
+   "localPosition": [
+    -7.800000000000001,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 0.17",
+   "modelIndex": 0,
+   "texIndex": 15,
+   "localPosition": [
+    -5.2,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 0.33",
+   "modelIndex": 0,
+   "texIndex": 16,
+   "localPosition": [
+    -2.6,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 0.50",
+   "modelIndex": 0,
+   "texIndex": 17,
+   "localPosition": [
+    0.0,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 0.67",
+   "modelIndex": 0,
+   "texIndex": 18,
+   "localPosition": [
+    2.6,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 0.83",
+   "modelIndex": 0,
+   "texIndex": 19,
+   "localPosition": [
+    5.2,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Metalness 1.00",
+   "modelIndex": 0,
+   "texIndex": 20,
+   "localPosition": [
+    7.800000000000001,
+    9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 0.00",
+   "modelIndex": 0,
+   "texIndex": 21,
+   "localPosition": [
+    -7.800000000000001,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 0.17",
+   "modelIndex": 0,
+   "texIndex": 22,
+   "localPosition": [
+    -5.2,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 0.33",
+   "modelIndex": 0,
+   "texIndex": 23,
+   "localPosition": [
+    -2.6,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 0.50",
+   "modelIndex": 0,
+   "texIndex": 24,
+   "localPosition": [
+    0.0,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 0.67",
+   "modelIndex": 0,
+   "texIndex": 25,
+   "localPosition": [
+    2.6,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 0.83",
+   "modelIndex": 0,
+   "texIndex": 26,
+   "localPosition": [
+    5.2,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Specular 1.00",
+   "modelIndex": 0,
+   "texIndex": 27,
+   "localPosition": [
+    7.800000000000001,
+    6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 0.00",
+   "modelIndex": 0,
+   "texIndex": 28,
+   "localPosition": [
+    -7.800000000000001,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 0.17",
+   "modelIndex": 0,
+   "texIndex": 29,
+   "localPosition": [
+    -5.2,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 0.33",
+   "modelIndex": 0,
+   "texIndex": 30,
+   "localPosition": [
+    -2.6,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 0.50",
+   "modelIndex": 0,
+   "texIndex": 31,
+   "localPosition": [
+    0.0,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 0.67",
+   "modelIndex": 0,
+   "texIndex": 32,
+   "localPosition": [
+    2.6,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 0.83",
+   "modelIndex": 0,
+   "texIndex": 33,
+   "localPosition": [
+    5.2,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Weight 1.00",
+   "modelIndex": 0,
+   "texIndex": 34,
+   "localPosition": [
+    7.800000000000001,
+    3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 0.00",
+   "modelIndex": 0,
+   "texIndex": 35,
+   "localPosition": [
+    -7.800000000000001,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 0.17",
+   "modelIndex": 0,
+   "texIndex": 36,
+   "localPosition": [
+    -5.2,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 0.33",
+   "modelIndex": 0,
+   "texIndex": 37,
+   "localPosition": [
+    -2.6,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 0.50",
+   "modelIndex": 0,
+   "texIndex": 38,
+   "localPosition": [
+    0.0,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 0.67",
+   "modelIndex": 0,
+   "texIndex": 39,
+   "localPosition": [
+    2.6,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 0.83",
+   "modelIndex": 0,
+   "texIndex": 40,
+   "localPosition": [
+    5.2,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Clearcoat Roughness 1.00",
+   "modelIndex": 0,
+   "texIndex": 41,
+   "localPosition": [
+    7.800000000000001,
+    1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 0.00",
+   "modelIndex": 0,
+   "texIndex": 42,
+   "localPosition": [
+    -7.800000000000001,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 0.17",
+   "modelIndex": 0,
+   "texIndex": 43,
+   "localPosition": [
+    -5.2,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 0.33",
+   "modelIndex": 0,
+   "texIndex": 44,
+   "localPosition": [
+    -2.6,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 0.50",
+   "modelIndex": 0,
+   "texIndex": 45,
+   "localPosition": [
+    0.0,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 0.67",
+   "modelIndex": 0,
+   "texIndex": 46,
+   "localPosition": [
+    2.6,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 0.83",
+   "modelIndex": 0,
+   "texIndex": 47,
+   "localPosition": [
+    5.2,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Anisotropy 1.00",
+   "modelIndex": 0,
+   "texIndex": 48,
+   "localPosition": [
+    7.800000000000001,
+    -1.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 0.00",
+   "modelIndex": 0,
+   "texIndex": 49,
+   "localPosition": [
+    -7.800000000000001,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 0.17",
+   "modelIndex": 0,
+   "texIndex": 50,
+   "localPosition": [
+    -5.2,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 0.33",
+   "modelIndex": 0,
+   "texIndex": 51,
+   "localPosition": [
+    -2.6,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 0.50",
+   "modelIndex": 0,
+   "texIndex": 52,
+   "localPosition": [
+    0.0,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 0.67",
+   "modelIndex": 0,
+   "texIndex": 53,
+   "localPosition": [
+    2.6,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 0.83",
+   "modelIndex": 0,
+   "texIndex": 54,
+   "localPosition": [
+    5.2,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Sheen 1.00",
+   "modelIndex": 0,
+   "texIndex": 55,
+   "localPosition": [
+    7.800000000000001,
+    -3.9000000000000004,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 0.00",
+   "modelIndex": 0,
+   "texIndex": 56,
+   "localPosition": [
+    -7.800000000000001,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 0.17",
+   "modelIndex": 0,
+   "texIndex": 57,
+   "localPosition": [
+    -5.2,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 0.33",
+   "modelIndex": 0,
+   "texIndex": 58,
+   "localPosition": [
+    -2.6,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 0.50",
+   "modelIndex": 0,
+   "texIndex": 59,
+   "localPosition": [
+    0.0,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 0.67",
+   "modelIndex": 0,
+   "texIndex": 60,
+   "localPosition": [
+    2.6,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 0.83",
+   "modelIndex": 0,
+   "texIndex": 61,
+   "localPosition": [
+    5.2,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Transmission 1.00",
+   "modelIndex": 0,
+   "texIndex": 62,
+   "localPosition": [
+    7.800000000000001,
+    -6.5,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 0.00",
+   "modelIndex": 0,
+   "texIndex": 63,
+   "localPosition": [
+    -7.800000000000001,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 0.17",
+   "modelIndex": 0,
+   "texIndex": 64,
+   "localPosition": [
+    -5.2,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 0.33",
+   "modelIndex": 0,
+   "texIndex": 65,
+   "localPosition": [
+    -2.6,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 0.50",
+   "modelIndex": 0,
+   "texIndex": 66,
+   "localPosition": [
+    0.0,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 0.67",
+   "modelIndex": 0,
+   "texIndex": 67,
+   "localPosition": [
+    2.6,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 0.83",
+   "modelIndex": 0,
+   "texIndex": 68,
+   "localPosition": [
+    5.2,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Glass IOR 1.00",
+   "modelIndex": 0,
+   "texIndex": 69,
+   "localPosition": [
+    7.800000000000001,
+    -9.1,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 0.00",
+   "modelIndex": 0,
+   "texIndex": 70,
+   "localPosition": [
+    -7.800000000000001,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 0.17",
+   "modelIndex": 0,
+   "texIndex": 71,
+   "localPosition": [
+    -5.2,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 0.33",
+   "modelIndex": 0,
+   "texIndex": 72,
+   "localPosition": [
+    -2.6,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 0.50",
+   "modelIndex": 0,
+   "texIndex": 73,
+   "localPosition": [
+    0.0,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 0.67",
+   "modelIndex": 0,
+   "texIndex": 74,
+   "localPosition": [
+    2.6,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 0.83",
+   "modelIndex": 0,
+   "texIndex": 75,
+   "localPosition": [
+    5.2,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Absorption 1.00",
+   "modelIndex": 0,
+   "texIndex": 76,
+   "localPosition": [
+    7.800000000000001,
+    -11.700000000000001,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 0.00",
+   "modelIndex": 0,
+   "texIndex": 77,
+   "localPosition": [
+    -7.800000000000001,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 0.17",
+   "modelIndex": 0,
+   "texIndex": 78,
+   "localPosition": [
+    -5.2,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 0.33",
+   "modelIndex": 0,
+   "texIndex": 79,
+   "localPosition": [
+    -2.6,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 0.50",
+   "modelIndex": 0,
+   "texIndex": 80,
+   "localPosition": [
+    0.0,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 0.67",
+   "modelIndex": 0,
+   "texIndex": 81,
+   "localPosition": [
+    2.6,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 0.83",
+   "modelIndex": 0,
+   "texIndex": 82,
+   "localPosition": [
+    5.2,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "name": "Emissive 1.00",
+   "modelIndex": 0,
+   "texIndex": 83,
+   "localPosition": [
+    7.800000000000001,
+    -14.3,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  }
+ ],
+ "directLight": {
+  "direction": [
+   -0.5,
+   0.5,
+   -0.7
+  ],
+  "intensity": 0.0
+ },
+ "window": {
+  "name": "Material Test",
+  "width": 1400,
+  "height": 1000
+ },
+ "camera": {
+  "type": "Fly",
+  "position": [
+   0.0,
+   0.0,
+   32.89
+  ],
+  "target": [
+   0.0,
+   0.0,
+   -100.0
+  ],
+  "up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "zoom": 1,
+  "fov": 50,
+  "nearPlane": 0.1,
+  "farPlane": 5000.0
+ }
+}

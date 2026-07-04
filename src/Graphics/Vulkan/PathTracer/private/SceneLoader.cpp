@@ -389,7 +389,9 @@ namespace crv::graphics::vulkan {
                 .clearcoatRoughness = jsonMaterial.value("clearcoatRoughness", 0.0f),
                 .absorption = jsonMaterial.contains("absorption") && jsonMaterial["absorption"].is_array() ? toVec3(jsonMaterial["absorption"]) : glm::vec3(1.0f),
                 .opacity = jsonMaterial.value("opacity", 1.0f),
-                .normalScale = jsonMaterial.value("normalScale", 1.0f)
+                .normalScale = jsonMaterial.value("normalScale", 1.0f),
+                .anisotropy = jsonMaterial.value("anisotropy", 0.0f),
+                .sheen = jsonMaterial.value("sheen", 0.0f)
             };
         }
     }
@@ -488,6 +490,8 @@ namespace crv::graphics::vulkan {
             if (jm.contains("absorption") && jm["absorption"].is_array()) material.absorption = toVec3(jm["absorption"]);
             material.opacity = jm.value("opacity", material.opacity);
             material.normalScale = jm.value("normalScale", material.normalScale);
+            material.anisotropy = jm.value("anisotropy", material.anisotropy);
+            material.sheen = jm.value("sheen", material.sheen);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
                 material.baseColorTexIndex, material.baseColorTexName, material.baseColorTexPath);
@@ -578,6 +582,8 @@ namespace crv::graphics::vulkan {
             jm["absorption"]           = { material.absorption.r, material.absorption.g, material.absorption.b };
             jm["opacity"]              = material.opacity;
             jm["normalScale"]          = material.normalScale;
+            jm["anisotropy"]           = material.anisotropy;
+            jm["sheen"]                = material.sheen;
             if (!material.baseColorTexPath.empty()) jm["baseColorTex"] = material.baseColorTexPath;
             if (!material.normalTexPath.empty()) jm["normalTex"] = material.normalTexPath;
             if (!material.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexPath;
