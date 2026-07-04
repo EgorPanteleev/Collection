@@ -36,6 +36,7 @@ namespace crv::graphics::vulkan {
         float    exposure    = 1.0f;
         uint32_t tonemap     = 1;
         uint32_t displayMode = 0;
+        uint32_t renderScale = 1;
     };
 
     struct alignas(16) CameraGPU {

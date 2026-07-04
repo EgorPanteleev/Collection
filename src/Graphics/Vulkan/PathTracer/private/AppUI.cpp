@@ -170,10 +170,13 @@ namespace crv::graphics::vulkan {
             if (VkImGui::beginGroup(ICON_FA_MICROCHIP " System")) {
                 auto properties = mContext->physicalDeviceProperties();
                 auto [width, height] = mSwapchain->extent();
+                const auto scale = static_cast<uint32_t>(mRenderScale);
                 std::string viewport = std::format("{:1}x{:2}", width, height);
+                std::string render = std::format("{:1}x{:2}", (width + scale - 1) / scale, (height + scale - 1) / scale);
                 if (VkImGui::beginCompactTable("##monitor_system", 2.0f)) {
                     VkImGui::row("GPU"     , properties.deviceName);
                     VkImGui::row("Viewport", viewport.c_str());
+                    VkImGui::row("Render"  , render.c_str());
                     VkImGui::endCompactTable();
                 }
                 VkImGui::endGroup();
@@ -279,6 +282,9 @@ namespace crv::graphics::vulkan {
                 mUpdateImage();
             }
             if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
+                mUpdateImage();
+            }
+            if (ImGui::DragInt("Resolution Scale", &mRenderScale, 0.05f, 1, 16)) {
                 mUpdateImage();
             }
         }

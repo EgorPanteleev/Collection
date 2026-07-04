@@ -474,8 +474,8 @@ namespace crv::graphics::vulkan {
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr()
             },
-            .width = mSwapchain.extent().width,
-            .height = mSwapchain.extent().height
+            .width = (mSwapchain.extent().width + mUI.renderScale() - 1) / mUI.renderScale(),
+            .height = (mSwapchain.extent().height + mUI.renderScale() - 1) / mUI.renderScale()
         };
         mRayTracerPass.record(recordInfo);
         recordPixelRead(commandBuffer);
@@ -533,7 +533,8 @@ namespace crv::graphics::vulkan {
             .constants = {
                 .exposure = mUI.exposure(),
                 .tonemap = mUI.tonemap() ? 1u : 0u,
-                .displayMode = mUI.displayMode()
+                .displayMode = mUI.displayMode(),
+                .renderScale = mUI.renderScale()
             }
         };
         mPostprocessPass.record(recordInfo);
@@ -633,12 +634,13 @@ namespace crv::graphics::vulkan {
         };
         Image::transit(transitInfo);
 
+        const uint32_t scale = mUI.renderScale();
         const VkBufferImageCopy region {
             .bufferOffset = 0,
             .bufferRowLength = 0,
             .bufferImageHeight = 0,
             .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-            .imageOffset = {static_cast<int32_t>(mClickedPixel.x), static_cast<int32_t>(mClickedPixel.y), 0},
+            .imageOffset = {static_cast<int32_t>(mClickedPixel.x / scale), static_cast<int32_t>(mClickedPixel.y / scale), 0},
             .imageExtent = {1, 1, 1}
         };
         vkCmdCopyImageToBuffer(commandBuffer, mTracerInstanceImage.get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
