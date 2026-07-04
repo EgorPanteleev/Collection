@@ -61,6 +61,8 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] uint32_t displayMode() const { return mDisplayMode; }
         [[nodiscard]] bool     nee() const { return mNee; }
         [[nodiscard]] bool     envNee() const { return mEnvNee; }
+        [[nodiscard]] float    aperture() const { return mAperture; }
+        [[nodiscard]] float    focusDistance() const { return mFocusDistance; }
         [[nodiscard]] float    exposure() const { return mExposure; }
         [[nodiscard]] bool     tonemap() const { return mTonemap; }
     private:
@@ -84,6 +86,8 @@ namespace crv::graphics::vulkan {
         int              mDisplayMode     = 0;
         bool             mNee             = false;
         bool             mEnvNee          = false;
+        float            mAperture        = 0.0f;
+        float            mFocusDistance   = 10.0f;
         float            mExposure        = 1.0f;
         bool             mTonemap         = true;
 

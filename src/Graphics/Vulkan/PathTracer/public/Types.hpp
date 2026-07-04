@@ -25,6 +25,8 @@ namespace crv::graphics::vulkan {
         uint32_t skyboxIndex = UINT32_MAX;
         float    envIntegral = 0.0f;
         uint32_t envNee      = 1;
+        float    aperture      = 0.0f;
+        float    focusDistance = 10.0f;
         uint64_t envMarginalCdfAddr = 0;
         uint64_t envCondCdfAddr     = 0;
         uint64_t envCondFuncAddr    = 0;

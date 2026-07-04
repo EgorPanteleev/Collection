@@ -29,6 +29,8 @@ public struct PushConstants {
     public uint skyboxIndex;
     public float    envIntegral;
     public uint     envNee;
+    public float    aperture;
+    public float    focusDistance;
     public uint64_t envMarginalCdfAddr;
     public uint64_t envCondCdfAddr;
     public uint64_t envCondFuncAddr;

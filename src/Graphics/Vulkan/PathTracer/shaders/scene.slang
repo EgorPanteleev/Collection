@@ -159,8 +159,20 @@ public void primaryRay(uint2 pixel, uint2 size, inout uint seed, out float3 orig
     float2 jitter = float2(rand01(seed), rand01(seed)) - 0.5;
     float2 uv     = (float2(pixel) + jitter) / float2(size);
     float4 target = mul(camera.invProj, float4(uv * 2.0 - 1.0, 1.0, 1.0));
-    dir    = normalize(mul(camera.invView, float4(normalize(target.xyz), 0.0)).xyz);
-    origin = mul(camera.invView, float4(0.0, 0.0, 0.0, 1.0)).xyz;
+    float3 dirVS  = normalize(target.xyz);
+    float3 oriVS  = float3(0.0);
+
+    if (pc.aperture > 0.0) {
+        float  t       = pc.focusDistance / max(-dirVS.z, 1e-4);
+        float3 focusVS = dirVS * t;
+        float  r       = sqrt(rand01(seed)) * pc.aperture;
+        float  phi     = 2.0 * M_PI * rand01(seed);
+        oriVS = float3(r * cos(phi), r * sin(phi), 0.0);
+        dirVS = normalize(focusVS - oriVS);
+    }
+
+    origin = mul(camera.invView, float4(oriVS, 1.0)).xyz;
+    dir    = normalize(mul(camera.invView, float4(dirVS, 0.0)).xyz);
 }
 
 public float traceShadow(float3 P, float3 N, float3 L, float tMax) {

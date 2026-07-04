@@ -282,6 +282,14 @@ namespace crv::graphics::vulkan {
                 mUpdateImage();
             }
         }
+        if (ImGui::CollapsingHeader("Depth of Field", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::DragFloat("Aperture", &mAperture, 0.001f, 0.0f, 5.0f, "%.3f")) {
+                mUpdateImage();
+            }
+            if (ImGui::DragFloat("Focus Distance", &mFocusDistance, 0.05f, 0.01f, 1000.0f, "%.2f")) {
+                mUpdateImage();
+            }
+        }
         if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("ACES", &mTonemap);
             ImGui::DragFloat("Exposure", &mExposure, 0.01f, 0.0f, 100.0f, "%.2f");

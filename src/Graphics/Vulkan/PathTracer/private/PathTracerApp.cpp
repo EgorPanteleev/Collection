@@ -468,6 +468,8 @@ namespace crv::graphics::vulkan {
                 .skyboxIndex = mResourceManager.skyboxIndex(),
                 .envIntegral = mResourceManager.envIntegral(),
                 .envNee = mUI.envNee() ? 1u : 0u,
+                .aperture = mUI.aperture(),
+                .focusDistance = mUI.focusDistance(),
                 .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr()
