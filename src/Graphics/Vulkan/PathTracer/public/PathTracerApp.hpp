@@ -35,6 +35,7 @@ namespace crv::graphics::vulkan {
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
         void updateImage() { mFrameCount = 0; }
+        void onCameraMoved() { mFrameCount = 0; mCameraMoved = true; }
         void pixelClicked(uint32_t x, uint32_t y, bool additive);
         void clearSelection();
         void regionSelect(int x0, int y0, int x1, int y1, bool additive);
@@ -85,6 +86,8 @@ namespace crv::graphics::vulkan {
         uint32_t                     mFramesInFlight       = 1;
         uint32_t                     mCurrentFrame         = 0;
         uint32_t                     mFrameCount           = 0;
+        bool                         mCameraMoved          = false;
+        uint32_t                     mEffectiveScale       = 1;
         std::vector<uint32_t>        mSelectedInstances{};
         uint32_t                     mActiveInstance       = UINT32_MAX;
         bool                         mAdditiveSelect       = false;

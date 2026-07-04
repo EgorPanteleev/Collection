@@ -33,6 +33,7 @@ namespace crv::graphics::vulkan {
         const std::vector<uint32_t>* selectedInstances = nullptr;
         uint32_t                     activeInstance    = UINT32_MAX;
         uint32_t                     frameCount        = 0;
+        uint32_t                     renderScale       = 1;
     };
 
     class AppUI {
@@ -64,6 +65,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] float    aperture() const { return mAperture; }
         [[nodiscard]] float    focusDistance() const { return mFocusDistance; }
         [[nodiscard]] uint32_t renderScale() const { return static_cast<uint32_t>(mRenderScale); }
+        [[nodiscard]] uint32_t motionScale() const { return static_cast<uint32_t>(mMotionScale > mRenderScale ? mMotionScale : mRenderScale); }
         [[nodiscard]] float    exposure() const { return mExposure; }
         [[nodiscard]] bool     tonemap() const { return mTonemap; }
     private:
@@ -90,6 +92,7 @@ namespace crv::graphics::vulkan {
         float            mAperture        = 0.0f;
         float            mFocusDistance   = 10.0f;
         int              mRenderScale     = 1;
+        int              mMotionScale     = 2;
         float            mExposure        = 1.0f;
         bool             mTonemap         = true;
 

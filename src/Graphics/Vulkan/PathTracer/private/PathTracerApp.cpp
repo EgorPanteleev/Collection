@@ -474,8 +474,8 @@ namespace crv::graphics::vulkan {
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr()
             },
-            .width = (mSwapchain.extent().width + mUI.renderScale() - 1) / mUI.renderScale(),
-            .height = (mSwapchain.extent().height + mUI.renderScale() - 1) / mUI.renderScale()
+            .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
+            .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale
         };
         mRayTracerPass.record(recordInfo);
         recordPixelRead(commandBuffer);
@@ -534,7 +534,7 @@ namespace crv::graphics::vulkan {
                 .exposure = mUI.exposure(),
                 .tonemap = mUI.tonemap() ? 1u : 0u,
                 .displayMode = mUI.displayMode(),
-                .renderScale = mUI.renderScale()
+                .renderScale = mEffectiveScale
             }
         };
         mPostprocessPass.record(recordInfo);
@@ -634,7 +634,7 @@ namespace crv::graphics::vulkan {
         };
         Image::transit(transitInfo);
 
-        const uint32_t scale = mUI.renderScale();
+        const uint32_t scale = mEffectiveScale;
         const VkBufferImageCopy region {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -967,7 +967,8 @@ namespace crv::graphics::vulkan {
             .camera = mCamera,
             .selectedInstances = &mSelectedInstances,
             .activeInstance = mActiveInstance,
-            .frameCount = mFrameCount
+            .frameCount = mFrameCount,
+            .renderScale = mEffectiveScale
         };
         mUI.draw(drawInfo);
     }
@@ -978,8 +979,16 @@ namespace crv::graphics::vulkan {
         updateSelectedInstance();
         acquireNextImage(imageIndex);
         drawControlPanel();
+
+        const uint32_t scale = mCameraMoved ? mUI.motionScale() : mUI.renderScale();
+        if (scale != mEffectiveScale) {
+            mEffectiveScale = scale;
+            mFrameCount = 0;
+        }
+
         update();
         record(imageIndex);
         submit(imageIndex);
+        mCameraMoved = false;
     }
 }

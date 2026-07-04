@@ -170,7 +170,7 @@ namespace crv::graphics::vulkan {
             if (VkImGui::beginGroup(ICON_FA_MICROCHIP " System")) {
                 auto properties = mContext->physicalDeviceProperties();
                 auto [width, height] = mSwapchain->extent();
-                const auto scale = static_cast<uint32_t>(mRenderScale);
+                const auto scale = info.renderScale;
                 std::string viewport = std::format("{:1}x{:2}", width, height);
                 std::string render = std::format("{:1}x{:2}", (width + scale - 1) / scale, (height + scale - 1) / scale);
                 if (VkImGui::beginCompactTable("##monitor_system", 2.0f)) {
@@ -287,6 +287,7 @@ namespace crv::graphics::vulkan {
             if (ImGui::DragInt("Resolution Scale", &mRenderScale, 0.05f, 1, 16)) {
                 mUpdateImage();
             }
+            ImGui::DragInt("Motion Scale", &mMotionScale, 0.05f, mRenderScale, 16);
         }
         if (ImGui::CollapsingHeader("Depth of Field", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat("Aperture", &mAperture, 0.001f, 0.0f, 5.0f, "%.3f")) {
