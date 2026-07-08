@@ -472,7 +472,8 @@ namespace crv::graphics::vulkan {
                 .focusDistance = mUI.focusDistance(),
                 .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
-                .envCondFuncAddr = mResourceManager.envCondFuncAddr()
+                .envCondFuncAddr = mResourceManager.envCondFuncAddr(),
+                .skyColor = mResourceManager.skyColor()
             },
             .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
             .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale

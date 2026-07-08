@@ -35,6 +35,7 @@ namespace crv::graphics::vulkan {
         void removeSkybox();
 
         [[nodiscard]] DirectLight& directLight() { return mSceneLoader.mDirectLight; }
+        [[nodiscard]] glm::vec3&   skyColor() { return mSceneLoader.mSkyColor; }
         [[nodiscard]] std::vector<InstanceData>& instances() { return mSceneLoader.mInstances; }
         [[nodiscard]] std::vector<uint32_t>& emissiveIndices() { return mSceneLoader.mEmissiveIndices; }
         [[nodiscard]] std::vector<BLASData>& blasDatas() { return mSceneLoader.mBLASDatas; }

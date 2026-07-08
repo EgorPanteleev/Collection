@@ -28,7 +28,7 @@ public struct DirectLightData {
 [[vk::binding(9)]] public Sampler2D                       textures[];
 
 public float3 sampleEnvironment(float3 dir) {
-    if (pc.skyboxIndex == UINT_MAX) return SKY_COLOR;
+    if (pc.skyboxIndex == UINT_MAX) return pc.skyColor;
     float2 uv = float2(atan2(dir.z, dir.x) * 0.15915494309 + 0.5,
                        acos(clamp(-dir.y, -1.0, 1.0)) * 0.31830988618);
     float3 c = textures[pc.skyboxIndex].SampleLevel(uv, 0.0).rgb;

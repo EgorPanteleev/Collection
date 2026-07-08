@@ -254,6 +254,9 @@ namespace crv::graphics::vulkan {
             if (mSkyboxFileDialog.draw("Select Skybox") && mLoadSkybox) {
                 mLoadSkybox(mSkyboxFileDialog.result());
             }
+            if (!hasSkybox) {
+                if (VkImGui::colorEdit3("Sky Color", mResourceManager->skyColor())) mUpdateImage();
+            }
         }
         if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat3("Direction", &mResourceManager->directLight().dir.x, 0.005f, -1.0f, 1.0f)) {
@@ -396,6 +399,10 @@ namespace crv::graphics::vulkan {
                     mUpdateImage();
                 }
                 if (ImGui::SliderFloat("Opacity", &material.opacity, 0.0f, 1.0f, "%.2f")) {
+                    mResourceManager->updateMaterial(instance.materialIndex);
+                    mUpdateImage();
+                }
+                if (ImGui::SliderFloat("Translucency", &material.translucency, 0.0f, 3.0f, "%.2f")) {
                     mResourceManager->updateMaterial(instance.materialIndex);
                     mUpdateImage();
                 }

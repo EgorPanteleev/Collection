@@ -8,7 +8,7 @@ namespace cvk = crv::graphics::vulkan;
 
 int main() {
     const cvk::PathTracerAppCreateInfo createInfo {
-        .scenePath = ASSETS_PATH"material_test.json",
+        .scenePath = ASSETS_PATH"canelle_new.json",
     };
     cvk::PathTracerApp app(createInfo);
     app.run();

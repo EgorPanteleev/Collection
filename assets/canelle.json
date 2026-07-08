@@ -3,836 +3,2146 @@
     "farPlane": 5000.0,
     "fov": 18.18,
     "nearPlane": 0.1,
-    "position": [0.03132, -0.2958, 2.4536],
-    "target": [0.03132, -0.2958, 1.6354],
+    "position": [
+      0.03132,
+      -0.2958,
+      2.4536
+    ],
+    "target": [
+      0.03132,
+      -0.2958,
+      1.6354
+    ],
     "type": "Fly",
-    "up": [0, 1, 0],
+    "up": [
+      0,
+      1,
+      0
+    ],
     "zoom": 1
   },
   "directLight": {
-    "direction": [-0.46799999475479126, 0.3179999887943268, -0.8240000009536743],
+    "direction": [
+      -0.46799999475479126,
+      0.3179999887943268,
+      -0.8240000009536743
+    ],
     "intensity": 0.0
   },
   "instances": [
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 2,
       "meshIndex": 0,
       "meshName": "Circle.003",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 3,
       "meshIndex": 1,
       "meshName": "Circle",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 4,
       "meshIndex": 2,
       "meshName": "Cloth_Shape",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 5,
       "meshIndex": 3,
       "meshName": "Cube.001",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 5,
       "meshIndex": 4,
       "meshName": "Cube.002",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 6,
       "meshIndex": 5,
       "meshName": "Cylinder",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 6,
       "meshName": "Line103.001-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 7,
       "meshName": "Line103.001-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 8,
       "meshName": "Line103.082",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 9,
       "meshName": "Line103.083",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 10,
       "meshName": "Line103.084",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 11,
       "meshName": "Line103.085",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 12,
       "meshName": "Line103",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 13,
       "meshName": "Line769-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 14,
       "meshName": "Line769-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 15,
       "meshName": "Line776-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 16,
       "meshName": "Line776-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 17,
       "meshName": "Line781.001",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 18,
       "meshName": "Line781.002",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 19,
       "meshName": "Line781.003",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 9,
       "meshIndex": 20,
       "meshName": "Line781.004",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 21,
       "meshName": "Line781-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 22,
       "meshName": "Line781-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 23,
       "meshName": "Line786-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 24,
       "meshName": "Line786-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 10,
       "meshIndex": 25,
       "meshName": "Plane.001",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 11,
       "meshIndex": 26,
       "meshName": "Plane.002-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 12,
       "meshIndex": 27,
       "meshName": "Plane.002-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 13,
       "meshIndex": 28,
       "meshName": "Plane.004",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 14,
       "meshIndex": 29,
       "meshName": "Plane.005-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 12,
       "meshIndex": 30,
       "meshName": "Plane.005-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 15,
       "meshIndex": 31,
       "meshName": "Circle.011",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 16,
       "meshIndex": 32,
       "meshName": "Plane.003",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 17,
       "meshIndex": 33,
       "meshName": "Plane.007-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 18,
       "meshIndex": 34,
       "meshName": "Plane.007-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 19,
       "meshIndex": 35,
       "meshName": "Plane.007-2",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 20,
       "meshIndex": 36,
       "meshName": "Plane.008",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 22,
       "meshIndex": 38,
       "meshName": "Plane.012-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 23,
       "meshIndex": 39,
       "meshName": "Plane.012-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 24,
       "meshIndex": 40,
       "meshName": "Plane.015-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 23,
       "meshIndex": 41,
       "meshName": "Plane.015-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 25,
       "meshIndex": 42,
       "meshName": "Plane.015-2",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 26,
       "meshIndex": 43,
       "meshName": "Plane.015-3",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 27,
       "meshIndex": 44,
       "meshName": "Plane.010-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 28,
       "meshIndex": 45,
       "meshName": "Plane.010-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 29,
       "meshIndex": 46,
       "meshName": "Plane.010-2",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 27,
       "meshIndex": 47,
       "meshName": "Plane.011-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 28,
       "meshIndex": 48,
       "meshName": "Plane.011-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 27,
       "meshIndex": 49,
       "meshName": "Plane.013-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 28,
       "meshIndex": 50,
       "meshName": "Plane.013-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 29,
       "meshIndex": 51,
       "meshName": "Plane.013-2",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 27,
       "meshIndex": 52,
       "meshName": "Plane.014-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 28,
       "meshIndex": 53,
       "meshName": "Plane.014-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 30,
       "meshIndex": 54,
       "meshName": "Plane.016-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 31,
       "meshIndex": 55,
       "meshName": "Plane.016-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 32,
       "meshIndex": 56,
       "meshName": "Plane.016-2",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 33,
       "meshIndex": 57,
       "meshName": "Plane.016-3",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 34,
       "meshIndex": 58,
       "meshName": "Plane.016-4",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 35,
       "meshIndex": 59,
       "meshName": "Plane.017",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 31,
       "meshIndex": 60,
       "meshName": "Plane.020",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 36,
       "meshIndex": 61,
       "meshName": "Plane.019",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 37,
       "meshIndex": 62,
       "meshName": "Plane.021-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 12,
       "meshIndex": 63,
       "meshName": "Plane.021-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 38,
       "meshIndex": 64,
       "meshName": "Plane.018-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 39,
       "meshIndex": 65,
       "meshName": "Plane.018-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 40,
       "meshIndex": 66,
       "meshName": "Plane.018-2",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 36,
       "meshIndex": 67,
       "meshName": "Plane.018-3",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 36,
       "meshIndex": 68,
       "meshName": "Plane.022",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 41,
       "meshIndex": 69,
       "meshName": "Plane",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 70,
       "meshName": "Sphere153-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 71,
       "meshName": "Sphere153-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 7,
       "meshIndex": 72,
       "meshName": "Sphere260-0",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 8,
       "meshIndex": 73,
       "meshName": "Sphere260-1",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [1.0, -1.0, 1.0],
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        -1.0,
+        1.0
+      ],
       "materialIndex": 42,
       "meshIndex": 74,
       "meshName": "Plane.006",
       "modelIndex": 0,
       "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "localPosition": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "localScale": [
+        1.0,
+        1.0,
+        -1.0
+      ],
+      "materialIndex": 21,
+      "meshIndex": 76,
+      "meshName": "mesh-00039",
+      "modelIndex": 2,
+      "name": "powder_hd",
+      "rotation": [
+        -0.70710678,
+        0.0,
+        0.0,
+        0.70710678
+      ]
     }
   ],
   "materials": [
     {
-      "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
-      "emissionColor": [1.0, 1.0, 1.0],
+      "color": [
+        0.7300000190734863,
+        0.7300000190734863,
+        0.7300000190734863
+      ],
+      "emissionColor": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -844,18 +2154,34 @@
       "transmission": 0.0
     },
     {
-      "color": [1.0, 1.0, 1.0],
-      "emissionColor": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionColor": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "luminance": 3.0,
       "name": "light"
     }
   ],
   "materialsResolved": [
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
+      "color": [
+        0.7300000190734863,
+        0.7300000190734863,
+        0.7300000190734863
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -867,10 +2193,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 3.0,
       "metalness": 0.0,
@@ -882,10 +2216,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.10440310090780258, 0.09053315222263336, 0.0680314376950264],
+      "color": [
+        0.10440310090780258,
+        0.09053315222263336,
+        0.0680314376950264
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -897,11 +2239,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00000.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.11999999731779099,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 2.0,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -913,10 +2263,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -929,10 +2287,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.7141373753547668, 0.5537165403366089, 0.16281573474407196],
+      "color": [
+        0.7141373753547668,
+        0.5537165403366089,
+        0.16281573474407196
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -945,11 +2311,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00004.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -962,11 +2336,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00005.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -979,11 +2361,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00007.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -996,11 +2386,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00008.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1013,10 +2411,18 @@
       "transmission": 0.12300000339746475
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1028,10 +2434,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1044,10 +2458,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1059,10 +2481,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.7215686440467834, 0.45098042488098145, 0.20000001788139343],
+      "color": [
+        0.7215686440467834,
+        0.45098042488098145,
+        0.20000001788139343
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 1.0,
@@ -1075,10 +2505,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1091,10 +2529,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.629869818687439, 0.6206930875778198, 0.5345926284790039],
+      "color": [
+        0.629869818687439,
+        0.6206930875778198,
+        0.5345926284790039
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1107,11 +2553,19 @@
       "transmission": 0.5580000281333923
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00014.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1123,10 +2577,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.044773850589990616, 0.044773850589990616, 0.044773850589990616],
+      "color": [
+        0.044773850589990616,
+        0.044773850589990616,
+        0.044773850589990616
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1138,11 +2600,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00016.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1154,10 +2624,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.008194576017558575, 0.023871690034866333, 0.01133568026125431],
+      "color": [
+        0.008194576017558575,
+        0.023871690034866333,
+        0.01133568026125431
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00017.png",
@@ -1171,11 +2649,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00019.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1188,25 +2674,44 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
+      "color": [
+        0.7098638,
+        0.7098638,
+        0.7098638
+      ],
+      "ior": 1.02,
       "luminance": 0.0,
       "metalness": 0.0,
       "name": "Material.001",
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.5,
+      "sheen": 0.0,
       "specular": 1.0,
-      "transmission": 0.0
+      "transmission": 0.0,
+      "translucency": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1219,10 +2724,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.6171910166740417, 0.6208334565162659, 0.45239853858947754],
+      "color": [
+        0.6171910166740417,
+        0.6208334565162659,
+        0.45239853858947754
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 1.0,
@@ -1234,11 +2747,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00021.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00021.png",
@@ -1252,10 +2773,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.699999988079071, 0.699999988079071, 0.699999988079071],
+      "color": [
+        0.699999988079071,
+        0.699999988079071,
+        0.699999988079071
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00022.png",
@@ -1269,10 +2798,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.699999988079071, 0.699999988079071, 0.699999988079071],
+      "color": [
+        0.699999988079071,
+        0.699999988079071,
+        0.699999988079071
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 1.0,
@@ -1284,11 +2821,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00023.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1301,10 +2846,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.2172849029302597, 0.11203529685735703, 0.043723538517951965],
+      "color": [
+        0.2172849029302597,
+        0.11203529685735703,
+        0.043723538517951965
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1316,10 +2869,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.2172849029302597, 0.11203529685735703, 0.043723538517951965],
+      "color": [
+        0.2172849029302597,
+        0.11203529685735703,
+        0.043723538517951965
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1331,10 +2892,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1347,10 +2916,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.8999999761581421, 0.550000011920929, 0.15000000596046448],
+      "color": [
+        0.8999999761581421,
+        0.550000011920929,
+        0.15000000596046448
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1362,10 +2939,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.6999999284744263, 0.40294089913368225, 0.04714234918355942],
+      "color": [
+        0.6999999284744263,
+        0.40294089913368225,
+        0.04714234918355942
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1377,10 +2962,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.699999988079071, 0.699999988079071, 0.699999988079071],
+      "color": [
+        0.699999988079071,
+        0.699999988079071,
+        0.699999988079071
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 1.0,
@@ -1392,10 +2985,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1407,10 +3008,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.699999988079071, 0.699999988079071, 0.699999988079071],
+      "color": [
+        0.699999988079071,
+        0.699999988079071,
+        0.699999988079071
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1422,11 +3031,19 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00026.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00026.png",
@@ -1440,10 +3057,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1456,11 +3081,19 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00028.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1472,10 +3105,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.5, 0.5, 0.5],
+      "color": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00029.png",
@@ -1489,10 +3130,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.011606389656662941, 0.011606389656662941, 0.011606389656662941],
+      "color": [
+        0.011606389656662941,
+        0.011606389656662941,
+        0.011606389656662941
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1504,10 +3153,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [0.8500000238418579, 0.44999998807907104, 0.15000000596046448],
+      "color": [
+        0.8500000238418579,
+        0.44999998807907104,
+        0.15000000596046448
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 0.0,
@@ -1520,10 +3177,18 @@
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 0.9350000023841858, 0.7639999985694885],
+      "color": [
+        1.0,
+        0.9350000023841858,
+        0.7639999985694885
+      ],
       "ior": 1.5,
       "luminance": 14.600000381469727,
       "metalness": 0.0,
@@ -1535,10 +3200,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 1.0,
@@ -1550,10 +3223,18 @@
       "transmission": 0.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
       "ior": 1.5,
       "luminance": 0.0,
       "metalness": 1.0,
@@ -1567,7 +3248,8 @@
   ],
   "modelImports": [
     "scenes/canelle/canelle.glb",
-    "meshes/plane.glb"
+    "meshes/plane.glb",
+    "scenes/canelle/LuxCoreScene/mesh-00039.ply"
   ],
   "skybox": "skyboxes/grasslands_sunset_4k.hdr",
   "version": 2,

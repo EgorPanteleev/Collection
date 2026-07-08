@@ -133,6 +133,7 @@ namespace crv::graphics::vulkan {
         auto directLight = mJson["directLight"];
         mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
         mDirectLight.intensity = directLight["intensity"];
+        if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
 
         loadMaterials();
         std::vector<std::string> models = mJson["modelImports"];
@@ -391,7 +392,8 @@ namespace crv::graphics::vulkan {
                 .opacity = jsonMaterial.value("opacity", 1.0f),
                 .normalScale = jsonMaterial.value("normalScale", 1.0f),
                 .anisotropy = jsonMaterial.value("anisotropy", 0.0f),
-                .sheen = jsonMaterial.value("sheen", 0.0f)
+                .sheen = jsonMaterial.value("sheen", 0.0f),
+                .translucency = jsonMaterial.value("translucency", 0.0f)
             };
         }
     }
@@ -492,6 +494,7 @@ namespace crv::graphics::vulkan {
             material.normalScale = jm.value("normalScale", material.normalScale);
             material.anisotropy = jm.value("anisotropy", material.anisotropy);
             material.sheen = jm.value("sheen", material.sheen);
+            material.translucency = jm.value("translucency", material.translucency);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
                 material.baseColorTexIndex, material.baseColorTexName, material.baseColorTexPath);
@@ -562,6 +565,7 @@ namespace crv::graphics::vulkan {
         scene["version"] = 2;
         scene["directLight"]["direction"] = { mDirectLight.dir.x, mDirectLight.dir.y, mDirectLight.dir.z };
         scene["directLight"]["intensity"] = mDirectLight.intensity;
+        scene["skyColor"] = { mSkyColor.r, mSkyColor.g, mSkyColor.b };
 
         if (mSkyboxIndex != UINT32_MAX) scene["skybox"] = mSkyboxPath;
         else scene.erase("skybox");
@@ -584,6 +588,7 @@ namespace crv::graphics::vulkan {
             jm["normalScale"]          = material.normalScale;
             jm["anisotropy"]           = material.anisotropy;
             jm["sheen"]                = material.sheen;
+            if (material.translucency > 0.0f) jm["translucency"] = material.translucency;
             if (!material.baseColorTexPath.empty()) jm["baseColorTex"] = material.baseColorTexPath;
             if (!material.normalTexPath.empty()) jm["normalTex"] = material.normalTexPath;
             if (!material.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexPath;

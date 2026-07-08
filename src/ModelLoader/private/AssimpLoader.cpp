@@ -44,7 +44,6 @@ namespace crv::model {
                            aiProcess_Triangulate              | \
                            aiProcess_GenSmoothNormals         | \
                            aiProcess_LimitBoneWeights         | \
-                           aiProcess_SplitLargeMeshes         | \
                            aiProcess_ImproveCacheLocality     | \
                            aiProcess_FindDegenerates          | \
                            aiProcess_FindInvalidData          | \

@@ -54,6 +54,7 @@ namespace crv::graphics::vulkan {
         bool     mExplicit = false;
     public:
         DirectLight                  mDirectLight{};
+        glm::vec3                    mSkyColor{0.1f};
         std::vector<BLASData>        mBLASDatas{};
         std::vector<InstanceData>    mInstances{};
         std::vector<uint32_t>        mEmissiveIndices{};

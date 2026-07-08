@@ -34,6 +34,7 @@ public struct PushConstants {
     public uint64_t envMarginalCdfAddr;
     public uint64_t envCondCdfAddr;
     public uint64_t envCondFuncAddr;
+    public float3   skyColor;
 };
 [[vk::push_constant]] public PushConstants pc;
 

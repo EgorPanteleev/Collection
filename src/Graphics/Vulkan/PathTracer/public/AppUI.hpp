@@ -93,8 +93,8 @@ namespace crv::graphics::vulkan {
         float            mFocusDistance   = 10.0f;
         int              mRenderScale     = 1;
         int              mMotionScale     = 2;
-        float            mExposure        = 1.0f;
-        bool             mTonemap         = true;
+        float            mExposure        = 0.8f;
+        bool             mTonemap         = false;
 
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
         ImGuiFileDialog  mFileDialog{};

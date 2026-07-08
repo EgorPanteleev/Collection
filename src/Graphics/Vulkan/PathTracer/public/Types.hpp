@@ -30,6 +30,7 @@ namespace crv::graphics::vulkan {
         uint64_t envMarginalCdfAddr = 0;
         uint64_t envCondCdfAddr     = 0;
         uint64_t envCondFuncAddr    = 0;
+        glm::vec3 skyColor = glm::vec3(0.1f);
     };
 
     struct PostprocessPushConstants {

@@ -152,6 +152,49 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     applyNormalMap(hit, material);
 
+    if (material.translucency > 0.0) {
+        float3 kr  = baseColor;
+        float3 kt  = material.translucency * baseColor;
+        float  nrm = max(luminance(kr + kt), 1.0);
+        kr /= nrm; kt /= nrm;
+        float  pr  = luminance(kr);
+        float  pt  = luminance(kt);
+        float  sum = pr + pt;
+        if (sum <= 0.0) { payload.done = true; return; }
+        float probR = pr / sum;
+
+        float3 Nface = dot(hit.N, -WorldRayDirection()) < 0.0 ? -hit.N : hit.N;
+
+        if (directLight.intensity > 0.0) {
+            float3 L    = normalize(-directLight.dir);
+            float  side = dot(L, Nface);
+            float3 f    = side > 0.0 ? kr * M_1_PI * side : kt * M_1_PI * (-side);
+            if (any(f > float3(0.0))) {
+                float vis = traceShadow(hit.P, side > 0.0 ? hit.gN : -hit.gN, L, T_MAX);
+                payload.radiance += payload.throughput * f * directLight.intensity * vis;
+            }
+        }
+
+        float3 t, b, wi;
+        if (rand01(payload.seed) < probR) {
+            createONB(Nface, t, b);
+            float3 local = cosineSample(payload.seed);
+            wi = local.x * t + local.y * b + local.z * Nface;
+            payload.throughput *= kr / probR;
+        } else {
+            float3 Nopp = -Nface;
+            createONB(Nopp, t, b);
+            float3 local = cosineSample(payload.seed);
+            wi = local.x * t + local.y * b + local.z * Nopp;
+            payload.throughput *= kt / (1.0 - probR);
+        }
+        payload.origin      = movedPoint(hit.P, dot(wi, hit.gN) < 0.0 ? -hit.gN : hit.gN);
+        payload.direction   = normalize(wi);
+        payload.prevBrdfPdf = -1.0;
+        payload.done        = false;
+        return;
+    }
+
     if (material.transmission > 0.0) {
         float pt = material.transmission;
         if (rand01(payload.seed) < pt) {
