@@ -1,6 +1,6 @@
 {
  "modelImports": [
-  "meshes/sphere.glb"
+  "models/sphere.glb"
  ],
  "skybox": "skyboxes/zwartkops_straight_morning_4k.hdr",
  "materials": [

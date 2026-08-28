@@ -1,5 +1,5 @@
 {
-  "modelImports":	["meshes/dragon.glb", "meshes/plane.glb"],
+  "modelImports":	["models/plane.glb"],
   "materials": [
     {
       "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],

@@ -932,8 +932,8 @@
     }
   ],
   "modelImports": [
-    "scenes/Spaceship/spaceship.glb",
-    "meshes/plane.glb"
+    "models/Spaceship/spaceship.glb",
+    "models/plane.glb"
   ],
   "version": 2,
   "window": {

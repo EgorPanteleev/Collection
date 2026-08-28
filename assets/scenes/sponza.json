@@ -1,5 +1,5 @@
 {
-  "modelImports":	["meshes/cube.glb", "scenes/Sponza/glTF/Sponza.gltf"],
+  "modelImports":	["models/cube.glb", "models/Sponza/glTF/Sponza.gltf"],
   "instances":	[ {
     "name":	"sponza1",
     "modelIndex": 1,

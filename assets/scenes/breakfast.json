@@ -1,5 +1,5 @@
 {
-  "modelImports":	["meshes/sphere.glb", "scenes/BreakfastRoom/breakfast_room.obj"],
+  "modelImports":	["models/sphere.glb", "models/BreakfastRoom/breakfast_room.obj"],
   "instances":	[ {
     "name":	"room",
     "modelIndex": 1,

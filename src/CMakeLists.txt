@@ -14,7 +14,7 @@ add_compile_definitions(PROJECT_PATH="${CMAKE_SOURCE_DIR}/")
 add_compile_definitions(BINARY_PATH="${CMAKE_BINARY_DIR}/")
 add_compile_definitions(ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets/")
 add_compile_definitions(SCENES_PATH="${CMAKE_SOURCE_DIR}/assets/scenes/")
-add_compile_definitions(MESHES_PATH="${CMAKE_SOURCE_DIR}/assets/meshes/")
+add_compile_definitions(MODELS_PATH="${CMAKE_SOURCE_DIR}/assets/models/")
 #add_compile_definitions(COMPILED_SHADERS_PATH="${CMAKE_BINARY_DIR}/compiled_shaders/")
 
 add_custom_target(all_tests)

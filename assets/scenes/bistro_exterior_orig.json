@@ -1,5 +1,5 @@
 {
-  "modelImports":	["scenes/bistro/BistroExterior.fbx", "meshes/plane.glb"],
+  "modelImports":	["models/bistro/BistroExterior.fbx", "models/plane.glb"],
   "materials": [
     {
       "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
