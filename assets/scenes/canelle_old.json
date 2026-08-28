@@ -1,0 +1,3502 @@
+{
+ "version": 2,
+ "window": {
+  "height": 600,
+  "name": "GPU Path Tracer",
+  "width": 800
+ },
+ "camera": {
+  "farPlane": 5000.0,
+  "fov": 18.18,
+  "nearPlane": 0.1,
+  "position": [
+   0.03132,
+   -0.2958,
+   2.4536
+  ],
+  "target": [
+   0.03132,
+   -0.2958,
+   1.6354
+  ],
+  "type": "Fly",
+  "up": [
+   0,
+   1,
+   0
+  ],
+  "zoom": 1
+ },
+ "directLight": {
+  "direction": [
+   -0.46799999475479126,
+   0.3179999887943268,
+   -0.8240000009536743
+  ],
+  "intensity": 0.0
+ },
+ "skybox": "skyboxes/grasslands_sunset_4k.hdr",
+ "modelImports": [
+  "scenes/canelle/LuxCoreScene/mesh-00000.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00002.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00001.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00003.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00005.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00004.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00077.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00078.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00008.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00009.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00010.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00011.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00012.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00013.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00014.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00015.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00016.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00017.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00018.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00019.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00020.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00021.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00022.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00023.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00024.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00025.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00079.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00027.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00028.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00029.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00030.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00031.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00032.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00034.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00033.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00035.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00036.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00037.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00038.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00039.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00040.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00041.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00042.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00043.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00044.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00045.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00046.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00047.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00048.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00049.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00050.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00051.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00052.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00053.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00054.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00055.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00056.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00057.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00058.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00059.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00060.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00061.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00062.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00063.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00064.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00065.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00066.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00067.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00068.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00069.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00070.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00071.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00072.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00073.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00074.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00075.ply",
+  "scenes/canelle/LuxCoreScene/mesh-00076.ply"
+ ],
+ "materials": [
+  {
+   "color": [
+    0.7300000190734863,
+    0.7300000190734863,
+    0.7300000190734863
+   ],
+   "emissionColor": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "gray",
+   "roughness": 1.0,
+   "specular": 0.0,
+   "thickness": 0.0,
+   "thin": 0.0,
+   "transmission": 0.0
+  },
+  {
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emissionColor": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "luminance": 3.0,
+   "name": "light"
+  }
+ ],
+ "materialsResolved": [
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.7300000190734863,
+    0.7300000190734863,
+    0.7300000190734863
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "gray",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 0.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 3.0,
+   "metalness": 0.0,
+   "name": "light",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 0.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.10440310090780258,
+    0.09053315222263336,
+    0.0680314376950264
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "rop",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00000.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.11999999731779099,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 2.0,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Marble",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.11999999731779099,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "cloth",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00002.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.7141373753547668,
+    0.5537165403366089,
+    0.16281573474407196
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Cheese",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00003.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00004.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "bois claire.001",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00004.png",
+   "opacity": 1.0,
+   "roughness": 0.10000000149011612,
+   "specular": 0.04100000113248825,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00005.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "feuille",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00006.png",
+   "opacity": 0.8299999833106995,
+   "roughness": 0.05000000074505806,
+   "specular": 0.02199999988079071,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00007.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Tige",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00007.png",
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00008.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "feuille seche",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00008.png",
+   "opacity": 1.0,
+   "roughness": 0.800000011920929,
+   "specular": 0.03400000184774399,
+   "transmission": 0.12300000339746475
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Material.002",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Glass turquoise.camel",
+   "normalScale": 0.11999999731779099,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00010.png",
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Water",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.7215686440467834,
+    0.45098042488098145,
+    0.20000001788139343
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "name": "Cuivre",
+   "normalScale": 0.8700000047683716,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00011.png",
+   "opacity": 1.0,
+   "roughness": 0.07500000298023224,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Glass turquoise",
+   "normalScale": 0.11999999731779099,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00013.png",
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.629869818687439,
+    0.6206930875778198,
+    0.5345926284790039
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "rop cannelle",
+   "normalScale": 1.0099999904632568,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00015.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 0.013000000268220901,
+   "transmission": 0.5580000281333923
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00014.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Cannelle",
+   "normalScale": 0.9599999785423279,
+   "opacity": 1.0,
+   "roughness": 0.15000000596046448,
+   "specular": 0.012000000104308128,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.044773850589990616,
+    0.044773850589990616,
+    0.044773850589990616
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Clay Shader",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00016.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Wood",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.44999998807907104,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.008194576017558575,
+    0.023871690034866333,
+    0.01133568026125431
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00017.png",
+   "metalness": 0.0,
+   "name": "Wall",
+   "normalScale": 1.5099999904632568,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00018.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 0.008999999612569809,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00019.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "planche de bord",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00019.png",
+   "opacity": 1.0,
+   "roughness": 0.05000000074505806,
+   "specular": 0.05000000074505806,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "anisotropy": 0.0,
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.7098638,
+    0.7098638,
+    0.7098638
+   ],
+   "ior": 1.02,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Material.001",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "sheen": 0.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "etiquette",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00020.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.6171910166740417,
+    0.6208334565162659,
+    0.45239853858947754
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "name": "bronze",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.05000000074505806,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00021.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00021.png",
+   "metalness": 0.0,
+   "name": "knife wood",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00021.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 0.050999999046325684,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.699999988079071,
+    0.699999988079071,
+    0.699999988079071
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00022.png",
+   "metalness": 1.0,
+   "name": "couteau1",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00022.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.699999988079071,
+    0.699999988079071,
+    0.699999988079071
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "name": "sharp knife",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.009999999776482582,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00023.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "cannell ecorce",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00024.png",
+   "opacity": 1.0,
+   "roughness": 0.800000011920929,
+   "specular": 0.023000000044703484,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.2172849029302597,
+    0.11203529685735703,
+    0.043723538517951965
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "graine de cannelle",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.10000000149011612,
+   "specular": 0.023000000044703484,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.2172849029302597,
+    0.11203529685735703,
+    0.043723538517951965
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "graine de cannelle2",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.10000000149011612,
+   "specular": 0.023000000044703484,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "pot de miel",
+   "normalScale": 0.11999999731779099,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00025.png",
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.8999999761581421,
+    0.550000011920929,
+    0.15000000596046448
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Miel",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.6999999284744263,
+    0.40294089913368225,
+    0.04714234918355942
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "plastic gomme",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.10000000149011612,
+   "specular": 0.05000000074505806,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.699999988079071,
+    0.699999988079071,
+    0.699999988079071
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "name": "chrome",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.019999999552965164,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Air",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.699999988079071,
+    0.699999988079071,
+    0.699999988079071
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Ceramic",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.019999999552965164,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00026.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00026.png",
+   "metalness": 0.0,
+   "name": "bois claire",
+   "normalScale": 1.0,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00026.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 0.05000000074505806,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Glass turquoise grade",
+   "normalScale": 0.11999999731779099,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00027.png",
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "baseColorTex": "scenes/canelle/LuxCoreScene/imagemap-00028.png",
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "Moulin bois",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.44999998807907104,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalRoughnessTex": "scenes/canelle/LuxCoreScene/imagemap-00029.png",
+   "metalness": 1.0,
+   "name": "chrome noir",
+   "normalScale": 0.4099999964237213,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00029.png",
+   "opacity": 1.0,
+   "roughness": 0.5,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.011606389656662941,
+    0.011606389656662941,
+    0.011606389656662941
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "dark",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 0.029999999329447746,
+   "specular": 0.02800000086426735,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    0.8500000238418579,
+    0.44999998807907104,
+    0.15000000596046448
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 0.0,
+   "name": "glass orange dark",
+   "normalScale": 0.11999999731779099,
+   "normalTex": "scenes/canelle/LuxCoreScene/imagemap-00013.png",
+   "opacity": 1.0,
+   "roughness": 0.0,
+   "specular": 1.0,
+   "transmission": 1.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    0.9350000023841858,
+    0.7639999985694885
+   ],
+   "ior": 1.5,
+   "luminance": 14.600000381469727,
+   "metalness": 0.0,
+   "name": "Area_Meshlight",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "name": "Unknown",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  },
+  {
+   "absorption": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "clearcoat": 0.0,
+   "clearcoatRoughness": 0.0,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "ior": 1.5,
+   "luminance": 0.0,
+   "metalness": 1.0,
+   "name": "Unknown",
+   "normalScale": 1.0,
+   "opacity": 1.0,
+   "roughness": 1.0,
+   "specular": 1.0,
+   "transmission": 0.0
+  }
+ ],
+ "instances": [
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 42,
+   "meshIndex": 0,
+   "meshName": "mesh-00000",
+   "modelIndex": 0,
+   "name": "obj_21873215330160",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 2,
+   "meshIndex": 1,
+   "meshName": "mesh-00002",
+   "modelIndex": 1,
+   "name": "obj_2187321531528_ParticleSettings",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 2,
+   "meshIndex": 2,
+   "meshName": "mesh-00001",
+   "modelIndex": 2,
+   "name": "obj_21873215315280",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 3,
+   "meshIndex": 3,
+   "meshName": "mesh-00003",
+   "modelIndex": 3,
+   "name": "obj_21873215627761",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 4,
+   "meshName": "mesh-00005",
+   "modelIndex": 4,
+   "name": "obj_2187321582120_ParticleSystem",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 4,
+   "meshIndex": 5,
+   "meshName": "mesh-00004",
+   "modelIndex": 5,
+   "name": "obj_21873215821200",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 5,
+   "meshIndex": 6,
+   "meshName": "mesh-00077",
+   "modelIndex": 6,
+   "name": "obj_21873215642640",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 5,
+   "meshIndex": 7,
+   "meshName": "mesh-00078",
+   "modelIndex": 7,
+   "name": "obj_21873215657520",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 6,
+   "meshIndex": 8,
+   "meshName": "mesh-00008",
+   "modelIndex": 8,
+   "name": "obj_21873215746800",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 9,
+   "meshName": "mesh-00009",
+   "modelIndex": 9,
+   "name": "obj_21873215687280",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 10,
+   "meshName": "mesh-00010",
+   "modelIndex": 10,
+   "name": "obj_21873215687281",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 9,
+   "meshIndex": 11,
+   "meshName": "mesh-00011",
+   "modelIndex": 11,
+   "name": "obj_21873215836080",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 9,
+   "meshIndex": 12,
+   "meshName": "mesh-00012",
+   "modelIndex": 12,
+   "name": "obj_21873215850960",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 13,
+   "meshName": "mesh-00013",
+   "modelIndex": 13,
+   "name": "obj_21873215702160",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 9,
+   "meshIndex": 14,
+   "meshName": "mesh-00014",
+   "modelIndex": 14,
+   "name": "obj_21873215717040",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 9,
+   "meshIndex": 15,
+   "meshName": "mesh-00015",
+   "modelIndex": 15,
+   "name": "obj_21873215672400",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 16,
+   "meshName": "mesh-00016",
+   "modelIndex": 16,
+   "name": "obj_21873215731920",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 17,
+   "meshName": "mesh-00017",
+   "modelIndex": 17,
+   "name": "obj_21873215731921",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.369348258,
+    -0.00347702974,
+    0.227321133
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.0025775266987474845,
+    0.0035492307037992945,
+    0.0026802150145502223
+   ],
+   "materialIndex": 9,
+   "meshIndex": 18,
+   "meshName": "mesh-00018",
+   "modelIndex": 18,
+   "name": "obj_21873215776560",
+   "rotation": [
+    0.8091179390394058,
+    -0.3908988940655577,
+    -0.01623046138488233,
+    0.4384778120794531
+   ]
+  },
+  {
+   "localPosition": [
+    0.300884217,
+    -0.00559714064,
+    0.179101735
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.0046994702582414975,
+    0.006471126839893224,
+    0.0048866961832534795
+   ],
+   "materialIndex": 9,
+   "meshIndex": 19,
+   "meshName": "mesh-00019",
+   "modelIndex": 19,
+   "name": "obj_21873215791440",
+   "rotation": [
+    0.9018861711811521,
+    -0.0073375769313151215,
+    -0.17080394970536347,
+    -0.3967032955391079
+   ]
+  },
+  {
+   "localPosition": [
+    -0.284495115,
+    -0.0038335491,
+    0.368231356
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.0026317029298502806,
+    0.003623830860561635,
+    0.0027365500817689713
+   ],
+   "materialIndex": 9,
+   "meshIndex": 20,
+   "meshName": "mesh-00020",
+   "modelIndex": 20,
+   "name": "obj_21875921974640",
+   "rotation": [
+    0.15592279953767485,
+    0.3795248457160478,
+    0.040056418683026465,
+    0.9110677556818405
+   ]
+  },
+  {
+   "localPosition": [
+    -0.317580551,
+    -0.00367474789,
+    0.160201371
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.002819681821888901,
+    0.003882676657155676,
+    0.002932017986790519
+   ],
+   "materialIndex": 9,
+   "meshIndex": 21,
+   "meshName": "mesh-00021",
+   "modelIndex": 21,
+   "name": "obj_21875921989520",
+   "rotation": [
+    0.9124150893973775,
+    -0.136634993076177,
+    0.32038420306484977,
+    0.21490357132607973
+   ]
+  },
+  {
+   "localPosition": [
+    -0.125814766,
+    -0.00367474789,
+    0.0999458209
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.0021218792726356546,
+    0.0029218086622787276,
+    0.0022064152524803394
+   ],
+   "materialIndex": 9,
+   "meshIndex": 21,
+   "meshName": "mesh-00021",
+   "modelIndex": 21,
+   "name": "obj_21875922004400",
+   "rotation": [
+    0.9124150861525493,
+    -0.13663499019266628,
+    0.3203842125264134,
+    0.21490357457910722
+   ]
+  },
+  {
+   "localPosition": [
+    -0.0594079159,
+    -0.00454669446,
+    0.203055307
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.003365568334612084,
+    0.00463435771231581,
+    0.0034996527021126105
+   ],
+   "materialIndex": 9,
+   "meshIndex": 19,
+   "meshName": "mesh-00019",
+   "modelIndex": 19,
+   "name": "obj_21875922019280",
+   "rotation": [
+    -0.5804880664094699,
+    0.2674869965976756,
+    0.7053174938030882,
+    0.30661303748879354
+   ]
+  },
+  {
+   "localPosition": [
+    -0.00201605074,
+    -0.0027176803,
+    0.183991641
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.0019396516746728845,
+    0.002670882434703909,
+    0.002016927378243131
+   ],
+   "materialIndex": 9,
+   "meshIndex": 18,
+   "meshName": "mesh-00018",
+   "modelIndex": 18,
+   "name": "obj_21875922078800",
+   "rotation": [
+    0.8153478959595516,
+    -0.37773215447231023,
+    -0.009120891102381568,
+    0.43868329896471564
+   ]
+  },
+  {
+   "localPosition": [
+    0.343994737,
+    -0.00246519083,
+    0.309265465
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -0.001657973039286224,
+    0.0022830135633921445,
+    0.001724026646847112
+   ],
+   "materialIndex": 9,
+   "meshIndex": 20,
+   "meshName": "mesh-00020",
+   "modelIndex": 20,
+   "name": "obj_21875922034160",
+   "rotation": [
+    0.16064244990546855,
+    0.5415744501598905,
+    0.010508898741059135,
+    0.8250943478383381
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 22,
+   "meshName": "mesh-00022",
+   "modelIndex": 22,
+   "name": "obj_21873215761680",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 23,
+   "meshName": "mesh-00023",
+   "modelIndex": 23,
+   "name": "obj_21873215761681",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 24,
+   "meshName": "mesh-00024",
+   "modelIndex": 24,
+   "name": "obj_21875922049040",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 25,
+   "meshName": "mesh-00025",
+   "modelIndex": 25,
+   "name": "obj_21875922049041",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 10,
+   "meshIndex": 26,
+   "meshName": "mesh-00079",
+   "modelIndex": 26,
+   "name": "obj_21875922063920",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 11,
+   "meshIndex": 27,
+   "meshName": "mesh-00027",
+   "modelIndex": 27,
+   "name": "obj_21875922153200",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 12,
+   "meshIndex": 28,
+   "meshName": "mesh-00028",
+   "modelIndex": 28,
+   "name": "obj_21875922153201",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 13,
+   "meshIndex": 29,
+   "meshName": "mesh-00029",
+   "modelIndex": 29,
+   "name": "obj_21875922108561",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 14,
+   "meshIndex": 30,
+   "meshName": "mesh-00030",
+   "modelIndex": 30,
+   "name": "obj_21875922272240",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 12,
+   "meshIndex": 31,
+   "meshName": "mesh-00031",
+   "modelIndex": 31,
+   "name": "obj_21875922272241",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 16,
+   "meshIndex": 32,
+   "meshName": "mesh-00032",
+   "modelIndex": 32,
+   "name": "obj_21875922123440",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 15,
+   "meshIndex": 33,
+   "meshName": "mesh-00034",
+   "modelIndex": 33,
+   "name": "obj_2187321580632_ParticleSystem",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 15,
+   "meshIndex": 34,
+   "meshName": "mesh-00033",
+   "modelIndex": 34,
+   "name": "obj_21873215806320",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 17,
+   "meshIndex": 35,
+   "meshName": "mesh-00035",
+   "modelIndex": 35,
+   "name": "obj_21875922182960",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 18,
+   "meshIndex": 36,
+   "meshName": "mesh-00036",
+   "modelIndex": 36,
+   "name": "obj_21875922182961",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 19,
+   "meshIndex": 37,
+   "meshName": "mesh-00037",
+   "modelIndex": 37,
+   "name": "obj_21875922182962",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 20,
+   "meshIndex": 38,
+   "meshName": "mesh-00038",
+   "modelIndex": 38,
+   "name": "obj_21875922212722",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 21,
+   "meshIndex": 39,
+   "meshName": "mesh-00039",
+   "modelIndex": 39,
+   "name": "obj_21875922138320",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 22,
+   "meshIndex": 40,
+   "meshName": "mesh-00040",
+   "modelIndex": 40,
+   "name": "obj_21875922257360",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 23,
+   "meshIndex": 41,
+   "meshName": "mesh-00041",
+   "modelIndex": 41,
+   "name": "obj_21875922257361",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 24,
+   "meshIndex": 42,
+   "meshName": "mesh-00042",
+   "modelIndex": 42,
+   "name": "obj_21875921959760",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 23,
+   "meshIndex": 43,
+   "meshName": "mesh-00043",
+   "modelIndex": 43,
+   "name": "obj_21875921959761",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 25,
+   "meshIndex": 44,
+   "meshName": "mesh-00044",
+   "modelIndex": 44,
+   "name": "obj_21875921959762",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 26,
+   "meshIndex": 45,
+   "meshName": "mesh-00045",
+   "modelIndex": 45,
+   "name": "obj_21875921959763",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 27,
+   "meshIndex": 46,
+   "meshName": "mesh-00046",
+   "modelIndex": 46,
+   "name": "obj_21875922227600",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 29,
+   "meshIndex": 47,
+   "meshName": "mesh-00047",
+   "modelIndex": 47,
+   "name": "obj_21875922227601",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 29,
+   "meshIndex": 48,
+   "meshName": "mesh-00048",
+   "modelIndex": 48,
+   "name": "obj_21875922227602",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 27,
+   "meshIndex": 49,
+   "meshName": "mesh-00049",
+   "modelIndex": 49,
+   "name": "obj_21875922242480",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 29,
+   "meshIndex": 50,
+   "meshName": "mesh-00050",
+   "modelIndex": 50,
+   "name": "obj_21875922242481",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 27,
+   "meshIndex": 51,
+   "meshName": "mesh-00051",
+   "modelIndex": 51,
+   "name": "obj_21875922361520",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 29,
+   "meshIndex": 52,
+   "meshName": "mesh-00052",
+   "modelIndex": 52,
+   "name": "obj_21875922361521",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 29,
+   "meshIndex": 53,
+   "meshName": "mesh-00053",
+   "modelIndex": 53,
+   "name": "obj_21875922361522",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 27,
+   "meshIndex": 54,
+   "meshName": "mesh-00054",
+   "modelIndex": 54,
+   "name": "obj_21875922465680",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 29,
+   "meshIndex": 55,
+   "meshName": "mesh-00055",
+   "modelIndex": 55,
+   "name": "obj_21875922465681",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 30,
+   "meshIndex": 56,
+   "meshName": "mesh-00056",
+   "modelIndex": 56,
+   "name": "obj_21875922421040",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 31,
+   "meshIndex": 57,
+   "meshName": "mesh-00057",
+   "modelIndex": 57,
+   "name": "obj_21875922421041",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 32,
+   "meshIndex": 58,
+   "meshName": "mesh-00058",
+   "modelIndex": 58,
+   "name": "obj_21875922421042",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 33,
+   "meshIndex": 59,
+   "meshName": "mesh-00059",
+   "modelIndex": 59,
+   "name": "obj_21875922421043",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 34,
+   "meshIndex": 60,
+   "meshName": "mesh-00060",
+   "modelIndex": 60,
+   "name": "obj_21875922421044",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 35,
+   "meshIndex": 61,
+   "meshName": "mesh-00061",
+   "modelIndex": 61,
+   "name": "obj_21875922435920",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 36,
+   "meshIndex": 62,
+   "meshName": "mesh-00062",
+   "modelIndex": 62,
+   "name": "obj_21875922406160",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 31,
+   "meshIndex": 63,
+   "meshName": "mesh-00063",
+   "modelIndex": 63,
+   "name": "obj_21875922331761",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 37,
+   "meshIndex": 64,
+   "meshName": "mesh-00064",
+   "modelIndex": 64,
+   "name": "obj_21875922302000",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 12,
+   "meshIndex": 65,
+   "meshName": "mesh-00065",
+   "modelIndex": 65,
+   "name": "obj_21875922302001",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 38,
+   "meshIndex": 66,
+   "meshName": "mesh-00066",
+   "modelIndex": 66,
+   "name": "obj_21875922480560",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 39,
+   "meshIndex": 67,
+   "meshName": "mesh-00067",
+   "modelIndex": 67,
+   "name": "obj_21875922480561",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 40,
+   "meshIndex": 68,
+   "meshName": "mesh-00068",
+   "modelIndex": 68,
+   "name": "obj_21875922480562",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 36,
+   "meshIndex": 69,
+   "meshName": "mesh-00069",
+   "modelIndex": 69,
+   "name": "obj_21875922480563",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 36,
+   "meshIndex": 70,
+   "meshName": "mesh-00070",
+   "modelIndex": 70,
+   "name": "obj_21875922450800",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 41,
+   "meshIndex": 71,
+   "meshName": "mesh-00071",
+   "modelIndex": 71,
+   "name": "obj_21875922093680",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 72,
+   "meshName": "mesh-00072",
+   "modelIndex": 72,
+   "name": "obj_21875922391280",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 73,
+   "meshName": "mesh-00073",
+   "modelIndex": 73,
+   "name": "obj_21875922391281",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 7,
+   "meshIndex": 74,
+   "meshName": "mesh-00074",
+   "modelIndex": 74,
+   "name": "obj_21875922197840",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 8,
+   "meshIndex": 75,
+   "meshName": "mesh-00075",
+   "modelIndex": 75,
+   "name": "obj_21875922197841",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  },
+  {
+   "localPosition": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localRotation": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localScale": [
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "materialIndex": 42,
+   "meshIndex": 76,
+   "meshName": "mesh-00076",
+   "modelIndex": 76,
+   "name": "obj_21873215612880",
+   "rotation": [
+    0.0,
+    -0.7071067811865475,
+    0.7071067811865476,
+    -0.0
+   ]
+  }
+ ]
+}
