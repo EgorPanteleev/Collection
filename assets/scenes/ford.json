@@ -1,0 +1,115 @@
+{
+  "modelImports":	["models/ford/ford.gltf", "models/plane.glb"],
+  "materials": [
+    {
+      "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
+      "emissionColor": [1.0, 1.0, 1.0],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "gray",
+      "roughness": 1.0,
+      "specular": 0.0,
+      "thickness": 0.0,
+      "thin": 0.0,
+      "transmission": 0.0
+    },
+    {
+    "color": [1.0, 1.0, 1.0],
+    "emissionColor": [1.0, 1.0, 1.0],
+    "luminance": 3.0,
+    "name": "light"
+    }],
+  "instances":	[
+    {
+      "localPosition": [0.0, 0.0, 0.0],
+      "localRotation": [180.0, -55.0, 0.0],
+      "localScale": [3.0, 3.0, 3.0],
+      "texIndex": -1,
+      "modelIndex": 0,
+      "name": "bottomPlane"
+    },
+    {
+      "localPosition": [0.0, 0.0, 0.0],
+      "localRotation": [0.0, 0.0, 0.0],
+      "localScale": [70.0, 70.0, 70.0],
+      "texIndex": 0,
+      "modelIndex": 1,
+      "name": "bottomPlane"
+    },
+    {
+      "localPosition": [0.0, -30.0, 60.0],
+      "localRotation": [0, 90.0, 90.0],
+      "localScale": [70.0, 70.0, 70.0],
+      "texIndex": 0,
+      "modelIndex": 1,
+      "name": "leftPlane"
+    },
+    {
+      "localPosition": [0.0, -30.0, -60.0],
+      "localRotation": [0, 90.0, 90.0],
+      "localScale": [70.0, 70.0, 70.0],
+      "texIndex": 0,
+      "modelIndex": 1,
+      "name": "rightPlane"
+    },
+    {
+      "localPosition": [-60.0, -30.0, 0.0],
+      "localRotation": [0.0, 0.0, 90.0],
+      "localScale": [70.0, 70.0, 70.0],
+      "texIndex": 0,
+      "modelIndex": 1,
+      "name": "forwardPlane"
+    },
+    {
+      "localPosition": [0.0, -70.0, 0.0],
+      "localRotation": [0.0, 0.0, 0.0],
+      "localScale": [70.0, 70.0, 70.0],
+      "texIndex": 0,
+      "modelIndex": 1,
+      "name": "topPlane"
+    },
+    {
+      "localPosition": [2.0, -69.0, 42.0],
+      "localRotation": [0.0, 90.0, 0.0],
+      "localScale": [5.0, 10.0, 40.0],
+      "texIndex": 1,
+      "modelIndex": 1,
+      "name": "lightPlane1"
+    },
+    {
+      "localPosition": [2.0, -69.0, 2.0],
+      "localRotation": [0.0, 90.0, 0.0],
+      "localScale": [5.0, 10.0, 40.0],
+      "texIndex": 1,
+      "modelIndex": 1,
+      "name": "lightPlane2"
+    },
+    {
+      "localPosition": [2.0, -69.0, -38.0],
+      "localRotation": [0.0, 90.0, 0.0],
+      "localScale": [5.0, 10.0, 40.0],
+      "texIndex": 1,
+      "modelIndex": 1,
+      "name": "lightPlane3"
+    }],
+  "directLight": {
+    "direction": [-0.468, 0.318, -0.824],
+    "intensity": 0
+  },
+  "window": {
+    "name": "GPU Path Tracer",
+    "width": 800,
+    "height": 600
+  },
+  "camera":	{
+    "type": "Fly",
+    "position":	[78, -29, -2],
+    "target":	[-100, -30, 0],
+    "up":	[0, 1, 0],
+    "zoom": 1,
+    "fov": 60,
+    "nearPlane": 0.1,
+    "farPlane": 5000.0
+  }
+}
