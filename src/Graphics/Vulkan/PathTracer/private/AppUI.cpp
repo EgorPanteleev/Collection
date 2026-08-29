@@ -23,7 +23,8 @@ static glm::vec3 clampRotation(const glm::vec3& e) {
 
 namespace crv::graphics::vulkan {
     AppUI::AppUI(const AppUICreateInfo& info):
-    mContext(info.context), mSwapchain(info.swapchain), mResourceManager(info.resourceManager) {
+    mContext(info.context), mSwapchain(info.swapchain), mResourceManager(info.resourceManager),
+    mSettings(info.renderSettings) {
         const auto [capabilities, formats, presentModes] =
             Swapchain::getSupport(mContext->physicalDevice(), mContext->surface());
         const ImGuiCreateInfo createInfo {
@@ -155,7 +156,7 @@ namespace crv::graphics::vulkan {
             if (VkImGui::beginGroup(ICON_FA_GAUGE " Status")) {
                 std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
                 std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
-                std::string accumulation = std::format("{:1}", (info.frameCount + 1) * mSPP);
+                std::string accumulation = std::format("{:1}", (info.frameCount + 1) * mSettings->spp);
 
                 if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
                     VkImGui::row("FPS"         , fps.c_str());
@@ -235,7 +236,7 @@ namespace crv::graphics::vulkan {
         ImGui::Indent(4.0f);
         if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
             const char* displayModes[] = {"Rendered", "Base Color", "Normal", "Roughness", "Metalness", "Clearcoat", "Clearcoat Roughness"};
-            if (ImGui::Combo("Mode", &mDisplayMode, displayModes, IM_ARRAYSIZE(displayModes))) {
+            if (ImGui::Combo("Mode", &mSettings->displayMode, displayModes, IM_ARRAYSIZE(displayModes))) {
                 mUpdateImage();
             }
         }
@@ -267,43 +268,43 @@ namespace crv::graphics::vulkan {
             }
         }
         if (ImGui::CollapsingHeader("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::Checkbox("Light sources", &mNee)) {
+            if (ImGui::Checkbox("Light sources", &mSettings->nee)) {
                 mUpdateImage();
             }
             ImGui::BeginDisabled(mResourceManager->skyboxIndex() == UINT32_MAX);
-            if (ImGui::Checkbox("Environment", &mEnvNee)) {
+            if (ImGui::Checkbox("Environment", &mSettings->envNee)) {
                 mUpdateImage();
             }
             ImGui::EndDisabled();
         }
         if (ImGui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::DragInt("Render Scale", &mRenderScale, 0.05f, 1, 16)) {
+            if (ImGui::DragInt("Render Scale", &mSettings->renderScale, 0.05f, 1, 16)) {
                 mUpdateImage();
             }
-            ImGui::DragInt("Motion Scale", &mMotionScale, 0.05f, mRenderScale, 16);
+            ImGui::DragInt("Motion Scale", &mSettings->motionScale, 0.05f, mSettings->renderScale, 16);
         }
         if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::DragInt("SPP", &mSPP, 0.05f, 1, INT_MAX)) {
+            if (ImGui::DragInt("SPP", &mSettings->spp, 0.05f, 1, INT_MAX)) {
                 mUpdateImage();
             }
-            if (ImGui::DragInt("Min Bounces", &mMinDepth, 0.05f, 0, mMaxDepth)) {
+            if (ImGui::DragInt("Min Bounces", &mSettings->minDepth, 0.05f, 0, mSettings->maxDepth)) {
                 mUpdateImage();
             }
-            if (ImGui::DragInt("Max Bounces", &mMaxDepth, 0.05f, 1, INT_MAX)) {
+            if (ImGui::DragInt("Max Bounces", &mSettings->maxDepth, 0.05f, 1, INT_MAX)) {
                 mUpdateImage();
             }
         }
         if (ImGui::CollapsingHeader("Depth of Field", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::DragFloat("Aperture", &mAperture, 0.001f, 0.0f, 5.0f, "%.3f")) {
+            if (ImGui::DragFloat("Aperture", &mSettings->aperture, 0.001f, 0.0f, 5.0f, "%.3f")) {
                 mUpdateImage();
             }
-            if (ImGui::DragFloat("Focus Distance", &mFocusDistance, 0.05f, 0.01f, 1000.0f, "%.2f")) {
+            if (ImGui::DragFloat("Focus Distance", &mSettings->focusDistance, 0.05f, 0.01f, 1000.0f, "%.2f")) {
                 mUpdateImage();
             }
         }
         if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("ACES", &mTonemap);
-            ImGui::DragFloat("Exposure", &mExposure, 0.01f, 0.0f, 100.0f, "%.2f");
+            ImGui::Checkbox("ACES", &mSettings->tonemap);
+            ImGui::DragFloat("Exposure", &mSettings->exposure, 0.01f, 0.0f, 100.0f, "%.2f");
         }
         ImGui::Unindent(4.0f);
     }

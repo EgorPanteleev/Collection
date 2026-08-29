@@ -385,7 +385,8 @@ namespace crv::graphics::vulkan {
         const AppUICreateInfo createInfo {
             .context = &mContext,
             .swapchain = &mSwapchain,
-            .resourceManager = &mResourceManager
+            .resourceManager = &mResourceManager,
+            .renderSettings = &mRenderSettings
         };
         mUI = AppUI(createInfo);
 
@@ -459,17 +460,17 @@ namespace crv::graphics::vulkan {
             .commandBuffer = commandBuffer,
             .constants = {
                 .frameCount = mFrameCount,
-                .spp = mUI.spp(),
-                .minDepth = mUI.minDepth(),
-                .maxDepth = mUI.maxDepth(),
-                .displayMode = mUI.displayMode(),
-                .nee = mUI.nee() ? 1u : 0u,
+                .spp = static_cast<uint32_t>(mRenderSettings.spp),
+                .minDepth = static_cast<uint32_t>(mRenderSettings.minDepth),
+                .maxDepth = static_cast<uint32_t>(mRenderSettings.maxDepth),
+                .displayMode = static_cast<uint32_t>(mRenderSettings.displayMode),
+                .nee = mRenderSettings.nee ? 1u : 0u,
                 .emissiveCount = static_cast<uint32_t>(mResourceManager.emissiveIndices().size()),
                 .skyboxIndex = mResourceManager.skyboxIndex(),
                 .envIntegral = mResourceManager.envIntegral(),
-                .envNee = mUI.envNee() ? 1u : 0u,
-                .aperture = mUI.aperture(),
-                .focusDistance = mUI.focusDistance(),
+                .envNee = mRenderSettings.envNee ? 1u : 0u,
+                .aperture = mRenderSettings.aperture,
+                .focusDistance = mRenderSettings.focusDistance,
                 .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr(),
@@ -532,9 +533,9 @@ namespace crv::graphics::vulkan {
             .extent = mSwapchain.extent(),
             .currentFrame = mCurrentFrame,
             .constants = {
-                .exposure = mUI.exposure(),
-                .tonemap = mUI.tonemap() ? 1u : 0u,
-                .displayMode = mUI.displayMode(),
+                .exposure = mRenderSettings.exposure,
+                .tonemap = mRenderSettings.tonemap ? 1u : 0u,
+                .displayMode = static_cast<uint32_t>(mRenderSettings.displayMode),
                 .renderScale = mEffectiveScale
             }
         };
@@ -981,7 +982,7 @@ namespace crv::graphics::vulkan {
         acquireNextImage(imageIndex);
         drawControlPanel();
 
-        const uint32_t scale = mCameraMoved ? mUI.motionScale() : mUI.renderScale();
+        const uint32_t scale = mCameraMoved ? mRenderSettings.effectiveMotionScale() : mRenderSettings.effectiveRenderScale();
         if (scale != mEffectiveScale) {
             mEffectiveScale = scale;
             mFrameCount = 0;

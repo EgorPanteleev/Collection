@@ -12,6 +12,7 @@
 #include "AbsCamera.hpp"
 #include "Types.hpp"
 #include "ResourceManager.hpp"
+#include "Model/RenderSettings.hpp"
 #include <ImGuizmo.h>
 
 namespace crv::graphics::vulkan {
@@ -20,6 +21,7 @@ namespace crv::graphics::vulkan {
         Context*         context         = nullptr;
         Swapchain*       swapchain       = nullptr;
         ResourceManager* resourceManager = nullptr;
+        RenderSettings*  renderSettings  = nullptr;
     };
 
     struct AppUIRecordInfo {
@@ -55,19 +57,6 @@ namespace crv::graphics::vulkan {
         void setRegionSelectCallBack(const std::function<void(int x0, int y0, int x1, int y1, bool additive)>& callBack) { mRegionSelect = callBack; }
         void setSelectInstanceCallBack(const std::function<void(uint32_t index, bool additive)>& callBack) { mSelectInstance = callBack; }
         void setAddMaterialCallBack(const std::function<void(uint32_t instanceIndex)>& callBack) { mAddMaterial = callBack; }
-
-        [[nodiscard]] uint32_t spp() const { return mSPP; }
-        [[nodiscard]] uint32_t minDepth() const { return mMinDepth; }
-        [[nodiscard]] uint32_t maxDepth() const { return mMaxDepth; }
-        [[nodiscard]] uint32_t displayMode() const { return mDisplayMode; }
-        [[nodiscard]] bool     nee() const { return mNee; }
-        [[nodiscard]] bool     envNee() const { return mEnvNee; }
-        [[nodiscard]] float    aperture() const { return mAperture; }
-        [[nodiscard]] float    focusDistance() const { return mFocusDistance; }
-        [[nodiscard]] uint32_t renderScale() const { return static_cast<uint32_t>(mRenderScale); }
-        [[nodiscard]] uint32_t motionScale() const { return static_cast<uint32_t>(mMotionScale > mRenderScale ? mMotionScale : mRenderScale); }
-        [[nodiscard]] float    exposure() const { return mExposure; }
-        [[nodiscard]] bool     tonemap() const { return mTonemap; }
     private:
         void drawGizmo(const AppUIDrawInfo& info);
         void handleMarquee();
@@ -81,20 +70,8 @@ namespace crv::graphics::vulkan {
         Context*         mContext         = nullptr;
         Swapchain*       mSwapchain       = nullptr;
         ResourceManager* mResourceManager = nullptr;
+        RenderSettings*  mSettings        = nullptr;
         VkImGui          mImGui           = CRV_NULL_HANDLE;
-
-        int              mSPP             = 1;
-        int              mMinDepth        = 0;
-        int              mMaxDepth        = 2;
-        int              mDisplayMode     = 0;
-        bool             mNee             = false;
-        bool             mEnvNee          = false;
-        float            mAperture        = 0.0f;
-        float            mFocusDistance   = 10.0f;
-        int              mRenderScale     = 1;
-        int              mMotionScale     = 2;
-        float            mExposure        = 0.8f;
-        bool             mTonemap         = false;
 
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
         ImGuiFileDialog  mFileDialog{};

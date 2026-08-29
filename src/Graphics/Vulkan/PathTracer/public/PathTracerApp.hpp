@@ -132,6 +132,7 @@ namespace crv::graphics::vulkan {
 
         ResourceManager              mResourceManager{};
 
+        RenderSettings               mRenderSettings{};
         AppUI                        mUI{};
     };
 }
