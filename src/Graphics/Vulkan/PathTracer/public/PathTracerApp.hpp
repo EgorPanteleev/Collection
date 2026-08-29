@@ -20,7 +20,7 @@ using json = nlohmann::json;
 #include "Fence.hpp"
 #include "Types.hpp"
 #include "ResourceManager.hpp"
-#include "AppUI.hpp"
+#include "View/AppUI.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;

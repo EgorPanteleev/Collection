@@ -2,7 +2,7 @@
 // Created by igor on 6/12/26.
 //
 
-#include "AppUI.hpp"
+#include "View/AppUI.hpp"
 #include "IconsFontAwesome6.h"
 #include <ImGuizmo.h>
 #include <algorithm>
