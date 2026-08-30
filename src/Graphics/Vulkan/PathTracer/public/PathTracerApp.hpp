@@ -20,6 +20,7 @@ using json = nlohmann::json;
 #include "Fence.hpp"
 #include "Types.hpp"
 #include "ResourceManager.hpp"
+#include "InputState.hpp"
 #include "View/AppUI.hpp"
 
 namespace crv::graphics::vulkan {
@@ -42,6 +43,7 @@ namespace crv::graphics::vulkan {
         void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
+        [[nodiscard]] InputState& input() { return mInput; }
     private:
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void readScene(const std::string& scenePath);
@@ -132,6 +134,7 @@ namespace crv::graphics::vulkan {
 
         ResourceManager              mResourceManager{};
 
+        InputState                   mInput{};
         RenderSettings               mRenderSettings{};
         AppUI                        mUI{};
     };

@@ -85,6 +85,7 @@ namespace crv::graphics::vulkan {
         double deltaTime = 0;
         const Window& window = mContext.window();
         while (!window.shouldClose()) {
+            mInput.beginFrame();
             glfwPollEvents();
             window.keyboardCallBack(deltaTime);
             fpsCounter.update();
