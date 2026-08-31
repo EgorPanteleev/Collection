@@ -388,70 +388,70 @@ namespace crv::graphics::vulkan {
             .context = &mContext,
             .swapchain = &mSwapchain,
             .resourceManager = &mResourceManager,
-            .renderSettings = &mRenderSettings
+            .renderSettings = &mRenderSettings,
+            .commands = &mCommands
         };
         mUI = AppUI(createInfo);
+    }
 
-        mUI.setUpdateImageCallBack([this](){updateImage();});
-        mUI.setCameraSetCallBack([this](cs::CameraType type){setCamera(type);});
-        mUI.setUploadTextureCallBack([this](const std::string& path, uint32_t materialIndex, int textureType){
-            vkDeviceWaitIdle(mContext.device());
-            uint32_t index = 0;
-            switch (textureType) {
-                case 1:  index = mResourceManager.addNormalTexture(path, materialIndex); break;
-                case 2:  index = mResourceManager.addMetalRoughnessTexture(path, materialIndex); break;
-                case 3:  index = mResourceManager.addClearcoatTexture(path, materialIndex); break;
-                case 4:  index = mResourceManager.addClearcoatRoughnessTexture(path, materialIndex); break;
-                default: index = mResourceManager.addBaseColorTexture(path, materialIndex); break;
-            }
-            mRayTracerPass.bindTexture(index);
-        });
-        mUI.setLoadSkyboxCallBack([this](const std::string& path){
-            vkDeviceWaitIdle(mContext.device());
-            const uint32_t index = mResourceManager.addSkybox(path);
-            mRayTracerPass.bindTexture(index);
-            updateImage();
-        });
-        mUI.setRemoveSkyboxCallBack([this](){
-            mResourceManager.removeSkybox();
-            updateImage();
-        });
-        mUI.setSaveImageCallBack([this](){ saveImage(); });
-        mUI.setSaveSceneCallBack([this](){ saveScene(); });
-        mUI.setDuplicateInstancesCallBack([this](const std::vector<uint32_t>& indices){
-            vkDeviceWaitIdle(mContext.device());
-            const std::vector<uint32_t> created = mResourceManager.duplicateInstances(indices);
-            mRayTracerPass.bindInstances();
-            mSelectedInstances = created;
-            mActiveInstance = created.empty() ? UINT32_MAX : created.back();
-            mPendingSelection = false;
-            updateImage();
-        });
-        mUI.setRemoveInstancesCallBack([this](const std::vector<uint32_t>& indices){
-            vkDeviceWaitIdle(mContext.device());
-            mResourceManager.removeInstances(indices);
-            mRayTracerPass.bindInstances();
-            clearSelection();
-            updateImage();
-        });
-        mUI.setRegionSelectCallBack([this](int x0, int y0, int x1, int y1, bool additive){
-            regionSelect(x0, y0, x1, y1, additive);
-        });
-        mUI.setSelectInstanceCallBack([this](uint32_t index, bool additive){
-            applySelection(index + 1, additive);
-        });
-        mUI.setAddMaterialCallBack([this](uint32_t instanceIndex){
-            vkDeviceWaitIdle(mContext.device());
-            auto& instances = mResourceManager.instances();
-            if (instanceIndex >= instances.size()) return;
-            Material newMaterial = mResourceManager.materials()[instances[instanceIndex].materialIndex];
-            newMaterial.name += " copy";
-            const uint32_t index = mResourceManager.addMaterial(newMaterial);
-            instances[instanceIndex].materialIndex = index;
-            mResourceManager.updateInstance(instanceIndex);
-            mRayTracerPass.bindMaterials();
-            updateImage();
-        });
+    void PathTracerApp::selectInstance(const uint32_t index, const bool additive) {
+        applySelection(index + 1, additive);
+    }
+
+    void PathTracerApp::uploadTexture(const std::string& path, const uint32_t materialIndex, const int textureType) {
+        vkDeviceWaitIdle(mContext.device());
+        uint32_t index = 0;
+        switch (textureType) {
+            case 1:  index = mResourceManager.addNormalTexture(path, materialIndex); break;
+            case 2:  index = mResourceManager.addMetalRoughnessTexture(path, materialIndex); break;
+            case 3:  index = mResourceManager.addClearcoatTexture(path, materialIndex); break;
+            case 4:  index = mResourceManager.addClearcoatRoughnessTexture(path, materialIndex); break;
+            default: index = mResourceManager.addBaseColorTexture(path, materialIndex); break;
+        }
+        mRayTracerPass.bindTexture(index);
+    }
+
+    void PathTracerApp::loadSkybox(const std::string& path) {
+        vkDeviceWaitIdle(mContext.device());
+        const uint32_t index = mResourceManager.addSkybox(path);
+        mRayTracerPass.bindTexture(index);
+        updateImage();
+    }
+
+    void PathTracerApp::removeSkybox() {
+        mResourceManager.removeSkybox();
+        updateImage();
+    }
+
+    void PathTracerApp::duplicateInstances(const std::vector<uint32_t>& indices) {
+        vkDeviceWaitIdle(mContext.device());
+        const std::vector<uint32_t> created = mResourceManager.duplicateInstances(indices);
+        mRayTracerPass.bindInstances();
+        mSelectedInstances = created;
+        mActiveInstance = created.empty() ? UINT32_MAX : created.back();
+        mPendingSelection = false;
+        updateImage();
+    }
+
+    void PathTracerApp::removeInstances(const std::vector<uint32_t>& indices) {
+        vkDeviceWaitIdle(mContext.device());
+        mResourceManager.removeInstances(indices);
+        mRayTracerPass.bindInstances();
+        clearSelection();
+        updateImage();
+    }
+
+    void PathTracerApp::addMaterial(const uint32_t instanceIndex) {
+        vkDeviceWaitIdle(mContext.device());
+        auto& instances = mResourceManager.instances();
+        if (instanceIndex >= instances.size()) return;
+        Material newMaterial = mResourceManager.materials()[instances[instanceIndex].materialIndex];
+        newMaterial.name += " copy";
+        const uint32_t index = mResourceManager.addMaterial(newMaterial);
+        instances[instanceIndex].materialIndex = index;
+        mResourceManager.updateInstance(instanceIndex);
+        mRayTracerPass.bindMaterials();
+        updateImage();
     }
 
     void PathTracerApp::recordTracer() {
@@ -984,19 +984,16 @@ namespace crv::graphics::vulkan {
             .input     = &mInput,
             .deltaTime = static_cast<float>(deltaTime),
         };
-        for (const Command command : mCommands.get()) {
+        for (const Command& command : mCommands.get()) {
             switch (commandTarget(command.type)) {
                 case CommandTarget::CAMERA:
-                    cameraMoved |= mCameraHandler.apply(command, cameraInput);
+                    if (mCameraHandler.apply(command, cameraInput)) cameraMoved = true;
+                    else mAppHandler.apply(command, this);
                     break;
                 case CommandTarget::SCENE:
-                    applySceneCommand(command);
-                    break;
                 case CommandTarget::VIEW:
-                    if (command.type == CommandType::TOGGLE_CONTROL_PANEL) toggleControlPanel();
-                    break;
                 case CommandTarget::APP:
-                    if (command.type == CommandType::QUIT) mContext.window().close();
+                    mAppHandler.apply(command, this);
                     break;
                 default:
                     break;
@@ -1004,14 +1001,6 @@ namespace crv::graphics::vulkan {
         }
         mCommands.clear();
         if (cameraMoved) onCameraMoved();
-    }
-
-    void PathTracerApp::applySceneCommand(const Command command) {
-        switch (command.type) {
-            case CommandType::CLEAR_SELECTION: clearSelection(); break;
-            case CommandType::PICK_OBJECT:     pickAtCursor();   break;
-            default: break;
-        }
     }
 
     void PathTracerApp::pickAtCursor() {

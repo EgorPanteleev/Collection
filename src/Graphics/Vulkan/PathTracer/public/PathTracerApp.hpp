@@ -23,6 +23,7 @@ using json = nlohmann::json;
 #include "InputState.hpp"
 #include "CommandStream.hpp"
 #include "InputHandlers/CameraInputHandler.hpp"
+#include "InputHandlers/AppInputHandler.hpp"
 #include "View/AppUI.hpp"
 
 namespace crv::graphics::vulkan {
@@ -47,6 +48,17 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Window& window() { return mContext.window(); }
         [[nodiscard]] InputState& input() { return mInput; }
         [[nodiscard]] CommandStream& commands() { return mCommands; }
+        void setCamera(scene::CameraType type);
+        void pickAtCursor();
+        void saveImage();
+        void saveScene();
+        void selectInstance(uint32_t index, bool additive);
+        void uploadTexture(const std::string& path, uint32_t materialIndex, int textureType);
+        void loadSkybox(const std::string& path);
+        void removeSkybox();
+        void duplicateInstances(const std::vector<uint32_t>& indices);
+        void removeInstances(const std::vector<uint32_t>& indices);
+        void addMaterial(uint32_t instanceIndex);
     private:
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void readScene(const std::string& scenePath);
@@ -70,18 +82,13 @@ namespace crv::graphics::vulkan {
         void recordPostprocess();
         void recordPresent(uint32_t imageIndex);
         void recordPixelRead(VkCommandBuffer commandBuffer);
-        void saveImage();
-        void saveScene();
         void updateSelectedInstance();
         void applySelection(uint32_t id, bool additive);
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);
-        void setCamera(scene::CameraType type);
         void drawControlPanel();
         void applyCommands(double deltaTime);
-        void applySceneCommand(Command command);
-        void pickAtCursor();
         void drawFrame();
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;
@@ -143,6 +150,7 @@ namespace crv::graphics::vulkan {
         InputState                   mInput{};
         CommandStream                mCommands{};
         CameraInputHandler           mCameraHandler{};
+        AppInputHandler              mAppHandler{};
         RenderSettings               mRenderSettings{};
         AppUI                        mUI{};
     };

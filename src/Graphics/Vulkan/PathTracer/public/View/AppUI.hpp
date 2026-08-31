@@ -13,6 +13,8 @@
 #include "Types.hpp"
 #include "ResourceManager.hpp"
 #include "Model/RenderSettings.hpp"
+#include "Command.hpp"
+#include "CommandStream.hpp"
 #include <ImGuizmo.h>
 
 namespace crv::graphics::vulkan {
@@ -22,6 +24,7 @@ namespace crv::graphics::vulkan {
         Swapchain*       swapchain       = nullptr;
         ResourceManager* resourceManager = nullptr;
         RenderSettings*  renderSettings  = nullptr;
+        CommandStream*   commands        = nullptr;
     };
 
     struct AppUIRecordInfo {
@@ -45,19 +48,10 @@ namespace crv::graphics::vulkan {
         void record(const AppUIRecordInfo& info);
         void draw(const AppUIDrawInfo& info);
 
-        void setUpdateImageCallBack(const std::function<void()>& callBack) { mUpdateImage = callBack; }
-        void setCameraSetCallBack(const std::function<void(cs::CameraType type)>& callBack) { mCameraSet = callBack; }
-        void setUploadTextureCallBack(const std::function<void(const std::string& path, uint32_t materialIndex, int textureType)>& callBack) { mUploadTexture = callBack; }
-        void setLoadSkyboxCallBack(const std::function<void(const std::string& path)>& callBack) { mLoadSkybox = callBack; }
-        void setRemoveSkyboxCallBack(const std::function<void()>& callBack) { mRemoveSkybox = callBack; }
-        void setSaveImageCallBack(const std::function<void()>& callBack) { mSaveImage = callBack; }
-        void setSaveSceneCallBack(const std::function<void()>& callBack) { mSaveScene = callBack; }
-        void setDuplicateInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mDuplicateInstances = callBack; }
-        void setRemoveInstancesCallBack(const std::function<void(const std::vector<uint32_t>& indices)>& callBack) { mRemoveInstances = callBack; }
-        void setRegionSelectCallBack(const std::function<void(int x0, int y0, int x1, int y1, bool additive)>& callBack) { mRegionSelect = callBack; }
-        void setSelectInstanceCallBack(const std::function<void(uint32_t index, bool additive)>& callBack) { mSelectInstance = callBack; }
-        void setAddMaterialCallBack(const std::function<void(uint32_t instanceIndex)>& callBack) { mAddMaterial = callBack; }
     private:
+        void push(CommandType type, CommandPayload payload = EmptyPayload{}) {
+            mCommands->push(Command{type, std::move(payload)});
+        }
         void drawGizmo(const AppUIDrawInfo& info);
         void handleMarquee();
         void drawCursorDot();
@@ -71,25 +65,14 @@ namespace crv::graphics::vulkan {
         Swapchain*       mSwapchain       = nullptr;
         ResourceManager* mResourceManager = nullptr;
         RenderSettings*  mSettings        = nullptr;
+        CommandStream*   mCommands        = nullptr;
         VkImGui          mImGui           = CRV_NULL_HANDLE;
 
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
         ImGuiFileDialog  mFileDialog{};
-
-        std::function<void()> mUpdateImage{};
-        std::function<void(cs::CameraType type)> mCameraSet{};
-        std::function<void(const std::string& path, uint32_t materialIndex, int textureType)> mUploadTexture{};
-        int              mUploadTextureType = 0;
-        std::function<void(const std::string& path)> mLoadSkybox{};
-        std::function<void()> mRemoveSkybox{};
         ImGuiFileDialog  mSkyboxFileDialog{};
-        std::function<void()> mSaveImage{};
-        std::function<void()> mSaveScene{};
-        std::function<void(const std::vector<uint32_t>& indices)> mDuplicateInstances{};
-        std::function<void(const std::vector<uint32_t>& indices)> mRemoveInstances{};
-        std::function<void(int x0, int y0, int x1, int y1, bool additive)> mRegionSelect{};
-        std::function<void(uint32_t index, bool additive)> mSelectInstance{};
-        std::function<void(uint32_t instanceIndex)> mAddMaterial{};
+        int              mUploadTextureType = 0;
+        bool             mNeedsUpdate = false;
         bool    mMarqueeActive = false;
         ImVec2  mMarqueeStart{};
     };

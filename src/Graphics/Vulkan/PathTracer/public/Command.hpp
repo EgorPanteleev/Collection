@@ -6,7 +6,9 @@
 #define COLLECTION_COMMAND_HPP
 
 #include <cstdint>
+#include <string>
 #include <variant>
+#include <vector>
 
 namespace crv::graphics::vulkan {
     inline constexpr uint32_t COMMAND_TARGET_SHIFT = 24;
@@ -33,13 +35,26 @@ namespace crv::graphics::vulkan {
         ROTATE_DOWN,
         LOOK,
         ZOOM,
+        SET_CAMERA_FLY,
+        SET_CAMERA_ORBITAL,
 
         PICK_OBJECT = static_cast<uint32_t>(CommandTarget::SCENE),
         CLEAR_SELECTION,
+        SELECT_INSTANCE,
+        REGION_SELECT,
+        DUPLICATE_INSTANCES,
+        REMOVE_INSTANCES,
+        ADD_MATERIAL,
+        UPLOAD_TEXTURE,
+        LOAD_SKYBOX,
+        REMOVE_SKYBOX,
 
         TOGGLE_CONTROL_PANEL = static_cast<uint32_t>(CommandTarget::VIEW),
+        UPDATE_IMAGE,
 
         QUIT = static_cast<uint32_t>(CommandTarget::APP),
+        SAVE_IMAGE,
+        SAVE_SCENE,
     };
 
     constexpr CommandTarget commandTarget(const CommandType type) {
@@ -47,8 +62,21 @@ namespace crv::graphics::vulkan {
     }
 
     struct EmptyPayload {};
+    struct SelectInstancePayload { uint32_t index; bool additive; };
+    struct RegionSelectPayload   { int x0, y0, x1, y1; bool additive; };
+    struct InstancesPayload      { std::vector<uint32_t> indices; };
+    struct MaterialPayload       { uint32_t instanceIndex; };
+    struct UploadTexturePayload  { std::string path; uint32_t materialIndex; int textureType; };
+    struct SkyboxPayload         { std::string path; };
 
-    using CommandPayload = std::variant<EmptyPayload>;
+    using CommandPayload = std::variant<
+        EmptyPayload,
+        SelectInstancePayload,
+        RegionSelectPayload,
+        InstancesPayload,
+        MaterialPayload,
+        UploadTexturePayload,
+        SkyboxPayload>;
 
     struct Command {
         CommandType    type    = CommandType::NONE;
