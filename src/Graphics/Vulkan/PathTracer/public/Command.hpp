@@ -6,51 +6,53 @@
 #define COLLECTION_COMMAND_HPP
 
 #include <cstdint>
+#include <variant>
 
 namespace crv::graphics::vulkan {
-    enum class CommandTarget : uint8_t {
-        NONE   = 0,
-        CAMERA = 1,
-        SCENE  = 2,
-        VIEW   = 3,
-        APP    = 4,
-    };
-
     inline constexpr uint32_t COMMAND_TARGET_SHIFT = 24;
+    inline constexpr uint32_t COMMAND_TARGET_MASK  = 0xFFu << COMMAND_TARGET_SHIFT;
 
-    constexpr uint32_t makeCommand(const CommandTarget target, const uint32_t action) {
-        return (static_cast<uint32_t>(target) << COMMAND_TARGET_SHIFT) | action;
-    }
+    enum class CommandTarget : uint32_t {
+        CAMERA = 1u << COMMAND_TARGET_SHIFT,
+        SCENE  = 2u << COMMAND_TARGET_SHIFT,
+        VIEW   = 3u << COMMAND_TARGET_SHIFT,
+        APP    = 4u << COMMAND_TARGET_SHIFT,
+    };
 
     enum class CommandType : uint32_t {
         NONE = 0,
-        MOVE_FORWARD  = makeCommand(CommandTarget::CAMERA, 1),
-        MOVE_BACKWARD = makeCommand(CommandTarget::CAMERA, 2),
-        MOVE_LEFT     = makeCommand(CommandTarget::CAMERA, 3),
-        MOVE_RIGHT    = makeCommand(CommandTarget::CAMERA, 4),
-        MOVE_UP       = makeCommand(CommandTarget::CAMERA, 5),
-        MOVE_DOWN     = makeCommand(CommandTarget::CAMERA, 6),
-        ROTATE_LEFT   = makeCommand(CommandTarget::CAMERA, 7),
-        ROTATE_RIGHT  = makeCommand(CommandTarget::CAMERA, 8),
-        ROTATE_UP     = makeCommand(CommandTarget::CAMERA, 9),
-        ROTATE_DOWN   = makeCommand(CommandTarget::CAMERA, 10),
-        LOOK          = makeCommand(CommandTarget::CAMERA, 11),
-        ZOOM          = makeCommand(CommandTarget::CAMERA, 12),
+        MOVE_FORWARD = static_cast<uint32_t>(CommandTarget::CAMERA),
+        MOVE_BACKWARD,
+        MOVE_LEFT,
+        MOVE_RIGHT,
+        MOVE_UP,
+        MOVE_DOWN,
+        ROTATE_LEFT,
+        ROTATE_RIGHT,
+        ROTATE_UP,
+        ROTATE_DOWN,
+        LOOK,
+        ZOOM,
 
-        PICK_OBJECT     = makeCommand(CommandTarget::SCENE, 1),
-        CLEAR_SELECTION = makeCommand(CommandTarget::SCENE, 2),
+        PICK_OBJECT = static_cast<uint32_t>(CommandTarget::SCENE),
+        CLEAR_SELECTION,
 
-        TOGGLE_CONTROL_PANEL = makeCommand(CommandTarget::VIEW, 1),
+        TOGGLE_CONTROL_PANEL = static_cast<uint32_t>(CommandTarget::VIEW),
 
-        QUIT = makeCommand(CommandTarget::APP, 1),
+        QUIT = static_cast<uint32_t>(CommandTarget::APP),
     };
 
     constexpr CommandTarget commandTarget(const CommandType type) {
-        return static_cast<CommandTarget>(static_cast<uint32_t>(type) >> COMMAND_TARGET_SHIFT);
+        return static_cast<CommandTarget>(static_cast<uint32_t>(type) & COMMAND_TARGET_MASK);
     }
 
+    struct EmptyPayload {};
+
+    using CommandPayload = std::variant<EmptyPayload>;
+
     struct Command {
-        CommandType type = CommandType::NONE;
+        CommandType    type    = CommandType::NONE;
+        CommandPayload payload = EmptyPayload{};
     };
 }
 
