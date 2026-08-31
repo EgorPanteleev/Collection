@@ -34,8 +34,8 @@ namespace crv::graphics::vulkan {
         ROTATE_RIGHT  = makeCommand(CommandTarget::CAMERA, 8),
         ROTATE_UP     = makeCommand(CommandTarget::CAMERA, 9),
         ROTATE_DOWN   = makeCommand(CommandTarget::CAMERA, 10),
-        ZOOM_IN       = makeCommand(CommandTarget::CAMERA, 11),
-        ZOOM_OUT      = makeCommand(CommandTarget::CAMERA, 12),
+        LOOK          = makeCommand(CommandTarget::CAMERA, 11),
+        ZOOM          = makeCommand(CommandTarget::CAMERA, 12),
 
         PICK_OBJECT     = makeCommand(CommandTarget::SCENE, 1),
         CLEAR_SELECTION = makeCommand(CommandTarget::SCENE, 2),

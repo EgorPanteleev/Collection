@@ -88,6 +88,7 @@ namespace crv::graphics::vulkan {
             mInput.beginFrame();
             glfwPollEvents();
             window.keyboardCallBack(deltaTime);
+            applyCommands(deltaTime);
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
@@ -974,6 +975,56 @@ namespace crv::graphics::vulkan {
             .renderScale = mEffectiveScale
         };
         mUI.draw(drawInfo);
+    }
+
+    void PathTracerApp::applyCommands(const double deltaTime) {
+        bool cameraMoved = false;
+        const CameraInput cameraInput {
+            .camera    = mCamera,
+            .input     = &mInput,
+            .deltaTime = static_cast<float>(deltaTime),
+        };
+        for (const Command command : mCommands.get()) {
+            switch (commandTarget(command.type)) {
+                case CommandTarget::CAMERA:
+                    cameraMoved |= mCameraHandler.apply(command, cameraInput);
+                    break;
+                case CommandTarget::SCENE:
+                    applySceneCommand(command);
+                    break;
+                case CommandTarget::VIEW:
+                    if (command.type == CommandType::TOGGLE_CONTROL_PANEL) toggleControlPanel();
+                    break;
+                case CommandTarget::APP:
+                    if (command.type == CommandType::QUIT) mContext.window().close();
+                    break;
+                default:
+                    break;
+            }
+        }
+        mCommands.clear();
+        if (cameraMoved) onCameraMoved();
+    }
+
+    void PathTracerApp::applySceneCommand(const Command command) {
+        switch (command.type) {
+            case CommandType::CLEAR_SELECTION: clearSelection(); break;
+            case CommandType::PICK_OBJECT:     pickAtCursor();   break;
+            default: break;
+        }
+    }
+
+    void PathTracerApp::pickAtCursor() {
+        const glm::dvec2 cursor = mInput.cursorPos();
+        GLFWwindow* window = mContext.window().glfwWindow();
+        int winWidth, winHeight, fbWidth, fbHeight;
+        glfwGetWindowSize(window, &winWidth, &winHeight);
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+        const float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
+        const float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
+        const bool additive = mInput.isPressed(Key::LEFT_SHIFT) || mInput.isPressed(Key::RIGHT_SHIFT);
+        pixelClicked(static_cast<uint32_t>(cursor.x * scaleX),
+                     static_cast<uint32_t>(cursor.y * scaleY), additive);
     }
 
     void PathTracerApp::drawFrame() {

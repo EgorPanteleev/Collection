@@ -15,64 +15,37 @@ namespace crv::graphics::vulkan {
         return static_cast<PathTracerApp*>(glfwGetWindowUserPointer(window));
     }
 
-    static void objectSelected(PathTracerApp* app, bool additive) {
-        const glm::dvec2 cursor = app->input().cursorPos();
-        GLFWwindow* window = app->window().glfwWindow();
-        int winWidth, winHeight, fbWidth, fbHeight;
-        glfwGetWindowSize(window, &winWidth, &winHeight);
-        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-        const float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
-        const float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
-        const auto x = static_cast<uint32_t>(cursor.x * scaleX);
-        const auto y = static_cast<uint32_t>(cursor.y * scaleY);
-        app->pixelClicked(x, y, additive);
-    }
-
-    // Runs once per frame, after events are polled. Reads the accumulated
-    // InputState instead of querying the backend directly.
-    static void processInput(GLFWwindow* window, double deltaTime) {
+    // Runs once per frame, after events are polled. Translates the accumulated
+    // InputState into commands; the app drains and applies them by target.
+    static void processInput(GLFWwindow* window, double) {
         if (inputBlocked()) return;
         auto app = appOf(window);
         const InputState& input = app->input();
-        const bool additive = input.isPressed(Key::LEFT_SHIFT) || input.isPressed(Key::RIGHT_SHIFT);
+        CommandStream& commands = app->commands();
 
-        if (input.wasPressed(Key::Q)) app->window().close();
-        if (input.wasPressed(Key::Z)) app->toggleControlPanel();
-        if (input.wasPressed(Key::ESCAPE)) app->clearSelection();
-        if (input.wasPressed(Key::X)) objectSelected(app, additive);
-        if (input.wasReleased(MouseButton::MIDDLE)) objectSelected(app, additive);
+        if (input.wasPressed(Key::Q)) commands.push(CommandType::QUIT);
+        if (input.wasPressed(Key::Z)) commands.push(CommandType::TOGGLE_CONTROL_PANEL);
+        if (input.wasPressed(Key::ESCAPE)) commands.push(CommandType::CLEAR_SELECTION);
+        if (input.wasPressed(Key::X)) commands.push(CommandType::PICK_OBJECT);
+        if (input.wasReleased(MouseButton::MIDDLE)) commands.push(CommandType::PICK_OBJECT);
 
-        auto camera = app->camera();
-        const float speed = 0.06f * static_cast<float>(deltaTime);
-        if (input.isPressed(Key::W)) { camera->move(speed, 0, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::S)) { camera->move(-speed, 0, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::A)) { camera->move(0, -speed, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::D)) { camera->move(0, speed, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::SPACE)) { camera->move(0, 0, -speed); app->onCameraMoved(); }
-        if (input.isPressed(Key::LEFT_CONTROL)) { camera->move(0, 0, speed); app->onCameraMoved(); }
+        if (input.isPressed(Key::W)) commands.push(CommandType::MOVE_FORWARD);
+        if (input.isPressed(Key::S)) commands.push(CommandType::MOVE_BACKWARD);
+        if (input.isPressed(Key::A)) commands.push(CommandType::MOVE_LEFT);
+        if (input.isPressed(Key::D)) commands.push(CommandType::MOVE_RIGHT);
+        if (input.isPressed(Key::SPACE)) commands.push(CommandType::MOVE_UP);
+        if (input.isPressed(Key::LEFT_CONTROL)) commands.push(CommandType::MOVE_DOWN);
 
-        const float rotateSpeed = speed * 0.3f;
-        if (input.isPressed(Key::LEFT))  { camera->rotate(0, rotateSpeed, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::RIGHT)) { camera->rotate(0, -rotateSpeed, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::UP))    { camera->rotate(rotateSpeed, 0, 0); app->onCameraMoved(); }
-        if (input.isPressed(Key::DOWN))  { camera->rotate(-rotateSpeed, 0, 0); app->onCameraMoved(); }
+        if (input.isPressed(Key::LEFT))  commands.push(CommandType::ROTATE_LEFT);
+        if (input.isPressed(Key::RIGHT)) commands.push(CommandType::ROTATE_RIGHT);
+        if (input.isPressed(Key::UP))    commands.push(CommandType::ROTATE_UP);
+        if (input.isPressed(Key::DOWN))  commands.push(CommandType::ROTATE_DOWN);
 
         if (input.isPressed(MouseButton::RIGHT)) {
             const glm::dvec2 delta = input.cursorDelta();
-            if (delta.x != 0.0 || delta.y != 0.0) {
-                constexpr double sensitivity = 0.1;
-                camera->rotate(static_cast<float>(delta.y * sensitivity),
-                               static_cast<float>(-delta.x * sensitivity), 0.f);
-                app->onCameraMoved();
-            }
+            if (delta.x != 0.0 || delta.y != 0.0) commands.push(CommandType::LOOK);
         }
-
-        const double scrollY = input.scrollDelta().y;
-        if (scrollY != 0.0) {
-            constexpr double zoomSpeed = 10.0;
-            camera->zoom(static_cast<float>(scrollY * zoomSpeed));
-            app->onCameraMoved();
-        }
+        if (input.scrollDelta().y != 0.0) commands.push(CommandType::ZOOM);
     }
 
     static void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {

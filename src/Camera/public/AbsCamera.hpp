@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+
+#include <tuple>
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 namespace crv::scene {

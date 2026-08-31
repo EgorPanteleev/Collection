@@ -21,6 +21,8 @@ using json = nlohmann::json;
 #include "Types.hpp"
 #include "ResourceManager.hpp"
 #include "InputState.hpp"
+#include "CommandStream.hpp"
+#include "InputHandlers/CameraInputHandler.hpp"
 #include "View/AppUI.hpp"
 
 namespace crv::graphics::vulkan {
@@ -44,6 +46,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
         [[nodiscard]] InputState& input() { return mInput; }
+        [[nodiscard]] CommandStream& commands() { return mCommands; }
     private:
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void readScene(const std::string& scenePath);
@@ -76,6 +79,9 @@ namespace crv::graphics::vulkan {
         void acquireNextImage(uint32_t& imageIndex);
         void setCamera(scene::CameraType type);
         void drawControlPanel();
+        void applyCommands(double deltaTime);
+        void applySceneCommand(Command command);
+        void pickAtCursor();
         void drawFrame();
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;
@@ -135,6 +141,8 @@ namespace crv::graphics::vulkan {
         ResourceManager              mResourceManager{};
 
         InputState                   mInput{};
+        CommandStream                mCommands{};
+        CameraInputHandler           mCameraHandler{};
         RenderSettings               mRenderSettings{};
         AppUI                        mUI{};
     };
