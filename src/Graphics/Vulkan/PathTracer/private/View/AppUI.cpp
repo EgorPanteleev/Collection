@@ -133,7 +133,7 @@ namespace crv::graphics::vulkan {
                 transform.position = glm::vec3(updated[3]);
                 transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
             }
-            push(CommandType::UPDATE_INSTANCE_TRANSFORM, InstancesPayload{*info.selectedInstances});
+            push(CommandType::UPDATE_INSTANCE, InstancesPayload{*info.selectedInstances});
             mUpdateImage = true;
         }
     }
@@ -366,7 +366,7 @@ namespace crv::graphics::vulkan {
                 for (size_t i = 0; i < materials.size(); ++i) {
                     if (ImGui::Selectable(materialItems[i].c_str())) {
                         instance.materialIndex = i;
-                        push(CommandType::UPDATE_INSTANCE, IndexPayload{active});
+                        push(CommandType::UPDATE_INSTANCE_DATA, IndexPayload{active});
                         mUpdateImage = true;
                     }
                 }
@@ -614,7 +614,7 @@ namespace crv::graphics::vulkan {
                 changed = true;
 
             if (changed) {
-                push(CommandType::UPDATE_INSTANCE_TRANSFORM, InstancesPayload{{active}});
+                push(CommandType::UPDATE_INSTANCE, InstancesPayload{{active}});
                 mUpdateImage = true;
             }
             VkImGui::endGroup();

@@ -42,6 +42,7 @@ namespace crv::graphics::vulkan {
             glfwPollEvents();
             window.keyboardCallBack(deltaTime);
             applyCommands(deltaTime);
+            flushUpdates();
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
@@ -550,7 +551,7 @@ namespace crv::graphics::vulkan {
             vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
             const uint32_t id = *data;
             vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
-            mAppHandler.applySelection(this, id, mAdditiveSelect);
+            mModel.select(id, mAdditiveSelect);
         }
     }
 
@@ -687,6 +688,46 @@ namespace crv::graphics::vulkan {
         }
         mCommands.clear();
         if (cameraMoved) onCameraMoved();
+    }
+
+    void PathTracerApp::flushUpdates() {
+        UpdateState& state = mModel.updateState();
+        if (!state.any()) return;
+        if (state.heavy()) vkDeviceWaitIdle(mContext.device());
+
+        for (const uint32_t sourceIndex : state.dirtyTextures) {
+            const uint32_t index = mResourceManager.uploadTexture(sourceIndex);
+            mRayTracerPass.bindTexture(index);
+        }
+        if (state.updateSkybox) {
+            const uint32_t skyboxIndex = mModel.scene().mSkyboxIndex;
+            if (skyboxIndex == UINT32_MAX) {
+                mResourceManager.disableSkybox();
+            } else {
+                mResourceManager.uploadSkybox(skyboxIndex);
+                mRayTracerPass.bindTexture(skyboxIndex);
+            }
+        }
+
+        if (state.updateInstances) {
+            mResourceManager.rebuildInstances();
+            mRayTracerPass.bindInstances();
+        } else {
+            for (const auto& [index, update] : state.dirtyInstances) {
+                if (update == InstanceUpdate::Model) mResourceManager.updateInstance(index);
+                else                                     mResourceManager.updateInstanceData(index);
+            }
+        }
+
+        if (state.updateMaterials) {
+            mResourceManager.rebuildMaterials();
+            mRayTracerPass.bindMaterials();
+        } else {
+            for (const uint32_t index : state.dirtyMaterials) mResourceManager.updateMaterial(index);
+        }
+
+        if (state.resetAccumulation) mFrameCount = 0;
+        state.clear();
     }
 
     void PathTracerApp::drawFrame() {

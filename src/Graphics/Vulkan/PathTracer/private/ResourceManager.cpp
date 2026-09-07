@@ -9,12 +9,6 @@
 #include <filesystem>
 
 namespace crv::graphics::vulkan {
-    static std::string relativeToAssets(const std::string& path) {
-        std::error_code ec;
-        const std::filesystem::path rel = std::filesystem::relative(path, ASSETS_PATH, ec);
-        return (!ec && !rel.empty()) ? rel.generic_string() : path;
-    }
-
     namespace {
         constexpr double ENV_PI = 3.14159265358979323846;
 
@@ -144,8 +138,8 @@ namespace crv::graphics::vulkan {
         createBuffers();
     }
 
-    void ResourceManager::updateInstanceTransform(const uint32_t index) {
-        updateInstance(index);
+    void ResourceManager::updateInstance(const uint32_t index) {
+        updateInstanceData(index);
         const InstanceData& instance = mScene->mInstances[index];
         InstanceData::AS asInstance =
             instance.vkAS(index, mBLASDatas[instance.meshIndex].blas.deviceAddress());
@@ -170,7 +164,7 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
     }
 
-    void ResourceManager::updateInstance(const uint32_t index) {
+    void ResourceManager::updateInstanceData(const uint32_t index) {
         InstanceData::GPU instanceGPU = mScene->mInstances[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
             .data = &instanceGPU,
@@ -187,36 +181,12 @@ namespace crv::graphics::vulkan {
         updateEmissiveIndices();
     }
 
-    std::vector<uint32_t> ResourceManager::duplicateInstances(const std::vector<uint32_t>& indices) {
-        auto& instances = mScene->mInstances;
-        std::vector<uint32_t> newIndices;
-        newIndices.reserve(indices.size());
-        for (const uint32_t index : indices) {
-            if (index >= instances.size()) continue;
-            const InstanceData copy = instances[index];
-            instances.push_back(copy);
-            newIndices.push_back(static_cast<uint32_t>(instances.size() - 1));
-        }
-        if (!newIndices.empty()) rebuildInstanceBuffers();
-        return newIndices;
-    }
-
-    void ResourceManager::removeInstances(const std::vector<uint32_t>& indices) {
-        auto& instances = mScene->mInstances;
-        std::vector<uint32_t> sorted(indices);
-        std::sort(sorted.begin(), sorted.end(), std::greater<>());
-        sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
-        if (sorted.empty() || sorted.size() >= instances.size()) return;
-        for (const uint32_t index : sorted) {
-            if (index < instances.size()) instances.erase(instances.begin() + index);
-        }
+    void ResourceManager::rebuildInstances() {
         rebuildInstanceBuffers();
     }
 
-    uint32_t ResourceManager::addMaterial(const Material& material) {
-        mScene->mMaterials.push_back(material);
+    void ResourceManager::rebuildMaterials() {
         buildMaterialBuffer();
-        return static_cast<uint32_t>(mScene->mMaterials.size() - 1);
     }
 
     void ResourceManager::buildMaterialBuffer() {
@@ -242,83 +212,20 @@ namespace crv::graphics::vulkan {
         updateEmissiveIndices();
     }
 
-    uint32_t ResourceManager::addBaseColorTexture(const std::string& path, const uint32_t materialIndex) {
-        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::BASE_COLOR);
-        mTextures.push_back(toTexture(mContext, cmTexture));
-        const auto index = static_cast<uint32_t>(mTextures.size() - 1);
-        Material& material = mScene->mMaterials[materialIndex];
-        material.baseColorTexIndex = index;
-        material.baseColorTexName = std::filesystem::path(path).filename().string();
-        material.baseColorTexPath = relativeToAssets(path);
-        updateMaterial(materialIndex);
-        return index;
+    uint32_t ResourceManager::uploadTexture(const uint32_t sourceIndex) {
+        mTextures.push_back(toTexture(mContext, mScene->mTextureSources[sourceIndex]));
+        return sourceIndex;
     }
 
-    uint32_t ResourceManager::addNormalTexture(const std::string& path, const uint32_t materialIndex) {
-        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::NORMAL);
-        mTextures.push_back(toTexture(mContext, cmTexture));
-        const auto index = static_cast<uint32_t>(mTextures.size() - 1);
-        Material& material = mScene->mMaterials[materialIndex];
-        material.normalTexIndex = index;
-        material.normalTexName = std::filesystem::path(path).filename().string();
-        material.normalTexPath = relativeToAssets(path);
-        updateMaterial(materialIndex);
-        return index;
-    }
-
-    uint32_t ResourceManager::addClearcoatTexture(const std::string& path, const uint32_t materialIndex) {
-        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::CLEARCOAT);
-        mTextures.push_back(toTexture(mContext, cmTexture));
-        const auto index = static_cast<uint32_t>(mTextures.size() - 1);
-        Material& material = mScene->mMaterials[materialIndex];
-        material.clearcoatTexIndex = index;
-        material.clearcoatTexName = std::filesystem::path(path).filename().string();
-        material.clearcoatTexPath = relativeToAssets(path);
-        updateMaterial(materialIndex);
-        return index;
-    }
-
-    uint32_t ResourceManager::addClearcoatRoughnessTexture(const std::string& path, const uint32_t materialIndex) {
-        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::CLEARCOAT_ROUGHNESS);
-        mTextures.push_back(toTexture(mContext, cmTexture));
-        const auto index = static_cast<uint32_t>(mTextures.size() - 1);
-        Material& material = mScene->mMaterials[materialIndex];
-        material.clearcoatRoughnessTexIndex = index;
-        material.clearcoatRoughnessTexName = std::filesystem::path(path).filename().string();
-        material.clearcoatRoughnessTexPath = relativeToAssets(path);
-        updateMaterial(materialIndex);
-        return index;
-    }
-
-    uint32_t ResourceManager::addSkybox(const std::string& path) {
-        const cm::Texture skybox = cm::AbsLoader::loadSkybox(path);
+    uint32_t ResourceManager::uploadSkybox(const uint32_t sourceIndex) {
+        const cm::Texture& skybox = mScene->mTextureSources[sourceIndex];
         buildEnvDistribution(skybox);
         mTextures.push_back(toTexture(mContext, skybox));
-        mScene->mSkyboxIndex = static_cast<uint32_t>(mTextures.size() - 1);
-        mScene->mSkyboxName = std::filesystem::path(path).filename().string();
-        std::error_code ec;
-        const std::filesystem::path relative = std::filesystem::relative(path, ASSETS_PATH, ec);
-        mScene->mSkyboxPath = (!ec && !relative.empty()) ? relative.generic_string() : path;
-        return mScene->mSkyboxIndex;
+        return sourceIndex;
     }
 
-    void ResourceManager::removeSkybox() {
-        mScene->mSkyboxIndex = UINT32_MAX;
-        mScene->mSkyboxName.clear();
-        mScene->mSkyboxPath.clear();
+    void ResourceManager::disableSkybox() {
         disableEnvDistribution();
-    }
-
-    uint32_t ResourceManager::addMetalRoughnessTexture(const std::string& path, const uint32_t materialIndex) {
-        const cm::Texture cmTexture = cm::AbsLoader::loadTexture(path, cm::Texture::METAL_ROUGHNESS);
-        mTextures.push_back(toTexture(mContext, cmTexture));
-        const auto index = static_cast<uint32_t>(mTextures.size() - 1);
-        Material& material = mScene->mMaterials[materialIndex];
-        material.metalRoughnessTexIndex = index;
-        material.metalRoughnessTexName = std::filesystem::path(path).filename().string();
-        material.metalRoughnessTexPath = relativeToAssets(path);
-        updateMaterial(materialIndex);
-        return index;
     }
 
     void ResourceManager::updateEmissiveIndices() {

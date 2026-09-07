@@ -48,8 +48,8 @@ namespace crv::graphics::vulkan {
         UPLOAD_TEXTURE,
         LOAD_SKYBOX,
         REMOVE_SKYBOX,
-        UPDATE_INSTANCE_TRANSFORM,
         UPDATE_INSTANCE,
+        UPDATE_INSTANCE_DATA,
         UPDATE_MATERIAL,
 
         TOGGLE_CONTROL_PANEL = static_cast<uint32_t>(CommandTarget::VIEW),

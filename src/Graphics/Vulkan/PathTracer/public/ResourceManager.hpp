@@ -19,20 +19,15 @@ namespace crv::graphics::vulkan {
         ResourceManager() = default;
         explicit ResourceManager(const ResourceManagerCreateInfo& info);
         void load(const json& json);
-        void updateInstanceTransform(uint32_t index);
         void updateInstance(uint32_t index);
-        std::vector<uint32_t> duplicateInstances(const std::vector<uint32_t>& indices);
-        void removeInstances(const std::vector<uint32_t>& indices);
-        uint32_t addMaterial(const Material& material);
+        void updateInstanceData(uint32_t index);
         void updateMaterial(uint32_t index);
         void updateEmissiveIndices();
-        uint32_t addBaseColorTexture(const std::string& path, uint32_t materialIndex);
-        uint32_t addNormalTexture(const std::string& path, uint32_t materialIndex);
-        uint32_t addMetalRoughnessTexture(const std::string& path, uint32_t materialIndex);
-        uint32_t addClearcoatTexture(const std::string& path, uint32_t materialIndex);
-        uint32_t addClearcoatRoughnessTexture(const std::string& path, uint32_t materialIndex);
-        uint32_t addSkybox(const std::string& path);
-        void removeSkybox();
+        void rebuildInstances();
+        void rebuildMaterials();
+        uint32_t uploadTexture(uint32_t sourceIndex);
+        uint32_t uploadSkybox(uint32_t sourceIndex);
+        void disableSkybox();
 
         [[nodiscard]] std::vector<BLASData>& blasDatas() { return mBLASDatas; }
         [[nodiscard]] AccelerationStructure& tlas() { return mTLAS; }

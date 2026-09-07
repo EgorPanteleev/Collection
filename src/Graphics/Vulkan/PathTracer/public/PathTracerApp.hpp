@@ -73,6 +73,7 @@ namespace crv::graphics::vulkan {
         void acquireNextImage(uint32_t& imageIndex);
         void drawControlPanel();
         void applyCommands(double deltaTime);
+        void flushUpdates();
         void drawFrame();
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;

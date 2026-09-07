@@ -9,11 +9,9 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <filesystem>
-#include <limits>
 
 namespace fs = std::filesystem;
 
@@ -57,69 +55,60 @@ namespace crv::graphics::vulkan {
     }
 
     void AppInputHandler::apply(const Command& command, PathTracerApp* app) const {
+        Model& model = app->mModel;
         switch (command.type) {
-            case CommandType::SET_CAMERA_FLY:     setCamera(app, scene::CameraType::FLY);     break;
-            case CommandType::SET_CAMERA_ORBITAL: setCamera(app, scene::CameraType::ORBITAL); break;
+            case CommandType::SET_CAMERA_FLY:     model.setActiveCamera(scene::CameraType::FLY);     break;
+            case CommandType::SET_CAMERA_ORBITAL: model.setActiveCamera(scene::CameraType::ORBITAL); break;
 
-            case CommandType::PICK_OBJECT:     pick(app);           break;
-            case CommandType::CLEAR_SELECTION: clearSelection(app); break;
+            case CommandType::PICK_OBJECT:     pick(app);              break;
+            case CommandType::CLEAR_SELECTION: model.clearSelection(); break;
             case CommandType::SELECT_INSTANCE: {
                 const auto& p = std::get<SelectInstancePayload>(command.payload);
-                selectInstance(app, p.index, p.additive);
+                model.selectInstance(p.index, p.additive);
                 break;
             }
             case CommandType::REGION_SELECT: {
                 const auto& p = std::get<RegionSelectPayload>(command.payload);
-                regionSelect(app, p.x0, p.y0, p.x1, p.y1, p.additive);
+                const auto [width, height] = app->mSwapchain.extent();
+                model.regionSelect(p.x0, p.y0, p.x1, p.y1, p.additive, width, height);
                 break;
             }
             case CommandType::DUPLICATE_INSTANCES:
-                duplicateInstances(app, std::get<InstancesPayload>(command.payload).indices);
+                model.duplicateInstances(std::get<InstancesPayload>(command.payload).indices);
                 break;
             case CommandType::REMOVE_INSTANCES:
-                removeInstances(app, std::get<InstancesPayload>(command.payload).indices);
+                model.removeInstances(std::get<InstancesPayload>(command.payload).indices);
                 break;
             case CommandType::ADD_MATERIAL:
-                addMaterial(app, std::get<MaterialPayload>(command.payload).instanceIndex);
+                model.addMaterial(std::get<MaterialPayload>(command.payload).instanceIndex);
                 break;
             case CommandType::UPLOAD_TEXTURE: {
                 const auto& p = std::get<UploadTexturePayload>(command.payload);
-                uploadTexture(app, p.path, p.materialIndex, p.textureType);
+                model.addTexture(p.path, p.materialIndex, p.textureType);
                 break;
             }
             case CommandType::LOAD_SKYBOX:
-                loadSkybox(app, std::get<SkyboxPayload>(command.payload).path);
+                model.loadSkybox(std::get<SkyboxPayload>(command.payload).path);
                 break;
-            case CommandType::REMOVE_SKYBOX: removeSkybox(app); break;
-            case CommandType::UPDATE_INSTANCE_TRANSFORM:
-                for (const uint32_t index : std::get<InstancesPayload>(command.payload).indices)
-                    updateInstanceTransform(app, index);
-                break;
+            case CommandType::REMOVE_SKYBOX: model.removeSkybox(); break;
             case CommandType::UPDATE_INSTANCE:
-                updateInstance(app, std::get<IndexPayload>(command.payload).index);
+                for (const uint32_t index : std::get<InstancesPayload>(command.payload).indices)
+                    model.markInstanceDirty(index);
+                break;
+            case CommandType::UPDATE_INSTANCE_DATA:
+                model.markInstanceDataDirty(std::get<IndexPayload>(command.payload).index);
                 break;
             case CommandType::UPDATE_MATERIAL:
-                updateMaterial(app, std::get<IndexPayload>(command.payload).index);
+                model.markMaterialDirty(std::get<IndexPayload>(command.payload).index);
                 break;
+            case CommandType::UPDATE_IMAGE: model.requestReset(); break;
 
-            case CommandType::UPDATE_IMAGE:         updateImage(app);        break;
             case CommandType::TOGGLE_CONTROL_PANEL: toggleControlPanel(app); break;
 
             case CommandType::QUIT:       app->mContext.window().close(); break;
             case CommandType::SAVE_IMAGE: saveImage(app);                 break;
             case CommandType::SAVE_SCENE: saveScene(app);                 break;
             default: break;
-        }
-    }
-
-    void AppInputHandler::setCamera(PathTracerApp* app, const cs::CameraType type) const {
-        Model& model = app->mModel;
-        if (type == scene::CameraType::FLY) {
-            model.setCamera(&model.flyCamera());
-            model.camera()->setPosition(model.orbitalCamera().position());
-            model.camera()->setOrientation(model.orbitalCamera().orientation());
-        } else {
-            model.setCamera(&model.orbitalCamera());
         }
     }
 
@@ -138,153 +127,6 @@ namespace crv::graphics::vulkan {
         if (x > width or y > height) return;
         app->mClickedPixel = {x, y};
         app->mAdditiveSelect = additive;
-    }
-
-    void AppInputHandler::clearSelection(PathTracerApp* app) const {
-        app->mModel.selection().selectedInstances.clear();
-        app->mModel.selection().activeInstance = UINT32_MAX;
-        app->mModel.selection().pending = false;
-    }
-
-    void AppInputHandler:: selectInstance(PathTracerApp* app, const uint32_t index, const bool additive) const {
-        applySelection(app, index + 1, additive);
-    }
-
-    void AppInputHandler::applySelection(PathTracerApp* app, const uint32_t id, const bool additive) const {
-        if (id == 0) {
-            if (!additive) clearSelection(app);
-            return;
-        }
-        const uint32_t index = id - 1;
-        const auto it = std::find(app->mModel.selection().selectedInstances.begin(), app->mModel.selection().selectedInstances.end(), index);
-        if (!additive) {
-            app->mModel.selection().selectedInstances = {index};
-            app->mModel.selection().activeInstance = index;
-        } else if (it != app->mModel.selection().selectedInstances.end()) {
-            app->mModel.selection().selectedInstances.erase(it);
-            app->mModel.selection().activeInstance = app->mModel.selection().selectedInstances.empty() ? UINT32_MAX : app->mModel.selection().selectedInstances.back();
-        } else {
-            app->mModel.selection().selectedInstances.push_back(index);
-            app->mModel.selection().activeInstance = index;
-        }
-    }
-
-    void AppInputHandler::regionSelect(PathTracerApp* app, int x0, int y0, int x1, int y1, bool additive) const {
-        auto [width, height] = app->mSwapchain.extent();
-        const float fw = static_cast<float>(width);
-        const float fh = static_cast<float>(height);
-        const float nx0 = static_cast<float>(std::min(x0, x1)) / fw * 2.0f - 1.0f;
-        const float nx1 = static_cast<float>(std::max(x0, x1)) / fw * 2.0f - 1.0f;
-        const float ny0 = static_cast<float>(std::min(y0, y1)) / fh * 2.0f - 1.0f;
-        const float ny1 = static_cast<float>(std::max(y0, y1)) / fh * 2.0f - 1.0f;
-
-        const glm::mat4 viewProj = app->mModel.camera()->projectionMatrix() * app->mModel.camera()->viewMatrix();
-        const auto& instances = app->mModel.scene().mInstances;
-        const auto& blasDatas = app->mResourceManager.blasDatas();
-
-        if (!additive) app->mModel.selection().selectedInstances.clear();
-        for (uint32_t i = 0; i < instances.size(); ++i) {
-            const InstanceData& instance = instances[i];
-            const BLASData& mesh = blasDatas[instance.meshIndex];
-            const glm::mat4 mvp = viewProj * instance.transform.matrix();
-
-            glm::vec2 boxMin(std::numeric_limits<float>::max());
-            glm::vec2 boxMax(std::numeric_limits<float>::lowest());
-            bool anyInFront = false;
-            for (int c = 0; c < 8; ++c) {
-                const glm::vec4 corner {
-                    (c & 1) ? mesh.bbox.max.x : mesh.bbox.min.x,
-                    (c & 2) ? mesh.bbox.max.y : mesh.bbox.min.y,
-                    (c & 4) ? mesh.bbox.max.z : mesh.bbox.min.z,
-                    1.0f
-                };
-                const glm::vec4 clip = mvp * corner;
-                if (clip.w <= 1e-4f) continue;
-                anyInFront = true;
-                const glm::vec2 ndc = glm::vec2(clip) / clip.w;
-                boxMin = glm::min(boxMin, ndc);
-                boxMax = glm::max(boxMax, ndc);
-            }
-            if (!anyInFront) continue;
-            if (boxMax.x < nx0 || boxMin.x > nx1 || boxMax.y < ny0 || boxMin.y > ny1) continue;
-
-            if (std::find(app->mModel.selection().selectedInstances.begin(), app->mModel.selection().selectedInstances.end(), i) == app->mModel.selection().selectedInstances.end())
-                app->mModel.selection().selectedInstances.push_back(i);
-        }
-        app->mModel.selection().activeInstance = app->mModel.selection().selectedInstances.empty() ? UINT32_MAX : app->mModel.selection().selectedInstances.back();
-    }
-
-    void AppInputHandler::duplicateInstances(PathTracerApp* app, const std::vector<uint32_t>& indices) const {
-        vkDeviceWaitIdle(app->mContext.device());
-        const std::vector<uint32_t> created = app->mResourceManager.duplicateInstances(indices);
-        app->mRayTracerPass.bindInstances();
-        app->mModel.selection().selectedInstances = created;
-        app->mModel.selection().activeInstance = created.empty() ? UINT32_MAX : created.back();
-        app->mModel.selection().pending = false;
-        updateImage(app);
-    }
-
-    void AppInputHandler::removeInstances(PathTracerApp* app, const std::vector<uint32_t>& indices) const {
-        vkDeviceWaitIdle(app->mContext.device());
-        app->mResourceManager.removeInstances(indices);
-        app->mRayTracerPass.bindInstances();
-        clearSelection(app);
-        updateImage(app);
-    }
-
-    void AppInputHandler::addMaterial(PathTracerApp* app, const uint32_t instanceIndex) const {
-        vkDeviceWaitIdle(app->mContext.device());
-        auto& instances = app->mModel.scene().mInstances;
-        if (instanceIndex >= instances.size()) return;
-        Material newMaterial = app->mModel.scene().mMaterials[instances[instanceIndex].materialIndex];
-        newMaterial.name += " copy";
-        const uint32_t index = app->mResourceManager.addMaterial(newMaterial);
-        instances[instanceIndex].materialIndex = index;
-        app->mResourceManager.updateInstance(instanceIndex);
-        app->mRayTracerPass.bindMaterials();
-        updateImage(app);
-    }
-
-    void AppInputHandler::uploadTexture(PathTracerApp* app, const std::string& path,
-                                        const uint32_t materialIndex, const int textureType) const {
-        vkDeviceWaitIdle(app->mContext.device());
-        uint32_t index = 0;
-        switch (textureType) {
-            case 1:  index = app->mResourceManager.addNormalTexture(path, materialIndex); break;
-            case 2:  index = app->mResourceManager.addMetalRoughnessTexture(path, materialIndex); break;
-            case 3:  index = app->mResourceManager.addClearcoatTexture(path, materialIndex); break;
-            case 4:  index = app->mResourceManager.addClearcoatRoughnessTexture(path, materialIndex); break;
-            default: index = app->mResourceManager.addBaseColorTexture(path, materialIndex); break;
-        }
-        app->mRayTracerPass.bindTexture(index);
-    }
-
-    void AppInputHandler::loadSkybox(PathTracerApp* app, const std::string& path) const {
-        vkDeviceWaitIdle(app->mContext.device());
-        const uint32_t index = app->mResourceManager.addSkybox(path);
-        app->mRayTracerPass.bindTexture(index);
-        updateImage(app);
-    }
-
-    void AppInputHandler::removeSkybox(PathTracerApp* app) const {
-        app->mResourceManager.removeSkybox();
-        updateImage(app);
-    }
-
-    void AppInputHandler::updateInstanceTransform(PathTracerApp* app, const uint32_t index) const {
-        app->mResourceManager.updateInstanceTransform(index);
-    }
-
-    void AppInputHandler::updateInstance(PathTracerApp* app, const uint32_t index) const {
-        app->mResourceManager.updateInstance(index);
-    }
-
-    void AppInputHandler::updateMaterial(PathTracerApp* app, const uint32_t index) const {
-        app->mResourceManager.updateMaterial(index);
-    }
-
-    void AppInputHandler::updateImage(PathTracerApp* app) const {
-        app->mFrameCount = 0;
     }
 
     void AppInputHandler::toggleControlPanel(PathTracerApp* app) const {
