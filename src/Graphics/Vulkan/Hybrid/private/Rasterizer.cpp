@@ -263,12 +263,8 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.add(SSBOBinding);
         mDescriptorManager.add(texturesBinding );
 
-        const DescriptorBuildInfo buildInfo {
-            .context = mContext,
-            .count = mFramesInFlight,
-            .variableCount = static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN)
-        };
-        mDescriptorManager.build(buildInfo);
+        mDescriptorManager.build(mContext, mFramesInFlight,
+            static_cast<uint32_t>(mTextures->size() * cm::Texture::UNKNOWN));
 
         //resources
         for (int i = 0; i < mFramesInFlight; ++i) {

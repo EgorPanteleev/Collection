@@ -31,20 +31,17 @@ namespace crv::graphics::vulkan {
     }
 
     void PostprocessPass::createDescriptorManager() {
-        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
-        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
-        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
-
-        const DescriptorBuildInfo buildInfo {
-            .context = mContext,
-            .count = mFramesInFlight,
-        };
-        mDescriptorManager.build(buildInfo);
+        mDescriptorManager
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
+            .build(mContext, mFramesInFlight);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.bind(i, ImageResource(mTracerView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.bind(i, ImageResource(mInstanceView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.bind(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
+            mDescriptorManager
+                .bind(i, ImageResource(mTracerView, VK_IMAGE_LAYOUT_GENERAL))
+                .bind(i, ImageResource(mInstanceView, VK_IMAGE_LAYOUT_GENERAL))
+                .bind(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
         }
         mDescriptorManager.update();
     }

@@ -55,37 +55,33 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::createDescriptorManager() {
-        mDescriptorManager.add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
-                                                                  VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
-        mDescriptorManager.add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
-        mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     );
-        mDescriptorManager.add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-        mDescriptorManager.add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
-                                                                  VK_SHADER_STAGE_MISS_BIT_KHR, MAX_TEXTURES);
-
-        const DescriptorBuildInfo buildInfo {
-            .context = mContext,
-            .count = mFramesInFlight,
-            .variableCount = MAX_TEXTURES
-        };
-        mDescriptorManager.build(buildInfo);
+        mDescriptorManager
+            .add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
+                                                    VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
+            .add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
+            .add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR, MAX_TEXTURES)
+            .build(mContext, mFramesInFlight, MAX_TEXTURES);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
-            mDescriptorManager.bind(i, ASResource(mTLAS->get()));
-            mDescriptorManager.bind(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.bind(i, ImageResource(mOutputInstanceIdView, VK_IMAGE_LAYOUT_GENERAL));
-            mDescriptorManager.bind(i, BufferResource(mCameraBuffers[i]));
-            mDescriptorManager.bind(i, BufferResource(mDirectLightBuffers[i]));
-            mDescriptorManager.bind(i, BufferResource(*mBLASBuffer));
-            mDescriptorManager.bind(i, BufferResource(*mInstanceBuffer));
-            mDescriptorManager.bind(i, BufferResource(*mEmissiveInstanceBuffer));
-            mDescriptorManager.bind(i, BufferResource(*mMaterialBuffer));
-            mDescriptorManager.bind(i, ImageArrayResource(*mTextures));
+            mDescriptorManager
+                .bind(i, ASResource(mTLAS->get()))
+                .bind(i, ImageResource(mOutputView, VK_IMAGE_LAYOUT_GENERAL))
+                .bind(i, ImageResource(mOutputInstanceIdView, VK_IMAGE_LAYOUT_GENERAL))
+                .bind(i, BufferResource(mCameraBuffers[i]))
+                .bind(i, BufferResource(mDirectLightBuffers[i]))
+                .bind(i, BufferResource(*mBLASBuffer))
+                .bind(i, BufferResource(*mInstanceBuffer))
+                .bind(i, BufferResource(*mEmissiveInstanceBuffer))
+                .bind(i, BufferResource(*mMaterialBuffer))
+                .bind(i, ImageResource(*mTextures));
         }
         mDescriptorManager.update();
     }

@@ -78,11 +78,7 @@ namespace crv::graphics::vulkan {
         mDescriptorManager.add(samplerImageBinding);
         mDescriptorManager.add(samplerImageBinding);
 
-        const DescriptorBuildInfo buildInfo {
-            .context = mContext,
-            .count = mFramesInFlight,
-        };
-        mDescriptorManager.build(buildInfo);
+        mDescriptorManager.build(mContext, mFramesInFlight);
 
         //resources
         for (int i = 0; i < mFramesInFlight; ++i) {

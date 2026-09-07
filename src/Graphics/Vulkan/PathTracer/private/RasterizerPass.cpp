@@ -119,14 +119,9 @@ namespace crv::graphics::vulkan {
     }
 
     void RasterizerPass::createDescriptorManager() {
-        mDescriptorManager.add(BindingType::UBO    , VK_SHADER_STAGE_VERTEX_BIT  );
-
-        const DescriptorBuildInfo buildInfo {
-            .context = mContext,
-            .count = mFramesInFlight,
-            .variableCount = 0
-        };
-        mDescriptorManager.build(buildInfo);
+        mDescriptorManager
+            .add(BindingType::UBO, VK_SHADER_STAGE_VERTEX_BIT)
+            .build(mContext, mFramesInFlight, 0);
 
         for (int i = 0; i < mFramesInFlight; ++i) {
             mDescriptorManager.bind(i, BufferResource(mMVPBuffers[i]  ));
