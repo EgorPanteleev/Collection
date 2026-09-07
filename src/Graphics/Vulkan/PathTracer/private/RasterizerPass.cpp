@@ -220,8 +220,7 @@ namespace crv::graphics::vulkan {
         mMVPBuffers.resize(mFramesInFlight);
         UBOBuilder uboData(mContext);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            uboData.build()
-                (UBOBuilder::as<MVPGPU>, mMVPBuffers[i]);
+            uboData.add<MVPGPU>(mMVPBuffers[i]);
         }
     }
 }

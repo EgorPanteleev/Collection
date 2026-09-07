@@ -221,8 +221,8 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::buildMaterialBuffer() {
         const auto materialsGPU = Material::gpu(mScene->mMaterials);
-        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS).build()
-        (materialsGPU, mMaterialBuffer);
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
+            .add(materialsGPU, mMaterialBuffer);
     }
 
     void ResourceManager::updateMaterial(const uint32_t index) {
@@ -507,11 +507,11 @@ namespace crv::graphics::vulkan {
         std::vector emissiveIndices(emissiveCapacity, 0u);
         std::copy(mScene->mEmissiveIndices.begin(), mScene->mEmissiveIndices.end(), emissiveIndices.begin());
         const auto materialsGPU = Material::gpu(mScene->mMaterials);
-        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS).build()
-        (blasDatasGPU   , mBLASBuffer            )
-        (instancesGPU   , mInstanceBuffer        )
-        (emissiveIndices, mEmissiveInstanceBuffer)
-        (materialsGPU   , mMaterialBuffer        );
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
+            .add(blasDatasGPU   , mBLASBuffer            )
+            .add(instancesGPU   , mInstanceBuffer        )
+            .add(emissiveIndices, mEmissiveInstanceBuffer)
+            .add(materialsGPU   , mMaterialBuffer        );
     }
 
     void ResourceManager::rebuildInstanceBuffers() {
@@ -528,9 +528,9 @@ namespace crv::graphics::vulkan {
         const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->mInstances.size(), 1u);
         std::vector emissiveIndices(emissiveCapacity, 0u);
         std::copy(emissive.begin(), emissive.end(), emissiveIndices.begin());
-        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS).build()
-        (instancesGPU   , mInstanceBuffer        )
-        (emissiveIndices, mEmissiveInstanceBuffer);
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
+            .add(instancesGPU   , mInstanceBuffer        )
+            .add(emissiveIndices, mEmissiveInstanceBuffer);
     }
 
     void ResourceManager::disableEnvDistribution() {

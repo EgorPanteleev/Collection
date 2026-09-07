@@ -15,9 +15,8 @@ namespace crv::graphics::vulkan {
     class SSBOBuilder {
     public:
         SSBOBuilder(Context* context, QueueFamilyType familyType): mContext(context), mFamily(familyType) {}
-        SSBOBuilder& build() { return *this; }
         template <typename Type>
-        SSBOBuilder& operator()(const std::vector<Type>& data, Buffer& buffer) {
+        SSBOBuilder& add(const std::vector<Type>& data, Buffer& buffer) {
             const auto size = static_cast<uint32_t>(data.size() * sizeof(Type));
             createSSBO(mContext->allocator(), size, buffer);
             copyDataToBuffer(mContext, mFamily, data.data(), size, buffer);

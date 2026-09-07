@@ -297,9 +297,9 @@ namespace crv::graphics::vulkan {
         mDirectLightBuffers.resize(mFramesInFlight);
         UBOBuilder uboData(mContext);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            uboData.build()
-            (UBOBuilder::as<CameraGPU>  , mCameraBuffers[i]     )
-            (UBOBuilder::as<DirectLight>, mDirectLightBuffers[i]);
+            uboData
+                .add<CameraGPU>(mCameraBuffers[i])
+                .add<DirectLight>(mDirectLightBuffers[i]);
         }
     }
 }
