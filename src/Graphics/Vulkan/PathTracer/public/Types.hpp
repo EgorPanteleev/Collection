@@ -9,8 +9,8 @@
 #include "Model/Material.hpp"
 #include "Model/DirectLight.hpp"
 #include "Types/BLASData.hpp"
-#include "Types/UBOData.hpp"
-#include "Types/SSBOData.hpp"
+#include "Types/UBOBuilder.hpp"
+#include "Types/SSBOBuilder.hpp"
 #include "SharedTypes.h"
 
 namespace crv::graphics::vulkan {

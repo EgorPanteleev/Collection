@@ -220,10 +220,9 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::buildMaterialBuffer() {
-        SSBOData ssboData{};
         const auto materialsGPU = Material::gpu(mScene->mMaterials);
-        ssboData.add(materialsGPU, mMaterialBuffer);
-        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS).build()
+        (materialsGPU, mMaterialBuffer);
     }
 
     void ResourceManager::updateMaterial(const uint32_t index) {
@@ -502,18 +501,17 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::createBuffers() {
-        SSBOData ssboData{};
         const auto blasDatasGPU = BLASData::gpu(mContext->device(), mBLASDatas);
-        ssboData.add(blasDatasGPU, mBLASBuffer);
         const auto instancesGPU = InstanceData::gpu(mScene->mInstances);
-        ssboData.add(instancesGPU, mInstanceBuffer);
         const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->mInstances.size(), 1u);
         std::vector emissiveIndices(emissiveCapacity, 0u);
         std::copy(mScene->mEmissiveIndices.begin(), mScene->mEmissiveIndices.end(), emissiveIndices.begin());
-        ssboData.add(emissiveIndices, mEmissiveInstanceBuffer);
         const auto materialsGPU = Material::gpu(mScene->mMaterials);
-        ssboData.add(materialsGPU, mMaterialBuffer);
-        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS).build()
+        (blasDatasGPU   , mBLASBuffer            )
+        (instancesGPU   , mInstanceBuffer        )
+        (emissiveIndices, mEmissiveInstanceBuffer)
+        (materialsGPU   , mMaterialBuffer        );
     }
 
     void ResourceManager::rebuildInstanceBuffers() {
@@ -526,14 +524,13 @@ namespace crv::graphics::vulkan {
             emissive.push_back(i);
         }
 
-        SSBOData ssboData{};
         const auto instancesGPU = InstanceData::gpu(mScene->mInstances);
-        ssboData.add(instancesGPU, mInstanceBuffer);
         const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->mInstances.size(), 1u);
         std::vector emissiveIndices(emissiveCapacity, 0u);
         std::copy(emissive.begin(), emissive.end(), emissiveIndices.begin());
-        ssboData.add(emissiveIndices, mEmissiveInstanceBuffer);
-        ssboData.createAll(mContext, QueueFamilyType::GRAPHICS);
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS).build()
+        (instancesGPU   , mInstanceBuffer        )
+        (emissiveIndices, mEmissiveInstanceBuffer);
     }
 
     void ResourceManager::disableEnvDistribution() {

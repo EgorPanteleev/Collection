@@ -223,10 +223,10 @@ namespace crv::graphics::vulkan {
 
     void RasterizerPass::createBuffers() {
         mMVPBuffers.resize(mFramesInFlight);
-        UBOData uboData{};
+        UBOBuilder uboData(mContext);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            uboData.add<MVPGPU>(mMVPBuffers[i]);
+            uboData.build()
+                (UBOBuilder::as<MVPGPU>, mMVPBuffers[i]);
         }
-        uboData.createAll(mContext);
     }
 }

@@ -299,11 +299,11 @@ namespace crv::graphics::vulkan {
     void RayTracerPass::createBuffers() {
         mCameraBuffers.resize(mFramesInFlight);
         mDirectLightBuffers.resize(mFramesInFlight);
-        UBOData uboData{};
+        UBOBuilder uboData(mContext);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
-            uboData.add<CameraGPU>(mCameraBuffers[i]);
-            uboData.add<DirectLight>(mDirectLightBuffers[i]);
+            uboData.build()
+            (UBOBuilder::as<CameraGPU>  , mCameraBuffers[i]     )
+            (UBOBuilder::as<DirectLight>, mDirectLightBuffers[i]);
         }
-        uboData.createAll(mContext);
     }
 }
