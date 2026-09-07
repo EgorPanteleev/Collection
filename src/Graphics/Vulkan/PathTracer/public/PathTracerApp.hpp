@@ -74,7 +74,7 @@ namespace crv::graphics::vulkan {
         void drawControlPanel();
         void applyCommands(double deltaTime);
         void flushUpdates();
-        void drawFrame();
+        void drawFrame(double deltaTime);
 
         using VkASInstance = VkAccelerationStructureInstanceKHR;
 #ifdef NDEBUG

@@ -42,11 +42,10 @@ namespace crv::graphics::vulkan {
             glfwPollEvents();
             window.keyboardCallBack(deltaTime);
             applyCommands(deltaTime);
-            flushUpdates();
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
-            drawFrame();
+            drawFrame(deltaTime);
             updateCurrentFrame();
             ++mFrameCount;
         }
@@ -730,12 +729,14 @@ namespace crv::graphics::vulkan {
         state.clear();
     }
 
-    void PathTracerApp::drawFrame() {
+    void PathTracerApp::drawFrame(const double deltaTime) {
         uint32_t imageIndex;
         vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
         updateSelectedInstance();
-        acquireNextImage(imageIndex);
         drawControlPanel();
+        applyCommands(deltaTime);
+        flushUpdates();
+        acquireNextImage(imageIndex);
 
         const uint32_t scale = mCameraMoved ? mModel.settings().effectiveMotionScale() : mModel.settings().effectiveRenderScale();
         if (scale != mEffectiveScale) {
