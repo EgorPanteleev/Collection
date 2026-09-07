@@ -11,7 +11,7 @@
 #include "ImageView.hpp"
 #include "AbsCamera.hpp"
 #include "Types.hpp"
-#include "ResourceManager.hpp"
+#include "Model/Scene.hpp"
 #include "Model/RenderSettings.hpp"
 #include "Command.hpp"
 #include "CommandStream.hpp"
@@ -22,7 +22,6 @@ namespace crv::graphics::vulkan {
     struct AppUICreateInfo {
         Context*         context         = nullptr;
         Swapchain*       swapchain       = nullptr;
-        ResourceManager* resourceManager = nullptr;
         RenderSettings*  renderSettings  = nullptr;
         CommandStream*   commands        = nullptr;
         Scene*           scene           = nullptr;
@@ -64,7 +63,6 @@ namespace crv::graphics::vulkan {
 
         Context*         mContext         = nullptr;
         Swapchain*       mSwapchain       = nullptr;
-        ResourceManager* mResourceManager = nullptr;
         RenderSettings*  mSettings        = nullptr;
         CommandStream*   mCommands        = nullptr;
         Scene*           mScene           = nullptr;
@@ -74,7 +72,7 @@ namespace crv::graphics::vulkan {
         ImGuiFileDialog  mFileDialog{};
         ImGuiFileDialog  mSkyboxFileDialog{};
         int              mUploadTextureType = 0;
-        bool             mNeedsUpdate = false;
+        bool             mUpdateImage = false;
         bool    mMarqueeActive = false;
         ImVec2  mMarqueeStart{};
     };

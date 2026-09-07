@@ -388,7 +388,6 @@ namespace crv::graphics::vulkan {
         const AppUICreateInfo createInfo {
             .context = &mContext,
             .swapchain = &mSwapchain,
-            .resourceManager = &mResourceManager,
             .renderSettings = &mRenderSettings,
             .commands = &mCommands,
             .scene = &mScene

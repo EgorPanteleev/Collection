@@ -23,7 +23,7 @@ static glm::vec3 clampRotation(const glm::vec3& e) {
 
 namespace crv::graphics::vulkan {
     AppUI::AppUI(const AppUICreateInfo& info):
-    mContext(info.context), mSwapchain(info.swapchain), mResourceManager(info.resourceManager),
+    mContext(info.context), mSwapchain(info.swapchain),
     mSettings(info.renderSettings), mCommands(info.commands), mScene(info.scene) {
         const auto [capabilities, formats, presentModes] =
             Swapchain::getSupport(mContext->physicalDevice(), mContext->surface());
@@ -61,9 +61,9 @@ namespace crv::graphics::vulkan {
         } else {
             drawCursorDot();
         }
-        if (mNeedsUpdate) {
+        if (mUpdateImage) {
             push(CommandType::UPDATE_IMAGE);
-            mNeedsUpdate = false;
+            mUpdateImage = false;
         }
         mImGui.endFrame();
     }
@@ -132,9 +132,9 @@ namespace crv::graphics::vulkan {
                     (glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.rotation));
                 transform.position = glm::vec3(updated[3]);
                 transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
-                mResourceManager->updateInstanceTransform(index);
             }
-            mNeedsUpdate = true;
+            push(CommandType::UPDATE_INSTANCE_TRANSFORM, InstancesPayload{*info.selectedInstances});
+            mUpdateImage = true;
         }
     }
 
@@ -217,12 +217,12 @@ namespace crv::graphics::vulkan {
         glm::vec3 position = info.camera->position();
         if (ImGui::DragFloat3("Position", &position.x, 0.05f, -FLT_MAX, FLT_MAX)) {
             info.camera->setPosition(position);
-            mNeedsUpdate = true;
+            mUpdateImage = true;
         }
         float fov = info.camera->FOV();
         if (ImGui::SliderFloat("FOV", &fov, 10, 140, "%.2f deg")) {
             info.camera->zoom(info.camera->FOV() - fov);
-            mNeedsUpdate = true;
+            mUpdateImage = true;
         }
         const bool isFlyCamera = info.camera->type() == cs::CameraType::FLY;
         if (VkImGui::selectableButton("Fly", isFlyCamera)) {
@@ -231,7 +231,7 @@ namespace crv::graphics::vulkan {
         ImGui::SameLine(0.0f, 5.0f);
         if (VkImGui::selectableButton("Orbital", !isFlyCamera)) {
             push(CommandType::SET_CAMERA_ORBITAL);
-            mNeedsUpdate = true;
+            mUpdateImage = true;
         }
         ImGui::SameLine();
         ImGui::Text("Type");
@@ -242,7 +242,7 @@ namespace crv::graphics::vulkan {
         if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
             const char* displayModes[] = {"Rendered", "Base Color", "Normal", "Roughness", "Metalness", "Clearcoat", "Clearcoat Roughness"};
             if (ImGui::Combo("Mode", &mSettings->displayMode, displayModes, IM_ARRAYSIZE(displayModes))) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
         }
         if (ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -261,50 +261,50 @@ namespace crv::graphics::vulkan {
                 push(CommandType::LOAD_SKYBOX, SkyboxPayload{mSkyboxFileDialog.result()});
             }
             if (!hasSkybox) {
-                if (VkImGui::colorEdit3("Sky Color", mScene->mSkyColor)) mNeedsUpdate = true;
+                if (VkImGui::colorEdit3("Sky Color", mScene->mSkyColor)) mUpdateImage = true;
             }
         }
         if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat3("Direction", &mScene->mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             if (ImGui::DragFloat("Intensity", &mScene->mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
         }
         if (ImGui::CollapsingHeader("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Checkbox("Light sources", &mSettings->nee)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             ImGui::BeginDisabled(mScene->mSkyboxIndex == UINT32_MAX);
             if (ImGui::Checkbox("Environment", &mSettings->envNee)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             ImGui::EndDisabled();
         }
         if (ImGui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragInt("Render Scale", &mSettings->renderScale, 0.05f, 1, 16)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             ImGui::DragInt("Motion Scale", &mSettings->motionScale, 0.05f, mSettings->renderScale, 16);
         }
         if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragInt("SPP", &mSettings->spp, 0.05f, 1, INT_MAX)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             if (ImGui::DragInt("Min Bounces", &mSettings->minDepth, 0.05f, 0, mSettings->maxDepth)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             if (ImGui::DragInt("Max Bounces", &mSettings->maxDepth, 0.05f, 1, INT_MAX)) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
         }
         if (ImGui::CollapsingHeader("Depth of Field", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::DragFloat("Aperture", &mSettings->aperture, 0.001f, 0.0f, 5.0f, "%.3f")) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
             if (ImGui::DragFloat("Focus Distance", &mSettings->focusDistance, 0.05f, 0.01f, 1000.0f, "%.2f")) {
-                mNeedsUpdate = true;
+                mUpdateImage = true;
             }
         }
         if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -366,8 +366,8 @@ namespace crv::graphics::vulkan {
                 for (size_t i = 0; i < materials.size(); ++i) {
                     if (ImGui::Selectable(materialItems[i].c_str())) {
                         instance.materialIndex = i;
-                        mResourceManager->updateInstance(active);
-                        mNeedsUpdate = true;
+                        push(CommandType::UPDATE_INSTANCE, IndexPayload{active});
+                        mUpdateImage = true;
                     }
                 }
                 ImGui::EndCombo();
@@ -385,68 +385,68 @@ namespace crv::graphics::vulkan {
             }
             if (ImGui::CollapsingHeader("Surface", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (VkImGui::colorEdit3("Base Color", material.baseColor)) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Metalness", &material.metalness, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Anisotropy", &material.anisotropy, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Sheen", &material.sheen, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Opacity", &material.opacity, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Translucency", &material.translucency, 0.0f, 3.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
             }
             if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::SliderFloat("Weight##specular", &material.specular, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
             }
             if (ImGui::CollapsingHeader("Transmission", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::SliderFloat("Weight##transmission", &material.transmission, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("IOR", &material.ior, 1.0f, 3.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (VkImGui::colorEdit3("Absorption", material.absorption)) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
             }
             if (ImGui::CollapsingHeader("Coating", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::SliderFloat("Weight##coating", &material.clearcoat, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
                 if (ImGui::SliderFloat("Roughness##coating", &material.clearcoatRoughness, 0.0f, 1.0f, "%.2f")) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
             }
             if (ImGui::CollapsingHeader("Emission", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::DragFloat("Luminance", &material.luminance, 0.05f, 0.0f, 100.0f)) {
-                    mResourceManager->updateMaterial(instance.materialIndex);
-                    mNeedsUpdate = true;
+                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                    mUpdateImage = true;
                 }
             }
             if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -469,8 +469,8 @@ namespace crv::graphics::vulkan {
                             material.baseColorTexIndex = UINT32_MAX;
                             material.baseColorTexName.clear();
                             material.baseColorTexPath.clear();
-                            mResourceManager->updateMaterial(instance.materialIndex);
-                            mNeedsUpdate = true;
+                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                            mUpdateImage = true;
                         }
                     } else if (ImGui::Button("Upload##basecolor")) {
                         mUploadTextureType = 0;
@@ -492,8 +492,8 @@ namespace crv::graphics::vulkan {
                             material.normalTexIndex = UINT32_MAX;
                             material.normalTexName.clear();
                             material.normalTexPath.clear();
-                            mResourceManager->updateMaterial(instance.materialIndex);
-                            mNeedsUpdate = true;
+                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                            mUpdateImage = true;
                         }
                     } else if (ImGui::Button("Upload##normal")) {
                         mUploadTextureType = 1;
@@ -507,8 +507,8 @@ namespace crv::graphics::vulkan {
                     ImGui::TableSetColumnIndex(1);
                     ImGui::SetNextItemWidth(-FLT_MIN);
                     if (ImGui::SliderFloat("##normalScale", &material.normalScale, 0.0f, 2.0f, "%.2f")) {
-                        mResourceManager->updateMaterial(instance.materialIndex);
-                        mNeedsUpdate = true;
+                        push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                        mUpdateImage = true;
                     }
 
                     ImGui::TableNextRow();
@@ -526,8 +526,8 @@ namespace crv::graphics::vulkan {
                             material.metalRoughnessTexIndex = UINT32_MAX;
                             material.metalRoughnessTexName.clear();
                             material.metalRoughnessTexPath.clear();
-                            mResourceManager->updateMaterial(instance.materialIndex);
-                            mNeedsUpdate = true;
+                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                            mUpdateImage = true;
                         }
                     } else if (ImGui::Button("Upload##metalrough")) {
                         mUploadTextureType = 2;
@@ -549,8 +549,8 @@ namespace crv::graphics::vulkan {
                             material.clearcoatTexIndex = UINT32_MAX;
                             material.clearcoatTexName.clear();
                             material.clearcoatTexPath.clear();
-                            mResourceManager->updateMaterial(instance.materialIndex);
-                            mNeedsUpdate = true;
+                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                            mUpdateImage = true;
                         }
                     } else if (ImGui::Button("Upload##clearcoat")) {
                         mUploadTextureType = 3;
@@ -572,8 +572,8 @@ namespace crv::graphics::vulkan {
                             material.clearcoatRoughnessTexIndex = UINT32_MAX;
                             material.clearcoatRoughnessTexName.clear();
                             material.clearcoatRoughnessTexPath.clear();
-                            mResourceManager->updateMaterial(instance.materialIndex);
-                            mNeedsUpdate = true;
+                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
+                            mUpdateImage = true;
                         }
                     } else if (ImGui::Button("Upload##clearcoatrough")) {
                         mUploadTextureType = 4;
@@ -582,7 +582,7 @@ namespace crv::graphics::vulkan {
 
                     if (mFileDialog.draw("Select Texture")) {
                         push(CommandType::UPLOAD_TEXTURE, UploadTexturePayload{mFileDialog.result(), instance.materialIndex, mUploadTextureType});
-                        mNeedsUpdate = true;
+                        mUpdateImage = true;
                     }
                     VkImGui::endCompactTable();
                 }
@@ -614,8 +614,8 @@ namespace crv::graphics::vulkan {
                 changed = true;
 
             if (changed) {
-                mResourceManager->updateInstanceTransform(active);
-                mNeedsUpdate = true;
+                push(CommandType::UPDATE_INSTANCE_TRANSFORM, InstancesPayload{{active}});
+                mUpdateImage = true;
             }
             VkImGui::endGroup();
         }

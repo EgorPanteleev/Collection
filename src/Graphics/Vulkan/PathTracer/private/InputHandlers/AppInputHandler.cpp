@@ -41,6 +41,16 @@ namespace crv::graphics::vulkan {
                 app->loadSkybox(std::get<SkyboxPayload>(command.payload).path);
                 break;
             case CommandType::REMOVE_SKYBOX: app->removeSkybox(); break;
+            case CommandType::UPDATE_INSTANCE_TRANSFORM:
+                for (const uint32_t index : std::get<InstancesPayload>(command.payload).indices)
+                    app->updateInstanceTransform(index);
+                break;
+            case CommandType::UPDATE_INSTANCE:
+                app->updateInstance(std::get<IndexPayload>(command.payload).index);
+                break;
+            case CommandType::UPDATE_MATERIAL:
+                app->updateMaterial(std::get<IndexPayload>(command.payload).index);
+                break;
 
             case CommandType::UPDATE_IMAGE:         app->updateImage();        break;
             case CommandType::TOGGLE_CONTROL_PANEL: app->toggleControlPanel(); break;

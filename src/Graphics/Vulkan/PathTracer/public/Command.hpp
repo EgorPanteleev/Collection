@@ -48,6 +48,9 @@ namespace crv::graphics::vulkan {
         UPLOAD_TEXTURE,
         LOAD_SKYBOX,
         REMOVE_SKYBOX,
+        UPDATE_INSTANCE_TRANSFORM,
+        UPDATE_INSTANCE,
+        UPDATE_MATERIAL,
 
         TOGGLE_CONTROL_PANEL = static_cast<uint32_t>(CommandTarget::VIEW),
         UPDATE_IMAGE,
@@ -66,6 +69,7 @@ namespace crv::graphics::vulkan {
     struct RegionSelectPayload   { int x0, y0, x1, y1; bool additive; };
     struct InstancesPayload      { std::vector<uint32_t> indices; };
     struct MaterialPayload       { uint32_t instanceIndex; };
+    struct IndexPayload          { uint32_t index; };
     struct UploadTexturePayload  { std::string path; uint32_t materialIndex; int textureType; };
     struct SkyboxPayload         { std::string path; };
 
@@ -76,7 +80,8 @@ namespace crv::graphics::vulkan {
         InstancesPayload,
         MaterialPayload,
         UploadTexturePayload,
-        SkyboxPayload>;
+        SkyboxPayload,
+        IndexPayload>;
 
     struct Command {
         CommandType    type    = CommandType::NONE;

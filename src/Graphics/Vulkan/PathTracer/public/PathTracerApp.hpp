@@ -53,6 +53,9 @@ namespace crv::graphics::vulkan {
         void saveImage();
         void saveScene();
         void selectInstance(uint32_t index, bool additive);
+        void updateInstanceTransform(uint32_t index) { mResourceManager.updateInstanceTransform(index); }
+        void updateInstance(uint32_t index) { mResourceManager.updateInstance(index); }
+        void updateMaterial(uint32_t index) { mResourceManager.updateMaterial(index); }
         void uploadTexture(const std::string& path, uint32_t materialIndex, int textureType);
         void loadSkybox(const std::string& path);
         void removeSkybox();
