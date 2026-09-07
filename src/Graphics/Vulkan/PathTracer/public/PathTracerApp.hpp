@@ -145,6 +145,7 @@ namespace crv::graphics::vulkan {
         cs::OrbitalCamera            mOrbitalCamera{};
         cs::AbsCamera*               mCamera               = nullptr;
 
+        Scene                        mScene{};
         ResourceManager              mResourceManager{};
 
         InputState                   mInput{};

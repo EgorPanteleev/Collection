@@ -25,6 +25,7 @@ namespace crv::graphics::vulkan {
         ResourceManager* resourceManager = nullptr;
         RenderSettings*  renderSettings  = nullptr;
         CommandStream*   commands        = nullptr;
+        Scene*           scene           = nullptr;
     };
 
     struct AppUIRecordInfo {
@@ -66,6 +67,7 @@ namespace crv::graphics::vulkan {
         ResourceManager* mResourceManager = nullptr;
         RenderSettings*  mSettings        = nullptr;
         CommandStream*   mCommands        = nullptr;
+        Scene*           mScene           = nullptr;
         VkImGui          mImGui           = CRV_NULL_HANDLE;
 
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;

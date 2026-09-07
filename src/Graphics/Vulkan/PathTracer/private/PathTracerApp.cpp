@@ -336,7 +336,8 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::createResourceManager() {
         const ResourceManagerCreateInfo createInfo {
-            .context = &mContext
+            .context = &mContext,
+            .scene   = &mScene
         };
         mResourceManager = ResourceManager(createInfo);
     }
@@ -389,7 +390,8 @@ namespace crv::graphics::vulkan {
             .swapchain = &mSwapchain,
             .resourceManager = &mResourceManager,
             .renderSettings = &mRenderSettings,
-            .commands = &mCommands
+            .commands = &mCommands,
+            .scene = &mScene
         };
         mUI = AppUI(createInfo);
     }
@@ -443,9 +445,9 @@ namespace crv::graphics::vulkan {
 
     void PathTracerApp::addMaterial(const uint32_t instanceIndex) {
         vkDeviceWaitIdle(mContext.device());
-        auto& instances = mResourceManager.instances();
+        auto& instances = mScene.mInstances;
         if (instanceIndex >= instances.size()) return;
-        Material newMaterial = mResourceManager.materials()[instances[instanceIndex].materialIndex];
+        Material newMaterial = mScene.mMaterials[instances[instanceIndex].materialIndex];
         newMaterial.name += " copy";
         const uint32_t index = mResourceManager.addMaterial(newMaterial);
         instances[instanceIndex].materialIndex = index;
@@ -467,8 +469,8 @@ namespace crv::graphics::vulkan {
                 .maxDepth = static_cast<uint32_t>(mRenderSettings.maxDepth),
                 .displayMode = static_cast<uint32_t>(mRenderSettings.displayMode),
                 .nee = mRenderSettings.nee ? 1u : 0u,
-                .emissiveCount = static_cast<uint32_t>(mResourceManager.emissiveIndices().size()),
-                .skyboxIndex = mResourceManager.skyboxIndex(),
+                .emissiveCount = static_cast<uint32_t>(mScene.mEmissiveIndices.size()),
+                .skyboxIndex = mScene.mSkyboxIndex,
                 .envIntegral = mResourceManager.envIntegral(),
                 .envNee = mRenderSettings.envNee ? 1u : 0u,
                 .aperture = mRenderSettings.aperture,
@@ -476,7 +478,7 @@ namespace crv::graphics::vulkan {
                 .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr(),
-                .skyColor = mResourceManager.skyColor()
+                .skyColor = mScene.mSkyColor
             },
             .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
             .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale
@@ -494,7 +496,7 @@ namespace crv::graphics::vulkan {
         draws.reserve(mSelectedInstances.size());
         uint32_t outlineId = 1;
         for (const uint32_t index : mSelectedInstances) {
-            const InstanceData& instance = mResourceManager.instances()[index];
+            const InstanceData& instance = mScene.mInstances[index];
             BLASData& blasData = mResourceManager.blasDatas()[instance.meshIndex];
             draws.push_back({
                 .vertexBuffer = &blasData.vertexBuffer,
@@ -666,7 +668,7 @@ namespace crv::graphics::vulkan {
         const float ny1 = static_cast<float>(std::max(y0, y1)) / fh * 2.0f - 1.0f;
 
         const glm::mat4 viewProj = mCamera->projectionMatrix() * mCamera->viewMatrix();
-        const auto& instances = mResourceManager.instances();
+        const auto& instances = mScene.mInstances;
         const auto& blasDatas = mResourceManager.blasDatas();
 
         if (!additive) mSelectedInstances.clear();
@@ -680,9 +682,9 @@ namespace crv::graphics::vulkan {
             bool anyInFront = false;
             for (int c = 0; c < 8; ++c) {
                 const glm::vec4 corner {
-                    (c & 1) ? mesh.aabbMax.x : mesh.aabbMin.x,
-                    (c & 2) ? mesh.aabbMax.y : mesh.aabbMin.y,
-                    (c & 4) ? mesh.aabbMax.z : mesh.aabbMin.z,
+                    (c & 1) ? mesh.bbox.max.x : mesh.bbox.min.x,
+                    (c & 2) ? mesh.bbox.max.y : mesh.bbox.min.y,
+                    (c & 4) ? mesh.bbox.max.z : mesh.bbox.min.z,
                     1.0f
                 };
                 const glm::vec4 clip = mvp * corner;
@@ -807,7 +809,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::saveScene() {
-        const json scene = mResourceManager.saveScene();
+        const json scene = mScene.save();
         const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         char stamp[32];
         std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
@@ -861,7 +863,7 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::update() {
         const RayTracerPassUpdateInfo tracerUpdateInfo {
             .camera = mCamera,
-            .directLight = mResourceManager.directLight(),
+            .directLight = mScene.mDirectLight,
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(tracerUpdateInfo);

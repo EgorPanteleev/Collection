@@ -5,8 +5,9 @@
 #ifndef COLLECTION_TYPES_HPP
 #define COLLECTION_TYPES_HPP
 
-#include "Types/InstanceData.hpp"
-#include "Types/Material.hpp"
+#include "Model/InstanceData.hpp"
+#include "Model/Material.hpp"
+#include "Model/DirectLight.hpp"
 #include "Types/BLASData.hpp"
 #include "Types/UBOData.hpp"
 #include "Types/SSBOData.hpp"
@@ -43,11 +44,6 @@ namespace crv::graphics::vulkan {
     struct alignas(16) CameraGPU {
         glm::mat4 invView;
         glm::mat4 invProj;
-    };
-
-    struct DirectLight {
-        glm::vec3 dir{};
-        float intensity = 0;
     };
 
     struct alignas(16) MVPGPU {
