@@ -9,57 +9,10 @@
 #include "CallBacks.hpp"
 #include "IconsFontAwesome6.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
-#include <algorithm>
-#include <chrono>
 #include <fstream>
-#include <filesystem>
-#include <limits>
-
-namespace fs = std::filesystem;
 
 namespace crv::graphics::vulkan {
     namespace cu = utils;
-
-    namespace {
-        void dumpScene(std::ostream& out, const json& j, int indent, int depth) {
-            const std::string pad(static_cast<size_t>(depth) * indent, ' ');
-            const std::string padIn(static_cast<size_t>(depth + 1) * indent, ' ');
-            if (j.is_object()) {
-                if (j.empty()) { out << "{}"; return; }
-                out << "{\n";
-                size_t i = 0;
-                for (auto it = j.begin(); it != j.end(); ++it) {
-                    out << padIn << json(it.key()).dump() << ": ";
-                    dumpScene(out, it.value(), indent, depth + 1);
-                    out << (++i < j.size() ? ",\n" : "\n");
-                }
-                out << pad << "}";
-            } else if (j.is_array()) {
-                bool inlineArray = true;
-                for (const auto& e : j) if (!e.is_number() && !e.is_boolean()) { inlineArray = false; break; }
-                if (inlineArray) {
-                    out << "[";
-                    size_t i = 0;
-                    for (const auto& e : j) out << (i++ ? ", " : "") << e.dump();
-                    out << "]";
-                } else {
-                    out << "[\n";
-                    size_t i = 0;
-                    for (const auto& e : j) {
-                        out << padIn;
-                        dumpScene(out, e, indent, depth + 1);
-                        out << (++i < j.size() ? ",\n" : "\n");
-                    }
-                    out << pad << "]";
-                }
-            } else {
-                out << j.dump();
-            }
-        }
-    }
 
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo) {
         readScene(createInfo.scenePath);
@@ -97,13 +50,6 @@ namespace crv::graphics::vulkan {
             ++mFrameCount;
         }
         vkDeviceWaitIdle(mContext.device());
-    }
-
-    void PathTracerApp::pixelClicked(uint32_t x, uint32_t y, bool additive) {
-        auto [width, height] = mSwapchain.extent();
-        if (x > width or y > height) return;
-        mClickedPixel = {x, y};
-        mAdditiveSelect = additive;
     }
 
     void PathTracerApp::readScene(const std::string& scenePath) {
@@ -325,19 +271,19 @@ namespace crv::graphics::vulkan {
             .nearPlane = camera["nearPlane"],
             .farPlane = camera["farPlane"]
         };
-        mFlyCamera = scene::FlyCamera(info);
-        mOrbitalCamera = scene::OrbitalCamera(info);
+        mModel.flyCamera() = scene::FlyCamera(info);
+        mModel.orbitalCamera() = scene::OrbitalCamera(info);
         if (info.type == scene::CameraType::FLY) {
-            mCamera = &mFlyCamera;
+            mModel.setCamera(&mModel.flyCamera());
         } else {
-            mCamera = &mOrbitalCamera;
+            mModel.setCamera(&mModel.orbitalCamera());
         }
     }
 
     void PathTracerApp::createResourceManager() {
         const ResourceManagerCreateInfo createInfo {
             .context = &mContext,
-            .scene   = &mScene
+            .scene   = &mModel.scene()
         };
         mResourceManager = ResourceManager(createInfo);
     }
@@ -388,71 +334,11 @@ namespace crv::graphics::vulkan {
         const AppUICreateInfo createInfo {
             .context = &mContext,
             .swapchain = &mSwapchain,
-            .renderSettings = &mRenderSettings,
+            .renderSettings = &mModel.settings(),
             .commands = &mCommands,
-            .scene = &mScene
+            .scene = &mModel.scene()
         };
         mUI = AppUI(createInfo);
-    }
-
-    void PathTracerApp::selectInstance(const uint32_t index, const bool additive) {
-        applySelection(index + 1, additive);
-    }
-
-    void PathTracerApp::uploadTexture(const std::string& path, const uint32_t materialIndex, const int textureType) {
-        vkDeviceWaitIdle(mContext.device());
-        uint32_t index = 0;
-        switch (textureType) {
-            case 1:  index = mResourceManager.addNormalTexture(path, materialIndex); break;
-            case 2:  index = mResourceManager.addMetalRoughnessTexture(path, materialIndex); break;
-            case 3:  index = mResourceManager.addClearcoatTexture(path, materialIndex); break;
-            case 4:  index = mResourceManager.addClearcoatRoughnessTexture(path, materialIndex); break;
-            default: index = mResourceManager.addBaseColorTexture(path, materialIndex); break;
-        }
-        mRayTracerPass.bindTexture(index);
-    }
-
-    void PathTracerApp::loadSkybox(const std::string& path) {
-        vkDeviceWaitIdle(mContext.device());
-        const uint32_t index = mResourceManager.addSkybox(path);
-        mRayTracerPass.bindTexture(index);
-        updateImage();
-    }
-
-    void PathTracerApp::removeSkybox() {
-        mResourceManager.removeSkybox();
-        updateImage();
-    }
-
-    void PathTracerApp::duplicateInstances(const std::vector<uint32_t>& indices) {
-        vkDeviceWaitIdle(mContext.device());
-        const std::vector<uint32_t> created = mResourceManager.duplicateInstances(indices);
-        mRayTracerPass.bindInstances();
-        mSelectedInstances = created;
-        mActiveInstance = created.empty() ? UINT32_MAX : created.back();
-        mPendingSelection = false;
-        updateImage();
-    }
-
-    void PathTracerApp::removeInstances(const std::vector<uint32_t>& indices) {
-        vkDeviceWaitIdle(mContext.device());
-        mResourceManager.removeInstances(indices);
-        mRayTracerPass.bindInstances();
-        clearSelection();
-        updateImage();
-    }
-
-    void PathTracerApp::addMaterial(const uint32_t instanceIndex) {
-        vkDeviceWaitIdle(mContext.device());
-        auto& instances = mScene.mInstances;
-        if (instanceIndex >= instances.size()) return;
-        Material newMaterial = mScene.mMaterials[instances[instanceIndex].materialIndex];
-        newMaterial.name += " copy";
-        const uint32_t index = mResourceManager.addMaterial(newMaterial);
-        instances[instanceIndex].materialIndex = index;
-        mResourceManager.updateInstance(instanceIndex);
-        mRayTracerPass.bindMaterials();
-        updateImage();
     }
 
     void PathTracerApp::recordTracer() {
@@ -463,21 +349,21 @@ namespace crv::graphics::vulkan {
             .commandBuffer = commandBuffer,
             .constants = {
                 .frameCount = mFrameCount,
-                .spp = static_cast<uint32_t>(mRenderSettings.spp),
-                .minDepth = static_cast<uint32_t>(mRenderSettings.minDepth),
-                .maxDepth = static_cast<uint32_t>(mRenderSettings.maxDepth),
-                .displayMode = static_cast<uint32_t>(mRenderSettings.displayMode),
-                .nee = mRenderSettings.nee ? 1u : 0u,
-                .emissiveCount = static_cast<uint32_t>(mScene.mEmissiveIndices.size()),
-                .skyboxIndex = mScene.mSkyboxIndex,
+                .spp = static_cast<uint32_t>(mModel.settings().spp),
+                .minDepth = static_cast<uint32_t>(mModel.settings().minDepth),
+                .maxDepth = static_cast<uint32_t>(mModel.settings().maxDepth),
+                .displayMode = static_cast<uint32_t>(mModel.settings().displayMode),
+                .nee = mModel.settings().nee ? 1u : 0u,
+                .emissiveCount = static_cast<uint32_t>(mModel.scene().mEmissiveIndices.size()),
+                .skyboxIndex = mModel.scene().mSkyboxIndex,
                 .envIntegral = mResourceManager.envIntegral(),
-                .envNee = mRenderSettings.envNee ? 1u : 0u,
-                .aperture = mRenderSettings.aperture,
-                .focusDistance = mRenderSettings.focusDistance,
+                .envNee = mModel.settings().envNee ? 1u : 0u,
+                .aperture = mModel.settings().aperture,
+                .focusDistance = mModel.settings().focusDistance,
                 .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr(),
-                .skyColor = mScene.mSkyColor
+                .skyColor = mModel.scene().mSkyColor
             },
             .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
             .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale
@@ -492,10 +378,10 @@ namespace crv::graphics::vulkan {
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
         std::vector<RasterizerDraw> draws;
-        draws.reserve(mSelectedInstances.size());
+        draws.reserve(mModel.selection().selectedInstances.size());
         uint32_t outlineId = 1;
-        for (const uint32_t index : mSelectedInstances) {
-            const InstanceData& instance = mScene.mInstances[index];
+        for (const uint32_t index : mModel.selection().selectedInstances) {
+            const InstanceData& instance = mModel.scene().mInstances[index];
             BLASData& blasData = mResourceManager.blasDatas()[instance.meshIndex];
             draws.push_back({
                 .vertexBuffer = &blasData.vertexBuffer,
@@ -536,9 +422,9 @@ namespace crv::graphics::vulkan {
             .extent = mSwapchain.extent(),
             .currentFrame = mCurrentFrame,
             .constants = {
-                .exposure = mRenderSettings.exposure,
-                .tonemap = mRenderSettings.tonemap ? 1u : 0u,
-                .displayMode = static_cast<uint32_t>(mRenderSettings.displayMode),
+                .exposure = mModel.settings().exposure,
+                .tonemap = mModel.settings().tonemap ? 1u : 0u,
+                .displayMode = static_cast<uint32_t>(mModel.settings().displayMode),
                 .renderScale = mEffectiveScale
             }
         };
@@ -654,221 +540,30 @@ namespace crv::graphics::vulkan {
 
         Image::inverseTransit(transitInfo);
         mClickedPixel = {UINT32_MAX, UINT32_MAX};
-        mPendingSelection = true;
-    }
-
-    void PathTracerApp::regionSelect(int x0, int y0, int x1, int y1, bool additive) {
-        auto [width, height] = mSwapchain.extent();
-        const float fw = static_cast<float>(width);
-        const float fh = static_cast<float>(height);
-        const float nx0 = static_cast<float>(std::min(x0, x1)) / fw * 2.0f - 1.0f;
-        const float nx1 = static_cast<float>(std::max(x0, x1)) / fw * 2.0f - 1.0f;
-        const float ny0 = static_cast<float>(std::min(y0, y1)) / fh * 2.0f - 1.0f;
-        const float ny1 = static_cast<float>(std::max(y0, y1)) / fh * 2.0f - 1.0f;
-
-        const glm::mat4 viewProj = mCamera->projectionMatrix() * mCamera->viewMatrix();
-        const auto& instances = mScene.mInstances;
-        const auto& blasDatas = mResourceManager.blasDatas();
-
-        if (!additive) mSelectedInstances.clear();
-        for (uint32_t i = 0; i < instances.size(); ++i) {
-            const InstanceData& instance = instances[i];
-            const BLASData& mesh = blasDatas[instance.meshIndex];
-            const glm::mat4 mvp = viewProj * instance.transform.matrix();
-
-            glm::vec2 boxMin(std::numeric_limits<float>::max());
-            glm::vec2 boxMax(std::numeric_limits<float>::lowest());
-            bool anyInFront = false;
-            for (int c = 0; c < 8; ++c) {
-                const glm::vec4 corner {
-                    (c & 1) ? mesh.bbox.max.x : mesh.bbox.min.x,
-                    (c & 2) ? mesh.bbox.max.y : mesh.bbox.min.y,
-                    (c & 4) ? mesh.bbox.max.z : mesh.bbox.min.z,
-                    1.0f
-                };
-                const glm::vec4 clip = mvp * corner;
-                if (clip.w <= 1e-4f) continue;
-                anyInFront = true;
-                const glm::vec2 ndc = glm::vec2(clip) / clip.w;
-                boxMin = glm::min(boxMin, ndc);
-                boxMax = glm::max(boxMax, ndc);
-            }
-            if (!anyInFront) continue;
-            if (boxMax.x < nx0 || boxMin.x > nx1 || boxMax.y < ny0 || boxMin.y > ny1) continue;
-
-            if (std::find(mSelectedInstances.begin(), mSelectedInstances.end(), i) == mSelectedInstances.end())
-                mSelectedInstances.push_back(i);
-        }
-        mActiveInstance = mSelectedInstances.empty() ? UINT32_MAX : mSelectedInstances.back();
-    }
-
-    void PathTracerApp::saveImage() {
-        vkDeviceWaitIdle(mContext.device());
-        auto [width, height] = mSwapchain.extent();
-
-        ImageCreateInfo saveImageInfo {
-            .device = mContext.device(),
-            .allocator = mContext.allocator(),
-            .flags = 0,
-            .format = VK_FORMAT_R8G8B8A8_SRGB,
-            .extent = {width, height, 1},
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            .memoryUsage = VMA_MEMORY_USAGE_AUTO
-        };
-        Image saveImage(saveImageInfo);
-
-        const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(width) * height * 4;
-        const BufferCreateInfo bufferInfo {
-            .allocator = mContext.allocator(),
-            .size = bufferSize,
-            .bufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY
-        };
-        Buffer buffer(bufferInfo);
-
-        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(),
-                                            mContext.familyIndex(QueueFamilyType::GRAPHICS).value());
-
-        const ImageTransitInfo2 finalTransitInfo {
-            .commandBuffer = commandBuffer,
-            .image = mFinalImage.get(),
-            .srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
-            .srcStage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-            .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        };
-        ImageTransitInfo2 saveTransitInfo {
-            .commandBuffer = commandBuffer,
-            .image = saveImage.get(),
-            .srcAccessMask = VK_ACCESS_2_NONE,
-            .dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
-            .srcStage = VK_PIPELINE_STAGE_2_NONE,
-            .dstStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        };
-        Image::transit({finalTransitInfo, saveTransitInfo});
-
-        const VkImageBlit blit {
-            .srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-            .srcOffsets = {{0, 0, 0}, {static_cast<int32_t>(width), static_cast<int32_t>(height), 1}},
-            .dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-            .dstOffsets = {{0, 0, 0}, {static_cast<int32_t>(width), static_cast<int32_t>(height), 1}}
-        };
-        vkCmdBlitImage(commandBuffer,
-            mFinalImage.get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            saveImage.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1, &blit, VK_FILTER_NEAREST);
-
-        saveTransitInfo.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-        saveTransitInfo.dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT;
-        saveTransitInfo.srcStage = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
-        saveTransitInfo.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        saveTransitInfo.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        Image::transit(saveTransitInfo);
-
-        const VkBufferImageCopy region {
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-            .imageOffset = {0, 0, 0},
-            .imageExtent = {width, height, 1}
-        };
-        vkCmdCopyImageToBuffer(commandBuffer, saveImage.get(),
-            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer.get(), 1, &region);
-
-        Image::inverseTransit(finalTransitInfo);
-        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::GRAPHICS));
-
-        const fs::path outputDir = fs::path(PROJECT_PATH) / "screenshots";
-        fs::create_directories(outputDir);
-        const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        char stamp[32];
-        std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
-        const std::string path = (outputDir / ("render_" + std::string(stamp) + ".png")).string();
-
-        uint8_t* data = nullptr;
-        vmaMapMemory(mContext.allocator(), buffer.allocation(), reinterpret_cast<void**>(&data));
-        const int ok = stbi_write_png(path.c_str(), static_cast<int>(width), static_cast<int>(height),
-                                      4, data, static_cast<int>(width) * 4);
-        vmaUnmapMemory(mContext.allocator(), buffer.allocation());
-
-        if (ok) INFO << "Saved image: " << path;
-        else    ERROR << "Failed to save image: " << path;
-    }
-
-    void PathTracerApp::saveScene() {
-        const json scene = mScene.save();
-        const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        char stamp[32];
-        std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
-        const std::string path = (fs::path(ASSETS_PATH) / ("scene_" + std::string(stamp) + ".json")).string();
-        std::ofstream out(path);
-        if (!out) {
-            ERROR << "Failed to save scene: " << path;
-            return;
-        }
-        dumpScene(out, scene, 2, 0);
-        out << "\n";
-        INFO << "Saved scene: " << path;
+        mModel.selection().pending = true;
     }
 
     void PathTracerApp::updateSelectedInstance() {
-        if (mPendingSelection) {
-            mPendingSelection = false;
+        if (mModel.selection().pending) {
+            mModel.selection().pending = false;
             uint32_t* data = nullptr;
             vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
             const uint32_t id = *data;
             vmaUnmapMemory(mContext.allocator(), mReadbackBuffer.allocation());
-            applySelection(id, mAdditiveSelect);
+            mAppHandler.applySelection(this, id, mAdditiveSelect);
         }
-    }
-
-    void PathTracerApp::applySelection(const uint32_t id, const bool additive) {
-        if (id == 0) {
-            if (!additive) clearSelection();
-            return;
-        }
-        const uint32_t index = id - 1;
-        const auto it = std::find(mSelectedInstances.begin(), mSelectedInstances.end(), index);
-        if (!additive) {
-            mSelectedInstances = {index};
-            mActiveInstance = index;
-        } else if (it != mSelectedInstances.end()) {
-            mSelectedInstances.erase(it);
-            mActiveInstance = mSelectedInstances.empty() ? UINT32_MAX : mSelectedInstances.back();
-        } else {
-            mSelectedInstances.push_back(index);
-            mActiveInstance = index;
-        }
-    }
-
-    void PathTracerApp::clearSelection() {
-        mSelectedInstances.clear();
-        mActiveInstance = UINT32_MAX;
-        mPendingSelection = false;
     }
 
     void PathTracerApp::update() {
         const RayTracerPassUpdateInfo tracerUpdateInfo {
-            .camera = mCamera,
-            .directLight = mScene.mDirectLight,
+            .camera = mModel.camera(),
+            .directLight = mModel.scene().mDirectLight,
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(tracerUpdateInfo);
 
         const RasterizerPassUpdateInfo rasterUpdateInfo {
-            .camera = mCamera,
+            .camera = mModel.camera(),
             .currentFrame = mCurrentFrame
         };
         mRasterizerPass.update(rasterUpdateInfo);
@@ -956,22 +651,12 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void PathTracerApp::setCamera(const scene::CameraType type) {
-        if (type == scene::CameraType::FLY) {
-            mCamera = &mFlyCamera;
-            mCamera->setPosition(mOrbitalCamera.position());
-            mCamera->setOrientation(mOrbitalCamera.orientation());
-        } else {
-            mCamera = &mOrbitalCamera;
-        }
-    }
-
     void PathTracerApp::drawControlPanel() {
         const AppUIDrawInfo drawInfo {
             .drawUI = mRenderImGui,
-            .camera = mCamera,
-            .selectedInstances = &mSelectedInstances,
-            .activeInstance = mActiveInstance,
+            .camera = mModel.camera(),
+            .selectedInstances = &mModel.selection().selectedInstances,
+            .activeInstance = mModel.selection().activeInstance,
             .frameCount = mFrameCount,
             .renderScale = mEffectiveScale
         };
@@ -981,7 +666,7 @@ namespace crv::graphics::vulkan {
     void PathTracerApp::applyCommands(const double deltaTime) {
         bool cameraMoved = false;
         const CameraInput cameraInput {
-            .camera    = mCamera,
+            .camera    = mModel.camera(),
             .input     = &mInput,
             .deltaTime = static_cast<float>(deltaTime),
         };
@@ -1004,19 +689,6 @@ namespace crv::graphics::vulkan {
         if (cameraMoved) onCameraMoved();
     }
 
-    void PathTracerApp::pickAtCursor() {
-        const glm::dvec2 cursor = mInput.cursorPos();
-        GLFWwindow* window = mContext.window().glfwWindow();
-        int winWidth, winHeight, fbWidth, fbHeight;
-        glfwGetWindowSize(window, &winWidth, &winHeight);
-        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-        const float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
-        const float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
-        const bool additive = mInput.isPressed(Key::LEFT_SHIFT) || mInput.isPressed(Key::RIGHT_SHIFT);
-        pixelClicked(static_cast<uint32_t>(cursor.x * scaleX),
-                     static_cast<uint32_t>(cursor.y * scaleY), additive);
-    }
-
     void PathTracerApp::drawFrame() {
         uint32_t imageIndex;
         vkWaitForFences(mContext.device(), 1, &mFences[mCurrentFrame].get(), VK_TRUE, UINT64_MAX);
@@ -1024,7 +696,7 @@ namespace crv::graphics::vulkan {
         acquireNextImage(imageIndex);
         drawControlPanel();
 
-        const uint32_t scale = mCameraMoved ? mRenderSettings.effectiveMotionScale() : mRenderSettings.effectiveRenderScale();
+        const uint32_t scale = mCameraMoved ? mModel.settings().effectiveMotionScale() : mModel.settings().effectiveRenderScale();
         if (scale != mEffectiveScale) {
             mEffectiveScale = scale;
             mFrameCount = 0;

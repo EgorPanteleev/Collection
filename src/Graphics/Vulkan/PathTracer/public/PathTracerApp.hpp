@@ -19,6 +19,7 @@ using json = nlohmann::json;
 #include "Semaphore.hpp"
 #include "Fence.hpp"
 #include "Types.hpp"
+#include "Model/Model.hpp"
 #include "ResourceManager.hpp"
 #include "InputState.hpp"
 #include "CommandStream.hpp"
@@ -34,35 +35,16 @@ namespace crv::graphics::vulkan {
     };
 
     class PathTracerApp {
+        friend class AppInputHandler;
     public:
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
-        void updateImage() { mFrameCount = 0; }
-        void onCameraMoved() { mFrameCount = 0; mCameraMoved = true; }
-        void pixelClicked(uint32_t x, uint32_t y, bool additive);
-        void clearSelection();
-        void regionSelect(int x0, int y0, int x1, int y1, bool additive);
-        void toggleControlPanel() { mRenderImGui = !mRenderImGui; }
-        [[nodiscard]] cs::AbsCamera* camera() const { return mCamera; }
         [[nodiscard]] Window& window() { return mContext.window(); }
         [[nodiscard]] InputState& input() { return mInput; }
         [[nodiscard]] CommandStream& commands() { return mCommands; }
-        void setCamera(scene::CameraType type);
-        void pickAtCursor();
-        void saveImage();
-        void saveScene();
-        void selectInstance(uint32_t index, bool additive);
-        void updateInstanceTransform(uint32_t index) { mResourceManager.updateInstanceTransform(index); }
-        void updateInstance(uint32_t index) { mResourceManager.updateInstance(index); }
-        void updateMaterial(uint32_t index) { mResourceManager.updateMaterial(index); }
-        void uploadTexture(const std::string& path, uint32_t materialIndex, int textureType);
-        void loadSkybox(const std::string& path);
-        void removeSkybox();
-        void duplicateInstances(const std::vector<uint32_t>& indices);
-        void removeInstances(const std::vector<uint32_t>& indices);
-        void addMaterial(uint32_t instanceIndex);
     private:
+        void onCameraMoved() { mFrameCount = 0; mCameraMoved = true; }
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void readScene(const std::string& scenePath);
         void createContext();
@@ -86,7 +68,6 @@ namespace crv::graphics::vulkan {
         void recordPresent(uint32_t imageIndex);
         void recordPixelRead(VkCommandBuffer commandBuffer);
         void updateSelectedInstance();
-        void applySelection(uint32_t id, bool additive);
         void record(uint32_t imageIndex);
         void submit(uint32_t imageIndex);
         void acquireNextImage(uint32_t& imageIndex);
@@ -106,10 +87,7 @@ namespace crv::graphics::vulkan {
         uint32_t                     mFrameCount           = 0;
         bool                         mCameraMoved          = false;
         uint32_t                     mEffectiveScale       = 1;
-        std::vector<uint32_t>        mSelectedInstances{};
-        uint32_t                     mActiveInstance       = UINT32_MAX;
         bool                         mAdditiveSelect       = false;
-        bool                         mPendingSelection     = false;
         ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
 
         json                         mJson{};
@@ -144,18 +122,13 @@ namespace crv::graphics::vulkan {
         CommandPool                  mPostprocessCommandPool    = CRV_NULL_HANDLE;
         CommandBuffers               mPostprocessCommandBuffers = CRV_NULL_HANDLE;
 
-        cs::FlyCamera                mFlyCamera{};
-        cs::OrbitalCamera            mOrbitalCamera{};
-        cs::AbsCamera*               mCamera               = nullptr;
-
-        Scene                        mScene{};
+        Model                        mModel{};
         ResourceManager              mResourceManager{};
 
         InputState                   mInput{};
         CommandStream                mCommands{};
         CameraInputHandler           mCameraHandler{};
         AppInputHandler              mAppHandler{};
-        RenderSettings               mRenderSettings{};
         AppUI                        mUI{};
     };
 }
