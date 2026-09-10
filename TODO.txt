@@ -1,11 +1,5 @@
 #refactor
-1) remove friend of input handler
-2) make one input handler, which handles all inputs
-3) make inputs change only model, do not touch view
-4) rename AppInputHandler to smth else
-5) make class AppInputHandler, which consists of ...InputHandler and CameraInputHandler and handles everything
 6) simpify run, process all TODO's
-
 
 
 #features

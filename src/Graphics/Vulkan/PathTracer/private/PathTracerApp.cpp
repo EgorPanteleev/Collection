@@ -4,7 +4,8 @@
 
 #include "PathTracerApp.hpp"
 #include "Timer.hpp"
-#include "CallBacks.hpp"
+#include "InputCallbacks.hpp"
+#include "Keybindings.hpp"
 
 #include <fstream>
 
@@ -43,7 +44,7 @@ namespace crv::graphics::vulkan {
             .renderer = mRenderer.get(),
             .input    = &mInput
         });
-        setCallBacks(this);
+        setCallBacks(mRenderer->window(), mInput);
         mRenderer->initUI();
     }
 
@@ -53,9 +54,9 @@ namespace crv::graphics::vulkan {
         Window& window = mRenderer->window();
         while (!window.shouldClose()) {
             mInput.beginFrame();
-            glfwPollEvents(); //todo remove
-            window.keyboardCallBack(deltaTime); //todo remove
-            applyCommands(deltaTime); //apply commands two times??
+            glfwPollEvents();
+            processInput(mInput, mCommands);
+            applyCommands(deltaTime);
             mRenderer->beginFrame();
             applyCommands(deltaTime);
             mRenderer->endFrame();

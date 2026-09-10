@@ -24,9 +24,6 @@ namespace crv::graphics::vulkan {
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
-        [[nodiscard]] Window& window() { return mRenderer->window(); }
-        [[nodiscard]] InputState& input() { return mInput; }
-        [[nodiscard]] CommandStream& commands() { return mCommands; }
     private:
         void applyCommands(double deltaTime);
 
