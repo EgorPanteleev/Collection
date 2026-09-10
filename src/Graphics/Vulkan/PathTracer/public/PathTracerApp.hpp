@@ -25,6 +25,7 @@ namespace crv::graphics::vulkan {
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
     private:
+        void readInput();
         void applyCommands(double deltaTime);
 
         Model                     mModel{};

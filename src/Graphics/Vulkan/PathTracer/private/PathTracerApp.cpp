@@ -53,18 +53,23 @@ namespace crv::graphics::vulkan {
         double deltaTime = 0;
         Window& window = mRenderer->window();
         while (!window.shouldClose()) {
-            mInput.beginFrame();
-            glfwPollEvents();
-            processInput(mInput, mCommands);
+            readInput();
             applyCommands(deltaTime);
             mRenderer->beginFrame();
             applyCommands(deltaTime);
             mRenderer->endFrame();
+
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());
         }
         mRenderer->waitIdle();
+    }
+
+    void PathTracerApp::readInput() {
+        mInput.beginFrame();
+        glfwPollEvents();
+        processInput(mInput, mCommands);
     }
 
     void PathTracerApp::applyCommands(const double deltaTime) {
