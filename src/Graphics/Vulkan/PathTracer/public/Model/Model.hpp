@@ -29,11 +29,6 @@ namespace crv::graphics::vulkan {
 
         void setActiveCamera(cs::CameraType type);
 
-        void markInstanceDirty(uint32_t index)     { mUpdateState.dirtyInstances.push_back({index, InstanceUpdate::Model}); }
-        void markInstanceDataDirty(uint32_t index) { mUpdateState.dirtyInstances.push_back({index, InstanceUpdate::Data}); }
-        void markMaterialDirty(uint32_t index)  { mUpdateState.dirtyMaterials.push_back(index); }
-        void requestReset() { mUpdateState.resetAccumulation = true; }
-
         uint32_t addMaterial(uint32_t instanceIndex);
         void duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);

@@ -2,11 +2,19 @@
 // Created by igor on 6/12/26.
 //
 
-#include "InputHandlers/CameraInputHandler.hpp"
+#include "InputHandlers/CameraCommandHandler.hpp"
+#include "Model/Model.hpp"
+#include "InputState.hpp"
 
 namespace crv::graphics::vulkan {
-    bool CameraInputHandler::apply(const Command command, const CameraInput& context) const {
-        cs::AbsCamera* camera = context.camera;
+    bool CameraCommandHandler::apply(const Command command, const CommandContext& context) const {
+        switch (command.type) {
+            case CommandType::SET_CAMERA_FLY:     context.model->setActiveCamera(cs::CameraType::FLY);     return false;
+            case CommandType::SET_CAMERA_ORBITAL: context.model->setActiveCamera(cs::CameraType::ORBITAL); return false;
+            default: break;
+        }
+
+        auto* camera = context.model->camera();
         if (!camera) return false;
 
         const float speed       = 0.06f * context.deltaTime;

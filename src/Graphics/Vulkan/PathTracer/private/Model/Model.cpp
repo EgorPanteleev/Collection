@@ -58,7 +58,6 @@ namespace crv::graphics::vulkan {
         instances[instanceIndex].materialIndex = index;
         mUpdateState.updateMaterials = true;
         mUpdateState.dirtyInstances.push_back({instanceIndex, InstanceUpdate::Data});
-        mUpdateState.resetAccumulation = true;
         return index;
     }
 
@@ -76,7 +75,6 @@ namespace crv::graphics::vulkan {
         mSelection.activeInstance = created.back();
         mSelection.pending = false;
         mUpdateState.updateInstances = true;
-        mUpdateState.resetAccumulation = true;
     }
 
     void Model::removeInstances(const std::vector<uint32_t>& indices) {
@@ -90,7 +88,6 @@ namespace crv::graphics::vulkan {
         }
         clearSelection();
         mUpdateState.updateInstances = true;
-        mUpdateState.resetAccumulation = true;
     }
 
     void Model::addTexture(const std::string& path, const uint32_t materialIndex, const int textureType) {
@@ -125,7 +122,6 @@ namespace crv::graphics::vulkan {
         mScene.mSkyboxName = std::filesystem::path(path).filename().string();
         mScene.mSkyboxPath = relativeToAssets(path);
         mUpdateState.updateSkybox = true;
-        mUpdateState.resetAccumulation = true;
     }
 
     void Model::removeSkybox() {
@@ -133,7 +129,6 @@ namespace crv::graphics::vulkan {
         mScene.mSkyboxName.clear();
         mScene.mSkyboxPath.clear();
         mUpdateState.updateSkybox = true;
-        mUpdateState.resetAccumulation = true;
     }
 
     void Model::clearSelection() {

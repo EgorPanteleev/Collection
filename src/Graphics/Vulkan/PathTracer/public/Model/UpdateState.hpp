@@ -23,14 +23,19 @@ namespace crv::graphics::vulkan {
         bool updateInstances   = false;
         bool updateMaterials   = false;
         bool updateSkybox      = false;
-        bool resetAccumulation = false;
+        bool cameraMoved       = false;
+
+        void markInstanceDirty(uint32_t index)     { dirtyInstances.push_back({index, InstanceUpdate::Model}); }
+        void markInstanceDataDirty(uint32_t index) { dirtyInstances.push_back({index, InstanceUpdate::Data}); }
+        void markMaterialDirty(uint32_t index)     { dirtyMaterials.push_back(index); }
+        void markCameraMoved() { cameraMoved = true; }
 
         [[nodiscard]] bool any() const {
             return !dirtyInstances.empty() || !dirtyMaterials.empty() || !dirtyTextures.empty()
-                || updateInstances || updateMaterials || updateSkybox || resetAccumulation;
+                || updateInstances || updateMaterials || updateSkybox || cameraMoved;
         }
 
-        [[nodiscard]] bool  heavy() const {
+        [[nodiscard]] bool heavy() const {
             return updateInstances || updateMaterials || updateSkybox || !dirtyTextures.empty();
         }
 

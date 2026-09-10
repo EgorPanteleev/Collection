@@ -38,10 +38,8 @@ namespace crv::graphics::vulkan {
         SET_CAMERA_FLY,
         SET_CAMERA_ORBITAL,
 
-        PICK_OBJECT = static_cast<uint32_t>(CommandTarget::SCENE),
-        CLEAR_SELECTION,
+        CLEAR_SELECTION = static_cast<uint32_t>(CommandTarget::SCENE),
         SELECT_INSTANCE,
-        REGION_SELECT,
         DUPLICATE_INSTANCES,
         REMOVE_INSTANCES,
         ADD_MATERIAL,
@@ -51,13 +49,15 @@ namespace crv::graphics::vulkan {
         UPDATE_INSTANCE,
         UPDATE_INSTANCE_DATA,
         UPDATE_MATERIAL,
+        SAVE_SCENE,
 
-        TOGGLE_CONTROL_PANEL = static_cast<uint32_t>(CommandTarget::VIEW),
+        PICK_OBJECT = static_cast<uint32_t>(CommandTarget::VIEW),
+        REGION_SELECT,
         UPDATE_IMAGE,
+        TOGGLE_CONTROL_PANEL,
 
         QUIT = static_cast<uint32_t>(CommandTarget::APP),
         SAVE_IMAGE,
-        SAVE_SCENE,
     };
 
     constexpr CommandTarget commandTarget(const CommandType type) {

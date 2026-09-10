@@ -42,11 +42,11 @@ namespace crv::graphics::vulkan {
         void initUI();
         void beginFrame();
         void endFrame();
-        void onCameraMoved() { mFrameCount = 0; mCameraMoved = true; }
         void waitIdle() { vkDeviceWaitIdle(mContext.device()); }
         void pick(glm::dvec2 cursor, bool additive);
         void saveImage();
         void toggleUI() { mRenderImGui = !mRenderImGui; }
+        void resetAccumulation() { mFrameCount = 0; }
     private:
         void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
         void createContext(const WindowCreateInfo& window);
@@ -83,7 +83,6 @@ namespace crv::graphics::vulkan {
         uint32_t                     mFramesInFlight       = 1;
         uint32_t                     mCurrentFrame         = 0;
         uint32_t                     mFrameCount           = 0;
-        bool                         mCameraMoved          = false;
         uint32_t                     mEffectiveScale       = 1;
         bool                         mAdditiveSelect       = false;
         ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};

@@ -38,6 +38,11 @@ namespace crv::graphics::vulkan {
             .commands         = &mCommands
         };
         mRenderer = std::make_unique<Renderer>(rendererCreateInfo);
+        mCommandHandler = CommandHandler(CommandHandlerCreateInfo{
+            .model    = &mModel,
+            .renderer = mRenderer.get(),
+            .input    = &mInput
+        });
         setCallBacks(this);
         mRenderer->initUI();
     }
@@ -62,28 +67,7 @@ namespace crv::graphics::vulkan {
     }
 
     void PathTracerApp::applyCommands(const double deltaTime) {
-        bool cameraMoved = false;
-        const CameraInput cameraInput {
-            .camera    = mModel.camera(),
-            .input     = &mInput,
-            .deltaTime = static_cast<float>(deltaTime),
-        };
-        for (const Command& command : mCommands.get()) {
-            switch (commandTarget(command.type)) {
-                case CommandTarget::CAMERA:
-                    if (mCameraHandler.apply(command, cameraInput)) cameraMoved = true;
-                    else mAppHandler.apply(command, this);
-                    break;
-                case CommandTarget::SCENE:
-                case CommandTarget::VIEW:
-                case CommandTarget::APP:
-                    mAppHandler.apply(command, this);
-                    break;
-                default:
-                    break;
-            }
-        }
+        mCommandHandler.apply(mCommands, static_cast<float>(deltaTime));
         mCommands.clear();
-        if (cameraMoved) mRenderer->onCameraMoved();
     }
 }

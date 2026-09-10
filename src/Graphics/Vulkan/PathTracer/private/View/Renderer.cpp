@@ -554,7 +554,7 @@ namespace crv::graphics::vulkan {
             for (const uint32_t index : state.dirtyMaterials) mResourceManager.updateMaterial(index);
         }
 
-        if (state.resetAccumulation) mFrameCount = 0;
+        mFrameCount = 0;
         state.clear();
     }
 
@@ -647,11 +647,12 @@ namespace crv::graphics::vulkan {
     }
 
     void Renderer::endFrame() {
+        const bool cameraMoved = mModel->updateState().cameraMoved;
         flushUpdates();
         uint32_t imageIndex;
         acquireNextImage(imageIndex);
 
-        const uint32_t scale = mCameraMoved ? mModel->settings().effectiveMotionScale() : mModel->settings().effectiveRenderScale();
+        const uint32_t scale = cameraMoved ? mModel->settings().effectiveMotionScale() : mModel->settings().effectiveRenderScale();
         if (scale != mEffectiveScale) {
             mEffectiveScale = scale;
             mFrameCount = 0;
@@ -660,7 +661,6 @@ namespace crv::graphics::vulkan {
         update();
         record(imageIndex);
         submit(imageIndex);
-        mCameraMoved = false;
         updateCurrentFrame();
         ++mFrameCount;
     }

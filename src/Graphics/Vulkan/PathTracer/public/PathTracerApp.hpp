@@ -9,8 +9,7 @@
 #include "Model/Model.hpp"
 #include "InputState.hpp"
 #include "CommandStream.hpp"
-#include "InputHandlers/CameraInputHandler.hpp"
-#include "InputHandlers/AppInputHandler.hpp"
+#include "InputHandlers/CommandHandler.hpp"
 
 #include <memory>
 #include <string>
@@ -21,7 +20,6 @@ namespace crv::graphics::vulkan {
     };
 
     class PathTracerApp {
-        friend class AppInputHandler;
     public:
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
@@ -36,8 +34,7 @@ namespace crv::graphics::vulkan {
         std::unique_ptr<Renderer> mRenderer{};
         InputState                mInput{};
         CommandStream             mCommands{};
-        CameraInputHandler        mCameraHandler{};
-        AppInputHandler           mAppHandler{};
+        CommandHandler            mCommandHandler{};
     };
 }
 

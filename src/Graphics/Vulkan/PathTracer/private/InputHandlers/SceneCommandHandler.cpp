@@ -2,8 +2,8 @@
 // Created by igor on 6/12/26.
 //
 
-#include "InputHandlers/AppInputHandler.hpp"
-#include "PathTracerApp.hpp"
+#include "InputHandlers/SceneCommandHandler.hpp"
+#include "Model/Model.hpp"
 
 #include <chrono>
 #include <filesystem>
@@ -50,27 +50,14 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void AppInputHandler::apply(const Command& command, PathTracerApp* app) const {
-        Model& model = app->mModel;
+    void SceneCommandHandler::apply(const Command& command, const CommandContext& context) const {
+        Model&       model = *context.model;
+        UpdateState& state = model.updateState();
         switch (command.type) {
-            case CommandType::SET_CAMERA_FLY:     model.setActiveCamera(scene::CameraType::FLY);     break;
-            case CommandType::SET_CAMERA_ORBITAL: model.setActiveCamera(scene::CameraType::ORBITAL); break;
-
-            case CommandType::PICK_OBJECT: {
-                const bool additive = app->mInput.isPressed(Key::LEFT_SHIFT) || app->mInput.isPressed(Key::RIGHT_SHIFT);
-                app->mRenderer->pick(app->mInput.cursorPos(), additive);
-                break;
-            }
             case CommandType::CLEAR_SELECTION: model.clearSelection(); break;
             case CommandType::SELECT_INSTANCE: {
                 const auto& p = std::get<SelectInstancePayload>(command.payload);
                 model.selectInstance(p.index, p.additive);
-                break;
-            }
-            case CommandType::REGION_SELECT: {
-                const auto& p = std::get<RegionSelectPayload>(command.payload);
-                const auto [width, height] = app->mRenderer->extent();
-                model.regionSelect(p.x0, p.y0, p.x1, p.y1, p.additive, width, height);
                 break;
             }
             case CommandType::DUPLICATE_INSTANCES:
@@ -93,27 +80,22 @@ namespace crv::graphics::vulkan {
             case CommandType::REMOVE_SKYBOX: model.removeSkybox(); break;
             case CommandType::UPDATE_INSTANCE:
                 for (const uint32_t index : std::get<InstancesPayload>(command.payload).indices)
-                    model.markInstanceDirty(index);
+                    state.markInstanceDirty(index);
                 break;
             case CommandType::UPDATE_INSTANCE_DATA:
-                model.markInstanceDataDirty(std::get<IndexPayload>(command.payload).index);
+                state.markInstanceDataDirty(std::get<IndexPayload>(command.payload).index);
                 break;
             case CommandType::UPDATE_MATERIAL:
-                model.markMaterialDirty(std::get<IndexPayload>(command.payload).index);
+                state.markMaterialDirty(std::get<IndexPayload>(command.payload).index);
                 break;
-            case CommandType::UPDATE_IMAGE: model.requestReset(); break;
 
-            case CommandType::TOGGLE_CONTROL_PANEL: app->mRenderer->toggleUI(); break;
-
-            case CommandType::QUIT:       app->window().close();  break;
-            case CommandType::SAVE_IMAGE: app->mRenderer->saveImage(); break;
-            case CommandType::SAVE_SCENE: saveScene(app);          break;
+            case CommandType::SAVE_SCENE: saveScene(model); break;
             default: break;
         }
     }
 
-    void AppInputHandler::saveScene(PathTracerApp* app) const {
-        const json scene = app->mModel.scene().save();
+    void SceneCommandHandler::saveScene(Model& model) const {
+        const json scene = model.scene().save();
         const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         char stamp[32];
         std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
