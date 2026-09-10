@@ -14,9 +14,6 @@ namespace crv::graphics::vulkan {
     public:
         void apply(const Command& command, PathTracerApp* app) const;
     private:
-        void pick(PathTracerApp* app) const;
-        void toggleControlPanel(PathTracerApp* app) const;
-        void saveImage(PathTracerApp* app) const;
         void saveScene(PathTracerApp* app) const;
     };
 }

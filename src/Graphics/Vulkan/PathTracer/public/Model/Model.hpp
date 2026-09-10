@@ -16,6 +16,8 @@ namespace crv::graphics::vulkan {
 
     class Model {
     public:
+        Model() = default;
+        void load(const json& scene);
         [[nodiscard]] Scene&          scene()         { return mScene; }
         [[nodiscard]] RenderSettings& settings()      { return mSettings; }
         [[nodiscard]] Selection&      selection()     { return mSelection; }

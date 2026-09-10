@@ -18,7 +18,7 @@ namespace crv::graphics::vulkan {
     public:
         ResourceManager() = default;
         explicit ResourceManager(const ResourceManagerCreateInfo& info);
-        void load(const json& json);
+        void build();
         void updateInstance(uint32_t index);
         void updateInstanceData(uint32_t index);
         void updateMaterial(uint32_t index);

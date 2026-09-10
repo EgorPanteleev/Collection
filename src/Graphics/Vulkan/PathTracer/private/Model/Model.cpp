@@ -17,6 +17,27 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void Model::load(const json& scene) {
+        mScene.load(scene);
+        const auto& camera = scene["camera"];
+        const auto& window = scene["window"];
+        const cs::CameraCreateInfo info {
+            .type = camera["type"] == "Fly" ? cs::CameraType::FLY : cs::CameraType::ORBITAL,
+            .pos = toVec3(camera["position"]),
+            .target = toVec3(camera["target"]),
+            .up = toVec3(camera["up"]),
+            .zoom = camera["zoom"],
+            .FOV = camera["fov"],
+            .aspectRatio = static_cast<float>(window["width"]) / static_cast<float>(window["height"]),
+            .nearPlane = camera["nearPlane"],
+            .farPlane = camera["farPlane"]
+        };
+        mFlyCamera = cs::FlyCamera(info);
+        mOrbitalCamera = cs::OrbitalCamera(info);
+        mCamera = info.type == cs::CameraType::FLY ? static_cast<cs::AbsCamera*>(&mFlyCamera)
+                                                   : static_cast<cs::AbsCamera*>(&mOrbitalCamera);
+    }
+
     void Model::setActiveCamera(const cs::CameraType type) {
         if (type == cs::CameraType::FLY) {
             mCamera = &mFlyCamera;

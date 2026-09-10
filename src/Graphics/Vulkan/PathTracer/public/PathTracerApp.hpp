@@ -5,31 +5,17 @@
 #ifndef COLLECTION_PATHTRACERAPP_HPP
 #define COLLECTION_PATHTRACERAPP_HPP
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-
-#include "Context.hpp"
-#include "Camera.hpp"
-#include "Swapchain.hpp"
-#include "Image.hpp"
-#include "ImageView.hpp"
-#include "RayTracerPass.hpp"
-#include "RasterizerPass.hpp"
-#include "PostprocessPass.hpp"
-#include "Semaphore.hpp"
-#include "Fence.hpp"
-#include "Types.hpp"
+#include "View/Renderer.hpp"
 #include "Model/Model.hpp"
-#include "ResourceManager.hpp"
 #include "InputState.hpp"
 #include "CommandStream.hpp"
 #include "InputHandlers/CameraInputHandler.hpp"
 #include "InputHandlers/AppInputHandler.hpp"
-#include "View/AppUI.hpp"
+
+#include <memory>
+#include <string>
 
 namespace crv::graphics::vulkan {
-    namespace cs = scene;
-
     struct PathTracerAppCreateInfo {
         std::string scenePath{};
     };
@@ -40,97 +26,18 @@ namespace crv::graphics::vulkan {
         PathTracerApp() = delete;
         explicit PathTracerApp(const PathTracerAppCreateInfo& createInfo);
         void run();
-        [[nodiscard]] Window& window() { return mContext.window(); }
+        [[nodiscard]] Window& window() { return mRenderer->window(); }
         [[nodiscard]] InputState& input() { return mInput; }
         [[nodiscard]] CommandStream& commands() { return mCommands; }
     private:
-        void onCameraMoved() { mFrameCount = 0; mCameraMoved = true; }
-        void updateCurrentFrame() { mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight; }
-        void readScene(const std::string& scenePath);
-        void createContext();
-        void createSwapChain();
-        void createBuffers();
-        void createImages();
-        void createSwapChainImages();
-        void createSyncObjects();
-        void createCommandBuffers();
-        void createCamera();
-        void createResourceManager();
-        void loadScene();
-        void createRayTracerPass();
-        void createRasterizerPass();
-        void createPostprocessPass();
-        void createUI();
-        void update();
-        void recordTracer();
-        void recordRaster();
-        void recordPostprocess();
-        void recordPresent(uint32_t imageIndex);
-        void recordPixelRead(VkCommandBuffer commandBuffer);
-        void updateSelectedInstance();
-        void record(uint32_t imageIndex);
-        void submit(uint32_t imageIndex);
-        void acquireNextImage(uint32_t& imageIndex);
-        void drawControlPanel();
         void applyCommands(double deltaTime);
-        void flushUpdates();
-        void drawFrame(double deltaTime);
 
-        using VkASInstance = VkAccelerationStructureInstanceKHR;
-#ifdef NDEBUG
-        bool mDebug = false;
-#else
-        bool mDebug = true;
-#endif
-        bool                         mRenderImGui          = false;
-        uint32_t                     mFramesInFlight       = 1;
-        uint32_t                     mCurrentFrame         = 0;
-        uint32_t                     mFrameCount           = 0;
-        bool                         mCameraMoved          = false;
-        uint32_t                     mEffectiveScale       = 1;
-        bool                         mAdditiveSelect       = false;
-        ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
-
-        json                         mJson{};
-        Context                      mContext              = CRV_NULL_HANDLE;
-        Swapchain                    mSwapchain            = CRV_NULL_HANDLE;
-        RayTracerPass                mRayTracerPass        = CRV_NULL_HANDLE;
-        RasterizerPass               mRasterizerPass       = CRV_NULL_HANDLE;
-        PostprocessPass              mPostprocessPass      = CRV_NULL_HANDLE;
-
-        std::vector<VkImage>         mSwapchainImages{};
-        std::vector<ImageView>       mSwapchainImageViews{};
-        Image                        mTracerImage          = CRV_NULL_HANDLE;
-        ImageView                    mTracerView           = CRV_NULL_HANDLE;
-        Image                        mTracerInstanceImage  = CRV_NULL_HANDLE;
-        ImageView                    mTracerInstanceView   = CRV_NULL_HANDLE;
-        Image                        mRasterInstanceImage  = CRV_NULL_HANDLE;
-        ImageView                    mRasterInstanceView   = CRV_NULL_HANDLE;
-        Image                        mFinalImage           = CRV_NULL_HANDLE;
-        ImageView                    mFinalView            = CRV_NULL_HANDLE;
-        Buffer                       mReadbackBuffer       = CRV_NULL_HANDLE;
-
-        std::vector<Fence>           mFences{};
-        std::vector<Semaphore>       mImageAvailableSemaphores{};
-        std::vector<Semaphore>       mTracerFinishedSemaphores{};
-        std::vector<Semaphore>       mRasterFinishedSemaphores{};
-        std::vector<Semaphore>       mPostprocessFinishedSemaphores{};
-
-        CommandPool                  mTracerCommandPool    = CRV_NULL_HANDLE;
-        CommandBuffers               mTracerCommandBuffers = CRV_NULL_HANDLE;
-        CommandPool                  mRasterCommandPool    = CRV_NULL_HANDLE;
-        CommandBuffers               mRasterCommandBuffers = CRV_NULL_HANDLE;
-        CommandPool                  mPostprocessCommandPool    = CRV_NULL_HANDLE;
-        CommandBuffers               mPostprocessCommandBuffers = CRV_NULL_HANDLE;
-
-        Model                        mModel{};
-        ResourceManager              mResourceManager{};
-
-        InputState                   mInput{};
-        CommandStream                mCommands{};
-        CameraInputHandler           mCameraHandler{};
-        AppInputHandler              mAppHandler{};
-        AppUI                        mUI{};
+        Model                     mModel{};
+        std::unique_ptr<Renderer> mRenderer{};
+        InputState                mInput{};
+        CommandStream             mCommands{};
+        CameraInputHandler        mCameraHandler{};
+        AppInputHandler           mAppHandler{};
     };
 }
 

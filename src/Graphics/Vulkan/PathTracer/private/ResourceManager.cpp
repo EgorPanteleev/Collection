@@ -124,10 +124,9 @@ namespace crv::graphics::vulkan {
     }
 
     ResourceManager::ResourceManager(const ResourceManagerCreateInfo& info):
-    mContext(info.context), mScene(info.scene) {}
+    mContext(info.context), mScene(info.scene) { build(); }
 
-    void ResourceManager::load(const json& json) {
-        mScene->load(json);
+    void ResourceManager::build() {
         mTextures.reserve(mScene->mTextureSources.size());
         for (const cm::Texture& source : mScene->mTextureSources)
             mTextures.push_back(toTexture(mContext, source));
