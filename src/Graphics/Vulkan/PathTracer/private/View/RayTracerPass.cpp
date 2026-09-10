@@ -2,7 +2,7 @@
 // Created by igor on 6/7/26.
 //
 
-#include "RayTracerPass.hpp"
+#include "View/RayTracerPass.hpp"
 
 #include <cstring>
 

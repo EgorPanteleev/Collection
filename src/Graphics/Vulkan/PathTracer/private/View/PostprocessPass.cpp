@@ -2,7 +2,7 @@
 // Created by igor on 6/9/26.
 //
 
-#include "PostprocessPass.hpp"
+#include "View/PostprocessPass.hpp"
 
 namespace crv::graphics::vulkan {
     PostprocessPass::PostprocessPass(const PostprocessPassCreateInfo& info):

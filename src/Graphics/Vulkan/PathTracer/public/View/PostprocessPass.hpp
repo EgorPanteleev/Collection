@@ -10,7 +10,7 @@
 #include "PipelineLayout.hpp"
 #include "ComputePipelines.hpp"
 #include "ShaderModule.hpp"
-#include "Types.hpp"
+#include "View/Types.hpp"
 
 namespace crv::graphics::vulkan {
     struct PostprocessPassCreateInfo {

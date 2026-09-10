@@ -7,6 +7,7 @@
 
 #include "Context.hpp"
 #include "Model/Scene.hpp"
+#include "View/Types.hpp"
 
 namespace crv::graphics::vulkan {
     struct ResourceManagerCreateInfo {

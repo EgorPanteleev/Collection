@@ -10,7 +10,7 @@
 #include "PipelineLayout.hpp"
 #include "ShaderModule.hpp"
 #include "GraphicsPipelines.hpp"
-#include "Types.hpp"
+#include "View/Types.hpp"
 #include "Camera.hpp"
 
 namespace crv::graphics::vulkan {

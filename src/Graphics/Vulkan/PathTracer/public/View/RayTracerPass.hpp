@@ -12,8 +12,8 @@
 #include "RayTracerPipelines.hpp"
 #include "AccelerationStructure.hpp"
 #include "Camera.hpp"
-#include "Types.hpp"
-#include "Types.hpp"
+#include "View/Types.hpp"
+#include "Model/DirectLight.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;

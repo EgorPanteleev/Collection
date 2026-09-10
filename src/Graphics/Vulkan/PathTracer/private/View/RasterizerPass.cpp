@@ -2,7 +2,7 @@
 // Created by igor on 6/9/26.
 //
 
-#include "RasterizerPass.hpp"
+#include "View/RasterizerPass.hpp"
 
 namespace crv::graphics::vulkan {
     RasterizerPass::RasterizerPass(const RasterizerPassCreateInfo& info):

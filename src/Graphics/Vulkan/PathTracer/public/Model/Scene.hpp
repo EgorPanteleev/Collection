@@ -12,8 +12,10 @@ using json = nlohmann::json;
 #include "Message.hpp"
 #include "Timer.hpp"
 #include "CoreUtils.hpp"
-#include "Types.hpp"
 #include "Model/MeshData.hpp"
+#include "Model/InstanceData.hpp"
+#include "Model/Material.hpp"
+#include "Model/DirectLight.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cu = utils;

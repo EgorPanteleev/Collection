@@ -2,7 +2,7 @@
 // Created by igor on 6/12/26.
 //
 
-#include "ResourceManager.hpp"
+#include "View/ResourceManager.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>

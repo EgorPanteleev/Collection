@@ -2,19 +2,20 @@
 // Created by igor on 6/10/26.
 //
 
-#ifndef COLLECTION_TYPES_HPP
-#define COLLECTION_TYPES_HPP
+#ifndef COLLECTION_VIEW_TYPES_HPP
+#define COLLECTION_VIEW_TYPES_HPP
 
-#include "Model/InstanceData.hpp"
-#include "Model/Material.hpp"
-#include "Model/DirectLight.hpp"
-#include "Types/BLASData.hpp"
-#include "Types/UBOBuilder.hpp"
-#include "Types/SSBOBuilder.hpp"
+#include "View/BLASData.hpp"
+#include "View/UBOBuilder.hpp"
+#include "View/SSBOBuilder.hpp"
 #include "SharedTypes.h"
+
+#include <glm/glm.hpp>
+#include <cstdint>
 
 namespace crv::graphics::vulkan {
     using ivec2 = glm::vec<2, uint32_t>;
+
     struct PushConstants {
         uint32_t frameCount  = 0;
         uint32_t spp         = 1;
@@ -51,4 +52,4 @@ namespace crv::graphics::vulkan {
     };
 }
 
-#endif //COLLECTION_TYPES_HPP
+#endif //COLLECTION_VIEW_TYPES_HPP

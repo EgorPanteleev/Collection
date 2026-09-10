@@ -51,9 +51,9 @@ namespace crv::graphics::vulkan {
             glfwPollEvents(); //todo remove
             window.keyboardCallBack(deltaTime); //todo remove
             applyCommands(deltaTime); //apply commands two times??
-            mRenderer->prepareFrame();
+            mRenderer->beginFrame();
             applyCommands(deltaTime);
-            mRenderer->renderFrame();
+            mRenderer->endFrame();
             fpsCounter.update();
             deltaTime = 1e3 / fpsCounter.fps();
             window.setTitle(std::to_string(fpsCounter.fps()).c_str());

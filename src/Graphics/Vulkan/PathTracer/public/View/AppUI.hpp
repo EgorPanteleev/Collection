@@ -10,7 +10,7 @@
 #include "Swapchain.hpp"
 #include "ImageView.hpp"
 #include "AbsCamera.hpp"
-#include "Types.hpp"
+#include "View/Types.hpp"
 #include "Model/Scene.hpp"
 #include "Model/RenderSettings.hpp"
 #include "Command.hpp"
