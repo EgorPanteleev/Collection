@@ -8,6 +8,7 @@
 #include "Context.hpp"
 #include "Model/Scene.hpp"
 #include "View/Types.hpp"
+#include "View/EnvironmentMap.hpp"
 
 namespace crv::graphics::vulkan {
     struct ResourceManagerCreateInfo {
@@ -38,10 +39,10 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Buffer& emissiveInstanceBuffer() { return mEmissiveInstanceBuffer; }
         [[nodiscard]] Buffer& materialBuffer() { return mMaterialBuffer; }
         [[nodiscard]] std::vector<Texture>& textures() { return mTextures; }
-        [[nodiscard]] float envIntegral() const { return mEnvIntegral; }
-        [[nodiscard]] uint64_t envMarginalCdfAddr() const { return mEnvMarginalCdfAddr; }
-        [[nodiscard]] uint64_t envCondCdfAddr() const { return mEnvCondCdfAddr; }
-        [[nodiscard]] uint64_t envCondFuncAddr() const { return mEnvCondFuncAddr; }
+        [[nodiscard]] float envIntegral() const { return mEnvMap.integral(); }
+        [[nodiscard]] uint64_t envMarginalCdfAddr() const { return mEnvMap.marginalCdfAddr(); }
+        [[nodiscard]] uint64_t envCondCdfAddr() const { return mEnvMap.condCdfAddr(); }
+        [[nodiscard]] uint64_t envCondFuncAddr() const { return mEnvMap.condFuncAddr(); }
     private:
         void buildMeshes();
         void buildAlias(BLASData& blasData, const std::vector<float>& triAreas);
@@ -50,8 +51,6 @@ namespace crv::graphics::vulkan {
         void createBuffers();
         void rebuildInstanceBuffers();
         void buildMaterialBuffer();
-        void buildEnvDistribution(const cm::Texture& skybox);
-        void disableEnvDistribution();
 
         Context*              mContext          = nullptr;
         Scene*                mScene            = nullptr;
@@ -63,14 +62,7 @@ namespace crv::graphics::vulkan {
         Buffer                mMaterialBuffer         = CRV_NULL_HANDLE;
         AccelerationStructure mTLAS                   = CRV_NULL_HANDLE;
         std::vector<Texture>  mTextures{};
-
-        Buffer   mEnvMarginalCdfBuffer = CRV_NULL_HANDLE;
-        Buffer   mEnvCondCdfBuffer     = CRV_NULL_HANDLE;
-        Buffer   mEnvCondFuncBuffer    = CRV_NULL_HANDLE;
-        uint64_t mEnvMarginalCdfAddr   = 0;
-        uint64_t mEnvCondCdfAddr       = 0;
-        uint64_t mEnvCondFuncAddr      = 0;
-        float    mEnvIntegral          = 0.0f;
+        EnvironmentMap        mEnvMap{};
     };
 }
 
