@@ -10,6 +10,10 @@
 #include <variant>
 #include <vector>
 
+#include "Model/Material.hpp"
+#include "Model/InstanceData.hpp"
+#include "Model/DirectLight.hpp"
+
 namespace crv::graphics::vulkan {
     inline constexpr uint32_t COMMAND_TARGET_SHIFT = 24;
     inline constexpr uint32_t COMMAND_TARGET_MASK  = 0xFFu << COMMAND_TARGET_SHIFT;
@@ -46,9 +50,12 @@ namespace crv::graphics::vulkan {
         UPLOAD_TEXTURE,
         LOAD_SKYBOX,
         REMOVE_SKYBOX,
-        UPDATE_INSTANCE,
-        UPDATE_INSTANCE_DATA,
-        UPDATE_MATERIAL,
+        TRANSFORM_INSTANCES,
+        SET_INSTANCE_TRANSFORM,
+        SET_INSTANCE_MATERIAL,
+        SET_MATERIAL,
+        SET_SKY_COLOR,
+        SET_DIRECT_LIGHT,
         SAVE_SCENE,
 
         PICK_OBJECT = static_cast<uint32_t>(CommandTarget::VIEW),
@@ -69,9 +76,14 @@ namespace crv::graphics::vulkan {
     struct RegionSelectPayload   { int x0, y0, x1, y1; bool additive; };
     struct InstancesPayload      { std::vector<uint32_t> indices; };
     struct MaterialPayload       { uint32_t instanceIndex; };
-    struct IndexPayload          { uint32_t index; };
     struct UploadTexturePayload  { std::string path; uint32_t materialIndex; int textureType; };
     struct SkyboxPayload         { std::string path; };
+    struct SetMaterialPayload    { uint32_t index; Material material; };
+    struct TransformInstancesPayload   { std::vector<uint32_t> indices; glm::mat4 delta; };
+    struct SetInstanceTransformPayload { uint32_t index; Transform transform; };
+    struct SetInstanceMaterialPayload  { uint32_t instanceIndex; uint32_t materialIndex; };
+    struct SkyColorPayload             { glm::vec3 color; };
+    struct DirectLightPayload          { DirectLight light; };
 
     using CommandPayload = std::variant<
         EmptyPayload,
@@ -81,7 +93,12 @@ namespace crv::graphics::vulkan {
         MaterialPayload,
         UploadTexturePayload,
         SkyboxPayload,
-        IndexPayload>;
+        SetMaterialPayload,
+        TransformInstancesPayload,
+        SetInstanceTransformPayload,
+        SetInstanceMaterialPayload,
+        SkyColorPayload,
+        DirectLightPayload>;
 
     struct Command {
         CommandType    type    = CommandType::NONE;

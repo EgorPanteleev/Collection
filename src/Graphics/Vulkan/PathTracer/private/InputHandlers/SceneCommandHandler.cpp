@@ -51,8 +51,7 @@ namespace crv::graphics::vulkan {
     }
 
     void SceneCommandHandler::apply(const Command& command, const CommandContext& context) const {
-        Model&       model = *context.model;
-        UpdateState& state = model.updateState();
+        Model& model = *context.model;
         switch (command.type) {
             case CommandType::CLEAR_SELECTION: model.clearSelection(); break;
             case CommandType::SELECT_INSTANCE: {
@@ -78,15 +77,31 @@ namespace crv::graphics::vulkan {
                 model.loadSkybox(std::get<SkyboxPayload>(command.payload).path);
                 break;
             case CommandType::REMOVE_SKYBOX: model.removeSkybox(); break;
-            case CommandType::UPDATE_INSTANCE:
-                for (const uint32_t index : std::get<InstancesPayload>(command.payload).indices)
-                    state.markInstanceDirty(index);
+            case CommandType::TRANSFORM_INSTANCES: {
+                const auto& p = std::get<TransformInstancesPayload>(command.payload);
+                model.transformInstances(p.indices, p.delta);
                 break;
-            case CommandType::UPDATE_INSTANCE_DATA:
-                state.markInstanceDataDirty(std::get<IndexPayload>(command.payload).index);
+            }
+            case CommandType::SET_INSTANCE_TRANSFORM: {
+                const auto& p = std::get<SetInstanceTransformPayload>(command.payload);
+                model.setInstanceTransform(p.index, p.transform);
                 break;
-            case CommandType::UPDATE_MATERIAL:
-                state.markMaterialDirty(std::get<IndexPayload>(command.payload).index);
+            }
+            case CommandType::SET_INSTANCE_MATERIAL: {
+                const auto& p = std::get<SetInstanceMaterialPayload>(command.payload);
+                model.setInstanceMaterial(p.instanceIndex, p.materialIndex);
+                break;
+            }
+            case CommandType::SET_MATERIAL: {
+                const auto& p = std::get<SetMaterialPayload>(command.payload);
+                model.setMaterial(p.index, p.material);
+                break;
+            }
+            case CommandType::SET_SKY_COLOR:
+                model.setSkyColor(std::get<SkyColorPayload>(command.payload).color);
+                break;
+            case CommandType::SET_DIRECT_LIGHT:
+                model.setDirectLight(std::get<DirectLightPayload>(command.payload).light);
                 break;
 
             case CommandType::SAVE_SCENE: saveScene(model); break;

@@ -30,6 +30,12 @@ namespace crv::graphics::vulkan {
         void setActiveCamera(cs::CameraType type);
 
         uint32_t addMaterial(uint32_t instanceIndex);
+        void setMaterial(uint32_t index, const Material& material);
+        void transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta);
+        void setInstanceTransform(uint32_t index, const Transform& transform);
+        void setInstanceMaterial(uint32_t instanceIndex, uint32_t materialIndex);
+        void setSkyColor(const glm::vec3& color);
+        void setDirectLight(const DirectLight& light);
         void duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);
         void addTexture(const std::string& path, uint32_t materialIndex, int textureType);

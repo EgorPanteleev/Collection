@@ -126,15 +126,7 @@ namespace crv::graphics::vulkan {
         glm::mat4 delta(1.0f);
         if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
             mGizmoOp, mode, glm::value_ptr(model), glm::value_ptr(delta))) {
-            for (const uint32_t index : *info.selectedInstances) {
-                Transform& transform = instances[index].transform;
-                const glm::mat4 updated = delta *
-                    (glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.rotation));
-                transform.position = glm::vec3(updated[3]);
-                transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
-            }
-            push(CommandType::UPDATE_INSTANCE, InstancesPayload{*info.selectedInstances});
-            mUpdateImage = true;
+            push(CommandType::TRANSFORM_INSTANCES, TransformInstancesPayload{*info.selectedInstances, delta});
         }
     }
 
@@ -261,16 +253,18 @@ namespace crv::graphics::vulkan {
                 push(CommandType::LOAD_SKYBOX, SkyboxPayload{mSkyboxFileDialog.result()});
             }
             if (!hasSkybox) {
-                if (VkImGui::colorEdit3("Sky Color", mScene->mSkyColor)) mUpdateImage = true;
+                glm::vec3 skyColor = mScene->mSkyColor;
+                if (VkImGui::colorEdit3("Sky Color", skyColor))
+                    push(CommandType::SET_SKY_COLOR, SkyColorPayload{skyColor});
             }
         }
         if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::DragFloat3("Direction", &mScene->mDirectLight.dir.x, 0.005f, -1.0f, 1.0f)) {
-                mUpdateImage = true;
-            }
-            if (ImGui::DragFloat("Intensity", &mScene->mDirectLight.intensity, 0.05f, 0.0f, 10.0f)) {
-                mUpdateImage = true;
-            }
+            DirectLight light = mScene->mDirectLight;
+            bool changed = false;
+            changed |= ImGui::DragFloat3("Direction", &light.dir.x, 0.005f, -1.0f, 1.0f);
+            changed |= ImGui::DragFloat("Intensity", &light.intensity, 0.05f, 0.0f, 10.0f);
+            if (changed)
+                push(CommandType::SET_DIRECT_LIGHT, DirectLightPayload{light});
         }
         if (ImGui::CollapsingHeader("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Checkbox("Light sources", &mSettings->nee)) {
@@ -355,8 +349,8 @@ namespace crv::graphics::vulkan {
         }
 
         if (VkImGui::beginGroup(ICON_FA_PALETTE " Material")) {
-            auto& materials = mScene->mMaterials;
-            Material& material = materials[instance.materialIndex];
+            const auto& materials = mScene->mMaterials;
+            const Material& material = materials[instance.materialIndex];
             std::vector<std::string> materialItems;
             materialItems.reserve(materials.size());
             for (size_t i = 0; i < materials.size(); ++i) {
@@ -365,9 +359,8 @@ namespace crv::graphics::vulkan {
             if (ImGui::BeginCombo(" ", materialItems[instance.materialIndex].c_str())) {
                 for (size_t i = 0; i < materials.size(); ++i) {
                     if (ImGui::Selectable(materialItems[i].c_str())) {
-                        instance.materialIndex = i;
-                        push(CommandType::UPDATE_INSTANCE_DATA, IndexPayload{active});
-                        mUpdateImage = true;
+                        push(CommandType::SET_INSTANCE_MATERIAL,
+                             SetInstanceMaterialPayload{active, static_cast<uint32_t>(i)});
                     }
                 }
                 ImGui::EndCombo();
@@ -378,127 +371,75 @@ namespace crv::graphics::vulkan {
                 VkImGui::endGroup();
                 return;
             }
+
+            Material edited = material;
+            bool changed = false;
+
             char nameBuffer[128]{};
             std::strncpy(nameBuffer, material.name.c_str(), sizeof(nameBuffer) - 1);
             if (ImGui::InputText("Name##material", nameBuffer, sizeof(nameBuffer))) {
-                material.name = nameBuffer;
+                edited.name = nameBuffer;
+                changed = true;
             }
             if (ImGui::CollapsingHeader("Surface", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (VkImGui::colorEdit3("Base Color", material.baseColor)) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Metalness", &material.metalness, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Anisotropy", &material.anisotropy, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Sheen", &material.sheen, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Opacity", &material.opacity, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Translucency", &material.translucency, 0.0f, 3.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
+                changed |= VkImGui::colorEdit3("Base Color", edited.baseColor);
+                changed |= ImGui::SliderFloat("Metalness", &edited.metalness, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("Roughness", &edited.roughness, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("Anisotropy", &edited.anisotropy, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("Sheen", &edited.sheen, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("Opacity", &edited.opacity, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("Translucency", &edited.translucency, 0.0f, 3.0f, "%.2f");
             }
             if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ImGui::SliderFloat("Weight##specular", &material.specular, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
+                changed |= ImGui::SliderFloat("Weight##specular", &edited.specular, 0.0f, 1.0f, "%.2f");
             }
             if (ImGui::CollapsingHeader("Transmission", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ImGui::SliderFloat("Weight##transmission", &material.transmission, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("IOR", &material.ior, 1.0f, 3.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (VkImGui::colorEdit3("Absorption", material.absorption)) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
+                changed |= ImGui::SliderFloat("Weight##transmission", &edited.transmission, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("IOR", &edited.ior, 1.0f, 3.0f, "%.2f");
+                changed |= VkImGui::colorEdit3("Absorption", edited.absorption);
             }
             if (ImGui::CollapsingHeader("Coating", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ImGui::SliderFloat("Weight##coating", &material.clearcoat, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
-                if (ImGui::SliderFloat("Roughness##coating", &material.clearcoatRoughness, 0.0f, 1.0f, "%.2f")) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
+                changed |= ImGui::SliderFloat("Weight##coating", &edited.clearcoat, 0.0f, 1.0f, "%.2f");
+                changed |= ImGui::SliderFloat("Roughness##coating", &edited.clearcoatRoughness, 0.0f, 1.0f, "%.2f");
             }
             if (ImGui::CollapsingHeader("Emission", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ImGui::DragFloat("Luminance", &material.luminance, 0.05f, 0.0f, 100.0f)) {
-                    push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                    mUpdateImage = true;
-                }
+                changed |= ImGui::DragFloat("Luminance", &edited.luminance, 0.05f, 0.0f, 100.0f);
             }
             if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (VkImGui::beginCompactTable("##textures", 6.0f)) {
                     const std::vector<std::string> extensions =
                         {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr", ".exr", ".ktx", ".dds"};
 
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", "Base Color");
-                    const bool hasBaseColor = material.baseColorTexIndex != UINT32_MAX;
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", hasBaseColor ? material.baseColorTexName.c_str() : "None");
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::AlignTextToFramePadding();
-                    if (hasBaseColor) {
-                        if (ImGui::Button("Clear##basecolor")) {
-                            material.baseColorTexIndex = UINT32_MAX;
-                            material.baseColorTexName.clear();
-                            material.baseColorTexPath.clear();
-                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                            mUpdateImage = true;
+                    const auto textureRow = [&](const char* label, const char* id, int type,
+                                                const uint32_t texIndex, const std::string& texName,
+                                                uint32_t& editedIndex, std::string& editedName, std::string& editedPath) {
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextDisabled("%s", label);
+                        const bool has = texIndex != UINT32_MAX;
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextDisabled("%s", has ? texName.c_str() : "None");
+                        ImGui::TableSetColumnIndex(2);
+                        ImGui::AlignTextToFramePadding();
+                        if (has) {
+                            if (ImGui::Button((std::string("Clear##") + id).c_str())) {
+                                editedIndex = UINT32_MAX;
+                                editedName.clear();
+                                editedPath.clear();
+                                changed = true;
+                            }
+                        } else if (ImGui::Button((std::string("Upload##") + id).c_str())) {
+                            mUploadTextureType = type;
+                            mFileDialog.open(ASSETS_PATH, extensions);
                         }
-                    } else if (ImGui::Button("Upload##basecolor")) {
-                        mUploadTextureType = 0;
-                        mFileDialog.open(ASSETS_PATH, extensions);
-                    }
+                    };
 
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", "Normal");
-                    const bool hasNormal = material.normalTexIndex != UINT32_MAX;
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", hasNormal ? material.normalTexName.c_str() : "None");
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::AlignTextToFramePadding();
-                    if (hasNormal) {
-                        if (ImGui::Button("Clear##normal")) {
-                            material.normalTexIndex = UINT32_MAX;
-                            material.normalTexName.clear();
-                            material.normalTexPath.clear();
-                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                            mUpdateImage = true;
-                        }
-                    } else if (ImGui::Button("Upload##normal")) {
-                        mUploadTextureType = 1;
-                        mFileDialog.open(ASSETS_PATH, extensions);
-                    }
+                    textureRow("Base Color", "basecolor", 0, material.baseColorTexIndex, material.baseColorTexName,
+                               edited.baseColorTexIndex, edited.baseColorTexName, edited.baseColorTexPath);
+                    textureRow("Normal", "normal", 1, material.normalTexIndex, material.normalTexName,
+                               edited.normalTexIndex, edited.normalTexName, edited.normalTexPath);
 
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
@@ -506,79 +447,14 @@ namespace crv::graphics::vulkan {
                     ImGui::TextDisabled("%s", "Normal Scale");
                     ImGui::TableSetColumnIndex(1);
                     ImGui::SetNextItemWidth(-FLT_MIN);
-                    if (ImGui::SliderFloat("##normalScale", &material.normalScale, 0.0f, 2.0f, "%.2f")) {
-                        push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                        mUpdateImage = true;
-                    }
+                    changed |= ImGui::SliderFloat("##normalScale", &edited.normalScale, 0.0f, 2.0f, "%.2f");
 
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", "Metal/Rough");
-                    const bool hasMetalRough = material.metalRoughnessTexIndex != UINT32_MAX;
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", hasMetalRough ? material.metalRoughnessTexName.c_str() : "None");
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::AlignTextToFramePadding();
-                    if (hasMetalRough) {
-                        if (ImGui::Button("Clear##metalrough")) {
-                            material.metalRoughnessTexIndex = UINT32_MAX;
-                            material.metalRoughnessTexName.clear();
-                            material.metalRoughnessTexPath.clear();
-                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                            mUpdateImage = true;
-                        }
-                    } else if (ImGui::Button("Upload##metalrough")) {
-                        mUploadTextureType = 2;
-                        mFileDialog.open(ASSETS_PATH, extensions);
-                    }
-
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", "Clearcoat");
-                    const bool hasClearcoat = material.clearcoatTexIndex != UINT32_MAX;
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", hasClearcoat ? material.clearcoatTexName.c_str() : "None");
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::AlignTextToFramePadding();
-                    if (hasClearcoat) {
-                        if (ImGui::Button("Clear##clearcoat")) {
-                            material.clearcoatTexIndex = UINT32_MAX;
-                            material.clearcoatTexName.clear();
-                            material.clearcoatTexPath.clear();
-                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                            mUpdateImage = true;
-                        }
-                    } else if (ImGui::Button("Upload##clearcoat")) {
-                        mUploadTextureType = 3;
-                        mFileDialog.open(ASSETS_PATH, extensions);
-                    }
-
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", "Clearcoat Rough");
-                    const bool hasClearcoatRough = material.clearcoatRoughnessTexIndex != UINT32_MAX;
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("%s", hasClearcoatRough ? material.clearcoatRoughnessTexName.c_str() : "None");
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::AlignTextToFramePadding();
-                    if (hasClearcoatRough) {
-                        if (ImGui::Button("Clear##clearcoatrough")) {
-                            material.clearcoatRoughnessTexIndex = UINT32_MAX;
-                            material.clearcoatRoughnessTexName.clear();
-                            material.clearcoatRoughnessTexPath.clear();
-                            push(CommandType::UPDATE_MATERIAL, IndexPayload{instance.materialIndex});
-                            mUpdateImage = true;
-                        }
-                    } else if (ImGui::Button("Upload##clearcoatrough")) {
-                        mUploadTextureType = 4;
-                        mFileDialog.open(ASSETS_PATH, extensions);
-                    }
+                    textureRow("Metal/Rough", "metalrough", 2, material.metalRoughnessTexIndex, material.metalRoughnessTexName,
+                               edited.metalRoughnessTexIndex, edited.metalRoughnessTexName, edited.metalRoughnessTexPath);
+                    textureRow("Clearcoat", "clearcoat", 3, material.clearcoatTexIndex, material.clearcoatTexName,
+                               edited.clearcoatTexIndex, edited.clearcoatTexName, edited.clearcoatTexPath);
+                    textureRow("Clearcoat Rough", "clearcoatrough", 4, material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexName,
+                               edited.clearcoatRoughnessTexIndex, edited.clearcoatRoughnessTexName, edited.clearcoatRoughnessTexPath);
 
                     if (mFileDialog.draw("Select Texture")) {
                         push(CommandType::UPLOAD_TEXTURE, UploadTexturePayload{mFileDialog.result(), instance.materialIndex, mUploadTextureType});
@@ -587,12 +463,14 @@ namespace crv::graphics::vulkan {
                     VkImGui::endCompactTable();
                 }
             }
+
+            if (changed) push(CommandType::SET_MATERIAL, SetMaterialPayload{instance.materialIndex, edited});
         }
 
         if (VkImGui::beginGroup(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform")) {
             bool changed = false;
-            Transform& transform = instance.transform;
-            if (ImGui::DragFloat3("Position", &transform.position[0], 0.1f))
+            Transform edited = instance.transform;
+            if (ImGui::DragFloat3("Position", &edited.position[0], 0.1f))
                 changed = true;
 
             static glm::vec3 uiRotation{};
@@ -605,18 +483,16 @@ namespace crv::graphics::vulkan {
             }
             if (ImGui::DragFloat3("Rotation", &uiRotation[0], 0.5f)) {
                 uiRotation = clampRotation(uiRotation);
-                transform.rotation = glm::normalize(glm::quat(glm::radians(uiRotation)));
+                edited.rotation = glm::normalize(glm::quat(glm::radians(uiRotation)));
                 changed = true;
             }
-            cachedRotation = instance.transform.rotation;
+            cachedRotation = edited.rotation;
 
-            if (ImGui::DragFloat3("Scale", &transform.scale[0], 0.05f))
+            if (ImGui::DragFloat3("Scale", &edited.scale[0], 0.05f))
                 changed = true;
 
-            if (changed) {
-                push(CommandType::UPDATE_INSTANCE, InstancesPayload{{active}});
-                mUpdateImage = true;
-            }
+            if (changed)
+                push(CommandType::SET_INSTANCE_TRANSFORM, SetInstanceTransformPayload{active, edited});
             VkImGui::endGroup();
         }
     }

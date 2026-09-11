@@ -61,6 +61,48 @@ namespace crv::graphics::vulkan {
         return index;
     }
 
+    void Model::setMaterial(const uint32_t index, const Material& material) {
+        if (index >= mScene.mMaterials.size()) return;
+        mScene.mMaterials[index] = material;
+        mUpdateState.markMaterialDirty(index);
+    }
+
+    void Model::transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta) {
+        auto& instances = mScene.mInstances;
+        for (const uint32_t index : indices) {
+            if (index >= instances.size()) continue;
+            Transform& transform = instances[index].transform;
+            const glm::mat4 updated = delta *
+                (glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.rotation));
+            transform.position = glm::vec3(updated[3]);
+            transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
+            mUpdateState.markInstanceDirty(index);
+        }
+    }
+
+    void Model::setInstanceTransform(const uint32_t index, const Transform& transform) {
+        if (index >= mScene.mInstances.size()) return;
+        mScene.mInstances[index].transform = transform;
+        mUpdateState.markInstanceDirty(index);
+    }
+
+    void Model::setInstanceMaterial(const uint32_t instanceIndex, const uint32_t materialIndex) {
+        auto& instances = mScene.mInstances;
+        if (instanceIndex >= instances.size() || materialIndex >= mScene.mMaterials.size()) return;
+        instances[instanceIndex].materialIndex = materialIndex;
+        mUpdateState.markInstanceDataDirty(instanceIndex);
+    }
+
+    void Model::setSkyColor(const glm::vec3& color) {
+        mScene.mSkyColor = color;
+        mUpdateState.markImageDirty();
+    }
+
+    void Model::setDirectLight(const DirectLight& light) {
+        mScene.mDirectLight = light;
+        mUpdateState.markImageDirty();
+    }
+
     void Model::duplicateInstances(const std::vector<uint32_t>& indices) {
         auto& instances = mScene.mInstances;
         std::vector<uint32_t> created;
