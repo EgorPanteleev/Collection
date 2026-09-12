@@ -5,6 +5,7 @@
 #include "Instance.hpp"
 
 #include <cstring>
+#include <iterator>
 #include <unordered_set>
 #include <GL/glew.h>
 #define GLFW_INCLUDE_VULKAN
@@ -33,10 +34,19 @@ namespace crv::graphics::vulkan {
         };
 
         const/*expr*/ VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = createDebugMessengerCreateInfo();
+        constexpr VkValidationFeatureEnableEXT enabledValidationFeatures[] = {
+            VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
+        };
+        const VkValidationFeaturesEXT validationFeatures{
+            .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+            .pNext = &debugCreateInfo,
+            .enabledValidationFeatureCount = static_cast<uint32_t>(std::size(enabledValidationFeatures)),
+            .pEnabledValidationFeatures = enabledValidationFeatures
+        };
         if (info.enableValidationLayers) {
             createInfo.enabledLayerCount = static_cast<uint32_t>(info.validationLayers.size());
             createInfo.ppEnabledLayerNames = info.validationLayers.data();
-            createInfo.pNext = &debugCreateInfo;
+            createInfo.pNext = &validationFeatures;
         }
 
         if (vkCreateInstance(&createInfo, nullptr, &mHandle) != VK_SUCCESS) {
@@ -100,6 +110,7 @@ namespace crv::graphics::vulkan {
         constexpr VkDebugUtilsMessengerCreateInfoEXT createInfo{
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
                                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
                                VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
             .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |

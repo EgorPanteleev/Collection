@@ -39,7 +39,8 @@ namespace crv::graphics::vulkan {
                                      VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
                                      VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
                                      VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-                                     VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME},
+                                     VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
+                                     VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME},
             .enableValidationLayers = mDebug,
             .enableRT               = true
         };
