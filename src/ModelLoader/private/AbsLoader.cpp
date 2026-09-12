@@ -42,6 +42,7 @@ namespace crv::model {
 
     void AbsLoader::clear() {
         mMeshes.clear();
+        mRoot = {};
         mMaterials.clear();
         mVertices.clear();
         mIndices.clear();

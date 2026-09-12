@@ -30,6 +30,7 @@ namespace crv::model {
         void setModel(const std::string& modelPath) const { mLoader->setModel(modelPath); }
         [[nodiscard]] Box bbox() const;
         [[nodiscard]] const std::vector<Mesh>& meshes() const;
+        [[nodiscard]] const Node& root() const;
         [[nodiscard]] const std::vector<Material>& materials() const;
         [[nodiscard]] const std::vector<Vertex>& vertices() const;
         [[nodiscard]] const std::vector<uint32_t>& indices() const;

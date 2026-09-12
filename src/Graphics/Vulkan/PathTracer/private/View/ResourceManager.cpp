@@ -50,6 +50,7 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::updateInstance(const uint32_t index) {
+        if (mScene->instances()[index].isGroup()) return;
         updateInstanceData(index);
         const InstanceData& instance = mScene->instances()[index];
         InstanceData::AS asInstance =
@@ -279,12 +280,16 @@ namespace crv::graphics::vulkan {
             .memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY
         };
         mASInstanceBuffer = Buffer(instanceBufferCreateInfo);
+        const VkDeviceAddress fallbackBlas = mBLASDatas.empty() ? 0 : mBLASDatas[0].blas.deviceAddress();
         std::vector<InstanceData::AS> asInstances{};
         asInstances.reserve(mScene->instances().size());
         for (size_t i = 0; i < mScene->instances().size(); ++i) {
             const InstanceData& instance = mScene->instances()[i];
-            const AccelerationStructure& blas = mBLASDatas[instance.meshIndex].blas;
-            asInstances.push_back(instance.vkAS(i, blas.deviceAddress()));
+            const VkDeviceAddress blas = instance.isGroup()
+                ? fallbackBlas : mBLASDatas[instance.meshIndex].blas.deviceAddress();
+            InstanceData::AS as = instance.vkAS(static_cast<uint32_t>(i), blas);
+            if (instance.isGroup()) as.mask = 0;
+            asInstances.push_back(as);
         }
         const CopyDataToGPUBufferInfo instanceCopyInfo {
             .data = asInstances.data(),

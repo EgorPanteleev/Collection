@@ -36,6 +36,7 @@ namespace crv::graphics::vulkan {
         void transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta);
         void setInstanceTransform(uint32_t index, const Transform& transform);
         void setInstanceMaterial(uint32_t instanceIndex, uint32_t materialIndex);
+        void setInstanceName(uint32_t index, const std::string& name) { mScene.setInstanceName(index, name); }
         void setSkyColor(const glm::vec3& color);
         void setDirectLight(const DirectLight& light);
         void duplicateInstances(const std::vector<uint32_t>& indices);
@@ -49,6 +50,8 @@ namespace crv::graphics::vulkan {
         void select(uint32_t id, bool additive);
         void regionSelect(int x0, int y0, int x1, int y1, bool additive, uint32_t width, uint32_t height);
     private:
+        void markInstanceSubtreeDirty(uint32_t root);
+
         Scene             mScene{};
         RenderSettings    mSettings{};
         Selection         mSelection{};

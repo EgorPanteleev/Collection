@@ -6,6 +6,17 @@
 
 #include <algorithm>
 #include <utility>
+#include <glm/gtx/matrix_decompose.hpp>
+
+namespace {
+    crv::graphics::vulkan::Transform decomposeTransform(const glm::mat4& matrix) {
+        glm::vec3 scale, translation, skew;
+        glm::vec4 perspective;
+        glm::quat rotation;
+        glm::decompose(matrix, scale, rotation, translation, skew, perspective);
+        return { translation, rotation, scale };
+    }
+}
 
 namespace crv::graphics::vulkan {
     Scene::Scene(const SceneCreateInfo&) {}
@@ -41,6 +52,7 @@ namespace crv::graphics::vulkan {
         }
 
         recomputeEmissiveIndices();
+        recomputeWorlds();
     }
 
     void Scene::loadModel(const uint32_t modelIndex, const std::string &path) {
@@ -96,11 +108,12 @@ namespace crv::graphics::vulkan {
                 aabbMax = glm::max(aabbMax, vertex.pos);
             }
 
+            const auto globalIndex = static_cast<uint32_t>(mMeshes.size());
             mMeshes.emplace_back();
             MeshData& meshData = mMeshes.back();
             meshData.area = area;
             meshData.modelIndex = modelIndex;
-            meshData.meshName = mesh.name;
+            meshData.meshName = mesh.name.empty() ? "mesh_" + std::to_string(globalIndex) : mesh.name;
             meshData.bbox = {aabbMin, aabbMax};
             meshData.triAreas = std::move(triAreas);
             meshData.vertices = std::move(vertices);
@@ -111,34 +124,83 @@ namespace crv::graphics::vulkan {
 
     void Scene::buildInstances(cm::Loader& loader, const uint32_t modelIndex,
                                const uint32_t meshBase, const uint32_t materialBase) {
-        std::vector<json> jsonInstances;
         for (const auto &instance: mJson["instances"]) {
-            if (instance["modelIndex"] == modelIndex) jsonInstances.push_back(instance);
+            if (instance["modelIndex"] != modelIndex) continue;
+            glm::vec3 rot = toVec3(instance["localRotation"]);
+            Transform placement;
+            placement.position = toVec3(instance["localPosition"]);
+            placement.scale = toVec3(instance["localScale"]);
+            glm::quat qx = glm::angleAxis(glm::radians(rot.x), glm::vec3(1, 0, 0));
+            glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0, 1, 0));
+            glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0, 0, 1));
+            placement.rotation = glm::normalize(qy * qx * qz);
+            const uint32_t materialOverride = instance["texIndex"];
+
+            const auto placementIndex = static_cast<int32_t>(mInstances.size());
+            mInstances.push_back(InstanceData{
+                .name = instance["name"],
+                .transform = placement,
+                .parentIndex = -1,
+                .meshIndex = InstanceData::NO_MESH,
+            });
+            addNode(loader.root(), placementIndex, meshBase, materialBase, loader, materialOverride);
         }
-        for (size_t localMesh = 0; localMesh < loader.meshes().size(); ++localMesh) {
-            const auto& mesh = loader.meshes()[localMesh];
-            const uint32_t meshIndex = meshBase + static_cast<uint32_t>(localMesh);
-            for (const auto &instance: jsonInstances) {
-                glm::vec3 rot = toVec3(instance["localRotation"]);
-                Transform transform;
-                transform.position = toVec3(instance["localPosition"]);
-                transform.scale = toVec3(instance["localScale"]);
-                glm::quat qx = glm::angleAxis(glm::radians(rot.x), glm::vec3(1, 0, 0));
-                glm::quat qy = glm::angleAxis(glm::radians(rot.y), glm::vec3(0, 1, 0));
-                glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0, 0, 1));
-                transform.rotation = glm::normalize(qy * qx * qz);
-                uint32_t materialIndex = instance["texIndex"];
-                if (materialIndex == UINT32_MAX) materialIndex = materialBase + mesh.materialIndex;
-                mInstances.push_back(InstanceData{
-                    .name = instance["name"],
-                    .meshName = mesh.name,
-                    .transform = transform,
-                    .meshIndex = meshIndex,
-                    .materialIndex = materialIndex,
-                    .indexCount = mMeshes[meshIndex].indexCount
-                });
-            }
+    }
+
+    void Scene::addNode(const cm::Node& node, const int32_t parentIndex, const uint32_t meshBase,
+                        const uint32_t materialBase, cm::Loader& loader, const uint32_t materialOverride,
+                        const glm::mat4& accum) {
+        const glm::mat4 localMatrix = accum * node.transform;
+
+        if (node.meshes.empty() && node.children.size() == 1) {
+            addNode(node.children[0], parentIndex, meshBase, materialBase, loader, materialOverride, localMatrix);
+            return;
         }
+
+        const auto isGeneric = [](const std::string& n) { return n.empty() || n.rfind("_gltfNode", 0) == 0; };
+        const Transform local = decomposeTransform(localMatrix);
+        auto materialFor = [&](const uint32_t localMeshIndex) {
+            return materialOverride != UINT32_MAX
+                ? materialOverride
+                : materialBase + static_cast<uint32_t>(loader.meshes()[localMeshIndex].materialIndex);
+        };
+
+        if (node.meshes.size() == 1 && node.children.empty()) {
+            const uint32_t localIndex = node.meshes[0];
+            const uint32_t mesh = meshBase + localIndex;
+            mInstances.push_back(InstanceData{
+                .name = isGeneric(node.name) ? mMeshes[mesh].meshName : node.name,
+                .meshName = mMeshes[mesh].meshName,
+                .transform = local,
+                .parentIndex = parentIndex,
+                .meshIndex = mesh,
+                .materialIndex = materialFor(localIndex),
+                .indexCount = mMeshes[mesh].indexCount
+            });
+            return;
+        }
+
+        const auto groupIndex = static_cast<int32_t>(mInstances.size());
+        mInstances.push_back(InstanceData{
+            .name = isGeneric(node.name) ? "Group" : node.name,
+            .transform = local,
+            .parentIndex = parentIndex,
+            .meshIndex = InstanceData::NO_MESH,
+        });
+        for (const uint32_t localIndex : node.meshes) {
+            const uint32_t mesh = meshBase + localIndex;
+            mInstances.push_back(InstanceData{
+                .name = mMeshes[mesh].meshName,
+                .meshName = mMeshes[mesh].meshName,
+                .transform = {},
+                .parentIndex = groupIndex,
+                .meshIndex = mesh,
+                .materialIndex = materialFor(localIndex),
+                .indexCount = mMeshes[mesh].indexCount
+            });
+        }
+        for (const auto& child : node.children)
+            addNode(child, groupIndex, meshBase, materialBase, loader, materialOverride);
     }
 
     void Scene::loadModelMaterials(cm::Loader& loader) {
@@ -289,33 +351,31 @@ namespace crv::graphics::vulkan {
         mInstances.clear();
         for (const auto& ji : mJson["instances"]) {
             Transform transform;
-            transform.position = toVec3(ji.contains("position") ? ji["position"] : ji["localPosition"]);
-            transform.scale    = toVec3(ji.contains("scale") ? ji["scale"] : ji["localScale"]);
-            const auto& r = ji["rotation"];
-            if (r.size() == 4)
-                transform.rotation = glm::quat(r[3].get<float>(), r[0].get<float>(),
-                                               r[1].get<float>(), r[2].get<float>());
-            else
-                transform.rotation = glm::normalize(glm::quat(glm::radians(toVec3(r))));
-            const std::string name = ji.value("name", std::string());
-
-            auto addInstance = [&](const uint32_t meshIndex, const uint32_t materialIndex) {
-                if (meshIndex >= mMeshes.size()) return;
-                mInstances.push_back(InstanceData{
-                    .name = name,
-                    .meshName = mMeshes[meshIndex].meshName,
-                    .transform = transform,
-                    .meshIndex = meshIndex,
-                    .materialIndex = materialIndex,
-                    .indexCount = mMeshes[meshIndex].indexCount
-                });
-            };
-
-            if (ji.contains("meshes")) {
-                for (const auto& part : ji["meshes"]) addInstance(part[0], part[1]);
-            } else {
-                addInstance(ji["meshIndex"], ji["materialIndex"]);
+            if (ji.contains("position")) transform.position = toVec3(ji["position"]);
+            if (ji.contains("scale"))    transform.scale    = toVec3(ji["scale"]);
+            if (ji.contains("rotation")) {
+                const auto& r = ji["rotation"];
+                if (r.size() == 4)
+                    transform.rotation = glm::quat(r[3].get<float>(), r[0].get<float>(),
+                                                   r[1].get<float>(), r[2].get<float>());
+                else
+                    transform.rotation = glm::normalize(glm::quat(glm::radians(toVec3(r))));
             }
+
+            InstanceData instance;
+            instance.name = ji.value("name", std::string());
+            instance.transform = transform;
+            instance.parentIndex = ji.value("parent", -1);
+            if (ji.contains("mesh") && ji["mesh"].get<uint32_t>() < mMeshes.size()) {
+                const uint32_t mesh = ji["mesh"];
+                instance.meshIndex = mesh;
+                instance.meshName = mMeshes[mesh].meshName;
+                instance.materialIndex = ji.value("material", 0u);
+                instance.indexCount = mMeshes[mesh].indexCount;
+            } else {
+                instance.meshIndex = InstanceData::NO_MESH;
+            }
+            mInstances.push_back(instance);
         }
     }
 
@@ -359,37 +419,25 @@ namespace crv::graphics::vulkan {
         scene["materials"] = materials;
         scene.erase("materialsResolved");
 
-        struct InstanceGroup {
-            std::string name;
-            Transform   transform;
-            std::vector<std::pair<uint32_t, uint32_t>> parts;
-        };
-        std::vector<InstanceGroup> groups;
+        static const Transform defTransform{};
+        json instances = json::array();
         for (const auto& instance : mInstances) {
             const Transform& t = instance.transform;
-            auto group = std::find_if(groups.begin(), groups.end(), [&](const InstanceGroup& g) {
-                return g.name == instance.name && g.transform.position == t.position
-                    && g.transform.rotation == t.rotation && g.transform.scale == t.scale;
-            });
-            if (group == groups.end()) {
-                groups.push_back({instance.name, t, {}});
-                group = groups.end() - 1;
-            }
-            group->parts.emplace_back(instance.meshIndex, instance.materialIndex);
-        }
-
-        json instances = json::array();
-        for (const auto& g : groups) {
-            const Transform& t = g.transform;
-            const glm::vec3 euler = glm::degrees(glm::eulerAngles(t.rotation));
             json ji;
-            ji["name"]     = g.name;
-            ji["position"] = { t.position.x, t.position.y, t.position.z };
-            ji["rotation"] = { euler.x, euler.y, euler.z };
-            ji["scale"]    = { t.scale.x, t.scale.y, t.scale.z };
-            json meshes = json::array();
-            for (const auto& [meshIndex, materialIndex] : g.parts) meshes.push_back({ meshIndex, materialIndex });
-            ji["meshes"] = meshes;
+            ji["name"] = instance.name;
+            if (instance.parentIndex >= 0) ji["parent"] = instance.parentIndex;
+            if (t.position != defTransform.position)
+                ji["position"] = { t.position.x, t.position.y, t.position.z };
+            if (t.rotation != defTransform.rotation) {
+                const glm::vec3 euler = glm::degrees(glm::eulerAngles(t.rotation));
+                ji["rotation"] = { euler.x, euler.y, euler.z };
+            }
+            if (t.scale != defTransform.scale)
+                ji["scale"] = { t.scale.x, t.scale.y, t.scale.z };
+            if (!instance.isGroup()) {
+                ji["mesh"] = instance.meshIndex;
+                ji["material"] = instance.materialIndex;
+            }
             instances.push_back(ji);
         }
         scene["instances"] = instances;
@@ -426,16 +474,77 @@ namespace crv::graphics::vulkan {
 
     void Scene::addInstance(const InstanceData& instance) {
         mInstances.push_back(instance);
+        recomputeWorlds();
+    }
+
+    std::vector<uint32_t> Scene::duplicateInstances(const std::vector<uint32_t>& indices) {
+        const uint32_t count = static_cast<uint32_t>(mInstances.size());
+        std::vector<bool> affected(count, false);
+        for (const uint32_t index : indices)
+            if (index < count) affected[index] = true;
+        for (uint32_t i = 0; i < count; ++i) {
+            const int32_t parent = mInstances[i].parentIndex;
+            if (parent >= 0 && affected[parent]) affected[i] = true;
+        }
+
+        std::vector<int32_t> remap(count, -1);
+        std::vector<uint32_t> createdRoots;
+        for (uint32_t i = 0; i < count; ++i) {
+            if (!affected[i]) continue;
+            InstanceData copy = mInstances[i];
+            const auto newIndex = static_cast<int32_t>(mInstances.size());
+            remap[i] = newIndex;
+            if (copy.parentIndex >= 0 && affected[copy.parentIndex]) {
+                copy.parentIndex = remap[copy.parentIndex];
+            } else {
+                copy.name += "_copy";
+                createdRoots.push_back(static_cast<uint32_t>(newIndex));
+            }
+            mInstances.push_back(copy);
+        }
+        recomputeWorlds();
+        return createdRoots;
+    }
+
+    void Scene::removeInstances(const std::vector<uint32_t>& indices) {
+        const uint32_t count = static_cast<uint32_t>(mInstances.size());
+        std::vector<bool> removed(count, false);
+        for (const uint32_t index : indices)
+            if (index < count) removed[index] = true;
+        for (uint32_t i = 0; i < count; ++i) {
+            const int32_t parent = mInstances[i].parentIndex;
+            if (parent >= 0 && removed[parent]) removed[i] = true;
+        }
+
+        std::vector<int32_t> remap(count, -1);
+        std::vector<InstanceData> kept;
+        kept.reserve(count);
+        for (uint32_t i = 0; i < count; ++i) {
+            if (removed[i]) continue;
+            remap[i] = static_cast<int32_t>(kept.size());
+            kept.push_back(mInstances[i]);
+        }
+        for (InstanceData& instance : kept)
+            if (instance.parentIndex >= 0) instance.parentIndex = remap[instance.parentIndex];
+        mInstances = std::move(kept);
+        recomputeWorlds();
     }
 
     void Scene::removeInstance(const uint32_t index) {
         if (index >= mInstances.size()) return;
         mInstances.erase(mInstances.begin() + index);
+        recomputeWorlds();
+    }
+
+    void Scene::setInstanceName(const uint32_t index, const std::string& name) {
+        if (index >= mInstances.size()) return;
+        mInstances[index].name = name;
     }
 
     void Scene::setInstanceTransform(const uint32_t index, const Transform& transform) {
         if (index >= mInstances.size()) return;
         mInstances[index].transform = transform;
+        recomputeWorlds();
     }
 
     void Scene::setInstanceMaterial(const uint32_t instanceIndex, const uint32_t materialIndex) {
@@ -462,8 +571,18 @@ namespace crv::graphics::vulkan {
     void Scene::recomputeEmissiveIndices() {
         mEmissiveIndices.clear();
         for (uint32_t i = 0; i < mInstances.size(); ++i) {
+            if (mInstances[i].isGroup()) continue;
             if (mMaterials[mInstances[i].materialIndex].luminance == 0) continue;
             mEmissiveIndices.push_back(i);
+        }
+    }
+
+    void Scene::recomputeWorlds() {
+        for (auto& instance : mInstances) {
+            const glm::mat4 local = instance.transform.matrix();
+            instance.world = instance.parentIndex >= 0
+                ? mInstances[instance.parentIndex].world * local
+                : local;
         }
     }
 }

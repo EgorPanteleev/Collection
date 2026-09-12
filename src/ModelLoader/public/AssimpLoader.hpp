@@ -24,11 +24,12 @@ namespace crv::model {
 
         bool loadMaterials();
 
-        void processNode(const aiNode* node, const aiMatrix4x4& parentTransform = aiMatrix4x4());
+        Node buildNode(const aiNode* node);
+
+        void buildMesh(uint meshIndex);
 
         template<typename VertexType>
-        void processMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices,
-            uint meshIndex, const aiMatrix4x4& transform);
+        void processMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices, uint meshIndex);
 
         template<typename VertexType>
         void optimizeMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices, uint meshIndex);

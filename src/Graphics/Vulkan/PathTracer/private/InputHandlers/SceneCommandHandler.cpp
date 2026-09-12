@@ -107,6 +107,11 @@ namespace crv::graphics::vulkan {
                 model.setInstanceMaterial(p.instanceIndex, p.materialIndex);
                 break;
             }
+            case CommandType::SET_INSTANCE_NAME: {
+                const auto& p = std::get<SetInstanceNamePayload>(command.payload);
+                model.setInstanceName(p.index, p.name);
+                break;
+            }
             case CommandType::SET_MATERIAL: {
                 const auto& p = std::get<SetMaterialPayload>(command.payload);
                 model.setMaterial(p.index, p.material);

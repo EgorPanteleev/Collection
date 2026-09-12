@@ -7,6 +7,7 @@
 
 #include "Vertex.hpp"
 #include "Mesh.hpp"
+#include "Node.hpp"
 #include "Material.hpp"
 #include "BBox.hpp"
 
@@ -25,6 +26,7 @@ namespace crv::model {
         void setModel(const std::string& path) { mModelPath = path; }
         [[nodiscard]] Box bbox() const { return mBBox; }
         [[nodiscard]] const std::vector<Mesh>& meshes() const { return mMeshes; }
+        [[nodiscard]] const Node& root() const { return mRoot; }
         [[nodiscard]] const std::vector<Material>& materials() const { return mMaterials; }
         [[nodiscard]] const std::vector<Vertex>& vertices() const { return mVertices; }
         [[nodiscard]] const std::vector<uint32_t>& indices() const { return mIndices; }
@@ -40,6 +42,7 @@ namespace crv::model {
         void computeBBox();
         std::string mModelPath;
         std::vector<Mesh> mMeshes;
+        Node mRoot;
         std::vector<Material> mMaterials;
         std::vector<Vertex> mVertices;
         std::vector<uint32_t> mIndices;

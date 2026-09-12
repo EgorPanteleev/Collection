@@ -111,12 +111,17 @@ namespace crv::graphics::vulkan {
             if (ImGui::IsKeyPressed(ImGuiKey_R)) mGizmoOp = ImGuizmo::ROTATE;
         }
 
-        auto& instances = mScene->instances();
-        const Transform& pivot = instances[info.activeInstance].transform;
+        const glm::mat4& pivot = mScene->instances()[info.activeInstance].world;
         glm::mat4 view  = info.camera->viewMatrix();
         glm::mat4 proj  = info.camera->projectionMatrix();
         proj[1][1] *= -1.0f;
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), pivot.position) * glm::toMat4(pivot.rotation);
+        const glm::vec3 pivotPos = glm::vec3(pivot[3]);
+        glm::mat3 pivotBasis(pivot);
+        pivotBasis[0] = glm::normalize(pivotBasis[0]);
+        pivotBasis[1] = glm::normalize(pivotBasis[1]);
+        pivotBasis[2] = glm::normalize(pivotBasis[2]);
+        const glm::quat pivotRot = glm::normalize(glm::quat_cast(pivotBasis));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), pivotPos) * glm::toMat4(pivotRot);
 
         const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
         const ImGuizmo::MODE mode = mGizmoOp == ImGuizmo::ROTATE ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
@@ -187,25 +192,53 @@ namespace crv::graphics::vulkan {
     void AppUI::drawScene(const AppUIDrawInfo& info) {
         if (ImGui::Begin(ICON_FA_CUBES " Scene")) {
             const auto& instances = mScene->instances();
-            static const std::vector<uint32_t> emptySelection{};
-            const std::vector<uint32_t>& selected =
-                info.selectedInstances ? *info.selectedInstances : emptySelection;
+            std::vector<std::vector<uint32_t>> children(instances.size());
+            std::vector<uint32_t> roots;
+            for (uint32_t i = 0; i < instances.size(); ++i) {
+                const int32_t parent = instances[i].parentIndex;
+                if (parent >= 0 && parent < static_cast<int32_t>(instances.size()))
+                    children[parent].push_back(i);
+                else
+                    roots.push_back(i);
+            }
+            const auto byName = [&](const uint32_t a, const uint32_t b) {
+                return instances[a].name < instances[b].name;
+            };
+            std::sort(roots.begin(), roots.end(), byName);
+            for (auto& siblings : children) std::sort(siblings.begin(), siblings.end(), byName);
 
             ImGui::TextDisabled("%zu instances", instances.size());
             ImGui::BeginChild("##scene_list", ImVec2(0, 0), ImGuiChildFlags_Borders);
-            for (uint32_t i = 0; i < instances.size(); ++i) {
-                const bool isSelected =
-                    std::find(selected.begin(), selected.end(), i) != selected.end();
-                const std::string& name = instances[i].meshName;
-                std::string label = (name.empty() ? "Mesh" : name) + "##inst" + std::to_string(i);
-                if (ImGui::Selectable(label.c_str(), isSelected)) {
-                    push(CommandType::SELECT_INSTANCE,
-                         SelectInstancePayload{i, ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift});
-                }
-            }
+            for (const uint32_t root : roots) drawInstanceNode(root, children, info);
             ImGui::EndChild();
         }
         ImGui::End();
+    }
+
+    void AppUI::drawInstanceNode(const uint32_t index, const std::vector<std::vector<uint32_t>>& children,
+                                 const AppUIDrawInfo& info) {
+        const InstanceData& instance = mScene->instances()[index];
+        const std::vector<uint32_t>* selected = info.selectedInstances;
+        const bool isSelected = selected &&
+            std::find(selected->begin(), selected->end(), index) != selected->end();
+
+        const std::string& name = !instance.name.empty() ? instance.name : instance.meshName;
+        const std::string label = (name.empty() ? "Node" : name) + "##inst" + std::to_string(index);
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+        if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
+        const bool hasChildren = !children[index].empty();
+        if (!hasChildren) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+        const bool open = ImGui::TreeNodeEx(label.c_str(), flags);
+        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+            push(CommandType::SELECT_INSTANCE,
+                 SelectInstancePayload{index, ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift});
+        }
+        if (open && hasChildren) {
+            for (const uint32_t child : children[index]) drawInstanceNode(child, children, info);
+            ImGui::TreePop();
+        }
     }
 
     void AppUI::drawCameraTab(const AppUIDrawInfo &info) {
@@ -332,18 +365,18 @@ namespace crv::graphics::vulkan {
             return;
         }
 
-        if (selected.size() > 1) {
-            ImGui::Separator();
-            ImGui::Text("%zu objects selected", selected.size());
-            ImGui::TextDisabled("Use the gizmo (T/R) to move or rotate them together.");
-            return;
-        }
+        if (selected.size() > 1) ImGui::TextDisabled("%zu objects selected", selected.size());
+        else ImGui::TextDisabled("Instance selected");
 
         const uint32_t active = selected.front();
         const InstanceData& instance = mScene->instances()[active];
+        const bool showMaterial = !instance.isGroup() && selected.size() == 1;
         if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
-            if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
-                VkImGui::row("Name"         , instance.name.c_str());
+            char nameBuffer[128]{};
+            std::strncpy(nameBuffer, instance.name.c_str(), sizeof(nameBuffer) - 1);
+            if (ImGui::InputText("Name##instance", nameBuffer, sizeof(nameBuffer)))
+                push(CommandType::SET_INSTANCE_NAME, SetInstanceNamePayload{active, nameBuffer});
+            if (showMaterial && VkImGui::beginCompactTable("##object_status", 6.0f)) {
                 VkImGui::row("Mesh Name"    , instance.meshName.c_str());
                 VkImGui::row("Material index", std::to_string(instance.materialIndex).c_str());
                 VkImGui::endCompactTable();
@@ -351,7 +384,7 @@ namespace crv::graphics::vulkan {
             VkImGui::endGroup();
         }
 
-        if (VkImGui::beginGroup(ICON_FA_PALETTE " Material")) {
+        if (showMaterial && VkImGui::beginGroup(ICON_FA_PALETTE " Material")) {
             const auto& materials = mScene->materials();
             const Material& material = materials[instance.materialIndex];
             std::vector<std::string> materialItems;

@@ -53,6 +53,7 @@ namespace crv::graphics::vulkan {
         TRANSFORM_INSTANCES,
         SET_INSTANCE_TRANSFORM,
         SET_INSTANCE_MATERIAL,
+        SET_INSTANCE_NAME,
         SET_MATERIAL,
         SET_SKY_COLOR,
         SET_DIRECT_LIGHT,
@@ -82,6 +83,7 @@ namespace crv::graphics::vulkan {
     struct TransformInstancesPayload   { std::vector<uint32_t> indices; glm::mat4 delta; };
     struct SetInstanceTransformPayload { uint32_t index; Transform transform; };
     struct SetInstanceMaterialPayload  { uint32_t instanceIndex; uint32_t materialIndex; };
+    struct SetInstanceNamePayload      { uint32_t index; std::string name; };
     struct SkyColorPayload             { glm::vec3 color; };
     struct DirectLightPayload          { DirectLight light; };
 
@@ -97,6 +99,7 @@ namespace crv::graphics::vulkan {
         TransformInstancesPayload,
         SetInstanceTransformPayload,
         SetInstanceMaterialPayload,
+        SetInstanceNamePayload,
         SkyColorPayload,
         DirectLightPayload>;
 

@@ -17,6 +17,7 @@ namespace crv::model {
 
     AbsLoader::Box Loader::bbox() const { return mLoader->bbox(); }
     [[nodiscard]] const std::vector<Mesh>& Loader::meshes() const { return mLoader->meshes(); }
+    [[nodiscard]] const Node& Loader::root() const { return mLoader->root(); }
     [[nodiscard]] const std::vector<Material>& Loader::materials() const { return mLoader->materials(); }
     [[nodiscard]] const std::vector<Vertex>& Loader::vertices() const { return mLoader->vertices(); }
     [[nodiscard]] const std::vector<uint32_t>& Loader::indices() const { return mLoader->indices(); }

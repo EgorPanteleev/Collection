@@ -21,8 +21,10 @@ namespace crv::graphics::vulkan {
     };
 
     struct InstanceData {
+        static constexpr uint32_t NO_MESH = UINT32_MAX;
         using GPU = InstanceGPU;
         using AS = VkAccelerationStructureInstanceKHR;
+        [[nodiscard]] bool isGroup() const { return meshIndex == NO_MESH; }
         [[nodiscard]] GPU gpu() const;
         [[nodiscard]] AS vkAS(uint32_t customIndex, VkDeviceAddress blasAddress) const;
         [[nodiscard]] static std::vector<GPU> gpu(const std::vector<InstanceData>& instances);
@@ -30,6 +32,8 @@ namespace crv::graphics::vulkan {
         std::string name{};
         std::string meshName{};
         Transform   transform{};
+        glm::mat4   world          = glm::mat4(1.0f);
+        int32_t     parentIndex    = -1;
         uint32_t    meshIndex      = 0;
         uint32_t    materialIndex  = 0;
         uint32_t    indexCount     = 0;
@@ -44,7 +48,7 @@ namespace crv::graphics::vulkan {
 
     inline InstanceData::GPU InstanceData::gpu() const {
         return {
-            .model = transform.matrix(),
+            .model = world,
             .meshIndex = meshIndex,
             .materialIndex = materialIndex,
         };
@@ -52,7 +56,7 @@ namespace crv::graphics::vulkan {
 
     inline InstanceData::AS InstanceData::vkAS(const uint32_t customIndex, const VkDeviceAddress blasAddress) const {
         return {
-            .transform = toVkTransform(transform.matrix()),
+            .transform = toVkTransform(world),
             .instanceCustomIndex = customIndex,
             .mask = 0xFF,
             .instanceShaderBindingTableRecordOffset = 0,

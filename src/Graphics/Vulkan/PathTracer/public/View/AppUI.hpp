@@ -57,6 +57,8 @@ namespace crv::graphics::vulkan {
         void drawCursorDot();
         void drawOverView(const AppUIDrawInfo& info);
         void drawScene(const AppUIDrawInfo& info);
+        void drawInstanceNode(uint32_t index, const std::vector<std::vector<uint32_t>>& children,
+                              const AppUIDrawInfo& info);
         void drawCameraTab(const AppUIDrawInfo& info);
         void drawRenderTab(const AppUIDrawInfo& info);
         void drawObjectTab(const AppUIDrawInfo& info);

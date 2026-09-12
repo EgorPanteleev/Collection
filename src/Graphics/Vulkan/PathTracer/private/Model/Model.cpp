@@ -68,23 +68,50 @@ namespace crv::graphics::vulkan {
 
     void Model::transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta) {
         const auto& instances = mScene.instances();
+        const size_t count = instances.size();
+
+        std::vector<uint32_t> targets;
+        std::vector<Transform> locals;
+        targets.reserve(indices.size());
+        locals.reserve(indices.size());
         for (const uint32_t index : indices) {
-            if (index >= instances.size()) continue;
-            const Transform& transform = instances[index].transform;
-            const glm::mat4 updated = delta *
-                (glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.rotation));
-            Transform next = transform;
-            next.position = glm::vec3(updated[3]);
-            next.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
-            mScene.setInstanceTransform(index, next);
-            mUpdateState.markInstanceDirty(index);
+            if (index >= count) continue;
+            const InstanceData& instance = instances[index];
+            const glm::mat4 parentWorld = instance.parentIndex >= 0
+                ? instances[instance.parentIndex].world : glm::mat4(1.0f);
+            const glm::mat4 newLocal = glm::inverse(parentWorld) * delta * instance.world;
+            Transform next = instance.transform;
+            next.position = glm::vec3(newLocal[3]);
+            glm::mat3 basis(newLocal);
+            basis[0] = glm::normalize(basis[0]);
+            basis[1] = glm::normalize(basis[1]);
+            basis[2] = glm::normalize(basis[2]);
+            next.rotation = glm::normalize(glm::quat_cast(basis));
+            targets.push_back(index);
+            locals.push_back(next);
         }
+        for (size_t i = 0; i < targets.size(); ++i) mScene.setInstanceTransform(targets[i], locals[i]);
+        for (const uint32_t index : targets) markInstanceSubtreeDirty(index);
     }
 
     void Model::setInstanceTransform(const uint32_t index, const Transform& transform) {
         if (index >= mScene.instances().size()) return;
         mScene.setInstanceTransform(index, transform);
-        mUpdateState.markInstanceDirty(index);
+        markInstanceSubtreeDirty(index);
+    }
+
+    void Model::markInstanceSubtreeDirty(const uint32_t root) {
+        const auto& instances = mScene.instances();
+        const size_t count = instances.size();
+        if (root >= count) return;
+        std::vector<bool> affected(count, false);
+        affected[root] = true;
+        for (uint32_t i = 0; i < count; ++i) {
+            const int32_t parent = instances[i].parentIndex;
+            if (parent >= 0 && affected[parent]) affected[i] = true;
+        }
+        for (uint32_t i = 0; i < count; ++i)
+            if (affected[i]) mUpdateState.markInstanceDirty(i);
     }
 
     void Model::setInstanceMaterial(const uint32_t instanceIndex, const uint32_t materialIndex) {
@@ -104,14 +131,7 @@ namespace crv::graphics::vulkan {
     }
 
     void Model::duplicateInstances(const std::vector<uint32_t>& indices) {
-        const auto& instances = mScene.instances();
-        std::vector<uint32_t> created;
-        created.reserve(indices.size());
-        for (const uint32_t index : indices) {
-            if (index >= instances.size()) continue;
-            mScene.addInstance(instances[index]);
-            created.push_back(static_cast<uint32_t>(instances.size() - 1));
-        }
+        const std::vector<uint32_t> created = mScene.duplicateInstances(indices);
         if (created.empty()) return;
         mSelection.selectedInstances = created;
         mSelection.activeInstance = created.back();
@@ -119,11 +139,8 @@ namespace crv::graphics::vulkan {
     }
 
     void Model::removeInstances(const std::vector<uint32_t>& indices) {
-        std::vector<uint32_t> sorted(indices);
-        std::sort(sorted.begin(), sorted.end(), std::greater<>());
-        sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
-        if (sorted.empty() || sorted.size() >= mScene.instances().size()) return;
-        for (const uint32_t index : sorted) mScene.removeInstance(index);
+        if (indices.empty()) return;
+        mScene.removeInstances(indices);
         clearSelection();
         mUpdateState.updateInstances = true;
     }
@@ -199,8 +216,9 @@ namespace crv::graphics::vulkan {
         if (!additive) selected.clear();
         for (uint32_t i = 0; i < instances.size(); ++i) {
             const InstanceData& instance = instances[i];
+            if (instance.isGroup()) continue;
             const MeshData& mesh = meshes[instance.meshIndex];
-            const glm::mat4 mvp = viewProj * instance.transform.matrix();
+            const glm::mat4 mvp = viewProj * instance.world;
 
             glm::vec2 boxMin(std::numeric_limits<float>::max());
             glm::vec2 boxMax(std::numeric_limits<float>::lowest());

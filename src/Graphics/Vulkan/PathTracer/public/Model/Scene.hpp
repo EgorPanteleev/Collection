@@ -59,8 +59,11 @@ namespace crv::graphics::vulkan {
         uint32_t addTextureSource(cm::Texture texture);
 
         void addInstance(const InstanceData& instance);
+        [[nodiscard]] std::vector<uint32_t> duplicateInstances(const std::vector<uint32_t>& indices);
+        void removeInstances(const std::vector<uint32_t>& indices);
         void removeInstance(uint32_t index);
         void setInstanceTransform(uint32_t index, const Transform& transform);
+        void setInstanceName(uint32_t index, const std::string& name);
         void setInstanceMaterial(uint32_t instanceIndex, uint32_t materialIndex);
 
         void setSkybox(uint32_t index, const std::string& name, const std::string& path);
@@ -69,10 +72,14 @@ namespace crv::graphics::vulkan {
         void setDirectLight(const DirectLight& light);
 
         void recomputeEmissiveIndices();
+        void recomputeWorlds();
     protected:
         void loadModel(uint32_t modelIndex, const std::string& path);
         void buildMeshes(cm::Loader& loader, uint32_t modelIndex);
         void buildInstances(cm::Loader& loader, uint32_t modelIndex, uint32_t meshBase, uint32_t materialBase);
+        void addNode(const cm::Node& node, int32_t parentIndex, uint32_t meshBase,
+                     uint32_t materialBase, cm::Loader& loader, uint32_t materialOverride,
+                     const glm::mat4& accum = glm::mat4(1.0f));
         void loadModelMaterials(cm::Loader& loader);
         void loadJsonMaterials();
         void applyResolvedMaterials();

@@ -34,6 +34,15 @@ namespace {
         ai.d1 = m[0][3]; ai.d2 = m[1][3]; ai.d3 = m[2][3]; ai.d4 = m[3][3];
         return ai;
     }
+
+    glm::mat4 assimpToGlm(const aiMatrix4x4& m) {
+        return {
+            m.a1, m.b1, m.c1, m.d1,
+            m.a2, m.b2, m.c2, m.d2,
+            m.a3, m.b3, m.c3, m.d3,
+            m.a4, m.b4, m.c4, m.d4
+        };
+    }
 }
 
 namespace crv::model {
@@ -78,15 +87,8 @@ namespace crv::model {
 
     bool AssimpLoader::loadGeometry() {
         mMeshes.resize(mScene->mNumMeshes);
-        uint numVertices = 0;
-        uint numIndices = 0;
-        for (unsigned int i = 0; i < mMeshes.size(); ++i) { //count vertices, indices
-            numVertices += mScene->mMeshes[i]->mNumVertices;
-            numIndices += mMeshes[i].numIndices;
-        }
-        mVertices.reserve(numVertices);
-        mIndices.reserve(numIndices);
-        processNode(mScene->mRootNode);
+        for (uint i = 0; i < mScene->mNumMeshes; ++i) buildMesh(i);
+        mRoot = buildNode(mScene->mRootNode);
         computeBBox();
         INFO << "Scene size:";
         INFO << "min - (" << mBBox.min.x << ", " << mBBox.min.y << ", " << mBBox.min.z << ")";
@@ -103,46 +105,48 @@ namespace crv::model {
         return true;
     }
 
-    void AssimpLoader::processNode(const aiNode* node, const aiMatrix4x4& parentTransform) {
-        const aiMatrix4x4 transform = parentTransform * node->mTransformation;
-        for (unsigned i = 0; i < node->mNumMeshes; i++) {
-            const uint meshIndex = node->mMeshes[i];
-            Mesh& mesh = mMeshes[meshIndex];
-            mesh.materialIndex = static_cast<int>(mScene->mMeshes[meshIndex]->mMaterialIndex);
-            mesh.validFaces    = countValidFaces(mScene->mMeshes[meshIndex]);
-            mesh.numIndices    = mesh.validFaces * 3;
-            mesh.numVertices   = mScene->mMeshes[meshIndex]->mNumVertices;
+    void AssimpLoader::buildMesh(const uint meshIndex) {
+        Mesh& mesh = mMeshes[meshIndex];
+        const aiMesh* aiMeshPtr = mScene->mMeshes[meshIndex];
+        mesh.materialIndex = static_cast<int>(aiMeshPtr->mMaterialIndex);
+        mesh.validFaces    = countValidFaces(aiMeshPtr);
+        mesh.numIndices    = mesh.validFaces * 3;
+        mesh.numVertices   = aiMeshPtr->mNumVertices;
+        mesh.name          = aiMeshPtr->mName.C_Str();
 
-            std::vector<Vertex> vertices;
-            std::vector<uint32_t> indices;
-            mesh.name = mScene->mMeshes[meshIndex]->mName.C_Str();
-            processMesh<Vertex>(vertices, indices, meshIndex, transform);
-            mesh.baseVertex = mVertices.size();
-            mesh.baseIndex  = mIndices.size();
-            mVertices.insert(mVertices.end(), vertices.begin(), vertices.end());
-            mIndices.insert(mIndices.end(), indices.begin(), indices.end());
-        }
-        for (unsigned i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], transform);
-        }
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
+        processMesh<Vertex>(vertices, indices, meshIndex);
+        mesh.baseVertex = mVertices.size();
+        mesh.baseIndex  = mIndices.size();
+        mVertices.insert(mVertices.end(), vertices.begin(), vertices.end());
+        mIndices.insert(mIndices.end(), indices.begin(), indices.end());
+    }
+
+    Node AssimpLoader::buildNode(const aiNode* node) {
+        Node result;
+        result.name = node->mName.C_Str();
+        result.transform = assimpToGlm(node->mTransformation);
+        result.meshes.reserve(node->mNumMeshes);
+        for (unsigned i = 0; i < node->mNumMeshes; ++i)
+            result.meshes.push_back(node->mMeshes[i]);
+        result.children.reserve(node->mNumChildren);
+        for (unsigned i = 0; i < node->mNumChildren; ++i)
+            result.children.push_back(buildNode(node->mChildren[i]));
+        return result;
     }
 
     template<typename VertexType>
     void AssimpLoader::processMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices,
-        uint meshIndex, const aiMatrix4x4& transform) {
+        uint meshIndex) {
         VertexType vert{};
         const aiMesh *mesh = mScene->mMeshes[meshIndex];
         for (size_t i = 0; i < mesh->mNumVertices; ++i) {
-            aiVector3D pos = mesh->mVertices[i];
-            pos *= transform;
+            const aiVector3D pos = mesh->mVertices[i];
             vert.pos = glm::vec3(pos.x, pos.y, pos.z);
 
             if (mesh->mNormals) {
-                aiVector3D normal = mesh->mNormals[i];
-                auto normalMatrix = aiMatrix3x3(transform);
-                normalMatrix.Inverse();
-                normalMatrix.Transpose();
-                normal *= normalMatrix;
+                const aiVector3D normal = mesh->mNormals[i];
                 vert.normal = glm::vec3(normal.x, normal.y, normal.z);
             } else {
                 vert.normal = glm::vec3(0.0f, 1.0f, 0.0f);

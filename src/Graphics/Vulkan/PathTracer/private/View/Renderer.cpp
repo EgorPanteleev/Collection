@@ -315,16 +315,25 @@ namespace crv::graphics::vulkan {
         vkResetCommandBuffer(commandBuffer, 0);
         beginCommandBuffer(commandBuffer);
         std::vector<RasterizerDraw> draws;
-        draws.reserve(mModel->selection().selectedInstances.size());
+        const auto& instances = mModel->scene().instances();
+        std::vector<bool> outlined(instances.size(), false);
+        for (const uint32_t index : mModel->selection().selectedInstances)
+            if (index < instances.size()) outlined[index] = true;
+        for (uint32_t i = 0; i < instances.size(); ++i) {
+            const int32_t parent = instances[i].parentIndex;
+            if (parent >= 0 && outlined[parent]) outlined[i] = true;
+        }
         uint32_t outlineId = 1;
-        for (const uint32_t index : mModel->selection().selectedInstances) {
-            const InstanceData& instance = mModel->scene().instances()[index];
+        for (uint32_t i = 0; i < instances.size(); ++i) {
+            if (!outlined[i]) continue;
+            const InstanceData& instance = instances[i];
+            if (instance.isGroup()) continue;
             BLASData& blasData = mResourceManager.blasDatas()[instance.meshIndex];
             draws.push_back({
                 .vertexBuffer = &blasData.vertexBuffer,
                 .indexBuffer = &blasData.indexBuffer,
                 .indexCount = instance.indexCount,
-                .model = instance.transform.matrix(),
+                .model = instance.world,
                 .id = outlineId++
             });
         }
