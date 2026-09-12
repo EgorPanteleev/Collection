@@ -8,8 +8,8 @@ add_compile_definitions(SHADERS_DIR="${SHADERS_DIR}")
 add_compile_definitions(COMPILED_SHADERS_DIR="${COMPILED_SHADERS_DIR}")
 
 #static Library
-file(GLOB_RECURSE SOURCES "./private/*.cpp")
-file(GLOB_RECURSE HEADERS "./public/*.hpp")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "./private/*.cpp")
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "./public/*.hpp")
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ./public/ ./shaders/ ${CMAKE_SOURCE_DIR}/assets/fonts/)
 

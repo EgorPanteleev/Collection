@@ -24,7 +24,7 @@ namespace crv::graphics::vulkan {
         Swapchain*       swapchain       = nullptr;
         RenderSettings*  renderSettings  = nullptr;
         CommandStream*   commands        = nullptr;
-        Scene*           scene           = nullptr;
+        const Scene*     scene           = nullptr;
     };
 
     struct AppUIRecordInfo {
@@ -65,7 +65,7 @@ namespace crv::graphics::vulkan {
         Swapchain*       mSwapchain       = nullptr;
         RenderSettings*  mSettings        = nullptr;
         CommandStream*   mCommands        = nullptr;
-        Scene*           mScene           = nullptr;
+        const Scene*     mScene           = nullptr;
         VkImGui          mImGui           = CRV_NULL_HANDLE;
 
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
