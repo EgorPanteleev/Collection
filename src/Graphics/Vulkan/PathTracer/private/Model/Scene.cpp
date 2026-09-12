@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace crv::graphics::vulkan {
     Scene::Scene(const SceneCreateInfo&) {}
@@ -40,10 +41,7 @@ namespace crv::graphics::vulkan {
             loadExplicitInstances();
         }
 
-        for (uint32_t i = 0; i < mInstances.size(); ++i) {
-            if (mMaterials[mInstances[i].materialIndex].luminance == 0) continue;
-            mEmissiveIndices.push_back(i);
-        }
+        recomputeEmissiveIndices();
     }
 
     void Scene::loadModel(const uint32_t modelIndex, const std::string &path) {
@@ -344,5 +342,76 @@ namespace crv::graphics::vulkan {
         }
         scene["instances"] = instances;
         return scene;
+    }
+
+    uint32_t Scene::addMaterial(const Material& material) {
+        mMaterials.push_back(material);
+        return static_cast<uint32_t>(mMaterials.size() - 1);
+    }
+
+    void Scene::setMaterial(const uint32_t index, const Material& material) {
+        if (index >= mMaterials.size()) return;
+        mMaterials[index] = material;
+    }
+
+    void Scene::setMaterialTexture(const uint32_t materialIndex, const int textureType,
+                                   const uint32_t texIndex, const std::string& name, const std::string& path) {
+        if (materialIndex >= mMaterials.size()) return;
+        Material& material = mMaterials[materialIndex];
+        switch (textureType) {
+            case 1:  material.normalTexIndex = texIndex; material.normalTexName = name; material.normalTexPath = path; break;
+            case 2:  material.metalRoughnessTexIndex = texIndex; material.metalRoughnessTexName = name; material.metalRoughnessTexPath = path; break;
+            case 3:  material.clearcoatTexIndex = texIndex; material.clearcoatTexName = name; material.clearcoatTexPath = path; break;
+            case 4:  material.clearcoatRoughnessTexIndex = texIndex; material.clearcoatRoughnessTexName = name; material.clearcoatRoughnessTexPath = path; break;
+            default: material.baseColorTexIndex = texIndex; material.baseColorTexName = name; material.baseColorTexPath = path; break;
+        }
+    }
+
+    uint32_t Scene::addTextureSource(cm::Texture texture) {
+        mTextureSources.push_back(std::move(texture));
+        return static_cast<uint32_t>(mTextureSources.size() - 1);
+    }
+
+    void Scene::addInstance(const InstanceData& instance) {
+        mInstances.push_back(instance);
+    }
+
+    void Scene::removeInstance(const uint32_t index) {
+        if (index >= mInstances.size()) return;
+        mInstances.erase(mInstances.begin() + index);
+    }
+
+    void Scene::setInstanceTransform(const uint32_t index, const Transform& transform) {
+        if (index >= mInstances.size()) return;
+        mInstances[index].transform = transform;
+    }
+
+    void Scene::setInstanceMaterial(const uint32_t instanceIndex, const uint32_t materialIndex) {
+        if (instanceIndex >= mInstances.size() || materialIndex >= mMaterials.size()) return;
+        mInstances[instanceIndex].materialIndex = materialIndex;
+    }
+
+    void Scene::setSkybox(const uint32_t index, const std::string& name, const std::string& path) {
+        mSkyboxIndex = index;
+        mSkyboxName  = name;
+        mSkyboxPath  = path;
+    }
+
+    void Scene::clearSkybox() {
+        mSkyboxIndex = UINT32_MAX;
+        mSkyboxName.clear();
+        mSkyboxPath.clear();
+    }
+
+    void Scene::setSkyColor(const glm::vec3& color) { mSkyColor = color; }
+
+    void Scene::setDirectLight(const DirectLight& light) { mDirectLight = light; }
+
+    void Scene::recomputeEmissiveIndices() {
+        mEmissiveIndices.clear();
+        for (uint32_t i = 0; i < mInstances.size(); ++i) {
+            if (mMaterials[mInstances[i].materialIndex].luminance == 0) continue;
+            mEmissiveIndices.push_back(i);
+        }
     }
 }

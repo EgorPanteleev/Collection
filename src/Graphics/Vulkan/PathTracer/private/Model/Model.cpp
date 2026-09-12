@@ -49,67 +49,67 @@ namespace crv::graphics::vulkan {
     }
 
     uint32_t Model::addMaterial(const uint32_t instanceIndex) {
-        auto& instances = mScene.mInstances;
+        const auto& instances = mScene.instances();
         if (instanceIndex >= instances.size()) return UINT32_MAX;
-        Material material = mScene.mMaterials[instances[instanceIndex].materialIndex];
+        Material material = mScene.materials()[instances[instanceIndex].materialIndex];
         material.name += " copy";
-        mScene.mMaterials.push_back(material);
-        const auto index = static_cast<uint32_t>(mScene.mMaterials.size() - 1);
-        instances[instanceIndex].materialIndex = index;
+        const uint32_t index = mScene.addMaterial(material);
+        mScene.setInstanceMaterial(instanceIndex, index);
         mUpdateState.updateMaterials = true;
-        mUpdateState.dirtyInstances.push_back({instanceIndex, InstanceUpdate::Data});
+        mUpdateState.markInstanceDataDirty(instanceIndex);
         return index;
     }
 
     void Model::setMaterial(const uint32_t index, const Material& material) {
-        if (index >= mScene.mMaterials.size()) return;
-        mScene.mMaterials[index] = material;
+        if (index >= mScene.materials().size()) return;
+        mScene.setMaterial(index, material);
         mUpdateState.markMaterialDirty(index);
     }
 
     void Model::transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta) {
-        auto& instances = mScene.mInstances;
+        const auto& instances = mScene.instances();
         for (const uint32_t index : indices) {
             if (index >= instances.size()) continue;
-            Transform& transform = instances[index].transform;
+            const Transform& transform = instances[index].transform;
             const glm::mat4 updated = delta *
                 (glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.rotation));
-            transform.position = glm::vec3(updated[3]);
-            transform.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
+            Transform next = transform;
+            next.position = glm::vec3(updated[3]);
+            next.rotation = glm::normalize(glm::quat_cast(glm::mat3(updated)));
+            mScene.setInstanceTransform(index, next);
             mUpdateState.markInstanceDirty(index);
         }
     }
 
     void Model::setInstanceTransform(const uint32_t index, const Transform& transform) {
-        if (index >= mScene.mInstances.size()) return;
-        mScene.mInstances[index].transform = transform;
+        if (index >= mScene.instances().size()) return;
+        mScene.setInstanceTransform(index, transform);
         mUpdateState.markInstanceDirty(index);
     }
 
     void Model::setInstanceMaterial(const uint32_t instanceIndex, const uint32_t materialIndex) {
-        auto& instances = mScene.mInstances;
-        if (instanceIndex >= instances.size() || materialIndex >= mScene.mMaterials.size()) return;
-        instances[instanceIndex].materialIndex = materialIndex;
+        if (instanceIndex >= mScene.instances().size() || materialIndex >= mScene.materials().size()) return;
+        mScene.setInstanceMaterial(instanceIndex, materialIndex);
         mUpdateState.markInstanceDataDirty(instanceIndex);
     }
 
     void Model::setSkyColor(const glm::vec3& color) {
-        mScene.mSkyColor = color;
+        mScene.setSkyColor(color);
         mUpdateState.markImageDirty();
     }
 
     void Model::setDirectLight(const DirectLight& light) {
-        mScene.mDirectLight = light;
+        mScene.setDirectLight(light);
         mUpdateState.markImageDirty();
     }
 
     void Model::duplicateInstances(const std::vector<uint32_t>& indices) {
-        auto& instances = mScene.mInstances;
+        const auto& instances = mScene.instances();
         std::vector<uint32_t> created;
         created.reserve(indices.size());
         for (const uint32_t index : indices) {
             if (index >= instances.size()) continue;
-            instances.push_back(instances[index]);
+            mScene.addInstance(instances[index]);
             created.push_back(static_cast<uint32_t>(instances.size() - 1));
         }
         if (created.empty()) return;
@@ -120,20 +120,17 @@ namespace crv::graphics::vulkan {
     }
 
     void Model::removeInstances(const std::vector<uint32_t>& indices) {
-        auto& instances = mScene.mInstances;
         std::vector<uint32_t> sorted(indices);
         std::sort(sorted.begin(), sorted.end(), std::greater<>());
         sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
-        if (sorted.empty() || sorted.size() >= instances.size()) return;
-        for (const uint32_t index : sorted) {
-            if (index < instances.size()) instances.erase(instances.begin() + index);
-        }
+        if (sorted.empty() || sorted.size() >= mScene.instances().size()) return;
+        for (const uint32_t index : sorted) mScene.removeInstance(index);
         clearSelection();
         mUpdateState.updateInstances = true;
     }
 
     void Model::addTexture(const std::string& path, const uint32_t materialIndex, const int textureType) {
-        if (materialIndex >= mScene.mMaterials.size()) return;
+        if (materialIndex >= mScene.materials().size()) return;
         cm::Texture::Type type;
         switch (textureType) {
             case 1:  type = cm::Texture::NORMAL;             break;
@@ -142,34 +139,23 @@ namespace crv::graphics::vulkan {
             case 4:  type = cm::Texture::CLEARCOAT_ROUGHNESS; break;
             default: type = cm::Texture::BASE_COLOR;         break;
         }
-        mScene.mTextureSources.push_back(cm::AbsLoader::loadTexture(path, type));
-        const auto index = static_cast<uint32_t>(mScene.mTextureSources.size() - 1);
+        const uint32_t index = mScene.addTextureSource(cm::AbsLoader::loadTexture(path, type));
         const std::string name = std::filesystem::path(path).filename().string();
         const std::string rel  = relativeToAssets(path);
-        Material& material = mScene.mMaterials[materialIndex];
-        switch (textureType) {
-            case 1:  material.normalTexIndex = index; material.normalTexName = name; material.normalTexPath = rel; break;
-            case 2:  material.metalRoughnessTexIndex = index; material.metalRoughnessTexName = name; material.metalRoughnessTexPath = rel; break;
-            case 3:  material.clearcoatTexIndex = index; material.clearcoatTexName = name; material.clearcoatTexPath = rel; break;
-            case 4:  material.clearcoatRoughnessTexIndex = index; material.clearcoatRoughnessTexName = name; material.clearcoatRoughnessTexPath = rel; break;
-            default: material.baseColorTexIndex = index; material.baseColorTexName = name; material.baseColorTexPath = rel; break;
-        }
+        mScene.setMaterialTexture(materialIndex, textureType, index, name, rel);
         mUpdateState.dirtyTextures.push_back(index);
         mUpdateState.dirtyMaterials.push_back(materialIndex);
     }
 
     void Model::loadSkybox(const std::string& path) {
-        mScene.mTextureSources.push_back(cm::AbsLoader::loadSkybox(path));
-        mScene.mSkyboxIndex = static_cast<uint32_t>(mScene.mTextureSources.size() - 1);
-        mScene.mSkyboxName = std::filesystem::path(path).filename().string();
-        mScene.mSkyboxPath = relativeToAssets(path);
+        const uint32_t index = mScene.addTextureSource(cm::AbsLoader::loadSkybox(path));
+        const std::string name = std::filesystem::path(path).filename().string();
+        mScene.setSkybox(index, name, relativeToAssets(path));
         mUpdateState.updateSkybox = true;
     }
 
     void Model::removeSkybox() {
-        mScene.mSkyboxIndex = UINT32_MAX;
-        mScene.mSkyboxName.clear();
-        mScene.mSkyboxPath.clear();
+        mScene.clearSkybox();
         mUpdateState.updateSkybox = true;
     }
 
@@ -208,8 +194,8 @@ namespace crv::graphics::vulkan {
         const float ny1 = static_cast<float>(std::max(y0, y1)) / fh * 2.0f - 1.0f;
 
         const glm::mat4 viewProj = mCamera->projectionMatrix() * mCamera->viewMatrix();
-        const auto& instances = mScene.mInstances;
-        const auto& meshes = mScene.mMeshes;
+        const auto& instances = mScene.instances();
+        const auto& meshes = mScene.meshes();
         auto& selected = mSelection.selectedInstances;
 
         if (!additive) selected.clear();

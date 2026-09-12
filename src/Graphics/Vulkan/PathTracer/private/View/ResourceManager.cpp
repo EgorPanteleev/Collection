@@ -39,19 +39,19 @@ namespace crv::graphics::vulkan {
     mContext(info.context), mScene(info.scene), mEnvMap(info.context) { build(); }
 
     void ResourceManager::build() {
-        mTextures.reserve(mScene->mTextureSources.size());
-        for (const cm::Texture& source : mScene->mTextureSources)
+        mTextures.reserve(mScene->textureSources().size());
+        for (const cm::Texture& source : mScene->textureSources())
             mTextures.push_back(toTexture(mContext, source));
         buildMeshes();
-        if (mScene->mSkyboxIndex != UINT32_MAX && !mScene->mSkyboxPath.empty())
-            mEnvMap.build(cm::AbsLoader::loadSkybox(ASSETS_PATH + mScene->mSkyboxPath));
+        if (mScene->skyboxIndex() != UINT32_MAX && !mScene->skyboxPath().empty())
+            mEnvMap.build(cm::AbsLoader::loadSkybox(ASSETS_PATH + mScene->skyboxPath()));
         buildTLAS();
         createBuffers();
     }
 
     void ResourceManager::updateInstance(const uint32_t index) {
         updateInstanceData(index);
-        const InstanceData& instance = mScene->mInstances[index];
+        const InstanceData& instance = mScene->instances()[index];
         InstanceData::AS asInstance =
             instance.vkAS(index, mBLASDatas[instance.meshIndex].blas.deviceAddress());
         const CopyDataToGPUBufferInfo copyInfo {
@@ -69,14 +69,14 @@ namespace crv::graphics::vulkan {
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext, QueueFamilyType::GRAPHICS);
         const TLASUpdateInfo updateInfo {
             .commandBuffer = commandBuffer,
-            .instanceCount = static_cast<uint32_t>(mScene->mInstances.size())
+            .instanceCount = static_cast<uint32_t>(mScene->instances().size())
         };
         mTLAS.update(updateInfo);
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
     }
 
     void ResourceManager::updateInstanceData(const uint32_t index) {
-        InstanceData::GPU instanceGPU = mScene->mInstances[index].gpu();
+        InstanceData::GPU instanceGPU = mScene->instances()[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
             .data = &instanceGPU,
             .srcOffset = 0,
@@ -101,13 +101,13 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::buildMaterialBuffer() {
-        const auto materialsGPU = Material::gpu(mScene->mMaterials);
+        const auto materialsGPU = Material::gpu(mScene->materials());
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
             .add(materialsGPU, mMaterialBuffer);
     }
 
     void ResourceManager::updateMaterial(const uint32_t index) {
-        Material::GPU materialGPU = mScene->mMaterials[index].gpu();
+        Material::GPU materialGPU = mScene->materials()[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
             .data = &materialGPU,
             .srcOffset = 0,
@@ -124,12 +124,12 @@ namespace crv::graphics::vulkan {
     }
 
     uint32_t ResourceManager::uploadTexture(const uint32_t sourceIndex) {
-        mTextures.push_back(toTexture(mContext, mScene->mTextureSources[sourceIndex]));
+        mTextures.push_back(toTexture(mContext, mScene->textureSources()[sourceIndex]));
         return sourceIndex;
     }
 
     uint32_t ResourceManager::uploadSkybox(const uint32_t sourceIndex) {
-        const cm::Texture& skybox = mScene->mTextureSources[sourceIndex];
+        const cm::Texture& skybox = mScene->textureSources()[sourceIndex];
         mEnvMap.build(skybox);
         mTextures.push_back(toTexture(mContext, skybox));
         return sourceIndex;
@@ -140,15 +140,8 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::updateEmissiveIndices() {
-        auto& indices   = mScene->mEmissiveIndices;
-        const auto& instances = mScene->mInstances;
-        const auto& materials = mScene->mMaterials;
-
-        indices.clear();
-        for (uint32_t i = 0; i < instances.size(); ++i) {
-            if (materials[instances[i].materialIndex].luminance == 0) continue;
-            indices.push_back(i);
-        }
+        mScene->recomputeEmissiveIndices();
+        const auto& indices = mScene->emissiveIndices();
         if (indices.empty()) return;
 
         const CopyDataToGPUBufferInfo copyInfo {
@@ -168,8 +161,8 @@ namespace crv::graphics::vulkan {
     void ResourceManager::buildMeshes() {
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext->device(),
             mContext->familyIndex(QueueFamilyType::GRAPHICS).value());
-        mBLASDatas.reserve(mScene->mMeshes.size());
-        for (MeshData& mesh : mScene->mMeshes) {
+        mBLASDatas.reserve(mScene->meshes().size());
+        for (const MeshData& mesh : mScene->meshes()) {
             mBLASDatas.emplace_back();
             BLASData& blasData = mBLASDatas.back();
             blasData.area = mesh.area;
@@ -266,17 +259,17 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::buildEmissiveAliasTables() {
         std::vector<bool> emissiveMesh(mBLASDatas.size(), false);
-        for (const auto& instance : mScene->mInstances) {
-            if (mScene->mMaterials[instance.materialIndex].luminance > 0.0f)
+        for (const auto& instance : mScene->instances()) {
+            if (mScene->materials()[instance.materialIndex].luminance > 0.0f)
                 emissiveMesh[instance.meshIndex] = true;
         }
         for (size_t i = 0; i < mBLASDatas.size(); ++i) {
-            if (emissiveMesh[i]) buildAlias(mBLASDatas[i], mScene->mMeshes[i].triAreas);
+            if (emissiveMesh[i]) buildAlias(mBLASDatas[i], mScene->meshes()[i].triAreas);
         }
     }
 
     void ResourceManager::buildTLAS() {
-        const size_t instancesSize = sizeof(InstanceData::AS) * mScene->mInstances.size();
+        const size_t instancesSize = sizeof(InstanceData::AS) * mScene->instances().size();
         const BufferCreateInfo instanceBufferCreateInfo {
             .allocator = mContext->allocator(),
             .size = instancesSize,
@@ -287,9 +280,9 @@ namespace crv::graphics::vulkan {
         };
         mASInstanceBuffer = Buffer(instanceBufferCreateInfo);
         std::vector<InstanceData::AS> asInstances{};
-        asInstances.reserve(mScene->mInstances.size());
-        for (size_t i = 0; i < mScene->mInstances.size(); ++i) {
-            const InstanceData& instance = mScene->mInstances[i];
+        asInstances.reserve(mScene->instances().size());
+        for (size_t i = 0; i < mScene->instances().size(); ++i) {
+            const InstanceData& instance = mScene->instances()[i];
             const AccelerationStructure& blas = mBLASDatas[instance.meshIndex].blas;
             asInstances.push_back(instance.vkAS(i, blas.deviceAddress()));
         }
@@ -312,7 +305,7 @@ namespace crv::graphics::vulkan {
             .physicalDevice = mContext->physicalDevice(),
             .allocator = mContext->allocator(),
             .instanceAddress = mASInstanceBuffer.deviceAddress(mContext->device()),
-            .instanceCount = static_cast<uint32_t>(mScene->mInstances.size())
+            .instanceCount = static_cast<uint32_t>(mScene->instances().size())
         };
         mTLAS = AccelerationStructure(tlasCreateInfo);
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
@@ -320,11 +313,11 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::createBuffers() {
         const auto blasDatasGPU = BLASData::gpu(mContext->device(), mBLASDatas);
-        const auto instancesGPU = InstanceData::gpu(mScene->mInstances);
-        const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->mInstances.size(), 1u);
+        const auto instancesGPU = InstanceData::gpu(mScene->instances());
+        const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->instances().size(), 1u);
         std::vector emissiveIndices(emissiveCapacity, 0u);
-        std::copy(mScene->mEmissiveIndices.begin(), mScene->mEmissiveIndices.end(), emissiveIndices.begin());
-        const auto materialsGPU = Material::gpu(mScene->mMaterials);
+        std::copy(mScene->emissiveIndices().begin(), mScene->emissiveIndices().end(), emissiveIndices.begin());
+        const auto materialsGPU = Material::gpu(mScene->materials());
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
             .add(blasDatasGPU   , mBLASBuffer            )
             .add(instancesGPU   , mInstanceBuffer        )
@@ -334,16 +327,11 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::rebuildInstanceBuffers() {
         buildTLAS();
+        mScene->recomputeEmissiveIndices();
+        const auto& emissive = mScene->emissiveIndices();
 
-        auto& emissive = mScene->mEmissiveIndices;
-        emissive.clear();
-        for (uint32_t i = 0; i < mScene->mInstances.size(); ++i) {
-            if (mScene->mMaterials[mScene->mInstances[i].materialIndex].luminance == 0) continue;
-            emissive.push_back(i);
-        }
-
-        const auto instancesGPU = InstanceData::gpu(mScene->mInstances);
-        const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->mInstances.size(), 1u);
+        const auto instancesGPU = InstanceData::gpu(mScene->instances());
+        const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->instances().size(), 1u);
         std::vector emissiveIndices(emissiveCapacity, 0u);
         std::copy(emissive.begin(), emissive.end(), emissiveIndices.begin());
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)

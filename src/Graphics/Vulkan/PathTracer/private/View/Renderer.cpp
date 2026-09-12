@@ -291,8 +291,8 @@ namespace crv::graphics::vulkan {
                 .maxDepth = static_cast<uint32_t>(mModel->settings().maxDepth),
                 .displayMode = static_cast<uint32_t>(mModel->settings().displayMode),
                 .nee = mModel->settings().nee ? 1u : 0u,
-                .emissiveCount = static_cast<uint32_t>(mModel->scene().mEmissiveIndices.size()),
-                .skyboxIndex = mModel->scene().mSkyboxIndex,
+                .emissiveCount = static_cast<uint32_t>(mModel->scene().emissiveIndices().size()),
+                .skyboxIndex = mModel->scene().skyboxIndex(),
                 .envIntegral = mResourceManager.envIntegral(),
                 .envNee = mModel->settings().envNee ? 1u : 0u,
                 .aperture = mModel->settings().aperture,
@@ -300,7 +300,7 @@ namespace crv::graphics::vulkan {
                 .envMarginalCdfAddr = mResourceManager.envMarginalCdfAddr(),
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr(),
-                .skyColor = mModel->scene().mSkyColor
+                .skyColor = mModel->scene().skyColor()
             },
             .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
             .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale
@@ -318,7 +318,7 @@ namespace crv::graphics::vulkan {
         draws.reserve(mModel->selection().selectedInstances.size());
         uint32_t outlineId = 1;
         for (const uint32_t index : mModel->selection().selectedInstances) {
-            const InstanceData& instance = mModel->scene().mInstances[index];
+            const InstanceData& instance = mModel->scene().instances()[index];
             BLASData& blasData = mResourceManager.blasDatas()[instance.meshIndex];
             draws.push_back({
                 .vertexBuffer = &blasData.vertexBuffer,
@@ -494,7 +494,7 @@ namespace crv::graphics::vulkan {
     void Renderer::update() {
         const RayTracerPassUpdateInfo tracerUpdateInfo {
             .camera = mModel->camera(),
-            .directLight = mModel->scene().mDirectLight,
+            .directLight = mModel->scene().directLight(),
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(tracerUpdateInfo);
@@ -528,7 +528,7 @@ namespace crv::graphics::vulkan {
             mRayTracerPass.bindTexture(index);
         }
         if (state.updateSkybox) {
-            const uint32_t skyboxIndex = mModel->scene().mSkyboxIndex;
+            const uint32_t skyboxIndex = mModel->scene().skyboxIndex();
             if (skyboxIndex == UINT32_MAX) {
                 mResourceManager.disableSkybox();
             } else {

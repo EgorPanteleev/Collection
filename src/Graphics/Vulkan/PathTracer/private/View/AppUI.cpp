@@ -110,7 +110,7 @@ namespace crv::graphics::vulkan {
             if (ImGui::IsKeyPressed(ImGuiKey_R)) mGizmoOp = ImGuizmo::ROTATE;
         }
 
-        auto& instances = mScene->mInstances;
+        auto& instances = mScene->instances();
         const Transform& pivot = instances[info.activeInstance].transform;
         glm::mat4 view  = info.camera->viewMatrix();
         glm::mat4 proj  = info.camera->projectionMatrix();
@@ -180,7 +180,7 @@ namespace crv::graphics::vulkan {
             }
 
             if (VkImGui::beginGroup(ICON_FA_CUBES " Scene")) {
-                const auto& instances = mScene->mInstances;
+                const auto& instances = mScene->instances();
                 static const std::vector<uint32_t> emptySelection{};
                 const std::vector<uint32_t>& selected =
                     info.selectedInstances ? *info.selectedInstances : emptySelection;
@@ -238,9 +238,9 @@ namespace crv::graphics::vulkan {
             }
         }
         if (ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_DefaultOpen)) {
-            const bool hasSkybox = mScene->mSkyboxIndex != UINT32_MAX;
+            const bool hasSkybox = mScene->skyboxIndex() != UINT32_MAX;
             ImGui::AlignTextToFramePadding();
-            ImGui::TextDisabled("%s", hasSkybox ? mScene->mSkyboxName.c_str() : "None");
+            ImGui::TextDisabled("%s", hasSkybox ? mScene->skyboxName().c_str() : "None");
             ImGui::SameLine();
             if (hasSkybox) {
                 if (ImGui::Button("Remove##skybox")) {
@@ -253,13 +253,13 @@ namespace crv::graphics::vulkan {
                 push(CommandType::LOAD_SKYBOX, SkyboxPayload{mSkyboxFileDialog.result()});
             }
             if (!hasSkybox) {
-                glm::vec3 skyColor = mScene->mSkyColor;
+                glm::vec3 skyColor = mScene->skyColor();
                 if (VkImGui::colorEdit3("Sky Color", skyColor))
                     push(CommandType::SET_SKY_COLOR, SkyColorPayload{skyColor});
             }
         }
         if (ImGui::CollapsingHeader("Direct Light", ImGuiTreeNodeFlags_DefaultOpen)) {
-            DirectLight light = mScene->mDirectLight;
+            DirectLight light = mScene->directLight();
             bool changed = false;
             changed |= ImGui::DragFloat3("Direction", &light.dir.x, 0.005f, -1.0f, 1.0f);
             changed |= ImGui::DragFloat("Intensity", &light.intensity, 0.05f, 0.0f, 10.0f);
@@ -270,7 +270,7 @@ namespace crv::graphics::vulkan {
             if (ImGui::Checkbox("Light sources", &mSettings->nee)) {
                 mUpdateImage = true;
             }
-            ImGui::BeginDisabled(mScene->mSkyboxIndex == UINT32_MAX);
+            ImGui::BeginDisabled(mScene->skyboxIndex() == UINT32_MAX);
             if (ImGui::Checkbox("Environment", &mSettings->envNee)) {
                 mUpdateImage = true;
             }
@@ -320,7 +320,7 @@ namespace crv::graphics::vulkan {
             return;
         }
         ImGui::SameLine();
-        const bool canDelete = mScene->mInstances.size() > selected.size();
+        const bool canDelete = mScene->instances().size() > selected.size();
         ImGui::BeginDisabled(!canDelete);
         const bool deleteClicked = ImGui::Button(ICON_FA_TRASH " Delete");
         ImGui::EndDisabled();
@@ -337,7 +337,7 @@ namespace crv::graphics::vulkan {
         }
 
         const uint32_t active = selected.front();
-        InstanceData& instance = mScene->mInstances[active];
+        const InstanceData& instance = mScene->instances()[active];
         if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {
             if (VkImGui::beginCompactTable("##object_status", 6.0f)) {
                 VkImGui::row("Name"         , instance.name.c_str());
@@ -349,7 +349,7 @@ namespace crv::graphics::vulkan {
         }
 
         if (VkImGui::beginGroup(ICON_FA_PALETTE " Material")) {
-            const auto& materials = mScene->mMaterials;
+            const auto& materials = mScene->materials();
             const Material& material = materials[instance.materialIndex];
             std::vector<std::string> materialItems;
             materialItems.reserve(materials.size());
