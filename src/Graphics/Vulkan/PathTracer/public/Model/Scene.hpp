@@ -71,7 +71,10 @@ namespace crv::graphics::vulkan {
         void recomputeEmissiveIndices();
     protected:
         void loadModel(uint32_t modelIndex, const std::string& path);
-        void loadMaterials();
+        void buildMeshes(cm::Loader& loader, uint32_t modelIndex);
+        void buildInstances(cm::Loader& loader, uint32_t modelIndex, uint32_t meshBase, uint32_t materialBase);
+        void loadModelMaterials(cm::Loader& loader);
+        void loadJsonMaterials();
         void applyResolvedMaterials();
         void loadResolvedTexture(const json& jm, const char* key, int textureType,
                                  uint32_t& texIndex, std::string& texName, std::string& texPath);

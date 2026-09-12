@@ -18,7 +18,7 @@ namespace crv::graphics::vulkan {
         mDirectLight.intensity = directLight["intensity"];
         if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
 
-        if (!mExplicit || mJson.contains("materialsResolved")) loadMaterials();
+        if (!mExplicit || mJson.contains("materialsResolved")) loadJsonMaterials();
         std::vector<std::string> models = mJson["modelImports"];
         for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
             loadModel(modelIndex, models[modelIndex]);
@@ -46,16 +46,25 @@ namespace crv::graphics::vulkan {
     void Scene::loadModel(const uint32_t modelIndex, const std::string &path) {
         cu::Timer timer;
         timer.start();
-        auto loader = new cm::Loader;
-        loader->setModel(ASSETS_PATH + path);
-        loader->load(glm::mat4(1.0f));
+        cm::Loader loader;
+        loader.setModel(ASSETS_PATH + path);
+        loader.load(glm::mat4(1.0f));
         INFO << "Model (" << fs::path(path).filename().stem().string() << ") load time: " << timer.duration() / 1000 << " sec";
-        for (size_t meshIndex = 0; meshIndex < loader->meshes().size(); ++meshIndex) {
-            const auto &mesh = loader->meshes()[meshIndex];
+
+        const auto meshBase     = static_cast<uint32_t>(mMeshes.size());
+        const auto materialBase = static_cast<uint32_t>(mMaterials.size());
+        buildMeshes(loader, modelIndex);
+        if (!mExplicit) buildInstances(loader, modelIndex, meshBase, materialBase);
+        loadModelMaterials(loader);
+    }
+
+    void Scene::buildMeshes(cm::Loader& loader, const uint32_t modelIndex) {
+        for (size_t meshIndex = 0; meshIndex < loader.meshes().size(); ++meshIndex) {
+            const auto &mesh = loader.meshes()[meshIndex];
             std::vector<Vertex> vertices{};
             vertices.reserve(mesh.numVertices);
             for (size_t i = 0; i < mesh.numVertices; ++i) {
-                const cm::Vertex &modelVertex = loader->vertices()[mesh.baseVertex + i];
+                const cm::Vertex &modelVertex = loader.vertices()[mesh.baseVertex + i];
                 Vertex vertex{
                     .pos = modelVertex.pos,
                     .texCoord = modelVertex.texCoord0,
@@ -67,7 +76,7 @@ namespace crv::graphics::vulkan {
             std::vector<uint32_t> indices{};
             indices.reserve(mesh.numIndices);
             for (size_t i = 0; i < mesh.numIndices; ++i) {
-                indices.push_back(loader->indices()[mesh.baseIndex + i]);
+                indices.push_back(loader.indices()[mesh.baseIndex + i]);
             }
             float area = 0;
             std::vector<float> triAreas{};
@@ -97,16 +106,18 @@ namespace crv::graphics::vulkan {
             meshData.vertices = std::move(vertices);
             meshData.indices = std::move(indices);
             meshData.indexCount = static_cast<uint32_t>(meshData.indices.size());
-            if (mExplicit) continue;
+        }
+    }
 
-            auto allInstances = mJson["instances"];
-            decltype(allInstances) jsonInstances;
-            for (const auto &instance: allInstances) {
-                if (instance["modelIndex"] != modelIndex) continue;
-                jsonInstances.push_back(instance);
-            }
-
-            uint32_t baseMaterial = mMaterials.size();
+    void Scene::buildInstances(cm::Loader& loader, const uint32_t modelIndex,
+                               const uint32_t meshBase, const uint32_t materialBase) {
+        std::vector<json> jsonInstances;
+        for (const auto &instance: mJson["instances"]) {
+            if (instance["modelIndex"] == modelIndex) jsonInstances.push_back(instance);
+        }
+        for (size_t localMesh = 0; localMesh < loader.meshes().size(); ++localMesh) {
+            const auto& mesh = loader.meshes()[localMesh];
+            const uint32_t meshIndex = meshBase + static_cast<uint32_t>(localMesh);
             for (const auto &instance: jsonInstances) {
                 glm::vec3 rot = toVec3(instance["localRotation"]);
                 Transform transform;
@@ -117,21 +128,22 @@ namespace crv::graphics::vulkan {
                 glm::quat qz = glm::angleAxis(glm::radians(rot.z), glm::vec3(0, 0, 1));
                 transform.rotation = glm::normalize(qy * qx * qz);
                 uint32_t materialIndex = instance["texIndex"];
-                if (materialIndex == UINT32_MAX) materialIndex = baseMaterial + mesh.materialIndex;
-                InstanceData instanceData{
+                if (materialIndex == UINT32_MAX) materialIndex = materialBase + mesh.materialIndex;
+                mInstances.push_back(InstanceData{
                     .name = instance["name"],
                     .meshName = mesh.name,
                     .transform = transform,
-                    .meshIndex = static_cast<uint32_t>(mMeshes.size() - 1),
+                    .meshIndex = meshIndex,
                     .materialIndex = materialIndex,
-                    .indexCount = meshData.indexCount
-                };
-                mInstances.push_back(instanceData);
+                    .indexCount = mMeshes[meshIndex].indexCount
+                });
             }
-
         }
-        mMaterials.reserve(mMaterials.size() + loader->materials().size());
-        for (const auto &loaderMaterial: loader->materials()) {
+    }
+
+    void Scene::loadModelMaterials(cm::Loader& loader) {
+        mMaterials.reserve(mMaterials.size() + loader.materials().size());
+        for (const auto &loaderMaterial: loader.materials()) {
             glm::vec3 emission = glm::vec3(loaderMaterial.emissiveColor) * loaderMaterial.emissiveStrength;
             float emissionLum = std::max(emission.r, std::max(emission.g, emission.b));
             Material material{
@@ -181,7 +193,7 @@ namespace crv::graphics::vulkan {
         }
     }
 
-    void Scene::loadMaterials() {
+    void Scene::loadJsonMaterials() {
         auto materials = mJson["materials"];
         mMaterials.resize(materials.size());
         for (int materialIndex = 0; materialIndex < materials.size(); ++materialIndex) {
