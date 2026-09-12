@@ -5,9 +5,11 @@
 #include "InputHandlers/SceneCommandHandler.hpp"
 #include "Model/Model.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -18,12 +20,25 @@ namespace crv::graphics::vulkan {
             const std::string padIn(static_cast<size_t>(depth + 1) * indent, ' ');
             if (j.is_object()) {
                 if (j.empty()) { out << "{}"; return; }
+                static const std::vector<std::string> priority = {
+                    "version", "window", "camera", "directLight", "skyColor",
+                    "modelImports", "instances", "materials", "materialsResolved"
+                };
+                auto rank = [](const std::string& key) {
+                    const auto it = std::find(priority.begin(), priority.end(), key);
+                    return it == priority.end() ? priority.size() : static_cast<size_t>(it - priority.begin());
+                };
+                std::vector<std::string> keys;
+                for (auto it = j.begin(); it != j.end(); ++it) keys.push_back(it.key());
+                std::stable_sort(keys.begin(), keys.end(), [&](const std::string& a, const std::string& b) {
+                    const size_t ra = rank(a), rb = rank(b);
+                    return ra != rb ? ra < rb : a < b;
+                });
                 out << "{\n";
-                size_t i = 0;
-                for (auto it = j.begin(); it != j.end(); ++it) {
-                    out << padIn << json(it.key()).dump() << ": ";
-                    dumpScene(out, it.value(), indent, depth + 1);
-                    out << (++i < j.size() ? ",\n" : "\n");
+                for (size_t i = 0; i < keys.size(); ++i) {
+                    out << padIn << json(keys[i]).dump() << ": ";
+                    dumpScene(out, j.at(keys[i]), indent, depth + 1);
+                    out << (i + 1 < keys.size() ? ",\n" : "\n");
                 }
                 out << pad << "}";
             } else if (j.is_array()) {
@@ -114,7 +129,8 @@ namespace crv::graphics::vulkan {
         const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         char stamp[32];
         std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", std::localtime(&now));
-        const std::string path = (fs::path(ASSETS_PATH) / ("scene_" + std::string(stamp) + ".json")).string();
+        const std::string base = model.name().empty() ? "scene" : model.name();
+        const std::string path = (fs::path(SCENES_PATH) / (base + "_" + std::string(stamp) + ".json")).string();
         std::ofstream out(path);
         if (!out) {
             ERROR << "Failed to save scene: " << path;

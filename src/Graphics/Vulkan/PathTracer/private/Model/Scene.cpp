@@ -5,7 +5,6 @@
 #include "Model/Scene.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <utility>
 
 namespace crv::graphics::vulkan {
@@ -19,7 +18,7 @@ namespace crv::graphics::vulkan {
         mDirectLight.intensity = directLight["intensity"];
         if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
 
-        loadMaterials();
+        if (!mExplicit || mJson.contains("materialsResolved")) loadMaterials();
         std::vector<std::string> models = mJson["modelImports"];
         for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
             loadModel(modelIndex, models[modelIndex]);
@@ -210,15 +209,26 @@ namespace crv::graphics::vulkan {
     }
 
     void Scene::applyResolvedMaterials() {
-        if (!mJson.contains("materialsResolved")) return;
-        const auto& resolved = mJson["materialsResolved"];
+        const char* key = mJson.contains("materialsResolved") ? "materialsResolved" : "materials";
+        if (!mJson.contains(key)) return;
+        const auto& resolved = mJson[key];
         if (resolved.size() > mMaterials.size()) mMaterials.resize(resolved.size());
         for (size_t i = 0; i < resolved.size(); ++i) {
             const auto& jm = resolved[i];
             Material& material = mMaterials[i];
+
+            Material reset{};
+            reset.name = material.name;
+            reset.baseColorTexIndex = material.baseColorTexIndex; reset.baseColorTexName = material.baseColorTexName; reset.baseColorTexPath = material.baseColorTexPath;
+            reset.normalTexIndex = material.normalTexIndex; reset.normalTexName = material.normalTexName; reset.normalTexPath = material.normalTexPath;
+            reset.metalRoughnessTexIndex = material.metalRoughnessTexIndex; reset.metalRoughnessTexName = material.metalRoughnessTexName; reset.metalRoughnessTexPath = material.metalRoughnessTexPath;
+            reset.clearcoatTexIndex = material.clearcoatTexIndex; reset.clearcoatTexName = material.clearcoatTexName; reset.clearcoatTexPath = material.clearcoatTexPath;
+            reset.clearcoatRoughnessTexIndex = material.clearcoatRoughnessTexIndex; reset.clearcoatRoughnessTexName = material.clearcoatRoughnessTexName; reset.clearcoatRoughnessTexPath = material.clearcoatRoughnessTexPath;
+            material = reset;
+
             material.name = jm.value("name", material.name);
-            material.baseColor = toVec3(jm["color"]);
-            material.luminance = jm["luminance"];
+            if (jm.contains("color")) material.baseColor = toVec3(jm["color"]);
+            material.luminance = jm.value("luminance", material.luminance);
             material.metalness = jm.value("metalness", material.metalness);
             material.roughness = jm.value("roughness", material.roughness);
             material.ior          = jm.value("ior", material.ior);
@@ -266,23 +276,34 @@ namespace crv::graphics::vulkan {
     void Scene::loadExplicitInstances() {
         mInstances.clear();
         for (const auto& ji : mJson["instances"]) {
-            const uint32_t meshIndex = ji["meshIndex"];
-            if (meshIndex >= mMeshes.size()) continue;
             Transform transform;
-            transform.position = toVec3(ji["localPosition"]);
-            transform.scale = toVec3(ji["localScale"]);
-            const auto& q = ji["rotation"];
-            transform.rotation = glm::quat(q[3].get<float>(), q[0].get<float>(),
-                                           q[1].get<float>(), q[2].get<float>());
-            InstanceData instanceData{
-                .name = ji["name"],
-                .meshName = ji.value("meshName", mMeshes[meshIndex].meshName),
-                .transform = transform,
-                .meshIndex = meshIndex,
-                .materialIndex = ji["materialIndex"],
-                .indexCount = mMeshes[meshIndex].indexCount
+            transform.position = toVec3(ji.contains("position") ? ji["position"] : ji["localPosition"]);
+            transform.scale    = toVec3(ji.contains("scale") ? ji["scale"] : ji["localScale"]);
+            const auto& r = ji["rotation"];
+            if (r.size() == 4)
+                transform.rotation = glm::quat(r[3].get<float>(), r[0].get<float>(),
+                                               r[1].get<float>(), r[2].get<float>());
+            else
+                transform.rotation = glm::normalize(glm::quat(glm::radians(toVec3(r))));
+            const std::string name = ji.value("name", std::string());
+
+            auto addInstance = [&](const uint32_t meshIndex, const uint32_t materialIndex) {
+                if (meshIndex >= mMeshes.size()) return;
+                mInstances.push_back(InstanceData{
+                    .name = name,
+                    .meshName = mMeshes[meshIndex].meshName,
+                    .transform = transform,
+                    .meshIndex = meshIndex,
+                    .materialIndex = materialIndex,
+                    .indexCount = mMeshes[meshIndex].indexCount
+                });
             };
-            mInstances.push_back(instanceData);
+
+            if (ji.contains("meshes")) {
+                for (const auto& part : ji["meshes"]) addInstance(part[0], part[1]);
+            } else {
+                addInstance(ji["meshIndex"], ji["materialIndex"]);
+            }
         }
     }
 
@@ -296,48 +317,67 @@ namespace crv::graphics::vulkan {
         if (mSkyboxIndex != UINT32_MAX) scene["skybox"] = mSkyboxPath;
         else scene.erase("skybox");
 
+        static const Material def{};
         json materials = json::array();
-        for (const auto& material : mMaterials) {
+        for (const auto& m : mMaterials) {
             json jm;
-            jm["name"]          = material.name;
-            jm["color"]         = { material.baseColor.r, material.baseColor.g, material.baseColor.b };
-            jm["luminance"]     = material.luminance;
-            jm["metalness"]     = material.metalness;
-            jm["roughness"]     = material.roughness;
-            jm["ior"]           = material.ior;
-            jm["specular"]      = material.specular;
-            jm["transmission"]  = material.transmission;
-            jm["clearcoat"]            = material.clearcoat;
-            jm["clearcoatRoughness"]   = material.clearcoatRoughness;
-            jm["absorption"]           = { material.absorption.r, material.absorption.g, material.absorption.b };
-            jm["opacity"]              = material.opacity;
-            jm["normalScale"]          = material.normalScale;
-            jm["anisotropy"]           = material.anisotropy;
-            jm["sheen"]                = material.sheen;
-            if (material.translucency > 0.0f) jm["translucency"] = material.translucency;
-            if (!material.baseColorTexPath.empty()) jm["baseColorTex"] = material.baseColorTexPath;
-            if (!material.normalTexPath.empty()) jm["normalTex"] = material.normalTexPath;
-            if (!material.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = material.metalRoughnessTexPath;
-            if (!material.clearcoatTexPath.empty()) jm["clearcoatTex"] = material.clearcoatTexPath;
-            if (!material.clearcoatRoughnessTexPath.empty()) jm["clearcoatRoughnessTex"] = material.clearcoatRoughnessTexPath;
+            jm["name"] = m.name;
+            if (m.baseColor != def.baseColor) jm["color"] = { m.baseColor.r, m.baseColor.g, m.baseColor.b };
+            if (m.luminance != def.luminance) jm["luminance"] = m.luminance;
+            if (m.metalness != def.metalness) jm["metalness"] = m.metalness;
+            if (m.roughness != def.roughness) jm["roughness"] = m.roughness;
+            if (m.ior != def.ior) jm["ior"] = m.ior;
+            if (m.specular != def.specular) jm["specular"] = m.specular;
+            if (m.transmission != def.transmission) jm["transmission"] = m.transmission;
+            if (m.clearcoat != def.clearcoat) jm["clearcoat"] = m.clearcoat;
+            if (m.clearcoatRoughness != def.clearcoatRoughness) jm["clearcoatRoughness"] = m.clearcoatRoughness;
+            if (m.absorption != def.absorption) jm["absorption"] = { m.absorption.r, m.absorption.g, m.absorption.b };
+            if (m.opacity != def.opacity) jm["opacity"] = m.opacity;
+            if (m.normalScale != def.normalScale) jm["normalScale"] = m.normalScale;
+            if (m.anisotropy != def.anisotropy) jm["anisotropy"] = m.anisotropy;
+            if (m.sheen != def.sheen) jm["sheen"] = m.sheen;
+            if (m.translucency != def.translucency) jm["translucency"] = m.translucency;
+            if (!m.baseColorTexPath.empty()) jm["baseColorTex"] = m.baseColorTexPath;
+            if (!m.normalTexPath.empty()) jm["normalTex"] = m.normalTexPath;
+            if (!m.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = m.metalRoughnessTexPath;
+            if (!m.clearcoatTexPath.empty()) jm["clearcoatTex"] = m.clearcoatTexPath;
+            if (!m.clearcoatRoughnessTexPath.empty()) jm["clearcoatRoughnessTex"] = m.clearcoatRoughnessTexPath;
             materials.push_back(jm);
         }
-        scene["materialsResolved"] = materials;
+        scene["materials"] = materials;
+        scene.erase("materialsResolved");
 
-        json instances = json::array();
+        struct InstanceGroup {
+            std::string name;
+            Transform   transform;
+            std::vector<std::pair<uint32_t, uint32_t>> parts;
+        };
+        std::vector<InstanceGroup> groups;
         for (const auto& instance : mInstances) {
             const Transform& t = instance.transform;
+            auto group = std::find_if(groups.begin(), groups.end(), [&](const InstanceGroup& g) {
+                return g.name == instance.name && g.transform.position == t.position
+                    && g.transform.rotation == t.rotation && g.transform.scale == t.scale;
+            });
+            if (group == groups.end()) {
+                groups.push_back({instance.name, t, {}});
+                group = groups.end() - 1;
+            }
+            group->parts.emplace_back(instance.meshIndex, instance.materialIndex);
+        }
+
+        json instances = json::array();
+        for (const auto& g : groups) {
+            const Transform& t = g.transform;
             const glm::vec3 euler = glm::degrees(glm::eulerAngles(t.rotation));
             json ji;
-            ji["name"]          = instance.name;
-            ji["meshName"]      = instance.meshName;
-            ji["modelIndex"]    = mMeshes[instance.meshIndex].modelIndex;
-            ji["meshIndex"]     = instance.meshIndex;
-            ji["materialIndex"] = instance.materialIndex;
-            ji["localPosition"] = { t.position.x, t.position.y, t.position.z };
-            ji["localRotation"] = { euler.x, euler.y, euler.z };
-            ji["localScale"]    = { t.scale.x, t.scale.y, t.scale.z };
-            ji["rotation"]      = { t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w };
+            ji["name"]     = g.name;
+            ji["position"] = { t.position.x, t.position.y, t.position.z };
+            ji["rotation"] = { euler.x, euler.y, euler.z };
+            ji["scale"]    = { t.scale.x, t.scale.y, t.scale.z };
+            json meshes = json::array();
+            for (const auto& [meshIndex, materialIndex] : g.parts) meshes.push_back({ meshIndex, materialIndex });
+            ji["meshes"] = meshes;
             instances.push_back(ji);
         }
         scene["instances"] = instances;

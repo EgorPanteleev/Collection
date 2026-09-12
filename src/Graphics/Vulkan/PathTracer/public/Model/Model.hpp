@@ -18,6 +18,8 @@ namespace crv::graphics::vulkan {
     public:
         Model() = default;
         void load(const json& scene);
+        [[nodiscard]] const std::string& name() const { return mName; }
+        void setName(std::string name) { mName = std::move(name); }
         [[nodiscard]] Scene&          scene()         { return mScene; }
         [[nodiscard]] RenderSettings& settings()      { return mSettings; }
         [[nodiscard]] Selection&      selection()     { return mSelection; }
@@ -54,6 +56,7 @@ namespace crv::graphics::vulkan {
         cs::FlyCamera     mFlyCamera{};
         cs::OrbitalCamera mOrbitalCamera{};
         cs::AbsCamera*    mCamera = nullptr;
+        std::string       mName{};
     };
 }
 

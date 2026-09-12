@@ -7,6 +7,7 @@
 #include "InputCallbacks.hpp"
 #include "Keybindings.hpp"
 
+#include <filesystem>
 #include <fstream>
 
 namespace crv::graphics::vulkan {
@@ -33,6 +34,7 @@ namespace crv::graphics::vulkan {
     PathTracerApp::PathTracerApp(const PathTracerAppCreateInfo& createInfo) {
         const json scene = readScene(createInfo.scenePath);
         mModel.load(scene);
+        mModel.setName(std::filesystem::path(createInfo.scenePath).stem().string());
         RendererCreateInfo rendererCreateInfo {
             .windowCreateInfo = windowConfig(scene),
             .model            = &mModel,
