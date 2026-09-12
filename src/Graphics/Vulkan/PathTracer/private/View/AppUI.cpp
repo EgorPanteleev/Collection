@@ -57,6 +57,7 @@ namespace crv::graphics::vulkan {
         handleMarquee();
         if (info.drawUI) {
             drawOverView(info);
+            drawScene(info);
             drawSettings(info);
         } else {
             drawCursorDot();
@@ -179,28 +180,30 @@ namespace crv::graphics::vulkan {
                 VkImGui::endGroup();
             }
 
-            if (VkImGui::beginGroup(ICON_FA_CUBES " Scene")) {
-                const auto& instances = mScene->instances();
-                static const std::vector<uint32_t> emptySelection{};
-                const std::vector<uint32_t>& selected =
-                    info.selectedInstances ? *info.selectedInstances : emptySelection;
+        }
+        ImGui::End();
+    }
 
-                ImGui::TextDisabled("%zu instances", instances.size());
-                ImGui::BeginChild("##scene_list", ImVec2(0, 200), ImGuiChildFlags_Borders);
-                for (uint32_t i = 0; i < instances.size(); ++i) {
-                    const bool isSelected =
-                        std::find(selected.begin(), selected.end(), i) != selected.end();
-                    const std::string& name = instances[i].meshName;
-                    std::string label = (name.empty() ? "Mesh" : name) + "##inst" + std::to_string(i);
-                    if (ImGui::Selectable(label.c_str(), isSelected)) {
-                        push(CommandType::SELECT_INSTANCE,
-                             SelectInstancePayload{i, ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift});
-                    }
+    void AppUI::drawScene(const AppUIDrawInfo& info) {
+        if (ImGui::Begin(ICON_FA_CUBES " Scene")) {
+            const auto& instances = mScene->instances();
+            static const std::vector<uint32_t> emptySelection{};
+            const std::vector<uint32_t>& selected =
+                info.selectedInstances ? *info.selectedInstances : emptySelection;
+
+            ImGui::TextDisabled("%zu instances", instances.size());
+            ImGui::BeginChild("##scene_list", ImVec2(0, 0), ImGuiChildFlags_Borders);
+            for (uint32_t i = 0; i < instances.size(); ++i) {
+                const bool isSelected =
+                    std::find(selected.begin(), selected.end(), i) != selected.end();
+                const std::string& name = instances[i].meshName;
+                std::string label = (name.empty() ? "Mesh" : name) + "##inst" + std::to_string(i);
+                if (ImGui::Selectable(label.c_str(), isSelected)) {
+                    push(CommandType::SELECT_INSTANCE,
+                         SelectInstancePayload{i, ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift});
                 }
-                ImGui::EndChild();
-                VkImGui::endGroup();
             }
-
+            ImGui::EndChild();
         }
         ImGui::End();
     }

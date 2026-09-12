@@ -35,6 +35,7 @@ namespace crv::graphics::vulkan {
             const glm::dvec2 delta = input.cursorDelta();
             if (delta.x != 0.0 || delta.y != 0.0) commands.push(CommandType::LOOK);
         }
-        if (input.scrollDelta().y != 0.0) commands.push(CommandType::ZOOM);
+        if (input.scrollDelta().y != 0.0 && !ImGui::GetIO().WantCaptureMouse)
+            commands.push(CommandType::ZOOM);
     }
 }

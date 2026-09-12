@@ -56,6 +56,7 @@ namespace crv::graphics::vulkan {
         void handleMarquee();
         void drawCursorDot();
         void drawOverView(const AppUIDrawInfo& info);
+        void drawScene(const AppUIDrawInfo& info);
         void drawCameraTab(const AppUIDrawInfo& info);
         void drawRenderTab(const AppUIDrawInfo& info);
         void drawObjectTab(const AppUIDrawInfo& info);
