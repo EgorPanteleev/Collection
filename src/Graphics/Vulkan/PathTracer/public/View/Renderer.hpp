@@ -85,6 +85,7 @@ namespace crv::graphics::vulkan {
         uint32_t                     mFrameCount           = 0;
         uint32_t                     mEffectiveScale       = 1;
         bool                         mAdditiveSelect       = false;
+        bool                         mPickPending          = false;
         ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
 
         Context                      mContext              = CRV_NULL_HANDLE;

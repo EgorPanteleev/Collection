@@ -115,7 +115,6 @@ namespace crv::graphics::vulkan {
         if (created.empty()) return;
         mSelection.selectedInstances = created;
         mSelection.activeInstance = created.back();
-        mSelection.pending = false;
         mUpdateState.updateInstances = true;
     }
 
@@ -162,7 +161,6 @@ namespace crv::graphics::vulkan {
     void Model::clearSelection() {
         mSelection.selectedInstances.clear();
         mSelection.activeInstance = UINT32_MAX;
-        mSelection.pending = false;
     }
 
     void Model::select(const uint32_t id, const bool additive) {

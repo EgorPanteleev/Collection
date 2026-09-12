@@ -477,12 +477,12 @@ namespace crv::graphics::vulkan {
 
         Image::inverseTransit(transitInfo);
         mClickedPixel = {UINT32_MAX, UINT32_MAX};
-        mModel->selection().pending = true;
+        mPickPending = true;
     }
 
     void Renderer::updateSelectedInstance() {
-        if (mModel->selection().pending) {
-            mModel->selection().pending = false;
+        if (mPickPending) {
+            mPickPending = false;
             uint32_t* data = nullptr;
             vmaMapMemory(mContext.allocator(), mReadbackBuffer.allocation(), (void**)&data);
             const uint32_t id = *data;
