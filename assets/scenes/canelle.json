@@ -31,2104 +31,1509 @@
   },
   "instances": [
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 2,
-      "meshIndex": 0,
-      "meshName": "Circle.003",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 3,
-      "meshIndex": 1,
-      "meshName": "Circle",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 4,
-      "meshIndex": 2,
-      "meshName": "Cloth_Shape",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 5,
-      "meshIndex": 3,
-      "meshName": "Cube.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 5,
-      "meshIndex": 4,
-      "meshName": "Cube.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 6,
-      "meshIndex": 5,
-      "meshName": "Cylinder",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 7,
-      "meshIndex": 6,
-      "meshName": "Line103.001-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 8,
-      "meshIndex": 7,
-      "meshName": "Line103.001-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 8,
-      "meshName": "Line103.082",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 9,
-      "meshName": "Line103.083",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "canelle",
+      "parent": -1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 7,
-      "meshIndex": 10,
-      "meshName": "Line103.084",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "ROOT",
+      "parent": 0
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 11,
-      "meshName": "Line103.085",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.006",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 12,
-      "meshName": "Line103",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.010",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 7,
-      "meshIndex": 13,
-      "meshName": "Line769-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.012",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 8,
-      "meshIndex": 14,
-      "meshName": "Line769-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.013",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 7,
-      "meshIndex": 15,
-      "meshName": "Line776-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.014",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 8,
-      "meshIndex": 16,
-      "meshName": "Line776-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.015",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 17,
-      "meshName": "Line781.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.016",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 18,
-      "meshName": "Line781.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.017",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 19,
-      "meshName": "Line781.003",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.019",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 9,
-      "meshIndex": 20,
-      "meshName": "Line781.004",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.021",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 7,
-      "meshIndex": 21,
-      "meshName": "Line781-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Plane.022",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 8,
-      "meshIndex": 22,
-      "meshName": "Line781-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Sphere153",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 7,
-      "meshIndex": 23,
-      "meshName": "Line786-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Sphere260",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 8,
-      "meshIndex": 24,
-      "meshName": "Line786-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Line103.001",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 10,
-      "meshIndex": 25,
-      "meshName": "Plane.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Line776",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 11,
-      "meshIndex": 26,
-      "meshName": "Plane.002-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Line781",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
-      ],
-      "materialIndex": 12,
-      "meshIndex": 27,
-      "meshName": "Plane.002-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "name": "Line786",
+      "parent": 1
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.002",
+      "parent": 1
+    },
+    {
+      "name": "Plane.004",
+      "parent": 1
+    },
+    {
+      "name": "Plane.005",
+      "parent": 1
+    },
+    {
+      "name": "Plane.014-1",
+      "parent": 8,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 13,
-      "meshIndex": 28,
-      "meshName": "Plane.004",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 0,
+      "material": 42
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Circle.001",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 14,
-      "meshIndex": 29,
-      "meshName": "Plane.005-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 1,
+      "material": 2
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Circle.001.001",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 12,
-      "meshIndex": 30,
-      "meshName": "Plane.005-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 2,
+      "material": 2
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Circle",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 15,
-      "meshIndex": 31,
-      "meshName": "Circle.011",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 3,
+      "material": 3
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Cloth_Shape",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 16,
-      "meshIndex": 32,
-      "meshName": "Plane.003",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 4,
+      "material": 8
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Cloth_Shape.001",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 17,
-      "meshIndex": 33,
-      "meshName": "Plane.007-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 5,
+      "material": 4
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Cube.001",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 18,
-      "meshIndex": 34,
-      "meshName": "Plane.007-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 6,
+      "material": 5
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Cube.002",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 19,
-      "meshIndex": 35,
-      "meshName": "Plane.007-2",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 7,
+      "material": 5
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Cylinder",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 20,
-      "meshIndex": 36,
-      "meshName": "Plane.008",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 8,
+      "material": 6
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line103.001-0",
+      "parent": 15,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 22,
-      "meshIndex": 38,
-      "meshName": "Plane.012-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 9,
+      "material": 7
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line103.001-1",
+      "parent": 15,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 23,
-      "meshIndex": 39,
-      "meshName": "Plane.012-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 10,
+      "material": 8
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line103.082",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 24,
-      "meshIndex": 40,
-      "meshName": "Plane.015-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 11,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line103.083",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 23,
-      "meshIndex": 41,
-      "meshName": "Plane.015-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+      "mesh": 12,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line103.084",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 25,
-      "meshIndex": 42,
-      "meshName": "Plane.015-2",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 13,
+      "material": 7
+    },
+    {
+      "name": "Line103.085",
+      "parent": 1,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 14,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line103",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 26,
-      "meshIndex": 43,
-      "meshName": "Plane.015-3",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 15,
+      "material": 9
+    },
+    {
+      "name": "Line776-0",
+      "parent": 16,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 16,
+      "material": 7
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line776-1",
+      "parent": 16,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 27,
-      "meshIndex": 44,
-      "meshName": "Plane.010-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 17,
+      "material": 8
+    },
+    {
+      "name": "Line781.001",
+      "parent": 1,
+      "position": [
+        0.3693482577800751,
+        -0.003477029735222459,
+        0.22732113301753998
+      ],
       "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+        0.8091179132461548,
+        -0.3908988833427429,
+        -0.01623046211898327,
+        0.4384778141975403
+      ],
+      "scale": [
+        -0.0025775267276912928,
+        0.0035492307506501675,
+        0.0026802150532603264
+      ],
+      "mesh": 18,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
+      "name": "Line781.002",
+      "parent": 1,
+      "position": [
+        0.3008842170238495,
+        -0.0055971406400203705,
+        0.17910173535346985
       ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
+      "rotation": [
+        0.9018861651420593,
+        -0.00733757670968771,
+        -0.1708039492368698,
+        -0.39670330286026
       ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
+      "scale": [
+        -0.004699470475316048,
+        0.006471126805990934,
+        0.0048866961151361465
+      ],
+      "mesh": 19,
+      "material": 9
+    },
+    {
+      "name": "Line781.003",
+      "parent": 1,
+      "position": [
+        -0.28449511528015137,
+        -0.0038335490971803665,
+        0.3682313561439514
       ],
-      "materialIndex": 28,
-      "meshIndex": 45,
-      "meshName": "Plane.010-1",
-      "modelIndex": 0,
-      "name": "main",
       "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+        0.1559228003025055,
+        0.3795248568058014,
+        0.040056418627500534,
+        0.91106778383255
+      ],
+      "scale": [
+        -0.0026317029260098934,
+        0.0036238308530300856,
+        0.0027365500573068857
+      ],
+      "mesh": 20,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
+      "name": "Line781.004",
+      "parent": 1,
+      "position": [
+        -0.31758055090904236,
+        -0.0036747478879988194,
+        0.16020137071609497
       ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
+      "rotation": [
+        0.912415087223053,
+        -0.13663499057292938,
+        0.3203842043876648,
+        0.2149035781621933
       ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
+      "scale": [
+        -0.0028196817729622126,
+        0.0038826765958219767,
+        0.0029320179019123316
+      ],
+      "mesh": 21,
+      "material": 9
+    },
+    {
+      "name": "Line781.005",
+      "parent": 1,
+      "position": [
+        -0.1258147656917572,
+        -0.0036747478879988194,
+        0.09994582086801529
       ],
-      "materialIndex": 29,
-      "meshIndex": 46,
-      "meshName": "Plane.010-2",
-      "modelIndex": 0,
-      "name": "main",
       "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+        0.912415087223053,
+        -0.13663499057292938,
+        0.3203842043876648,
+        0.2149035781621933
+      ],
+      "scale": [
+        -0.002121879253536463,
+        0.0029218087438493967,
+        0.002206415170803666
+      ],
+      "mesh": 21,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
+      "name": "Line781.006",
+      "parent": 1,
+      "position": [
+        -0.05940791592001915,
+        -0.004546694457530975,
+        0.20305530726909637
       ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
+      "rotation": [
+        -0.5804880857467651,
+        0.2674869894981384,
+        0.705317497253418,
+        0.306613028049469
       ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
+      "scale": [
+        -0.0033655683510005474,
+        0.004634357523173094,
+        0.003499652724713087
+      ],
+      "mesh": 19,
+      "material": 9
+    },
+    {
+      "name": "Line781.007",
+      "parent": 1,
+      "position": [
+        -0.0020160507410764694,
+        -0.002717680297791958,
+        0.18399164080619812
       ],
-      "materialIndex": 27,
-      "meshIndex": 47,
-      "meshName": "Plane.011-0",
-      "modelIndex": 0,
-      "name": "main",
       "rotation": [
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ]
+        0.8153479099273682,
+        -0.37773215770721436,
+        -0.009120890870690346,
+        0.43868330121040344
+      ],
+      "scale": [
+        -0.0019396516727283597,
+        0.0026708825025707483,
+        0.0020169273484498262
+      ],
+      "mesh": 18,
+      "material": 9
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
+      "name": "Line781.008",
+      "parent": 1,
+      "position": [
+        0.34399473667144775,
+        -0.0024651908315718174,
+        0.30926546454429626
       ],
-      "localRotation": [
-        0.0,
-        0.0,
-        0.0
+      "rotation": [
+        0.16064244508743286,
+        0.5415744781494141,
+        0.01050889864563942,
+        0.8250943422317505
       ],
-      "localScale": [
-        1.0,
-        -1.0,
-        1.0
+      "scale": [
+        -0.0016579730436205864,
+        0.0022830136585980654,
+        0.001724026631563902
       ],
-      "materialIndex": 28,
-      "meshIndex": 48,
-      "meshName": "Plane.011-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 20,
+      "material": 9
+    },
+    {
+      "name": "Line781-0",
+      "parent": 17,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 22,
+      "material": 7
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Sphere153-1",
+      "parent": 13,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 27,
-      "meshIndex": 49,
-      "meshName": "Plane.013-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 23,
+      "material": 8
+    },
+    {
+      "name": "Line786-0",
+      "parent": 18,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 24,
+      "material": 7
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line786-1",
+      "parent": 18,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 28,
-      "meshIndex": 50,
-      "meshName": "Plane.013-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 25,
+      "material": 8
+    },
+    {
+      "name": "Plane.001",
+      "parent": 1,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 26,
+      "material": 10
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.002-0",
+      "parent": 19,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 29,
-      "meshIndex": 51,
-      "meshName": "Plane.013-2",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 27,
+      "material": 11
+    },
+    {
+      "name": "Plane.002-1",
+      "parent": 19,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 28,
+      "material": 12
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.003",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 27,
-      "meshIndex": 52,
-      "meshName": "Plane.014-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 29,
+      "material": 13
+    },
+    {
+      "name": "Plane.005-0",
+      "parent": 20,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 30,
+      "material": 14
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.005-1",
+      "parent": 20,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 28,
-      "meshIndex": 53,
-      "meshName": "Plane.014-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 31,
+      "material": 12
+    },
+    {
+      "name": "Plane.003.001",
+      "parent": 21,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 32,
+      "material": 16
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Circle.003",
+      "parent": 21,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 30,
-      "meshIndex": 54,
-      "meshName": "Plane.016-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 33,
+      "material": 15
+    },
+    {
+      "name": "Circle.003.001",
+      "parent": 21,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 34,
+      "material": 15
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.007-0",
+      "parent": 2,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 31,
-      "meshIndex": 55,
-      "meshName": "Plane.016-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 35,
+      "material": 17
+    },
+    {
+      "name": "Plane.007-1",
+      "parent": 2,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 36,
+      "material": 18
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.007-2",
+      "parent": 2,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 32,
-      "meshIndex": 56,
-      "meshName": "Plane.016-2",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 37,
+      "material": 19
+    },
+    {
+      "name": "Plane.007",
+      "parent": 1,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 38,
+      "material": 20
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.008",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 33,
-      "meshIndex": 57,
-      "meshName": "Plane.016-3",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 39,
+      "material": 21
+    },
+    {
+      "name": "Plane.012-0",
+      "parent": 3,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 40,
+      "material": 22
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.012-1",
+      "parent": 3,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 34,
-      "meshIndex": 58,
-      "meshName": "Plane.016-4",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 41,
+      "material": 23
+    },
+    {
+      "name": "Plane.015-0",
+      "parent": 4,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 42,
+      "material": 24
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.015-1",
+      "parent": 4,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 35,
-      "meshIndex": 59,
-      "meshName": "Plane.017",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 43,
+      "material": 23
+    },
+    {
+      "name": "Plane.015-3",
+      "parent": 4,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 44,
+      "material": 25
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.015-3.001",
+      "parent": 4,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 31,
-      "meshIndex": 60,
-      "meshName": "Plane.020",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 45,
+      "material": 26
+    },
+    {
+      "name": "Plane.010-2",
+      "parent": 5,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 46,
+      "material": 27
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.010-2.001",
+      "parent": 5,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 36,
-      "meshIndex": 61,
-      "meshName": "Plane.019",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 47,
+      "material": 29
+    },
+    {
+      "name": "Plane.010-2.002",
+      "parent": 5,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 48,
+      "material": 29
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.011-0",
+      "parent": 6,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 37,
-      "meshIndex": 62,
-      "meshName": "Plane.021-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 49,
+      "material": 27
+    },
+    {
+      "name": "Plane.011-1",
+      "parent": 6,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 50,
+      "material": 29
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.013-0",
+      "parent": 7,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 12,
-      "meshIndex": 63,
-      "meshName": "Plane.021-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 51,
+      "material": 27
+    },
+    {
+      "name": "Plane.013-2",
+      "parent": 7,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 52,
+      "material": 29
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.013-0.001",
+      "parent": 7,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 38,
-      "meshIndex": 64,
-      "meshName": "Plane.018-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 53,
+      "material": 29
+    },
+    {
+      "name": "Plane.014-0",
+      "parent": 8,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 54,
+      "material": 27
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.014-1.001",
+      "parent": 8,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 39,
-      "meshIndex": 65,
-      "meshName": "Plane.018-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 55,
+      "material": 29
+    },
+    {
+      "name": "Plane.016-0",
+      "parent": 9,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 56,
+      "material": 30
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.016-1",
+      "parent": 9,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 40,
-      "meshIndex": 66,
-      "meshName": "Plane.018-2",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 57,
+      "material": 31
+    },
+    {
+      "name": "Plane.016-2",
+      "parent": 9,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 58,
+      "material": 32
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.016-3",
+      "parent": 9,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 36,
-      "meshIndex": 67,
-      "meshName": "Plane.018-3",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 59,
+      "material": 33
+    },
+    {
+      "name": "Plane.016-1.001",
+      "parent": 9,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 60,
+      "material": 34
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.018",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 36,
-      "meshIndex": 68,
-      "meshName": "Plane.022",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 61,
+      "material": 35
+    },
+    {
+      "name": "Plane.019",
+      "parent": 10,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 62,
+      "material": 36
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.020",
+      "parent": 10,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 41,
-      "meshIndex": 69,
-      "meshName": "Plane",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 63,
+      "material": 31
+    },
+    {
+      "name": "Plane.021-0",
+      "parent": 11,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 64,
+      "material": 37
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.021-1",
+      "parent": 11,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 7,
-      "meshIndex": 70,
-      "meshName": "Sphere153-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 65,
+      "material": 12
+    },
+    {
+      "name": "Plane.018-0",
+      "parent": 12,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 66,
+      "material": 38
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.018-1",
+      "parent": 12,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 8,
-      "meshIndex": 71,
-      "meshName": "Sphere153-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 67,
+      "material": 39
+    },
+    {
+      "name": "Plane.018-2",
+      "parent": 12,
       "rotation": [
-        0.0,
-        0.0,
         0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 68,
+      "material": 40
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane.018-3",
+      "parent": 12,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 7,
-      "meshIndex": 72,
-      "meshName": "Sphere260-0",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 69,
+      "material": 36
+    },
+    {
+      "name": "Plane.002-0.001",
+      "parent": 19,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 70,
+      "material": 36
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Plane",
+      "parent": 1,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 8,
-      "meshIndex": 73,
-      "meshName": "Sphere260-1",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 71,
+      "material": 41
+    },
+    {
+      "name": "Sphere153-0",
+      "parent": 13,
       "rotation": [
         0.0,
-        0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 72,
+      "material": 7
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Line781-1",
+      "parent": 17,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
         -1.0,
+        1.0,
         1.0
       ],
-      "materialIndex": 42,
-      "meshIndex": 74,
-      "meshName": "Plane.006",
-      "modelIndex": 0,
-      "name": "main",
+      "mesh": 73,
+      "material": 8
+    },
+    {
+      "name": "Sphere260-0",
+      "parent": 14,
       "rotation": [
-        0.0,
         0.0,
-        0.0,
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
         1.0
-      ]
+      ],
+      "mesh": 74,
+      "material": 7
     },
     {
-      "localPosition": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "localRotation": [
-        0.0,
+      "name": "Sphere260-1",
+      "parent": 14,
+      "rotation": [
         0.0,
-        0.0
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
       ],
-      "localScale": [
-        1.0,
+      "scale": [
+        -1.0,
         1.0,
-        -1.0
+        1.0
       ],
-      "materialIndex": 21,
-      "meshIndex": 76,
-      "meshName": "mesh-00039",
-      "modelIndex": 2,
-      "name": "powder_hd",
+      "mesh": 75,
+      "material": 8
+    },
+    {
+      "name": "Area_Meshlight",
+      "parent": 1,
       "rotation": [
-        -0.70710678,
-        0.0,
         0.0,
-        0.70710678
-      ]
+        -0.7071067690849304,
+        0.7071067690849304,
+        -0.0
+      ],
+      "scale": [
+        -1.0,
+        1.0,
+        1.0
+      ],
+      "mesh": 76,
+      "material": 42
     }
   ],
   "materials": [
@@ -2175,6 +1580,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2189,6 +1595,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 1.0,
+      "sheen": 0.0,
       "specular": 0.0,
       "transmission": 0.0
     },
@@ -2198,6 +1605,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2212,6 +1620,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 0.0,
       "transmission": 0.0
     },
@@ -2221,12 +1630,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.10440310090780258,
-        0.09053315222263336,
-        0.0680314376950264
+        0.10440000146627426,
+        0.09049999713897705,
+        0.06800000369548798
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2235,7 +1645,8 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
+      "sheen": 0.0,
+      "specular": 0.0,
       "transmission": 0.0
     },
     {
@@ -2244,13 +1655,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00000.png",
       "clearcoat": 0.0,
-      "clearcoatRoughness": 0.11999999731779099,
+      "clearcoatRoughness": 0.0,
       "color": [
-        1.0,
-        1.0,
-        1.0
+        1.1764706373214722,
+        1.2549020051956177,
+        1.372549057006836
       ],
       "ior": 2.0,
       "luminance": 0.0,
@@ -2259,7 +1671,9 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.11999999731779099,
+      "sheen": 0.0,
       "specular": 1.0,
+      "translucency": 0.30000001192092896,
       "transmission": 0.0
     },
     {
@@ -2268,6 +1682,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2283,7 +1698,9 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00002.png",
       "opacity": 1.0,
       "roughness": 0.5,
+      "sheen": 0.0,
       "specular": 1.0,
+      "translucency": 1.0,
       "transmission": 0.0
     },
     {
@@ -2292,12 +1709,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.7141373753547668,
-        0.5537165403366089,
-        0.16281573474407196
+        0.7843137979507446,
+        0.5803921818733215,
+        0.2705882489681244
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2306,8 +1724,9 @@
       "normalScale": 1.0,
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00003.png",
       "opacity": 1.0,
-      "roughness": 0.5,
-      "specular": 1.0,
+      "roughness": 0.44999998807907104,
+      "sheen": 0.0,
+      "specular": 0.20000000298023224,
       "transmission": 0.0
     },
     {
@@ -2316,6 +1735,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00004.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
@@ -2332,6 +1752,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00004.png",
       "opacity": 1.0,
       "roughness": 0.10000000149011612,
+      "sheen": 0.0,
       "specular": 0.04100000113248825,
       "transmission": 0.0
     },
@@ -2341,13 +1762,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00005.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        1.0,
-        1.0,
-        1.0
+        3.529412031173706,
+        3.529412031173706,
+        3.529412031173706
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2355,9 +1777,11 @@
       "name": "feuille",
       "normalScale": 1.0,
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00006.png",
-      "opacity": 0.8299999833106995,
+      "opacity": 1.0,
       "roughness": 0.05000000074505806,
-      "specular": 0.02199999988079071,
+      "sheen": 0.0,
+      "specular": 0.5490000247955322,
+      "translucency": 2.0,
       "transmission": 0.0
     },
     {
@@ -2366,13 +1790,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00007.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.5,
-        0.5,
-        0.5
+        1.0,
+        1.0,
+        1.0
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2382,7 +1807,8 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00007.png",
       "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
+      "sheen": 0.0,
+      "specular": 0.0,
       "transmission": 0.0
     },
     {
@@ -2391,13 +1817,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00008.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.5,
-        0.5,
-        0.5
+        1.0,
+        1.0,
+        1.0
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2407,8 +1834,10 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00008.png",
       "opacity": 1.0,
       "roughness": 0.800000011920929,
-      "specular": 0.03400000184774399,
-      "transmission": 0.12300000339746475
+      "sheen": 0.0,
+      "specular": 0.8420000076293945,
+      "translucency": 0.5,
+      "transmission": 0.0
     },
     {
       "absorption": [
@@ -2416,6 +1845,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2430,6 +1860,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.5,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2439,6 +1870,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2454,6 +1886,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00010.png",
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -2463,6 +1896,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2477,6 +1911,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -2486,6 +1921,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2501,6 +1937,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00011.png",
       "opacity": 1.0,
       "roughness": 0.07500000298023224,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2510,6 +1947,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2525,6 +1963,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00013.png",
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -2534,12 +1973,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.629869818687439,
-        0.6206930875778198,
-        0.5345926284790039
+        0.6298999786376953,
+        0.6207000017166138,
+        0.534600019454956
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2549,8 +1989,10 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00015.png",
       "opacity": 1.0,
       "roughness": 0.5,
-      "specular": 0.013000000268220901,
-      "transmission": 0.5580000281333923
+      "sheen": 0.0,
+      "specular": 0.33399999141693115,
+      "translucency": 0.843999981880188,
+      "transmission": 0.0
     },
     {
       "absorption": [
@@ -2558,13 +2000,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00014.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        1.0,
-        1.0,
-        1.0
+        1.372549057006836,
+        3.1372551918029785,
+        3.9215688705444336
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2573,104 +2016,8 @@
       "normalScale": 0.9599999785423279,
       "opacity": 1.0,
       "roughness": 0.15000000596046448,
-      "specular": 0.012000000104308128,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [
-        0.044773850589990616,
-        0.044773850589990616,
-        0.044773850589990616
-      ],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.0,
-      "name": "Clay Shader",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00016.png",
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.0,
-      "name": "Wood",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 0.44999998807907104,
-      "specular": 1.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [
-        0.008194576017558575,
-        0.023871690034866333,
-        0.01133568026125431
-      ],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalRoughnessTex": "models/canelle/LuxCoreScene/imagemap-00017.png",
-      "metalness": 0.0,
-      "name": "Wall",
-      "normalScale": 1.5099999904632568,
-      "normalTex": "models/canelle/LuxCoreScene/imagemap-00018.png",
-      "opacity": 1.0,
-      "roughness": 0.5,
-      "specular": 0.008999999612569809,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00019.png",
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [
-        0.5,
-        0.5,
-        0.5
-      ],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.0,
-      "name": "planche de bord",
-      "normalScale": 1.0,
-      "normalTex": "models/canelle/LuxCoreScene/imagemap-00019.png",
-      "opacity": 1.0,
-      "roughness": 0.05000000074505806,
-      "specular": 0.05000000074505806,
+      "sheen": 0.0,
+      "specular": 0.3089999854564667,
       "transmission": 0.0
     },
     {
@@ -2683,11 +2030,116 @@
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.7098638,
-        0.7098638,
-        0.7098638
+        0.04479999840259552,
+        0.04479999840259552,
+        0.04479999840259552
       ],
-      "ior": 1.02,
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Clay Shader",
+      "normalScale": 1.0,
+      "opacity": 1.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 0.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00016.png",
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        2.2509806156158447,
+        4.43137264251709,
+        5.039216041564941
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Wood",
+      "normalScale": 1.0,
+      "opacity": 1.0,
+      "roughness": 0.44999998807907104,
+      "sheen": 0.0,
+      "specular": 0.7250000238418579,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        0.008200000040233135,
+        0.023900000378489494,
+        0.011300000362098217
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalRoughnessTex": "models/canelle/LuxCoreScene/imagemap-00017.png",
+      "metalness": 0.0,
+      "name": "Wall",
+      "normalScale": 1.5099999904632568,
+      "normalTex": "models/canelle/LuxCoreScene/imagemap-00018.png",
+      "opacity": 1.0,
+      "roughness": 0.6000000238418579,
+      "sheen": 0.0,
+      "specular": 0.03999999910593033,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00019.png",
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "planche de bord",
+      "normalScale": 1.0,
+      "normalTex": "models/canelle/LuxCoreScene/imagemap-00019.png",
+      "opacity": 1.0,
+      "roughness": 0.05000000074505806,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        0.7098637819290161,
+        0.7098637819290161,
+        0.7098637819290161
+      ],
+      "ior": 1.0199999809265137,
       "luminance": 0.0,
       "metalness": 0.0,
       "name": "Material.001",
@@ -2696,8 +2148,8 @@
       "roughness": 0.5,
       "sheen": 0.0,
       "specular": 1.0,
-      "transmission": 0.0,
-      "translucency": 1.0
+      "translucency": 1.0,
+      "transmission": 0.0
     },
     {
       "absorption": [
@@ -2705,6 +2157,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2720,6 +2173,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00020.png",
       "opacity": 1.0,
       "roughness": 0.5,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2729,6 +2183,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2743,6 +2198,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.05000000074505806,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2752,13 +2208,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00021.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.5,
-        0.5,
-        0.5
+        1.0,
+        1.0,
+        1.0
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2769,7 +2226,8 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00021.png",
       "opacity": 1.0,
       "roughness": 0.5,
-      "specular": 0.050999999046325684,
+      "sheen": 0.0,
+      "specular": 1.0,
       "transmission": 0.0
     },
     {
@@ -2778,6 +2236,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2794,6 +2253,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00022.png",
       "opacity": 1.0,
       "roughness": 0.5,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2803,6 +2263,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2817,6 +2278,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.009999999776482582,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2826,13 +2288,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00023.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.5,
-        0.5,
-        0.5
+        1.0,
+        1.0,
+        1.0
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2842,7 +2305,8 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00024.png",
       "opacity": 1.0,
       "roughness": 0.800000011920929,
-      "specular": 0.023000000044703484,
+      "sheen": 0.0,
+      "specular": 0.5730000138282776,
       "transmission": 0.0
     },
     {
@@ -2851,12 +2315,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.2172849029302597,
-        0.11203529685735703,
-        0.043723538517951965
+        0.13330000638961792,
+        0.04969999939203262,
+        0.013299999758601189
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2864,8 +2329,9 @@
       "name": "graine de cannelle",
       "normalScale": 1.0,
       "opacity": 1.0,
-      "roughness": 0.10000000149011612,
-      "specular": 0.023000000044703484,
+      "roughness": 0.019999999552965164,
+      "sheen": 0.0,
+      "specular": 0.5860000252723694,
       "transmission": 0.0
     },
     {
@@ -2874,6 +2340,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2888,6 +2355,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.10000000149011612,
+      "sheen": 0.0,
       "specular": 0.023000000044703484,
       "transmission": 0.0
     },
@@ -2897,6 +2365,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2912,6 +2381,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00025.png",
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -2921,6 +2391,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2935,6 +2406,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -2944,12 +2416,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.6999999284744263,
-        0.40294089913368225,
-        0.04714234918355942
+        0.699999988079071,
+        0.40290001034736633,
+        0.0471000000834465
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -2958,7 +2431,8 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.10000000149011612,
-      "specular": 0.05000000074505806,
+      "sheen": 0.0,
+      "specular": 1.0,
       "transmission": 0.0
     },
     {
@@ -2967,6 +2441,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -2981,6 +2456,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.019999999552965164,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -2990,6 +2466,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -3004,6 +2481,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -3013,6 +2491,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -3027,6 +2506,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.019999999552965164,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -3036,13 +2516,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00026.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.5,
-        0.5,
-        0.5
+        1.0,
+        1.0,
+        1.0
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -3053,7 +2534,8 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00026.png",
       "opacity": 1.0,
       "roughness": 0.5,
-      "specular": 0.05000000074505806,
+      "sheen": 0.0,
+      "specular": 1.0,
       "transmission": 0.0
     },
     {
@@ -3062,6 +2544,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -3077,6 +2560,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00027.png",
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -3086,13 +2570,14 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "baseColorTex": "models/canelle/LuxCoreScene/imagemap-00028.png",
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        1.0,
-        1.0,
-        1.0
+        1.600000023841858,
+        1.600000023841858,
+        1.600000023841858
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -3101,6 +2586,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.44999998807907104,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -3110,6 +2596,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -3126,6 +2613,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00029.png",
       "opacity": 1.0,
       "roughness": 0.5,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -3135,12 +2623,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
-        0.011606389656662941,
-        0.011606389656662941,
-        0.011606389656662941
+        0.011599999852478504,
+        0.011599999852478504,
+        0.011599999852478504
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -3149,7 +2638,8 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 0.029999999329447746,
-      "specular": 0.02800000086426735,
+      "sheen": 0.0,
+      "specular": 0.6990000009536743,
       "transmission": 0.0
     },
     {
@@ -3158,12 +2648,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
         0.8500000238418579,
-        0.44999998807907104,
-        0.15000000596046448
+        0.6000000238418579,
+        0.20000000298023224
       ],
       "ior": 1.5,
       "luminance": 0.0,
@@ -3173,6 +2664,7 @@
       "normalTex": "models/canelle/LuxCoreScene/imagemap-00013.png",
       "opacity": 1.0,
       "roughness": 0.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 1.0
     },
@@ -3182,12 +2674,13 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
         1.0,
-        0.9350000023841858,
-        0.7639999985694885
+        1.0,
+        1.0
       ],
       "ior": 1.5,
       "luminance": 14.600000381469727,
@@ -3196,7 +2689,8 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
+      "sheen": 0.0,
+      "specular": 0.0,
       "transmission": 0.0
     },
     {
@@ -3205,6 +2699,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -3219,6 +2714,7 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 1.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     },
@@ -3228,6 +2724,7 @@
         1.0,
         1.0
       ],
+      "anisotropy": 0.0,
       "clearcoat": 0.0,
       "clearcoatRoughness": 0.0,
       "color": [
@@ -3242,20 +2739,949 @@
       "normalScale": 1.0,
       "opacity": 1.0,
       "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
+      "specular": 1.0,
+      "transmission": 0.0
+    },
+    {
+      "absorption": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "anisotropy": 0.0,
+      "clearcoat": 0.0,
+      "clearcoatRoughness": 0.0,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ior": 1.5,
+      "luminance": 0.0,
+      "metalness": 0.0,
+      "name": "Unknown",
+      "normalScale": 1.0,
+      "opacity": 0.0,
+      "roughness": 1.0,
+      "sheen": 0.0,
       "specular": 1.0,
       "transmission": 0.0
     }
   ],
   "modelImports": [
-    "models/canelle/canelle.glb",
-    "models/plane.glb",
-    "models/canelle/LuxCoreScene/mesh-00039.ply"
+    "models/canelle/LuxCoreScene/mesh-00000.ply",
+    "models/canelle/LuxCoreScene/mesh-00002.ply",
+    "models/canelle/LuxCoreScene/mesh-00001.ply",
+    "models/canelle/LuxCoreScene/mesh-00003.ply",
+    "models/canelle/LuxCoreScene/mesh-00005.ply",
+    "models/canelle/LuxCoreScene/mesh-00004.ply",
+    "models/canelle/LuxCoreScene/mesh-00077.ply",
+    "models/canelle/LuxCoreScene/mesh-00078.ply",
+    "models/canelle/LuxCoreScene/mesh-00008.ply",
+    "models/canelle/LuxCoreScene/mesh-00009.ply",
+    "models/canelle/LuxCoreScene/mesh-00010.ply",
+    "models/canelle/LuxCoreScene/mesh-00011.ply",
+    "models/canelle/LuxCoreScene/mesh-00012.ply",
+    "models/canelle/LuxCoreScene/mesh-00013.ply",
+    "models/canelle/LuxCoreScene/mesh-00014.ply",
+    "models/canelle/LuxCoreScene/mesh-00015.ply",
+    "models/canelle/LuxCoreScene/mesh-00016.ply",
+    "models/canelle/LuxCoreScene/mesh-00017.ply",
+    "models/canelle/LuxCoreScene/mesh-00018.ply",
+    "models/canelle/LuxCoreScene/mesh-00019.ply",
+    "models/canelle/LuxCoreScene/mesh-00020.ply",
+    "models/canelle/LuxCoreScene/mesh-00021.ply",
+    "models/canelle/LuxCoreScene/mesh-00022.ply",
+    "models/canelle/LuxCoreScene/mesh-00023.ply",
+    "models/canelle/LuxCoreScene/mesh-00024.ply",
+    "models/canelle/LuxCoreScene/mesh-00025.ply",
+    "models/canelle/LuxCoreScene/mesh-00079.ply",
+    "models/canelle/LuxCoreScene/mesh-00027.ply",
+    "models/canelle/LuxCoreScene/mesh-00028.ply",
+    "models/canelle/LuxCoreScene/mesh-00029.ply",
+    "models/canelle/LuxCoreScene/mesh-00030.ply",
+    "models/canelle/LuxCoreScene/mesh-00031.ply",
+    "models/canelle/LuxCoreScene/mesh-00032.ply",
+    "models/canelle/LuxCoreScene/mesh-00034.ply",
+    "models/canelle/LuxCoreScene/mesh-00033.ply",
+    "models/canelle/LuxCoreScene/mesh-00035.ply",
+    "models/canelle/LuxCoreScene/mesh-00036.ply",
+    "models/canelle/LuxCoreScene/mesh-00037.ply",
+    "models/canelle/LuxCoreScene/mesh-00038.ply",
+    "models/canelle/LuxCoreScene/mesh-00039.ply",
+    "models/canelle/LuxCoreScene/mesh-00040.ply",
+    "models/canelle/LuxCoreScene/mesh-00041.ply",
+    "models/canelle/LuxCoreScene/mesh-00042.ply",
+    "models/canelle/LuxCoreScene/mesh-00043.ply",
+    "models/canelle/LuxCoreScene/mesh-00044.ply",
+    "models/canelle/LuxCoreScene/mesh-00045.ply",
+    "models/canelle/LuxCoreScene/mesh-00046.ply",
+    "models/canelle/LuxCoreScene/mesh-00047.ply",
+    "models/canelle/LuxCoreScene/mesh-00048.ply",
+    "models/canelle/LuxCoreScene/mesh-00049.ply",
+    "models/canelle/LuxCoreScene/mesh-00050.ply",
+    "models/canelle/LuxCoreScene/mesh-00051.ply",
+    "models/canelle/LuxCoreScene/mesh-00052.ply",
+    "models/canelle/LuxCoreScene/mesh-00053.ply",
+    "models/canelle/LuxCoreScene/mesh-00054.ply",
+    "models/canelle/LuxCoreScene/mesh-00055.ply",
+    "models/canelle/LuxCoreScene/mesh-00056.ply",
+    "models/canelle/LuxCoreScene/mesh-00057.ply",
+    "models/canelle/LuxCoreScene/mesh-00058.ply",
+    "models/canelle/LuxCoreScene/mesh-00059.ply",
+    "models/canelle/LuxCoreScene/mesh-00060.ply",
+    "models/canelle/LuxCoreScene/mesh-00061.ply",
+    "models/canelle/LuxCoreScene/mesh-00062.ply",
+    "models/canelle/LuxCoreScene/mesh-00063.ply",
+    "models/canelle/LuxCoreScene/mesh-00064.ply",
+    "models/canelle/LuxCoreScene/mesh-00065.ply",
+    "models/canelle/LuxCoreScene/mesh-00066.ply",
+    "models/canelle/LuxCoreScene/mesh-00067.ply",
+    "models/canelle/LuxCoreScene/mesh-00068.ply",
+    "models/canelle/LuxCoreScene/mesh-00069.ply",
+    "models/canelle/LuxCoreScene/mesh-00070.ply",
+    "models/canelle/LuxCoreScene/mesh-00071.ply",
+    "models/canelle/LuxCoreScene/mesh-00072.ply",
+    "models/canelle/LuxCoreScene/mesh-00073.ply",
+    "models/canelle/LuxCoreScene/mesh-00074.ply",
+    "models/canelle/LuxCoreScene/mesh-00075.ply",
+    "models/canelle/LuxCoreScene/mesh-00076.ply"
   ],
-  "skybox": "skyboxes/grasslands_sunset_4k.hdr",
+  "skyColor": [
+    0.10000000149011612,
+    0.10000000149011612,
+    0.10000000149011612
+  ],
   "version": 2,
   "window": {
+    "width": 800,
     "height": 600,
-    "name": "GPU Path Tracer",
-    "width": 800
+    "name": "GPU Path Tracer"
   }
 }
