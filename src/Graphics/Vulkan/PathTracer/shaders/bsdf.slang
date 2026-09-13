@@ -22,6 +22,16 @@ public float3 fresnelSchlick(float cosTheta, float3 F0) {
     return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
 }
 
+public float fresnelDielectric(float cosThetaI, float eta) {
+    float sin2I = max(0.0, 1.0 - cosThetaI * cosThetaI);
+    float sin2T = eta * eta * sin2I;
+    if (sin2T >= 1.0) return 1.0;
+    float cosThetaT = sqrt(1.0 - sin2T);
+    float rs = (eta * cosThetaI - cosThetaT) / (eta * cosThetaI + cosThetaT);
+    float rp = (cosThetaI - eta * cosThetaT) / (cosThetaI + eta * cosThetaT);
+    return 0.5 * (rs * rs + rp * rp);
+}
+
 float3 multiScatterComp(float3 F0, float NdotV, float alpha) {
     float  roughness = sqrt(alpha);
     float4 c0   = float4(-1.0, -0.0275, -0.572, 0.022);
@@ -133,6 +143,37 @@ public struct GGX : BRDF {
         return s;
     }
 };
+
+public struct Dielectric {
+    public float eta;
+
+    public Scatter sampleF(float3 wo, float3 N, inout uint seed) {
+        float cosI = saturate(dot(wo, N));
+        float F    = fresnelDielectric(cosI, eta);
+        Scatter s;
+        s.pdf = 1.0;
+        if (rand01(seed) < F) {
+            s.wi = reflect(-wo, N);
+            s.f  = float3(1.0);
+        } else {
+            float3 t = refract(-wo, N, eta);
+            if (dot(t, t) < 1e-8) {
+                s.wi = reflect(-wo, N);
+                s.f  = float3(1.0);
+            } else {
+                s.wi = normalize(t);
+                s.f  = float3(eta * eta);
+            }
+        }
+        return s;
+    }
+};
+
+public Dielectric makeDielectric(float eta) {
+    Dielectric d;
+    d.eta = eta;
+    return d;
+}
 
 public struct BSDF {
     public float3     ns;
