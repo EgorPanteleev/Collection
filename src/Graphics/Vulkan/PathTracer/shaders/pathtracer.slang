@@ -128,6 +128,21 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    if (material.transmission > 0.0) {
+        if (rand01(payload.seed) < material.transmission) {
+            float3 view = -WorldRayDirection();
+            float  eta  = hit.frontFace ? (1.0 / material.ior) : material.ior;
+            Scatter s   = makeDielectric(eta).sampleF(view, hit.N, payload.seed);
+            payload.throughput *= s.f / material.transmission;
+            payload.origin      = movedPoint(hit.P, dot(s.wi, hit.gN) > 0.0 ? hit.gN : -hit.gN);
+            payload.direction   = s.wi;
+            payload.prevBrdfPdf = -1.0;
+            payload.done        = false;
+            return;
+        }
+        payload.throughput /= (1.0 - material.transmission);
+    }
+
     float metalness = material.metalness;
     float roughness = material.roughness;
     applyMetalRoughness(material, hit.uv, metalness, roughness);
