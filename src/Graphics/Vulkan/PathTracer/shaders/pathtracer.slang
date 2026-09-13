@@ -116,6 +116,15 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    if (material.opacity < 1.0 && rand01(payload.seed) >= material.opacity) {
+        float3 dir          = WorldRayDirection();
+        payload.origin      = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
+        payload.direction   = dir;
+        payload.prevBrdfPdf = -1.0;
+        payload.done        = false;
+        return;
+    }
+
     if (material.luminance > 0.0) {
         float3 we1       = mul(o2w, float4(tri.v1.pos - tri.v0.pos, 0.0));
         float3 we2       = mul(o2w, float4(tri.v2.pos - tri.v0.pos, 0.0));
@@ -126,6 +135,24 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
                                             lightPmf(material, instance), payload.prevBrdfPdf);
         payload.radiance += payload.throughput * baseColor * material.luminance * weight;
         payload.done = true;
+        return;
+    }
+
+    if (material.thin > 0.5) {
+        float3 dir  = WorldRayDirection();
+        float3 N    = dot(dir, hit.N) < 0.0 ? hit.N : -hit.N;
+        float  cosI = saturate(dot(-dir, N));
+        float  R    = fresnelDielectric(cosI, 1.0 / material.ior);
+        float  Rt   = R < 1.0 ? (2.0 * R) / (1.0 + R) : 1.0;
+        if (rand01(payload.seed) < Rt) {
+            payload.direction = reflect(dir, N);
+        } else {
+            payload.direction   = dir;
+            payload.throughput *= baseColor;
+        }
+        payload.origin      = movedPoint(hit.P, dot(payload.direction, hit.gN) < 0.0 ? -hit.gN : hit.gN);
+        payload.prevBrdfPdf = -1.0;
+        payload.done        = false;
         return;
     }
 
@@ -155,6 +182,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
                 payload.throughput *= s.f * abs(s.wi.z) / s.pdf / material.transmission;
             }
             if (refracted) payload.insideGlass = !payload.insideGlass;
+            if (refracted && hit.frontFace) payload.throughput *= baseColor;
             payload.origin      = movedPoint(hit.P, refracted ? -hit.gN : hit.gN);
             payload.direction   = wiWorld;
             payload.prevBrdfPdf = -1.0;

@@ -290,7 +290,8 @@ namespace crv::graphics::vulkan {
                 .normalScale = jsonMaterial.value("normalScale", 1.0f),
                 .anisotropy = jsonMaterial.value("anisotropy", 0.0f),
                 .sheen = jsonMaterial.value("sheen", 0.0f),
-                .translucency = jsonMaterial.value("translucency", 0.0f)
+                .translucency = jsonMaterial.value("translucency", 0.0f),
+                .thin = jsonMaterial.value("thin", 0.0f)
             };
         }
     }
@@ -329,6 +330,7 @@ namespace crv::graphics::vulkan {
             material.anisotropy = jm.value("anisotropy", material.anisotropy);
             material.sheen = jm.value("sheen", material.sheen);
             material.translucency = jm.value("translucency", material.translucency);
+            material.thin = jm.value("thin", material.thin);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
                 material.baseColorTexIndex, material.baseColorTexName, material.baseColorTexPath);
@@ -423,6 +425,7 @@ namespace crv::graphics::vulkan {
             if (m.anisotropy != def.anisotropy) jm["anisotropy"] = m.anisotropy;
             if (m.sheen != def.sheen) jm["sheen"] = m.sheen;
             if (m.translucency != def.translucency) jm["translucency"] = m.translucency;
+            if (m.thin != def.thin) jm["thin"] = m.thin;
             if (!m.baseColorTexPath.empty()) jm["baseColorTex"] = m.baseColorTexPath;
             if (!m.normalTexPath.empty()) jm["normalTex"] = m.normalTexPath;
             if (!m.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = m.metalRoughnessTexPath;
