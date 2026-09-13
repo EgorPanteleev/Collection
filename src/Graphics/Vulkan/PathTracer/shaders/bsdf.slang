@@ -18,18 +18,75 @@ public float3 cosineSampleLocal(inout uint seed) {
     return float3(r * cos(azimuth), r * sin(azimuth), sqrt(1.0 - u));
 }
 
-public float3 diffuseBrdf(float3 albedo) {
-    return albedo * M_1_PI;
-}
+public struct Scatter {
+    public float3 wi;
+    public float3 f;
+    public float  pdf;
+};
 
-public float diffusePdf(float NdotWi) {
-    return max(NdotWi, 0.0) * M_1_PI;
-}
+public interface BxDF {
+    float3 f(float3 wo, float3 wi);
+    float  pdf(float3 wo, float3 wi);
+    Scatter sampleF(float3 wo, inout uint seed);
+};
 
-public float3 sampleDiffuse(float3 N, inout uint seed, out float pdf) {
-    float3 tangent, bitangent;
-    createONB(N, tangent, bitangent);
-    float3 local = cosineSampleLocal(seed);
-    pdf = local.z * M_1_PI;
-    return local.x * tangent + local.y * bitangent + local.z * N;
+public struct Lambertian : BxDF {
+    public float3 albedo;
+
+    public float3 f(float3 wo, float3 wi) {
+        if (wo.z * wi.z <= 0.0) return float3(0.0);
+        return albedo * M_1_PI;
+    }
+
+    public float pdf(float3 wo, float3 wi) {
+        if (wo.z * wi.z <= 0.0) return 0.0;
+        return abs(wi.z) * M_1_PI;
+    }
+
+    public Scatter sampleF(float3 wo, inout uint seed) {
+        float3 wi = cosineSampleLocal(seed);
+        if (wo.z < 0.0) wi.z = -wi.z;
+        Scatter s;
+        s.wi  = wi;
+        s.f   = f(wo, wi);
+        s.pdf = pdf(wo, wi);
+        return s;
+    }
+};
+
+public struct BSDF<TBxDF : BxDF> {
+    public float3 ns;
+    public float3 ss;
+    public float3 ts;
+    public TBxDF  bxdf;
+
+    public float3 toLocal(float3 v) { return float3(dot(v, ss), dot(v, ts), dot(v, ns)); }
+    public float3 toWorld(float3 v) { return v.x * ss + v.y * ts + v.z * ns; }
+
+    public float3 f(float3 woWorld, float3 wiWorld) {
+        return bxdf.f(toLocal(woWorld), toLocal(wiWorld));
+    }
+
+    public float pdf(float3 woWorld, float3 wiWorld) {
+        return bxdf.pdf(toLocal(woWorld), toLocal(wiWorld));
+    }
+
+    public Scatter sampleF(float3 woWorld, inout uint seed) {
+        Scatter s = bxdf.sampleF(toLocal(woWorld), seed);
+        s.wi = toWorld(s.wi);
+        return s;
+    }
+};
+
+public BSDF<Lambertian> makeLambertian(float3 N, float3 albedo) {
+    float3 ss, ts;
+    createONB(N, ss, ts);
+    Lambertian lam;
+    lam.albedo = albedo;
+    BSDF<Lambertian> b;
+    b.ns   = N;
+    b.ss   = ss;
+    b.ts   = ts;
+    b.bxdf = lam;
+    return b;
 }

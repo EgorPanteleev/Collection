@@ -79,16 +79,16 @@ public float emitterMisWeight(MeshGPU mesh, float objArea, float worldArea, floa
     return powerHeuristic(prevBrdfPdf, lightPdf);
 }
 
-public void directLightContribution(inout PathPayload payload, float3 P, float3 gN, float3 N, float3 albedo) {
+public void directLightContribution<TBxDF : BxDF>(inout PathPayload payload, BSDF<TBxDF> bsdf, float3 wo, float3 P, float3 gN) {
     if (directLight.intensity <= 0.0) return;
     float3 L     = normalize(-directLight.dir);
-    float  NdotL = max(dot(N, L), 0.0);
+    float  NdotL = max(dot(bsdf.ns, L), 0.0);
     if (NdotL <= 0.0) return;
     float vis = traceShadow(P, gN, L, T_MAX);
-    payload.radiance += payload.throughput * diffuseBrdf(albedo) * NdotL * directLight.intensity * vis;
+    payload.radiance += payload.throughput * bsdf.f(wo, L) * NdotL * directLight.intensity * vis;
 }
 
-public void sampledLightNEE(inout PathPayload payload, float3 P, float3 gN, float3 N, float3 albedo) {
+public void sampledLightNEE<TBxDF : BxDF>(inout PathPayload payload, BSDF<TBxDF> bsdf, float3 wo, float3 P, float3 gN) {
     if (pc.nee == 0u || pc.emissiveCount == 0u) return;
 
     uint        slot0         = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
@@ -111,14 +111,14 @@ public void sampledLightNEE(inout PathPayload payload, float3 P, float3 gN, floa
     float  dist    = sqrt(distSq);
     float3 wi      = toLight / dist;
 
-    float NdotWi  = max(dot(N, wi), 0.0);
+    float NdotWi  = max(dot(bsdf.ns, wi), 0.0);
     float LNdotWi = abs(dot(ls.N, wi));
     if (NdotWi <= 0.0 || LNdotWi <= PDF_EPS || distSq <= PDF_EPS) return;
 
     float  lightPdf = pmf * ls.pdf * distSq / LNdotWi;
-    float  bsdfPdf  = diffusePdf(NdotWi);
+    float  bsdfPdf  = bsdf.pdf(wo, wi);
     float  weight   = powerHeuristic(lightPdf, bsdfPdf);
 
     float vis = traceShadow(P, gN, wi, dist * (1.0 - SHADOW_EPS));
-    payload.radiance += payload.throughput * diffuseBrdf(albedo) * NdotWi * emission * weight * vis / lightPdf;
+    payload.radiance += payload.throughput * bsdf.f(wo, wi) * NdotWi * emission * weight * vis / lightPdf;
 }

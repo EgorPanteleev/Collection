@@ -122,14 +122,20 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
-    directLightContribution(payload, hit.P, hit.gN, hit.N, baseColor);
-    sampledLightNEE(payload, hit.P, hit.gN, hit.N, baseColor);
+    float3 wo = -WorldRayDirection();
+    BSDF<Lambertian> bsdf = makeLambertian(hit.N, baseColor);
 
-    float  pdf;
-    float3 wi = sampleDiffuse(hit.N, payload.seed, pdf);
-    payload.throughput *= baseColor;
+    directLightContribution(payload, bsdf, wo, hit.P, hit.gN);
+    sampledLightNEE(payload, bsdf, wo, hit.P, hit.gN);
+
+    Scatter s = bsdf.sampleF(wo, payload.seed);
+    if (s.pdf <= 0.0) {
+        payload.done = true;
+        return;
+    }
+    payload.throughput *= s.f * abs(dot(s.wi, hit.N)) / s.pdf;
     payload.origin      = movedPoint(hit.P, hit.gN);
-    payload.direction   = wi;
-    payload.prevBrdfPdf = pdf;
+    payload.direction   = s.wi;
+    payload.prevBrdfPdf = s.pdf;
     payload.done        = false;
 }
