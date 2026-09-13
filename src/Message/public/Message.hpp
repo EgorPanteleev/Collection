@@ -59,5 +59,6 @@ namespace crv::message {
 #define DEBUG    crv::message::Message( std::cout, "debug"  , crv::message::BLUE      , true )
 #define WARNING  crv::message::Message( std::cout, "warning", crv::message::YELLOW    , true )
 #define ERROR    crv::message::Message( std::cerr, "error"  , crv::message::RED       , true )
+#define GPU_LOG  crv::message::Message( std::cout, "gpu"    , crv::message::GREEN     , true )
 
 #endif //VULKAN_MESSAGELOGGER_H

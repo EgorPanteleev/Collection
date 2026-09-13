@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <iterator>
+#include <string>
 #include <unordered_set>
 #include <GL/glew.h>
 #define GLFW_INCLUDE_VULKAN
@@ -98,7 +99,15 @@ namespace crv::graphics::vulkan {
         } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
             WARNING << "WARNING: " << pCallbackData->pMessage;
         } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-            INFO << "INFO: " << pCallbackData->pMessage;
+            if (const char* marker = std::strstr(pCallbackData->pMessage, "DebugPrintf")) {
+                std::string text(marker + std::strlen("DebugPrintf"));
+                const auto first = text.find_first_not_of(" :\t\r\n");
+                const auto last  = text.find_last_not_of(" \t\r\n");
+                if (first != std::string::npos)
+                    GPU_LOG << text.substr(first, last - first + 1);
+            } else {
+                INFO << "INFO: " << pCallbackData->pMessage;
+            }
         } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
             DEBUG << "VERBOSE: " << pCallbackData->pMessage;
         }
