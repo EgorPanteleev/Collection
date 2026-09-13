@@ -18,30 +18,8 @@ public float3 cosineSampleLocal(inout uint seed) {
     return float3(r * cos(azimuth), r * sin(azimuth), sqrt(1.0 - u));
 }
 
-float D_GGX(float NdotH, float alpha) {
-    float a2 = alpha * alpha;
-    float d  = NdotH * NdotH * (a2 - 1.0) + 1.0;
-    return a2 / max(M_PI * d * d, 1e-7);
-}
-
-float V_SmithGGX(float NdotV, float NdotL, float alpha) {
-    float a2      = alpha * alpha;
-    float lambdaV = NdotL * sqrt(NdotV * NdotV * (1.0 - a2) + a2);
-    float lambdaL = NdotV * sqrt(NdotL * NdotL * (1.0 - a2) + a2);
-    return 0.5 / max(lambdaV + lambdaL, 1e-7);
-}
-
 public float3 fresnelSchlick(float cosTheta, float3 F0) {
     return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
-}
-
-float3 sampleGGXHalf(float alpha, inout uint seed) {
-    float u1   = rand01(seed);
-    float u2   = rand01(seed);
-    float phi  = 2.0 * M_PI * u1;
-    float cosT = sqrt((1.0 - u2) / (1.0 + (alpha * alpha - 1.0) * u2));
-    float sinT = sqrt(max(0.0, 1.0 - cosT * cosT));
-    return float3(sinT * cos(phi), sinT * sin(phi), cosT);
 }
 
 float3 multiScatterComp(float3 F0, float NdotV, float alpha) {
@@ -93,25 +71,34 @@ public struct Lambertian : BRDF {
 
 public struct GGX : BRDF {
     public float3 F0;
-    public float  alpha;
+    public float  alphaX;
+    public float  alphaY;
+
+    float distribution(float3 H) {
+        float d = H.x * H.x / (alphaX * alphaX) + H.y * H.y / (alphaY * alphaY) + H.z * H.z;
+        return 1.0 / max(M_PI * alphaX * alphaY * d * d, 1e-7);
+    }
+
+    float lambda(float3 w) {
+        float t = (alphaX * alphaX * w.x * w.x + alphaY * alphaY * w.y * w.y) / max(w.z * w.z, 1e-7);
+        return (sqrt(1.0 + t) - 1.0) * 0.5;
+    }
 
     public float3 f(float3 wo, float3 wi) {
         if (wo.z <= 0.0 || wi.z <= 0.0) return float3(0.0);
-        float3 H     = normalize(wo + wi);
-        float  NdotH = saturate(H.z);
-        float  VdotH = saturate(dot(wo, H));
-        float3 F = fresnelSchlick(VdotH, F0);
-        float  D = D_GGX(NdotH, alpha);
-        float  V = V_SmithGGX(wo.z, wi.z, alpha);
-        return D * V * F * multiScatterComp(F0, wo.z, alpha);
+        float3 H = normalize(wo + wi);
+        float3 F = fresnelSchlick(saturate(dot(wo, H)), F0);
+        float  D = distribution(H);
+        float  G = 1.0 / (1.0 + lambda(wo) + lambda(wi));
+        float3 spec = D * G / (4.0 * wo.z * wi.z) * F;
+        return spec * multiScatterComp(F0, wo.z, sqrt(alphaX * alphaY));
     }
 
     public float pdf(float3 wo, float3 wi) {
         if (wo.z <= 0.0 || wi.z <= 0.0) return 0.0;
         float3 H     = normalize(wo + wi);
-        float  NdotH = saturate(H.z);
         float  VdotH = max(dot(wo, H), 1e-7);
-        return D_GGX(NdotH, alpha) * NdotH / (4.0 * VdotH);
+        return distribution(H) * saturate(H.z) / (4.0 * VdotH);
     }
 
     public Scatter sampleF(float3 wo, inout uint seed) {
@@ -120,9 +107,20 @@ public struct GGX : BRDF {
         s.f   = float3(0.0);
         s.pdf = 0.0;
         if (wo.z <= 0.0) return s;
-        float3 H  = sampleGGXHalf(alpha, seed);
+
+        float u1     = rand01(seed);
+        float u2     = rand01(seed);
+        float phi    = atan2(alphaY * sin(2.0 * M_PI * u1), alphaX * cos(2.0 * M_PI * u1));
+        float cosPhi = cos(phi);
+        float sinPhi = sin(phi);
+        float denom  = cosPhi * cosPhi / (alphaX * alphaX) + sinPhi * sinPhi / (alphaY * alphaY);
+        float tan2   = u2 / (1.0 - u2) / max(denom, 1e-7);
+        float cosT   = 1.0 / sqrt(1.0 + tan2);
+        float sinT   = sqrt(max(0.0, 1.0 - cosT * cosT));
+        float3 H  = float3(sinT * cosPhi, sinT * sinPhi, cosT);
         float3 wi = reflect(-wo, H);
         if (wi.z <= 0.0) return s;
+
         s.wi  = wi;
         s.f   = f(wo, wi);
         s.pdf = pdf(wo, wi);
@@ -176,9 +174,14 @@ public struct BSDF {
     }
 };
 
-public BSDF makeBSDF(float3 N, float3 albedo, float metalness, float roughness) {
+public BSDF makeBSDF(float3 N, float4 tangent, float3 albedo, float metalness, float roughness, float anisotropy) {
     float3 ss, ts;
-    createONB(N, ss, ts);
+    if (dot(tangent.xyz, tangent.xyz) > 1e-8) {
+        ss = normalize(tangent.xyz - N * dot(tangent.xyz, N));
+        ts = cross(N, ss);
+    } else {
+        createONB(N, ss, ts);
+    }
 
     BSDF b;
     b.ns = N;
@@ -186,7 +189,10 @@ public BSDF makeBSDF(float3 N, float3 albedo, float metalness, float roughness) 
     b.ts = ts;
     b.diffuse.albedo = albedo * (1.0 - metalness);
     b.specular.F0    = lerp(float3(0.04), albedo, metalness);
-    b.specular.alpha = max(roughness * roughness, 1e-3);
+    float alpha  = max(roughness * roughness, 1e-3);
+    float aspect = sqrt(1.0 - 0.9 * saturate(anisotropy));
+    b.specular.alphaX = max(alpha / aspect, 1e-3);
+    b.specular.alphaY = max(alpha * aspect, 1e-3);
     float lumSpec = luminance(b.specular.F0);
     float lumDiff = luminance(b.diffuse.albedo);
     b.pSpec = clamp(lumSpec / (lumSpec + lumDiff + 1e-4), 0.1, 0.9);

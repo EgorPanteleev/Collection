@@ -133,7 +133,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     applyMetalRoughness(material, hit.uv, metalness, roughness);
 
     float3 wo = -WorldRayDirection();
-    BSDF bsdf = makeBSDF(hit.N, baseColor, metalness, roughness);
+    BSDF bsdf = makeBSDF(hit.N, hit.tangent, baseColor, metalness, roughness, material.anisotropy);
 
     directLightContribution(payload, bsdf, wo, hit.P, hit.gN);
     sampledLightNEE(payload, bsdf, wo, hit.P, hit.gN);
