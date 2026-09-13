@@ -94,11 +94,28 @@ public struct GGX : BRDF {
         return spec * multiScatterComp(F0, wo.z, sqrt(alphaX * alphaY));
     }
 
+    float3 sampleVNDF(float3 wo, inout uint seed) {
+        float3 Vh = normalize(float3(alphaX * wo.x, alphaY * wo.y, wo.z));
+        float  lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+        float3 T1 = lensq > 0.0 ? float3(-Vh.y, Vh.x, 0.0) * rsqrt(lensq) : float3(1.0, 0.0, 0.0);
+        float3 T2 = cross(Vh, T1);
+        float u1  = rand01(seed);
+        float u2  = rand01(seed);
+        float r   = sqrt(u1);
+        float phi = 2.0 * M_PI * u2;
+        float t1  = r * cos(phi);
+        float t2  = r * sin(phi);
+        float sc  = 0.5 * (1.0 + Vh.z);
+        t2 = (1.0 - sc) * sqrt(max(0.0, 1.0 - t1 * t1)) + sc * t2;
+        float3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
+        return normalize(float3(alphaX * Nh.x, alphaY * Nh.y, max(1e-6, Nh.z)));
+    }
+
     public float pdf(float3 wo, float3 wi) {
         if (wo.z <= 0.0 || wi.z <= 0.0) return 0.0;
-        float3 H     = normalize(wo + wi);
-        float  VdotH = max(dot(wo, H), 1e-7);
-        return distribution(H) * saturate(H.z) / (4.0 * VdotH);
+        float3 H  = normalize(wo + wi);
+        float  G1 = 1.0 / (1.0 + lambda(wo));
+        return distribution(H) * G1 / (4.0 * wo.z);
     }
 
     public Scatter sampleF(float3 wo, inout uint seed) {
@@ -107,20 +124,9 @@ public struct GGX : BRDF {
         s.f   = float3(0.0);
         s.pdf = 0.0;
         if (wo.z <= 0.0) return s;
-
-        float u1     = rand01(seed);
-        float u2     = rand01(seed);
-        float phi    = atan2(alphaY * sin(2.0 * M_PI * u1), alphaX * cos(2.0 * M_PI * u1));
-        float cosPhi = cos(phi);
-        float sinPhi = sin(phi);
-        float denom  = cosPhi * cosPhi / (alphaX * alphaX) + sinPhi * sinPhi / (alphaY * alphaY);
-        float tan2   = u2 / (1.0 - u2) / max(denom, 1e-7);
-        float cosT   = 1.0 / sqrt(1.0 + tan2);
-        float sinT   = sqrt(max(0.0, 1.0 - cosT * cosT));
-        float3 H  = float3(sinT * cosPhi, sinT * sinPhi, cosT);
+        float3 H  = sampleVNDF(wo, seed);
         float3 wi = reflect(-wo, H);
         if (wi.z <= 0.0) return s;
-
         s.wi  = wi;
         s.f   = f(wo, wi);
         s.pdf = pdf(wo, wi);
