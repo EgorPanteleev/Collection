@@ -33,6 +33,92 @@ public float3 sampleEnvironment(float3 dir) {
     return clamp(c, float3(0.0), float3(65504.0));
 }
 
+public struct EnvSample {
+    public float3 dir;
+    public float3 radiance;
+    public float  pdf;
+};
+
+bool envSamplingEnabled() {
+    return pc.envNee != 0u && pc.skyboxIndex != UINT_MAX && pc.envIntegral > 0.0;
+}
+
+int2 envTexSize() {
+    uint w, h;
+    textures[pc.skyboxIndex].GetDimensions(w, h);
+    return int2(int(w), int(h));
+}
+
+int sampleCdfInterval(float* cdf, int base, int n, float u) {
+    int lo = 0;
+    int hi = n;
+    while (lo + 1 < hi) {
+        int mid = (lo + hi) >> 1;
+        if (cdf[base + mid] <= u) lo = mid;
+        else                      hi = mid;
+    }
+    return lo;
+}
+
+public float envPdf(float3 dir) {
+    if (!envSamplingEnabled()) return 0.0;
+    float theta = acos(clamp(-dir.y, -1.0, 1.0));
+    float sinT  = sin(theta);
+    if (sinT <= 0.0) return 0.0;
+    float u = atan2(dir.z, dir.x) * 0.15915494309 + 0.5;
+    float v = theta * M_1_PI;
+    int2  sz = envTexSize();
+    int   nu = sz.x;
+    int   nv = sz.y;
+    int   iu = clamp(int(u * float(nu)), 0, nu - 1);
+    int   iv = clamp(int(v * float(nv)), 0, nv - 1);
+    float* condFunc = (float*)pc.envCondFuncAddr;
+    float mapPdf = condFunc[iv * nu + iu] / pc.envIntegral;
+    return mapPdf / (2.0 * M_PI * M_PI * sinT);
+}
+
+public EnvSample sampleEnvLight(inout uint seed) {
+    EnvSample es;
+    es.dir      = float3(0.0, 1.0, 0.0);
+    es.radiance = float3(0.0);
+    es.pdf      = 0.0;
+    if (!envSamplingEnabled()) return es;
+
+    int2 sz = envTexSize();
+    int  nu = sz.x;
+    int  nv = sz.y;
+    float* marginalCdf = (float*)pc.envMarginalCdfAddr;
+    float* condCdf     = (float*)pc.envCondCdfAddr;
+    float* condFunc    = (float*)pc.envCondFuncAddr;
+
+    float u0 = rand01(seed);
+    float u1 = rand01(seed);
+
+    int   iv   = sampleCdfInterval(marginalCdf, 0, nv, u1);
+    float dv   = u1 - marginalCdf[iv];
+    float mden = marginalCdf[iv + 1] - marginalCdf[iv];
+    if (mden > 0.0) dv /= mden;
+    float v = (float(iv) + dv) / float(nv);
+
+    int   rowBase = iv * (nu + 1);
+    int   iu   = sampleCdfInterval(condCdf, rowBase, nu, u0);
+    float du   = u0 - condCdf[rowBase + iu];
+    float cden = condCdf[rowBase + iu + 1] - condCdf[rowBase + iu];
+    if (cden > 0.0) du /= cden;
+
+    float mapPdf = condFunc[iv * nu + iu] / pc.envIntegral;
+
+    float theta = v * M_PI;
+    float phi   = ((float(iu) + du) / float(nu) - 0.5) * 2.0 * M_PI;
+    float sinT  = sin(theta);
+    if (sinT <= 0.0 || mapPdf <= 0.0) return es;
+
+    es.dir      = float3(sinT * cos(phi), -cos(theta), sinT * sin(phi));
+    es.pdf      = mapPdf / (2.0 * M_PI * M_PI * sinT);
+    es.radiance = sampleEnvironment(es.dir);
+    return es;
+}
+
 public float3 getBaseColor(MaterialGPU material, float2 uv) {
     float3 baseColor = material.baseColor;
     if (material.baseColorTexIndex != UINT_MAX)

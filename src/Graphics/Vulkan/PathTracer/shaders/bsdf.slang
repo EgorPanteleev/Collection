@@ -44,6 +44,17 @@ float3 sampleGGXHalf(float alpha, inout uint seed) {
     return float3(sinT * cos(phi), sinT * sin(phi), cosT);
 }
 
+float3 multiScatterComp(float3 F0, float NdotV, float alpha) {
+    float  roughness = sqrt(alpha);
+    float4 c0   = float4(-1.0, -0.0275, -0.572, 0.022);
+    float4 c1   = float4(1.0, 0.0425, 1.04, -0.04);
+    float4 r    = roughness * c0 + c1;
+    float  a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    float2 AB   = float2(-1.04, 1.04) * a004 + r.zw;
+    float  Ess  = AB.x + AB.y;
+    return 1.0 + F0 * (1.0 - Ess) / max(Ess, 1e-3);
+}
+
 public struct Scatter {
     public float3 wi;
     public float3 f;
@@ -92,7 +103,7 @@ public struct GGX : BRDF {
         float3 F = fresnelSchlick(VdotH, F0);
         float  D = D_GGX(NdotH, alpha);
         float  V = V_SmithGGX(wo.z, wi.z, alpha);
-        return D * V * F;
+        return D * V * F * multiScatterComp(F0, wo.z, alpha);
     }
 
     public float pdf(float3 wo, float3 wi) {

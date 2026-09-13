@@ -122,3 +122,18 @@ public void sampledLightNEE(inout PathPayload payload, BSDF bsdf, float3 wo, flo
     float vis = traceShadow(P, gN, wi, dist * (1.0 - SHADOW_EPS));
     payload.radiance += payload.throughput * bsdf.f(wo, wi) * NdotWi * emission * weight * vis / lightPdf;
 }
+
+public void sampledEnvNEE(inout PathPayload payload, BSDF bsdf, float3 wo, float3 P, float3 gN) {
+    EnvSample es = sampleEnvLight(payload.seed);
+    if (es.pdf <= PDF_EPS) return;
+
+    float3 wi    = es.dir;
+    float  NdotWi = max(dot(bsdf.ns, wi), 0.0);
+    if (NdotWi <= 0.0) return;
+
+    float bsdfPdf = bsdf.pdf(wo, wi);
+    float weight  = powerHeuristic(es.pdf, bsdfPdf);
+
+    float vis = traceShadow(P, gN, wi, T_MAX);
+    payload.radiance += payload.throughput * bsdf.f(wo, wi) * NdotWi * es.radiance * weight * vis / es.pdf;
+}

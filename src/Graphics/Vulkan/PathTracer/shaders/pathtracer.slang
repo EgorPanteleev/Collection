@@ -63,7 +63,13 @@ void rgenMain() {
 
 [shader("miss")]
 void missMain(inout PathPayload payload) {
-    payload.radiance += payload.throughput * sampleEnvironment(WorldRayDirection());
+    float3 dir  = WorldRayDirection();
+    float  misW = 1.0;
+    if (payload.prevBrdfPdf >= 0.0) {
+        float ep = envPdf(dir);
+        if (ep > 0.0) misW = powerHeuristic(payload.prevBrdfPdf, ep);
+    }
+    payload.radiance += payload.throughput * sampleEnvironment(dir) * misW;
     payload.done = true;
 }
 
@@ -131,6 +137,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     directLightContribution(payload, bsdf, wo, hit.P, hit.gN);
     sampledLightNEE(payload, bsdf, wo, hit.P, hit.gN);
+    sampledEnvNEE(payload, bsdf, wo, hit.P, hit.gN);
 
     Scatter s = bsdf.sampleF(wo, payload.seed);
     if (s.pdf <= 0.0) {
