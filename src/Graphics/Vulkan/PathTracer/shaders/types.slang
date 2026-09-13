@@ -11,4 +11,5 @@ public struct PathPayload {
     public uint   seed;
     public float  prevBrdfPdf;
     public bool   done;
+    public bool   insideGlass;
 };

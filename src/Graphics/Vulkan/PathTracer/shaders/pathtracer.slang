@@ -27,6 +27,7 @@ void rgenMain() {
         payload.seed        = seed;
         payload.prevBrdfPdf = -1.0;
         payload.done        = false;
+        payload.insideGlass = false;
 
         for (uint depth = 0; depth < pc.maxDepth; ++depth) {
             RayDesc ray;
@@ -130,12 +131,32 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     if (material.transmission > 0.0) {
         if (rand01(payload.seed) < material.transmission) {
-            float3 view = -WorldRayDirection();
-            float  eta  = hit.frontFace ? (1.0 / material.ior) : material.ior;
-            Scatter s   = makeDielectric(eta).sampleF(view, hit.N, payload.seed);
-            payload.throughput *= s.f / material.transmission;
-            payload.origin      = movedPoint(hit.P, dot(s.wi, hit.gN) > 0.0 ? hit.gN : -hit.gN);
-            payload.direction   = s.wi;
+            if (payload.insideGlass)
+                payload.throughput *= exp(log(max(material.absorption, float3(1e-4))) * RayTCurrent());
+            float3 view   = -WorldRayDirection();
+            float  galpha = material.roughness * material.roughness;
+            bool   refracted;
+            float3 wiWorld;
+            if (galpha < 1e-3 || abs(material.ior - 1.0) < 1e-3) {
+                float   eta = hit.frontFace ? (1.0 / material.ior) : material.ior;
+                Scatter s   = makeDielectric(eta).sampleF(view, hit.N, payload.seed);
+                refracted   = dot(s.wi, hit.gN) < 0.0;
+                wiWorld     = s.wi;
+                payload.throughput *= s.f / material.transmission;
+            } else {
+                float  eta = hit.frontFace ? material.ior : (1.0 / material.ior);
+                float3 ss, ts;
+                createONB(hit.N, ss, ts);
+                float3 wo = float3(dot(view, ss), dot(view, ts), dot(view, hit.N));
+                Scatter s = makeRoughDielectric(eta, material.roughness).sampleF(wo, payload.seed);
+                if (s.pdf <= 0.0) { payload.done = true; return; }
+                wiWorld   = s.wi.x * ss + s.wi.y * ts + s.wi.z * hit.N;
+                refracted = s.wi.z < 0.0;
+                payload.throughput *= s.f * abs(s.wi.z) / s.pdf / material.transmission;
+            }
+            if (refracted) payload.insideGlass = !payload.insideGlass;
+            payload.origin      = movedPoint(hit.P, refracted ? -hit.gN : hit.gN);
+            payload.direction   = wiWorld;
             payload.prevBrdfPdf = -1.0;
             payload.done        = false;
             return;
