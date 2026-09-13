@@ -79,7 +79,7 @@ public float emitterMisWeight(MeshGPU mesh, float objArea, float worldArea, floa
     return powerHeuristic(prevBrdfPdf, lightPdf);
 }
 
-public void directLightContribution<TBxDF : BxDF>(inout PathPayload payload, BSDF<TBxDF> bsdf, float3 wo, float3 P, float3 gN) {
+public void directLightContribution(inout PathPayload payload, BSDF bsdf, float3 wo, float3 P, float3 gN) {
     if (directLight.intensity <= 0.0) return;
     float3 L     = normalize(-directLight.dir);
     float  NdotL = max(dot(bsdf.ns, L), 0.0);
@@ -88,7 +88,7 @@ public void directLightContribution<TBxDF : BxDF>(inout PathPayload payload, BSD
     payload.radiance += payload.throughput * bsdf.f(wo, L) * NdotL * directLight.intensity * vis;
 }
 
-public void sampledLightNEE<TBxDF : BxDF>(inout PathPayload payload, BSDF<TBxDF> bsdf, float3 wo, float3 P, float3 gN) {
+public void sampledLightNEE(inout PathPayload payload, BSDF bsdf, float3 wo, float3 P, float3 gN) {
     if (pc.nee == 0u || pc.emissiveCount == 0u) return;
 
     uint        slot0         = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);

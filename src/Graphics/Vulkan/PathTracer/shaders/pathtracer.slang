@@ -122,8 +122,12 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    float metalness = material.metalness;
+    float roughness = material.roughness;
+    applyMetalRoughness(material, hit.uv, metalness, roughness);
+
     float3 wo = -WorldRayDirection();
-    BSDF<Lambertian> bsdf = makeLambertian(hit.N, baseColor);
+    BSDF bsdf = makeBSDF(hit.N, baseColor, metalness, roughness);
 
     directLightContribution(payload, bsdf, wo, hit.P, hit.gN);
     sampledLightNEE(payload, bsdf, wo, hit.P, hit.gN);
