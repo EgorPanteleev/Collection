@@ -534,6 +534,15 @@ namespace crv::graphics::vulkan {
         if (!state.any()) return;
         if (state.heavy()) vkDeviceWaitIdle(mContext.device());
 
+        if (state.addModel) {
+            mResourceManager.addModel();
+            mRayTracerPass.bindTextures();
+            mRayTracerPass.rebindScene();
+            mFrameCount = 0;
+            state.clear();
+            return;
+        }
+
         for (const uint32_t sourceIndex : state.dirtyTextures) {
             const uint32_t index = mResourceManager.uploadTexture(sourceIndex);
             mRayTracerPass.bindTexture(index);

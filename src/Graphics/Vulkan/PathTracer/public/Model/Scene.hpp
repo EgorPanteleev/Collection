@@ -58,6 +58,7 @@ namespace crv::graphics::vulkan {
                                     uint32_t texIndex, const std::string& name, const std::string& path);
         uint32_t addTextureSource(cm::Texture texture);
 
+        void addModel(const std::string& path);
         void addInstance(const InstanceData& instance);
         [[nodiscard]] std::vector<uint32_t> duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);

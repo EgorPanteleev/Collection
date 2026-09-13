@@ -9,6 +9,7 @@
 #include "Buffer.hpp"
 #include "CoreUtils.hpp"
 
+#include <algorithm>
 #include <vector>
 
 namespace crv::graphics::vulkan {
@@ -17,9 +18,10 @@ namespace crv::graphics::vulkan {
         SSBOBuilder(Context* context, QueueFamilyType familyType): mContext(context), mFamily(familyType) {}
         template <typename Type>
         SSBOBuilder& add(const std::vector<Type>& data, Buffer& buffer) {
-            const auto size = static_cast<uint32_t>(data.size() * sizeof(Type));
-            createSSBO(mContext->allocator(), size, buffer);
-            copyDataToBuffer(mContext, mFamily, data.data(), size, buffer);
+            const auto capacity = std::max<size_t>(data.size(), 1);
+            createSSBO(mContext->allocator(), static_cast<uint32_t>(capacity * sizeof(Type)), buffer);
+            copyDataToBuffer(mContext, mFamily, data.data(),
+                             static_cast<uint32_t>(data.size() * sizeof(Type)), buffer);
             return *this;
         }
 

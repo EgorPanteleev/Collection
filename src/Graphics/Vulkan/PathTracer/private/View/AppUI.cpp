@@ -140,6 +140,10 @@ namespace crv::graphics::vulkan {
         if (ImGui::Begin("Overview", nullptr, ImGuiWindowFlags_MenuBar)) {
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File")) {
+                    if (ImGui::MenuItem(ICON_FA_PLUS " Add Model")) {
+                        mModelFileDialog.open(ASSETS_PATH, {".glb", ".gltf", ".obj", ".fbx", ".ply", ".dae", ".stl"});
+                    }
+                    ImGui::Separator();
                     if (ImGui::MenuItem(ICON_FA_CAMERA " Save Image")) {
                         push(CommandType::SAVE_IMAGE);
                     }
@@ -185,6 +189,9 @@ namespace crv::graphics::vulkan {
                 VkImGui::endGroup();
             }
 
+            if (mModelFileDialog.draw("Add Model")) {
+                push(CommandType::ADD_MODEL, ModelImportPayload{mModelFileDialog.result()});
+            }
         }
         ImGui::End();
     }

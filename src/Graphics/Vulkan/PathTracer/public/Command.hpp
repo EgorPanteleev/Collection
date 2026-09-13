@@ -47,6 +47,7 @@ namespace crv::graphics::vulkan {
         DUPLICATE_INSTANCES,
         REMOVE_INSTANCES,
         ADD_MATERIAL,
+        ADD_MODEL,
         UPLOAD_TEXTURE,
         LOAD_SKYBOX,
         REMOVE_SKYBOX,
@@ -78,6 +79,7 @@ namespace crv::graphics::vulkan {
     struct InstancesPayload      { std::vector<uint32_t> indices; };
     struct MaterialPayload       { uint32_t instanceIndex; };
     struct UploadTexturePayload  { std::string path; uint32_t materialIndex; int textureType; };
+    struct ModelImportPayload    { std::string path; };
     struct SkyboxPayload         { std::string path; };
     struct SetMaterialPayload    { uint32_t index; Material material; };
     struct TransformInstancesPayload   { std::vector<uint32_t> indices; glm::mat4 delta; };
@@ -94,6 +96,7 @@ namespace crv::graphics::vulkan {
         InstancesPayload,
         MaterialPayload,
         UploadTexturePayload,
+        ModelImportPayload,
         SkyboxPayload,
         SetMaterialPayload,
         TransformInstancesPayload,

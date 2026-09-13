@@ -21,6 +21,7 @@ namespace crv::graphics::vulkan {
         ResourceManager() = default;
         explicit ResourceManager(const ResourceManagerCreateInfo& info);
         void build();
+        void addModel();
         void updateInstance(uint32_t index);
         void updateInstanceData(uint32_t index);
         void updateMaterial(uint32_t index);
@@ -52,6 +53,7 @@ namespace crv::graphics::vulkan {
         void buildTLAS();
         void createBuffers();
         void rebuildInstanceBuffers();
+        void buildBLASBuffer();
         void buildMaterialBuffer();
 
         Context*              mContext          = nullptr;

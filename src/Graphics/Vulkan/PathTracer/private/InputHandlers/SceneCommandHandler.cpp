@@ -88,6 +88,9 @@ namespace crv::graphics::vulkan {
                 model.addTexture(p.path, p.materialIndex, p.textureType);
                 break;
             }
+            case CommandType::ADD_MODEL:
+                model.addModel(std::get<ModelImportPayload>(command.payload).path);
+                break;
             case CommandType::LOAD_SKYBOX:
                 model.loadSkybox(std::get<SkyboxPayload>(command.payload).path);
                 break;
