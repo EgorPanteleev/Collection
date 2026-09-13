@@ -175,6 +175,131 @@ public Dielectric makeDielectric(float eta) {
     return d;
 }
 
+public struct RoughDielectric {
+    public float eta;    // etaT / etaI (ior entering, 1/ior exiting)
+    public float alpha;
+
+    float D(float3 wm) {
+        float a2 = alpha * alpha;
+        float t  = (wm.x * wm.x + wm.y * wm.y) / a2 + wm.z * wm.z;
+        return 1.0 / max(M_PI * a2 * t * t, 1e-9);
+    }
+    float lambda(float3 w) {
+        float t = alpha * alpha * (w.x * w.x + w.y * w.y) / max(w.z * w.z, 1e-9);
+        return (sqrt(1.0 + t) - 1.0) * 0.5;
+    }
+    float G1(float3 w) { return 1.0 / (1.0 + lambda(w)); }
+    float G(float3 wo, float3 wi) { return 1.0 / (1.0 + lambda(wo) + lambda(wi)); }
+
+    float fr(float cosI) {
+        float e  = eta;
+        float ci = clamp(cosI, -1.0, 1.0);
+        if (ci < 0.0) { e = 1.0 / e; ci = -ci; }
+        float s2t = (1.0 - ci * ci) / (e * e);
+        if (s2t >= 1.0) return 1.0;
+        float ct = sqrt(1.0 - s2t);
+        float rp = (e * ci - ct) / (e * ci + ct);
+        float rs = (ci - e * ct) / (ci + e * ct);
+        return 0.5 * (rp * rp + rs * rs);
+    }
+
+    float3 sampleWm(float3 wo, inout uint seed) {
+        float3 Vh = normalize(float3(alpha * wo.x, alpha * wo.y, wo.z));
+        float  lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+        float3 T1 = lensq > 0.0 ? float3(-Vh.y, Vh.x, 0.0) * rsqrt(lensq) : float3(1.0, 0.0, 0.0);
+        float3 T2 = cross(Vh, T1);
+        float u1 = rand01(seed);
+        float u2 = rand01(seed);
+        float r  = sqrt(u1);
+        float phi = 2.0 * M_PI * u2;
+        float t1 = r * cos(phi);
+        float t2 = r * sin(phi);
+        float sc = 0.5 * (1.0 + Vh.z);
+        t2 = (1.0 - sc) * sqrt(max(0.0, 1.0 - t1 * t1)) + sc * t2;
+        float3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
+        return normalize(float3(alpha * Nh.x, alpha * Nh.y, max(1e-6, Nh.z)));
+    }
+
+    public float3 f(float3 wo, float3 wi) {
+        float coso = wo.z, cosi = wi.z;
+        if (coso == 0.0 || cosi == 0.0) return float3(0.0);
+        bool  refl = cosi * coso > 0.0;
+        float etap = refl ? 1.0 : (coso > 0.0 ? eta : (1.0 / eta));
+        float3 wm = wi * etap + wo;
+        if (dot(wm, wm) == 0.0) return float3(0.0);
+        wm = normalize(wm);
+        if (wm.z < 0.0) wm = -wm;
+        if (dot(wm, wi) * cosi < 0.0 || dot(wm, wo) * coso < 0.0) return float3(0.0);
+        float F = fr(dot(wo, wm));
+        if (refl) {
+            return float3(D(wm) * G(wo, wi) * F / abs(4.0 * cosi * coso));
+        }
+        float d     = dot(wi, wm) + dot(wo, wm) / etap;
+        float denom = d * d * cosi * coso;
+        float ft    = D(wm) * (1.0 - F) * G(wo, wi) * abs(dot(wi, wm) * dot(wo, wm) / denom);
+        return float3(ft / (etap * etap));
+    }
+
+    public float pdf(float3 wo, float3 wi) {
+        float coso = wo.z, cosi = wi.z;
+        if (coso == 0.0 || cosi == 0.0) return 0.0;
+        bool  refl = cosi * coso > 0.0;
+        float etap = refl ? 1.0 : (coso > 0.0 ? eta : (1.0 / eta));
+        float3 wm = wi * etap + wo;
+        if (dot(wm, wm) == 0.0) return 0.0;
+        wm = normalize(wm);
+        if (wm.z < 0.0) wm = -wm;
+        if (dot(wm, wi) * cosi < 0.0 || dot(wm, wo) * coso < 0.0) return 0.0;
+        float R = fr(dot(wo, wm));
+        float T = 1.0 - R;
+        float vpdf = G1(wo) * D(wm) * abs(dot(wo, wm)) / max(abs(coso), 1e-9);
+        if (refl) {
+            return vpdf / (4.0 * abs(dot(wo, wm))) * R;
+        }
+        float d   = dot(wi, wm) + dot(wo, wm) / etap;
+        float dwm = abs(dot(wi, wm)) / (d * d);
+        return vpdf * dwm * T;
+    }
+
+    public Scatter sampleF(float3 wo, inout uint seed) {
+        Scatter s;
+        s.wi  = float3(0.0, 0.0, 1.0);
+        s.f   = float3(0.0);
+        s.pdf = 0.0;
+        if (wo.z == 0.0) return s;
+        float3 wm = sampleWm(wo, seed);
+        float  R  = fr(dot(wo, wm));
+        if (rand01(seed) < R) {
+            float3 wi = reflect(-wo, wm);
+            if (wi.z * wo.z <= 0.0) return s;
+            s.wi  = wi;
+            s.f   = f(wo, wi);
+            s.pdf = pdf(wo, wi);
+        } else {
+            float  e  = eta;
+            float3 n  = wm;
+            float  ci = dot(n, wo);
+            if (ci < 0.0) { e = 1.0 / e; ci = -ci; n = -n; }
+            float s2t = (1.0 - ci * ci) / (e * e);
+            if (s2t >= 1.0) return s;
+            float  ct = sqrt(1.0 - s2t);
+            float3 wi = -wo / e + (ci / e - ct) * n;
+            if (wi.z * wo.z >= 0.0) return s;
+            s.wi  = wi;
+            s.f   = f(wo, wi);
+            s.pdf = pdf(wo, wi);
+        }
+        return s;
+    }
+};
+
+public RoughDielectric makeRoughDielectric(float eta, float roughness) {
+    RoughDielectric d;
+    d.eta   = eta;
+    d.alpha = max(roughness * roughness, 1e-4);
+    return d;
+}
+
 public struct BSDF {
     public float3     ns;
     public float3     ss;

@@ -8,9 +8,9 @@ namespace cvk = crv::graphics::vulkan;
 
 int main() {
     const cvk::PathTracerAppCreateInfo createInfo {
-        .scenePath = SCENES_PATH"clearcoat_test.json",
+        .scenePath = SCENES_PATH"glass_test.json",
     };
     cvk::PathTracerApp app(createInfo);
     app.run();
 }
- 
+        
