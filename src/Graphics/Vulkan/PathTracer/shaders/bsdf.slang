@@ -140,7 +140,10 @@ public struct BSDF {
     public float3     ts;
     public Lambertian diffuse;
     public GGX        specular;
+    public GGX        coat;
+    public float      clearcoat;
     public float      pSpec;
+    public float      pCoat;
 
     public float3 toLocal(float3 v) { return float3(dot(v, ss), dot(v, ts), dot(v, ns)); }
     public float3 toWorld(float3 v) { return v.x * ss + v.y * ts + v.z * ns; }
@@ -148,12 +151,16 @@ public struct BSDF {
     float3 evalLocal(float3 wo, float3 wi) {
         if (wo.z <= 0.0 || wi.z <= 0.0) return float3(0.0);
         float3 H = normalize(wo + wi);
-        float3 F = fresnelSchlick(saturate(dot(wo, H)), specular.F0);
-        return diffuse.f(wo, wi) * (1.0 - F) + specular.f(wo, wi);
+        float3 Fbase = fresnelSchlick(saturate(dot(wo, H)), specular.F0);
+        float3 base  = diffuse.f(wo, wi) * (1.0 - Fbase) + specular.f(wo, wi);
+        float  coatFr   = clearcoat * (0.04 + 0.96 * pow(saturate(1.0 - dot(wo, H)), 5.0));
+        float3 coatSpec = clearcoat * coat.f(wo, wi);
+        return base * (1.0 - coatFr) + coatSpec;
     }
 
     float pdfLocal(float3 wo, float3 wi) {
-        return lerp(diffuse.pdf(wo, wi), specular.pdf(wo, wi), pSpec);
+        float basePdf = lerp(diffuse.pdf(wo, wi), specular.pdf(wo, wi), pSpec);
+        return lerp(basePdf, coat.pdf(wo, wi), pCoat);
     }
 
     public float3 f(float3 woWorld, float3 wiWorld) {
@@ -166,8 +173,14 @@ public struct BSDF {
 
     public Scatter sampleF(float3 woWorld, inout uint seed) {
         float3 wo = toLocal(woWorld);
-        Scatter s = (rand01(seed) < pSpec) ? specular.sampleF(wo, seed)
-                                           : diffuse.sampleF(wo, seed);
+        Scatter s;
+        if (rand01(seed) < pCoat) {
+            s = coat.sampleF(wo, seed);
+        } else if (rand01(seed) < pSpec) {
+            s = specular.sampleF(wo, seed);
+        } else {
+            s = diffuse.sampleF(wo, seed);
+        }
         if (s.pdf <= 0.0) {
             s.f   = float3(0.0);
             s.pdf = 0.0;
@@ -180,7 +193,8 @@ public struct BSDF {
     }
 };
 
-public BSDF makeBSDF(float3 N, float4 tangent, float3 albedo, float metalness, float roughness, float anisotropy) {
+public BSDF makeBSDF(float3 N, float4 tangent, float3 albedo, float metalness, float roughness,
+                     float anisotropy, float clearcoat, float clearcoatRoughness) {
     float3 ss, ts;
     if (dot(tangent.xyz, tangent.xyz) > 1e-8) {
         ss = normalize(tangent.xyz - N * dot(tangent.xyz, N));
@@ -199,8 +213,16 @@ public BSDF makeBSDF(float3 N, float4 tangent, float3 albedo, float metalness, f
     float aspect = sqrt(1.0 - 0.9 * saturate(anisotropy));
     b.specular.alphaX = max(alpha / aspect, 1e-3);
     b.specular.alphaY = max(alpha * aspect, 1e-3);
+
+    b.clearcoat   = saturate(clearcoat);
+    b.coat.F0     = float3(0.04);
+    float ccAlpha = max(clearcoatRoughness * clearcoatRoughness, 1e-3);
+    b.coat.alphaX = ccAlpha;
+    b.coat.alphaY = ccAlpha;
+
     float lumSpec = luminance(b.specular.F0);
     float lumDiff = luminance(b.diffuse.albedo);
     b.pSpec = clamp(lumSpec / (lumSpec + lumDiff + 1e-4), 0.1, 0.9);
+    b.pCoat = clamp(b.clearcoat * 0.5, 0.0, 0.5);
     return b;
 }

@@ -8,7 +8,7 @@ namespace cvk = crv::graphics::vulkan;
 
 int main() {
     const cvk::PathTracerAppCreateInfo createInfo {
-        .scenePath = SCENES_PATH"metal_roughness_test.json",
+        .scenePath = SCENES_PATH"clearcoat_test.json",
     };
     cvk::PathTracerApp app(createInfo);
     app.run();
