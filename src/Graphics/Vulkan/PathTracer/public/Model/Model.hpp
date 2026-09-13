@@ -42,6 +42,7 @@ namespace crv::graphics::vulkan {
         void duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);
         void addTexture(const std::string& path, uint32_t materialIndex, int textureType);
+        void addModel(const std::string& path);
         void loadSkybox(const std::string& path);
         void removeSkybox();
 

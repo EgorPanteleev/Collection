@@ -95,6 +95,25 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void RayTracerPass::bindTextures() {
+        for (uint32_t index = 0; index < mTextures->size(); ++index) bindTexture(index);
+    }
+
+    void RayTracerPass::rebindScene() {
+        for (uint32_t i = 0; i < mFramesInFlight; ++i) {
+            mDescriptorManager.bind(0, i, ASResource(mTLAS->get()));
+            mDescriptorManager.bind(5, i, BufferResource(*mBLASBuffer));
+            mDescriptorManager.bind(6, i, BufferResource(*mInstanceBuffer));
+            mDescriptorManager.bind(7, i, BufferResource(*mEmissiveInstanceBuffer));
+            mDescriptorManager.bind(8, i, BufferResource(*mMaterialBuffer));
+            mDescriptorManager.update(0, i);
+            mDescriptorManager.update(5, i);
+            mDescriptorManager.update(6, i);
+            mDescriptorManager.update(7, i);
+            mDescriptorManager.update(8, i);
+        }
+    }
+
     void RayTracerPass::bindInstances() {
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             mDescriptorManager.bind(0, i, ASResource(mTLAS->get()));

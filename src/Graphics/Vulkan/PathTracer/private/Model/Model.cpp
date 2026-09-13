@@ -163,6 +163,12 @@ namespace crv::graphics::vulkan {
         mUpdateState.dirtyMaterials.push_back(materialIndex);
     }
 
+    void Model::addModel(const std::string& path) {
+        mScene.addModel(relativeToAssets(path));
+        clearSelection();
+        mUpdateState.addModel = true;
+    }
+
     void Model::loadSkybox(const std::string& path) {
         const uint32_t index = mScene.addTextureSource(cm::AbsLoader::loadSkybox(path));
         const std::string name = std::filesystem::path(path).filename().string();

@@ -61,6 +61,15 @@ namespace crv::graphics::vulkan {
         createBuffers();
     }
 
+    void ResourceManager::addModel() {
+        for (size_t i = mTextures.size(); i < mScene->textureSources().size(); ++i)
+            mTextures.push_back(toTexture(mContext, mScene->textureSources()[i]));
+        buildMeshes();
+        buildBLASBuffer();
+        rebuildInstanceBuffers();
+        buildMaterialBuffer();
+    }
+
     void ResourceManager::updateInstance(const uint32_t index) {
         if (mScene->instances()[index].isGroup()) return;
         updateInstanceData(index);
@@ -111,6 +120,12 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::rebuildMaterials() {
         buildMaterialBuffer();
+    }
+
+    void ResourceManager::buildBLASBuffer() {
+        const auto blasDatasGPU = BLASData::gpu(mContext->device(), mBLASDatas);
+        SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
+            .add(blasDatasGPU, mBLASBuffer);
     }
 
     void ResourceManager::buildMaterialBuffer() {
@@ -169,10 +184,15 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::buildMeshes() {
+        const size_t start = mBLASDatas.size();
+        const size_t total = mScene->meshes().size();
+        if (start >= total) { buildEmissiveAliasTables(); return; }
+
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext->device(),
             mContext->familyIndex(QueueFamilyType::GRAPHICS).value());
-        mBLASDatas.reserve(mScene->meshes().size());
-        for (const MeshData& mesh : mScene->meshes()) {
+        mBLASDatas.reserve(total);
+        for (size_t meshIndex = start; meshIndex < total; ++meshIndex) {
+            const MeshData& mesh = mScene->meshes()[meshIndex];
             mBLASDatas.emplace_back();
             BLASData& blasData = mBLASDatas.back();
             blasData.area = mesh.area;
@@ -306,7 +326,8 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::buildTLAS() {
-        const size_t instancesSize = sizeof(InstanceData::AS) * mScene->instances().size();
+        const size_t instancesSize = sizeof(InstanceData::AS) *
+            std::max<size_t>(mScene->instances().size(), 1);
         const BufferCreateInfo instanceBufferCreateInfo {
             .allocator = mContext->allocator(),
             .size = instancesSize,
@@ -329,7 +350,7 @@ namespace crv::graphics::vulkan {
         }
         const CopyDataToGPUBufferInfo instanceCopyInfo {
             .data = asInstances.data(),
-            .size = instancesSize,
+            .size = sizeof(InstanceData::AS) * asInstances.size(),
             .allocator = mContext->allocator(),
             .buffer = mASInstanceBuffer.get(),
             .device = mContext->device(),

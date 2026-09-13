@@ -116,6 +116,7 @@ namespace crv::graphics::vulkan {
     }
 
     void Buffer::copy(const CopyDataToGPUBufferInfo& info) {
+        if (info.size == 0) return;
         const BufferCreateInfo createInfo {
             .allocator = info.allocator,
             .size = info.size,

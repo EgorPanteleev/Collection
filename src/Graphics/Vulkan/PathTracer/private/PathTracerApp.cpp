@@ -14,7 +14,28 @@ namespace crv::graphics::vulkan {
     namespace cu = utils;
 
     namespace {
+        json emptyScene() {
+            return {
+                {"modelImports", json::array()},
+                {"instances", json::array()},
+                {"materials", json::array()},
+                {"directLight", {{"direction", {-0.468, 0.318, -0.824}}, {"intensity", 0.0}}},
+                {"window", {{"name", "GPU Path Tracer"}, {"width", 1280}, {"height", 720}}},
+                {"camera", {
+                    {"type", "Fly"},
+                    {"position", {0.0, 0.0, 5.0}},
+                    {"target", {0.0, 0.0, 0.0}},
+                    {"up", {0.0, 1.0, 0.0}},
+                    {"zoom", 1.0},
+                    {"fov", 60.0},
+                    {"nearPlane", 0.1},
+                    {"farPlane", 5000.0}
+                }}
+            };
+        }
+
         json readScene(const std::string& scenePath) {
+            if (scenePath.empty()) return emptyScene();
             std::ifstream file(scenePath);
             json scene;
             file >> scene;

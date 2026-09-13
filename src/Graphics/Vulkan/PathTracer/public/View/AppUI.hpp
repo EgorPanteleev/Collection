@@ -74,6 +74,7 @@ namespace crv::graphics::vulkan {
         ImGuizmo::OPERATION mGizmoOp      = ImGuizmo::TRANSLATE;
         ImGuiFileDialog  mFileDialog{};
         ImGuiFileDialog  mSkyboxFileDialog{};
+        ImGuiFileDialog  mModelFileDialog{};
         int              mUploadTextureType = 0;
         bool             mUpdateImage = false;
         bool    mMarqueeActive = false;

@@ -23,6 +23,7 @@ namespace crv::graphics::vulkan {
         bool updateInstances   = false;
         bool updateMaterials   = false;
         bool updateSkybox      = false;
+        bool addModel          = false;
         bool cameraMoved       = false;
         bool imageDirty        = false;
 
@@ -34,11 +35,11 @@ namespace crv::graphics::vulkan {
 
         [[nodiscard]] bool any() const {
             return !dirtyInstances.empty() || !dirtyMaterials.empty() || !dirtyTextures.empty()
-                || updateInstances || updateMaterials || updateSkybox || cameraMoved || imageDirty;
+                || updateInstances || updateMaterials || updateSkybox || addModel || cameraMoved || imageDirty;
         }
 
         [[nodiscard]] bool heavy() const {
-            return updateInstances || updateMaterials || updateSkybox || !dirtyTextures.empty();
+            return updateInstances || updateMaterials || updateSkybox || addModel || !dirtyTextures.empty();
         }
 
         void clear() { *this = {}; }

@@ -10,10 +10,21 @@
 
 namespace {
     crv::graphics::vulkan::Transform decomposeTransform(const glm::mat4& matrix) {
-        glm::vec3 scale, translation, skew;
-        glm::vec4 perspective;
-        glm::quat rotation;
-        glm::decompose(matrix, scale, rotation, translation, skew, perspective);
+        glm::vec3 scale(1.0f), translation(0.0f), skew(0.0f);
+        glm::vec4 perspective(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::quat rotation(1.0f, 0.0f, 0.0f, 0.0f);
+        if (glm::decompose(matrix, scale, rotation, translation, skew, perspective))
+            return { translation, rotation, scale };
+
+        translation = glm::vec3(matrix[3]);
+        glm::vec3 axes[3] = { glm::vec3(matrix[0]), glm::vec3(matrix[1]), glm::vec3(matrix[2]) };
+        scale = glm::vec3(glm::length(axes[0]), glm::length(axes[1]), glm::length(axes[2]));
+        const glm::vec3 fallbackAxis[3] = { {1,0,0}, {0,1,0}, {0,0,1} };
+        for (int i = 0; i < 3; ++i)
+            axes[i] = scale[i] > 1e-8f ? axes[i] / scale[i] : fallbackAxis[i];
+        glm::mat3 basis(axes[0], axes[1], axes[2]);
+        if (glm::determinant(basis) < 0.0f) { basis[0] = -basis[0]; scale.x = -scale.x; }
+        rotation = glm::normalize(glm::quat_cast(basis));
         return { translation, rotation, scale };
     }
 }
@@ -30,7 +41,7 @@ namespace crv::graphics::vulkan {
         if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
 
         if (!mExplicit || mJson.contains("materialsResolved")) loadJsonMaterials();
-        std::vector<std::string> models = mJson["modelImports"];
+        const std::vector<std::string> models = mJson.value("modelImports", std::vector<std::string>{});
         for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
             loadModel(modelIndex, models[modelIndex]);
         }
@@ -124,6 +135,7 @@ namespace crv::graphics::vulkan {
 
     void Scene::buildInstances(cm::Loader& loader, const uint32_t modelIndex,
                                const uint32_t meshBase, const uint32_t materialBase) {
+        if (!mJson.contains("instances")) return;
         for (const auto &instance: mJson["instances"]) {
             if (instance["modelIndex"] != modelIndex) continue;
             glm::vec3 rot = toVec3(instance["localRotation"]);
@@ -256,6 +268,7 @@ namespace crv::graphics::vulkan {
     }
 
     void Scene::loadJsonMaterials() {
+        if (!mJson.contains("materials")) return;
         auto materials = mJson["materials"];
         mMaterials.resize(materials.size());
         for (int materialIndex = 0; materialIndex < materials.size(); ++materialIndex) {
@@ -349,6 +362,7 @@ namespace crv::graphics::vulkan {
 
     void Scene::loadExplicitInstances() {
         mInstances.clear();
+        if (!mJson.contains("instances")) return;
         for (const auto& ji : mJson["instances"]) {
             Transform transform;
             if (ji.contains("position")) transform.position = toVec3(ji["position"]);
@@ -470,6 +484,33 @@ namespace crv::graphics::vulkan {
     uint32_t Scene::addTextureSource(cm::Texture texture) {
         mTextureSources.push_back(std::move(texture));
         return static_cast<uint32_t>(mTextureSources.size() - 1);
+    }
+
+    void Scene::addModel(const std::string& path) {
+        const uint32_t modelIndex = mJson.contains("modelImports")
+            ? static_cast<uint32_t>(mJson["modelImports"].size()) : 0u;
+        cm::Loader loader;
+        loader.setModel(ASSETS_PATH + path);
+        loader.load(glm::mat4(1.0f));
+
+        const auto meshBase     = static_cast<uint32_t>(mMeshes.size());
+        const auto materialBase = static_cast<uint32_t>(mMaterials.size());
+        buildMeshes(loader, modelIndex);
+        loadModelMaterials(loader);
+
+        const auto rootIndex = static_cast<int32_t>(mInstances.size());
+        mInstances.push_back(InstanceData{
+            .name = fs::path(path).stem().string(),
+            .parentIndex = -1,
+            .meshIndex = InstanceData::NO_MESH,
+        });
+        addNode(loader.root(), rootIndex, meshBase, materialBase, loader, UINT32_MAX);
+
+        if (!mJson.contains("modelImports")) mJson["modelImports"] = json::array();
+        mJson["modelImports"].push_back(path);
+
+        recomputeEmissiveIndices();
+        recomputeWorlds();
     }
 
     void Scene::addInstance(const InstanceData& instance) {
