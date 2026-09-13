@@ -440,6 +440,8 @@ namespace crv::graphics::vulkan {
                 changed |= ImGui::SliderFloat("Weight##transmission", &edited.transmission, 0.0f, 1.0f, "%.2f");
                 changed |= ImGui::SliderFloat("IOR", &edited.ior, 1.0f, 3.0f, "%.2f");
                 changed |= VkImGui::colorEdit3("Absorption", edited.absorption);
+                bool thin = edited.thin > 0.5f;
+                if (ImGui::Checkbox("Thin (flat glass)", &thin)) { edited.thin = thin ? 1.0f : 0.0f; changed = true; }
             }
             if (ImGui::CollapsingHeader("Coating", ImGuiTreeNodeFlags_DefaultOpen)) {
                 changed |= ImGui::SliderFloat("Weight##coating", &edited.clearcoat, 0.0f, 1.0f, "%.2f");

@@ -41,6 +41,7 @@ namespace crv::graphics::vulkan {
         float       anisotropy         = 0.0f;
         float       sheen              = 0.0f;
         float       translucency       = 0.0f;
+        float       thin               = 0.0f;
         uint32_t    baseColorTexIndex = UINT32_MAX;
         uint32_t    normalTexIndex    = UINT32_MAX;
         uint32_t    metalRoughnessTexIndex = UINT32_MAX;
@@ -70,6 +71,7 @@ namespace crv::graphics::vulkan {
             .anisotropy = anisotropy,
             .sheen = sheen,
             .translucency = translucency,
+            .thin = thin,
         };
     }
 
