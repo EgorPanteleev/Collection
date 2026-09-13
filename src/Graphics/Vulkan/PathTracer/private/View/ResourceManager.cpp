@@ -33,6 +33,18 @@ namespace crv::graphics::vulkan {
             for (const uint32_t s : small) { table[s].prob = 1.0f; table[s].alias = s; }
             return table;
         }
+
+        float emissiveWorldArea(const glm::mat4& world, const MeshData& mesh) {
+            const glm::mat3 m = glm::mat3(world);
+            double area = 0.0;
+            for (size_t t = 0; t + 3 <= mesh.indices.size(); t += 3) {
+                const glm::vec3 p0 = mesh.vertices[mesh.indices[t + 0]].pos;
+                const glm::vec3 p1 = mesh.vertices[mesh.indices[t + 1]].pos;
+                const glm::vec3 p2 = mesh.vertices[mesh.indices[t + 2]].pos;
+                area += 0.5 * glm::length(glm::cross(m * (p1 - p0), m * (p2 - p0)));
+            }
+            return static_cast<float>(area);
+        }
     }
 
     ResourceManager::ResourceManager(const ResourceManagerCreateInfo& info):
@@ -141,15 +153,12 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::updateEmissiveIndices() {
-        mScene->recomputeEmissiveIndices();
-        const auto& indices = mScene->emissiveIndices();
-        if (indices.empty()) return;
-
+        const auto lights = buildEmissiveLights();
         const CopyDataToGPUBufferInfo copyInfo {
-            .data = indices.data(),
+            .data = lights.data(),
             .srcOffset = 0,
             .dstOffset = 0,
-            .size = sizeof(uint32_t) * indices.size(),
+            .size = sizeof(EmissiveGPU) * lights.size(),
             .allocator = mContext->allocator(),
             .buffer = mEmissiveInstanceBuffer.get(),
             .device = mContext->device(),
@@ -269,6 +278,33 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    std::vector<EmissiveGPU> ResourceManager::buildEmissiveLights() {
+        mScene->recomputeEmissiveIndices();
+        const auto& indices  = mScene->emissiveIndices();
+        const uint32_t capacity = std::max<uint32_t>(mScene->instances().size(), 1u);
+
+        std::vector<float> weights(indices.size());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            const InstanceData& instance = mScene->instances()[indices[i]];
+            const float luminance = mScene->materials()[instance.materialIndex].luminance;
+            const float area      = emissiveWorldArea(instance.world, mScene->meshes()[instance.meshIndex]);
+            weights[i] = std::max(luminance * area, 0.0f);
+        }
+        double total = 0.0;
+        for (const float w : weights) total += w;
+        mEmissivePowerInv = total > 0.0 ? static_cast<float>(1.0 / total) : 0.0f;
+
+        const std::vector<AliasEntry> alias = weights.empty() ? std::vector<AliasEntry>{} : buildAliasTable(weights);
+
+        std::vector<EmissiveGPU> lights(capacity, EmissiveGPU{0u, 0u, 0.0f});
+        for (size_t i = 0; i < indices.size(); ++i) {
+            lights[i].instanceIndex = indices[i];
+            lights[i].aliasIndex    = alias[i].alias;
+            lights[i].aliasProb     = alias[i].prob;
+        }
+        return lights;
+    }
+
     void ResourceManager::buildTLAS() {
         const size_t instancesSize = sizeof(InstanceData::AS) * mScene->instances().size();
         const BufferCreateInfo instanceBufferCreateInfo {
@@ -318,30 +354,31 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::createBuffers() {
         const auto blasDatasGPU = BLASData::gpu(mContext->device(), mBLASDatas);
-        const auto instancesGPU = InstanceData::gpu(mScene->instances());
-        const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->instances().size(), 1u);
-        std::vector emissiveIndices(emissiveCapacity, 0u);
-        std::copy(mScene->emissiveIndices().begin(), mScene->emissiveIndices().end(), emissiveIndices.begin());
+        auto instancesGPU = InstanceData::gpu(mScene->instances());
+        const auto emissiveLights = buildEmissiveLights();
+        for (const uint32_t idx : mScene->emissiveIndices()) {
+            const InstanceData& inst = mScene->instances()[idx];
+            instancesGPU[idx].lightArea = emissiveWorldArea(inst.world, mScene->meshes()[inst.meshIndex]);
+        }
         const auto materialsGPU = Material::gpu(mScene->materials());
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
             .add(blasDatasGPU   , mBLASBuffer            )
             .add(instancesGPU   , mInstanceBuffer        )
-            .add(emissiveIndices, mEmissiveInstanceBuffer)
+            .add(emissiveLights , mEmissiveInstanceBuffer)
             .add(materialsGPU   , mMaterialBuffer        );
     }
 
     void ResourceManager::rebuildInstanceBuffers() {
         buildTLAS();
-        mScene->recomputeEmissiveIndices();
-        const auto& emissive = mScene->emissiveIndices();
-
-        const auto instancesGPU = InstanceData::gpu(mScene->instances());
-        const uint32_t emissiveCapacity = std::max<uint32_t>(mScene->instances().size(), 1u);
-        std::vector emissiveIndices(emissiveCapacity, 0u);
-        std::copy(emissive.begin(), emissive.end(), emissiveIndices.begin());
+        auto instancesGPU   = InstanceData::gpu(mScene->instances());
+        const auto emissiveLights = buildEmissiveLights();
+        for (const uint32_t idx : mScene->emissiveIndices()) {
+            const InstanceData& inst = mScene->instances()[idx];
+            instancesGPU[idx].lightArea = emissiveWorldArea(inst.world, mScene->meshes()[inst.meshIndex]);
+        }
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
             .add(instancesGPU   , mInstanceBuffer        )
-            .add(emissiveIndices, mEmissiveInstanceBuffer);
+            .add(emissiveLights , mEmissiveInstanceBuffer);
     }
 
 }

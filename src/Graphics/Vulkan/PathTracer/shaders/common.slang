@@ -1,6 +1,5 @@
 module common;
 
-public static const float FLT_MAX  = 3.402823e38;
 public static const uint  UINT_MAX = 4294967295u;
 public static const float M_PI     = 3.14159265359;
 public static const float M_1_PI   = 0.3183098861837907;
@@ -13,20 +12,17 @@ public static const float ORIGIN_THRESHOLD = 0.03125;
 public static const float FLOAT_SCALE      = 1.0 / 65536.0;
 public static const float INT_SCALE        = 256.0;
 public static const float SHADOW_EPS       = 1e-3;
-
-public static const float PDF_EPS   = 1e-4;
-public static const float NEE_CLAMP = 50.0;
-public static const float FIREFLY_CLAMP = 10.0;
+public static const float PDF_EPS          = 1e-4;
 
 public struct PushConstants {
-    public uint frame;
-    public uint spp;
-    public uint minDepth;
-    public uint maxDepth;
-    public uint displayMode;
-    public uint nee;
-    public uint emissiveCount;
-    public uint skyboxIndex;
+    public uint     frame;
+    public uint     spp;
+    public uint     minDepth;
+    public uint     maxDepth;
+    public uint     displayMode;
+    public uint     nee;
+    public uint     emissiveCount;
+    public uint     skyboxIndex;
     public float    envIntegral;
     public uint     envNee;
     public float    aperture;
@@ -35,6 +31,7 @@ public struct PushConstants {
     public uint64_t envCondCdfAddr;
     public uint64_t envCondFuncAddr;
     public float3   skyColor;
+    public float    emissivePowerInv;
 };
 [[vk::push_constant]] public PushConstants pc;
 

@@ -51,6 +51,7 @@ namespace crv::graphics::vulkan {
             .model = world,
             .meshIndex = meshIndex,
             .materialIndex = materialIndex,
+            .lightArea = 0.0f,
         };
     }
 

@@ -40,6 +40,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] Buffer& materialBuffer() { return mMaterialBuffer; }
         [[nodiscard]] std::vector<Texture>& textures() { return mTextures; }
         [[nodiscard]] float envIntegral() const { return mEnvMap.integral(); }
+        [[nodiscard]] float emissivePowerInv() const { return mEmissivePowerInv; }
         [[nodiscard]] uint64_t envMarginalCdfAddr() const { return mEnvMap.marginalCdfAddr(); }
         [[nodiscard]] uint64_t envCondCdfAddr() const { return mEnvMap.condCdfAddr(); }
         [[nodiscard]] uint64_t envCondFuncAddr() const { return mEnvMap.condFuncAddr(); }
@@ -47,6 +48,7 @@ namespace crv::graphics::vulkan {
         void buildMeshes();
         void buildAlias(BLASData& blasData, const std::vector<float>& triAreas);
         void buildEmissiveAliasTables();
+        std::vector<EmissiveGPU> buildEmissiveLights();
         void buildTLAS();
         void createBuffers();
         void rebuildInstanceBuffers();
@@ -59,6 +61,7 @@ namespace crv::graphics::vulkan {
         Buffer                mASInstanceBuffer       = CRV_NULL_HANDLE;
         Buffer                mInstanceBuffer         = CRV_NULL_HANDLE;
         Buffer                mEmissiveInstanceBuffer = CRV_NULL_HANDLE;
+        float                 mEmissivePowerInv       = 0.0f;
         Buffer                mMaterialBuffer         = CRV_NULL_HANDLE;
         AccelerationStructure mTLAS                   = CRV_NULL_HANDLE;
         std::vector<Texture>  mTextures{};

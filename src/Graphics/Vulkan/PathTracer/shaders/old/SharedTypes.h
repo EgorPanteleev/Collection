@@ -29,12 +29,6 @@ SLANG_PUBLIC struct AliasEntry {
     SLANG_PUBLIC uint  alias;
 };
 
-SLANG_PUBLIC struct EmissiveGPU {
-    SLANG_PUBLIC uint  instanceIndex;
-    SLANG_PUBLIC uint  aliasIndex;
-    SLANG_PUBLIC float aliasProb;
-};
-
 SLANG_PUBLIC struct MeshGPU {
     SLANG_PUBLIC GPU_PTR(Vertex) vertices;
     SLANG_PUBLIC GPU_PTR(uint)   indices;
@@ -47,7 +41,6 @@ SLANG_PUBLIC struct InstanceGPU {
     SLANG_PUBLIC float4x4 model;
     SLANG_PUBLIC uint     meshIndex;
     SLANG_PUBLIC uint     materialIndex;
-    SLANG_PUBLIC float    lightArea;
 };
 
 SLANG_PUBLIC struct MaterialGPU {
@@ -76,9 +69,8 @@ SLANG_PUBLIC struct MaterialGPU {
 #ifdef __cplusplus
 static_assert(sizeof(Vertex)       == 48, "Vertex layout must match the shader scalar buffer layout");
 static_assert(sizeof(AliasEntry)   ==  8, "AliasEntry layout must match the shader scalar buffer layout");
-static_assert(sizeof(EmissiveGPU)  == 12, "EmissiveGPU layout must match the shader scalar buffer layout");
 static_assert(sizeof(MeshGPU)     == 32, "MeshGPU layout must match the shader scalar buffer layout");
-static_assert(sizeof(InstanceGPU)  == 76, "InstanceGPU layout must match the shader scalar buffer layout");
+static_assert(sizeof(InstanceGPU)  == 72, "InstanceGPU layout must match the shader scalar buffer layout");
 static_assert(sizeof(MaterialGPU) == 96, "MaterialGPU layout must match the shader scalar buffer layout");
 } // namespace crv::graphics::vulkan
   #undef float2
