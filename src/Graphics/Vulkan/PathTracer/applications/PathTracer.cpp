@@ -8,7 +8,7 @@ namespace cvk = crv::graphics::vulkan;
 
 int main() {
     const cvk::PathTracerAppCreateInfo createInfo {
-        .scenePath = SCENES_PATH"spaceship.json",
+        .scenePath = SCENES_PATH"bistro_exterior_orig.json",
     };
     cvk::PathTracerApp app(createInfo);
     app.run();
