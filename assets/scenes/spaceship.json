@@ -1,10 +1,16 @@
 {
+  "version": 2,
+  "window": {
+    "height": 1000,
+    "name": "GPU Path Tracer",
+    "width": 1600
+  },
   "camera": {
     "farPlane": 5000.0,
     "fov": 60,
     "nearPlane": 0.1,
-    "position": [4, -15, 66],
-    "target": [0, 0, -100],
+    "position": [78, -29, -2],
+    "target": [-100, -30, 0],
     "type": "Fly",
     "up": [0, 1, 0],
     "zoom": 1
@@ -13,932 +19,991 @@
     "direction": [-0.46799999475479126, 0.3179999887943268, -0.8240000009536743],
     "intensity": 0.0
   },
+  "skyColor": [0.008849561214447021, 0.008771246299147606, 0.008771246299147606],
+  "modelImports": [
+    "models/ford/ford.gltf",
+    "models/plane.glb",
+    "models/Spaceship/spaceship.glb"
+  ],
   "instances": [
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 2,
-      "meshIndex": 0,
-      "meshName": "Cube.018",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "bottomPlane",
+      "scale": [70.0, 70.0, 70.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 1,
-      "meshName": "Cube.017",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 0,
+      "mesh": 171,
+      "name": "Plane",
+      "parent": 0,
+      "scale": [100.0, 100.0, 100.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 2,
-      "meshName": "Sphere.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "leftPlane",
+      "position": [0.0, -30.0, 60.0],
+      "rotation": [90.0, -1.0177775099486433e-13, 90.0],
+      "scale": [70.0, 70.0, 70.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 3,
-      "meshName": "Sphere.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "rightPlane",
+      "position": [0.0, -30.0, -60.0],
+      "rotation": [90.0, -1.0177775099486433e-13, 90.0],
+      "scale": [70.0, 70.0, 70.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 4,
-      "meshName": "Cylinder.010",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "forwardPlane",
+      "position": [-60.0, -30.0, 0.0],
+      "rotation": [0.0, 0.0, 90.0],
+      "scale": [70.0, 70.0, 70.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 5,
-      "meshName": "Mesh.013",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "topPlane",
+      "position": [0.0, -70.0, 0.0],
+      "scale": [70.0, 70.0, 70.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 6,
-      "meshName": "Plane",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "lightPlane1",
+      "position": [2.0, -69.0, 42.0],
+      "rotation": [0.0, 89.98021697998047, 0.0],
+      "scale": [5.0, 10.0, 40.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 7,
-      "meshName": "Mesh.011",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 1,
+      "mesh": 171,
+      "name": "Plane",
+      "parent": 6
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 8,
-      "meshName": "Mesh.012",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "lightPlane2",
+      "position": [2.0, -69.0, 2.0],
+      "rotation": [0.0, 89.98021697998047, 0.0],
+      "scale": [5.0, 10.0, 40.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 9,
-      "meshName": "Mesh.014",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 1,
+      "mesh": 171,
+      "name": "Plane",
+      "parent": 8
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 10,
-      "meshName": "Cylinder.003",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "lightPlane3",
+      "position": [2.0, -69.0, -38.0],
+      "rotation": [0.0, 89.98021697998047, 0.0],
+      "scale": [5.0, 10.0, 40.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 11,
-      "meshName": "Mesh.009",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 1,
+      "mesh": 171,
+      "name": "Plane",
+      "parent": 10
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 12,
-      "meshName": "Cube.009",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "spaceship",
+      "scale": [20.0, -20.0, 20.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 13,
-      "meshName": "Cylinder.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "name": "ROOT",
+      "parent": 12
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 14,
-      "meshName": "Cylinder.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 15,
+      "mesh": 172,
+      "name": "Cube.020",
+      "parent": 13,
+      "position": [-0.3638874590396881, 0.46749186515808105, 0.0],
+      "scale": [0.030374981462955475, 0.030374981462955475, 0.030374981462955475]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 15,
-      "meshName": "Sphere",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 173,
+      "name": "Cube.019",
+      "parent": 13,
+      "position": [-0.7386675477027893, 0.732725977897644, 0.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 16,
-      "meshName": "Mesh.008",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 174,
+      "name": "Sphere.003",
+      "parent": 13,
+      "position": [-0.56275874376297, 0.595312237739563, 0.0],
+      "scale": [0.014839518815279007, 0.014839518815279007, 0.014839518815279007]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 17,
-      "meshName": "Cylinder",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 175,
+      "name": "Sphere.002",
+      "parent": 13,
+      "position": [-0.6975135207176208, 0.6568196415901184, 0.0],
+      "scale": [0.014839518815279007, 0.014839518815279007, 0.014839518815279007]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 18,
-      "meshName": "Mesh.006",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 176,
+      "name": "screw.062",
+      "parent": 13,
+      "position": [0.0, 0.7327260375022888, 0.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 19,
-      "meshName": "Cube.008",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 177,
+      "name": "BezierCurve.012",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 20,
-      "meshName": "Cube.007",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 178,
+      "name": "Plane",
+      "parent": 13,
+      "position": [-0.24535897374153137, 1.2312372922897339, 0.0],
+      "rotation": [90.00006866455078, 0.0, 0.0],
+      "scale": [0.5942803621292114, 0.5942804217338562, 0.5942804217338562]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 21,
-      "meshName": "Cube.006",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 179,
+      "name": "BezierCurve.013",
+      "parent": 13,
+      "position": [0.0, 1.2975009679794312, 0.0],
+      "rotation": [90.00006103515625, 0.0, 0.0],
+      "scale": [0.2694703936576843, 0.2694704234600067, 0.2694704234600067]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 22,
-      "meshName": "Cube.005",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 180,
+      "name": "BezierCurve.011",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0],
+      "rotation": [90.00006103515625, 0.0, 0.0],
+      "scale": [0.2694703936576843, 0.2694704234600067, 0.2694704234600067]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 23,
-      "meshName": "Cube.004",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 181,
+      "name": "BezierCurve.010",
+      "parent": 13,
+      "position": [0.0, 1.2975009679794312, 0.0],
+      "rotation": [90.00006103515625, 0.0, 0.0],
+      "scale": [0.2694703936576843, 0.2694704234600067, 0.2694704234600067]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 24,
-      "meshName": "Cube.003",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.029",
+      "parent": 13,
+      "position": [0.023260707035660744, 1.2031657695770264, -0.07852810621261597],
+      "rotation": [-149.07015991210938, -61.521270751953125, 145.41201782226563],
+      "scale": [0.008468414656817913, 0.008468415588140488, 0.008468415588140488]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 25,
-      "meshName": "Mesh.004",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.028",
+      "parent": 13,
+      "position": [-0.014604552648961544, 1.2069876194000244, -0.07876354455947876],
+      "rotation": [-14.85969352722168, -16.21390724182129, -0.37784886360168457],
+      "scale": [0.008468414656817913, 0.008468415588140488, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 26,
-      "meshName": "Cube.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.027",
+      "parent": 13,
+      "position": [-0.11399348825216293, 1.2111515998840332, -0.07994268834590912],
+      "rotation": [-36.026485443115234, -65.0245590209961, 34.694129943847656],
+      "scale": [0.008468416519463062, 0.008468414656817913, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 27,
-      "meshName": "Mesh.003",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.026",
+      "parent": 13,
+      "position": [-0.04773419350385666, 1.2091662883758545, -0.07915659248828888],
+      "rotation": [-14.410919189453125, 6.8512959480285645, -5.010036468505859],
+      "scale": [0.008468418382108212, 0.008468416519463062, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 28,
-      "meshName": "Cube.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.024",
+      "parent": 13,
+      "position": [-0.08086384832859039, 1.210817813873291, -0.079549640417099],
+      "rotation": [-15.43064022064209, -21.44052505493164, 2.9612479209899902],
+      "scale": [0.008468414656817913, 0.008468414656817913, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 29,
-      "meshName": "Mesh.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.023",
+      "parent": 13,
+      "position": [0.023260708898305893, 1.2031657695770264, 0.07852810621261597],
+      "rotation": [14.536510467529297, 12.458879470825195, -3.610879898071289],
+      "scale": [0.008468412794172764, 0.008468414656817913, 0.008468413725495338]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 5,
-      "meshIndex": 30,
-      "meshName": "Mesh.001",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.022",
+      "parent": 13,
+      "position": [-0.014604552648961544, 1.2069876194000244, 0.07876354455947876],
+      "rotation": [21.89775848388672, -48.67869567871094, -21.412569046020508],
+      "scale": [0.008468414656817913, 0.008468415588140488, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 31,
-      "meshName": "Mesh-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.021",
+      "parent": 13,
+      "position": [-0.11399349570274353, 1.2111515998840332, 0.07994268834590912],
+      "rotation": [22.679643630981445, -49.9043083190918, -16.428232192993164],
+      "scale": [0.008468413725495338, 0.008468415588140488, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 6,
-      "meshIndex": 32,
-      "meshName": "Mesh-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.020",
+      "parent": 13,
+      "position": [-0.04773419722914696, 1.2091662883758545, 0.07915659248828888],
+      "rotation": [86.8438949584961, -75.67194366455078, -89.9970703125],
+      "scale": [0.008468414656817913, 0.008468417450785637, 0.008468416519463062]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 7,
-      "meshIndex": 33,
-      "meshName": "Mesh-2",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.018",
+      "parent": 13,
+      "position": [-0.0808638408780098, 1.210817813873291, 0.079549640417099],
+      "rotation": [126.54682159423828, -72.04472351074219, -130.72494506835938],
+      "scale": [0.008468412794172764, 0.008468415588140488, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 34,
-      "meshName": "Sphere.003-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 182,
+      "name": "screw.017",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0],
+      "scale": [0.008468414656817913, 0.008468414656817913, 0.008468414656817913]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 8,
-      "meshIndex": 35,
-      "meshName": "Sphere.003-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 183,
+      "name": "BezierCurve.008",
+      "parent": 13,
+      "position": [0.044561147689819336, 1.1973453760147095, 0.0],
+      "scale": [0.9780040383338928, 0.9780040383338928, 0.9780040383338928]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 36,
-      "meshName": "Sphere.003-2",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 184,
+      "name": "Cube.010",
+      "parent": 13,
+      "position": [-0.29636815190315247, 1.3091813325881958, -0.09098731726408005],
+      "scale": [0.8641588091850281, 0.8641588091850281, 0.8641588091850281]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 37,
-      "meshName": "Cube.010-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 184,
+      "name": "Cube.009",
+      "parent": 13,
+      "position": [-0.29636815190315247, 1.3091813325881958, 0.09098608791828156],
+      "scale": [0.8641588091850281, 0.8641588091850281, 0.8641588091850281]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 38,
-      "meshName": "Cube.010-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 184,
+      "name": "Cube.008",
+      "parent": 13,
+      "position": [-0.29636815190315247, 1.3091813325881958, 0.0],
+      "scale": [0.8641588091850281, 0.8641588091850281, 0.8641588091850281]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 9,
-      "meshIndex": 39,
-      "meshName": "Cube.010-2",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 185,
+      "name": "Cylinder.003",
+      "parent": 13,
+      "position": [-0.24154844880104065, 1.3091813325881958, 0.09091512858867645],
+      "rotation": [0.0, 0.0, -89.99994659423828],
+      "scale": [1.136439561843872, 1.136439561843872, 1.1364394426345825]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 8,
-      "meshIndex": 40,
-      "meshName": "Cube.010-3",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 185,
+      "name": "Cylinder.002",
+      "parent": 13,
+      "position": [-0.24154844880104065, 1.3091813325881958, -0.09091518074274063],
+      "rotation": [0.0, 0.0, -89.99994659423828],
+      "scale": [1.136439561843872, 1.136439561843872, 1.1364394426345825]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 10,
-      "meshIndex": 41,
-      "meshName": "Plane.002",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 186,
+      "name": "Cylinder.001",
+      "parent": 13,
+      "position": [-0.24154844880104065, 1.3091813325881958, 0.0],
+      "rotation": [0.0, 0.0, -89.99994659423828],
+      "scale": [1.0765552520751953, 1.0765552520751953, 1.0765551328659058]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 14,
-      "meshIndex": 42,
-      "meshName": "Cube.019",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 185,
+      "name": "Cylinder",
+      "parent": 13,
+      "position": [-0.24154844880104065, 1.3091813325881958, 0.0],
+      "rotation": [0.0, 0.0, -89.99994659423828],
+      "scale": [1.136439561843872, 1.136439561843872, 1.1364394426345825]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 43,
-      "meshName": "Cylinder.006",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 187,
+      "name": "Sphere",
+      "parent": 13,
+      "position": [-1.5026110410690308, 0.732725977897644, 0.0],
+      "rotation": [0.0, 0.0, -89.99994659423828],
+      "scale": [0.008835898712277412, 0.008835898712277412, 0.008835897780954838]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 44,
-      "meshName": "Cylinder.005",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 17,
+      "mesh": 188,
+      "name": "BezierCurve.007",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 45,
-      "meshName": "Cylinder.004-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.016",
+      "parent": 13,
+      "position": [-0.23812337219715118, 1.1217888593673706, -0.2599635124206543],
+      "rotation": [-145.406494140625, 11.889572143554688, -171.9127960205078],
+      "scale": [0.018223823979496956, 0.018223823979496956, 0.018223825842142105]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 16,
-      "meshIndex": 46,
-      "meshName": "Cylinder.004-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.015",
+      "parent": 13,
+      "position": [-0.23812337219715118, 0.9926894903182983, -0.38906291127204895],
+      "rotation": [-82.37940216064453, 32.97809600830078, -76.19036865234375],
+      "scale": [0.018223820254206657, 0.018223822116851807, 0.01822381652891636]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 11,
-      "meshIndex": 47,
-      "meshName": "Cylinder.004-2",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.014",
+      "parent": 13,
+      "position": [-0.23812337219715118, 0.8240129947662354, -0.45893096923828125],
+      "rotation": [-99.04755401611328, 6.714114665985107, -143.7128143310547],
+      "scale": [0.018223827704787254, 0.018223823979496956, 0.018223825842142105]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 4,
-      "meshIndex": 48,
-      "meshName": "Cube.016-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.013",
+      "parent": 13,
+      "position": [-0.23812337219715118, 0.6414389610290527, -0.4589309096336365],
+      "rotation": [-79.7986831665039, 4.768253326416016, 155.2062530517578],
+      "scale": [0.018223818391561508, 0.018223820254206657, 0.018223818391561508]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 12,
-      "meshIndex": 49,
-      "meshName": "Cube.016-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.012",
+      "parent": 13,
+      "position": [-0.23812337219715118, 0.47276246547698975, -0.3890628218650818],
+      "rotation": [-61.721092224121094, 19.238962173461914, 148.51234436035156],
+      "scale": [0.018223820254206657, 0.018223820254206657, 0.018223823979496956]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 2,
-      "meshIndex": 50,
-      "meshName": "Cube.016-2",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.011",
+      "parent": 13,
+      "position": [-0.23812337219715118, 0.3436630666255951, -0.25996339321136475],
+      "rotation": [-33.749961853027344, 2.052287300102762e-06, 180.0],
+      "scale": [0.018223820254206657, 0.01822381652891636, 0.018223822116851807]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 7,
-      "meshIndex": 51,
-      "meshName": "Cube.016-3",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.010",
+      "parent": 13,
+      "position": [-0.23812337219715118, 0.2737950086593628, -0.09128696471452713],
+      "rotation": [-12.53887939453125, -26.023967742919922, -174.42672729492188],
+      "scale": [0.01822381652891636, 0.01822381652891636, 0.018223820254206657]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 9,
-      "meshIndex": 52,
-      "meshName": "Cube.016-4",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.009",
+      "parent": 13,
+      "position": [-0.23812337219715118, 1.1916568279266357, -0.09128706157207489],
+      "rotation": [-166.00662231445313, -36.21634292602539, 171.6239776611328],
+      "scale": [0.018223825842142105, 0.018223825842142105, 0.018223827704787254]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 3,
-      "meshIndex": 53,
-      "meshName": "Cube.014",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.008",
+      "parent": 13,
+      "position": [-0.23812335729599, 1.121788740158081, 0.2599635124206543],
+      "rotation": [90.00000762939453, 56.24998474121094, 90.00000762939453],
+      "scale": [0.018223820254206657, 0.018223822116851807, 0.018223818391561508]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 7,
-      "meshIndex": 54,
-      "meshName": "Cube.015-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.007",
+      "parent": 13,
+      "position": [-0.23812335729599, 0.9926894903182983, 0.38906291127204895],
+      "rotation": [107.14718627929688, 29.524234771728516, 122.05110931396484],
+      "scale": [0.018223818391561508, 0.018223818391561508, 0.018223820254206657]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 13,
-      "meshIndex": 55,
-      "meshName": "Cube.015-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.006",
+      "parent": 13,
+      "position": [-0.23812335729599, 0.8240129947662354, 0.45893093943595886],
+      "rotation": [90.0, 11.249967575073242, 90.0],
+      "scale": [0.018223823979496956, 0.018223823979496956, 0.018223820254206657]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 7,
-      "meshIndex": 56,
-      "meshName": "Cube.011-0",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.005",
+      "parent": 13,
+      "position": [-0.23812335729599, 0.641438901424408, 0.4589309096336365],
+      "rotation": [97.02518463134766, -8.809011459350586, 51.17668914794922],
+      "scale": [0.018223820254206657, 0.018223818391561508, 0.018223818391561508]
     },
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
-      "localScale": [10.0, -10.0, 10.0],
-      "materialIndex": 13,
-      "meshIndex": 57,
-      "meshName": "Cube.011-1",
-      "modelIndex": 0,
-      "name": "main",
-      "rotation": [0.0, 0.0, 0.0, 1.0]
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.004",
+      "parent": 13,
+      "position": [-0.23812335729599, 0.47276246547698975, 0.3890628218650818],
+      "rotation": [80.1623764038086, -32.44804000854492, 107.91065979003906],
+      "scale": [0.018223822116851807, 0.018223822116851807, 0.018223822116851807]
+    },
+    {
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.003",
+      "parent": 13,
+      "position": [-0.23812335729599, 0.3436630368232727, 0.25996339321136475],
+      "rotation": [90.0, -56.250030517578125, 90.0],
+      "scale": [0.018223820254206657, 0.018223823979496956, 0.018223820254206657]
+    },
+    {
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.002",
+      "parent": 13,
+      "position": [-0.23812335729599, 0.2737950384616852, 0.09128696471452713],
+      "rotation": [147.43373107910156, -68.74992370605469, 30.763965606689453],
+      "scale": [0.01822381466627121, 0.01822381280362606, 0.018223818391561508]
+    },
+    {
+      "material": 16,
+      "mesh": 189,
+      "name": "screw.001",
+      "parent": 13,
+      "position": [-0.23812335729599, 1.1916568279266357, 0.09128706157207489],
+      "rotation": [127.97532653808594, 75.67093658447266, 128.85684204101563],
+      "scale": [0.018223820254206657, 0.018223825842142105, 0.018223822116851807]
+    },
+    {
+      "material": 17,
+      "mesh": 190,
+      "name": "BezierCurve.006",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 16,
+      "mesh": 191,
+      "name": "Cube.007",
+      "parent": 13,
+      "position": [0.37599819898605347, 0.7327258586883545, -0.46548324823379517],
+      "rotation": [-90.0, 0.0, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 17,
+      "mesh": 192,
+      "name": "Cube.006",
+      "parent": 13,
+      "position": [0.37599819898605347, 0.7327258586883545, -0.46548324823379517],
+      "rotation": [-90.0, 0.0, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 17,
+      "mesh": 193,
+      "name": "Cube.005",
+      "parent": 13,
+      "position": [0.37599819898605347, 0.2665773034095764, 0.0],
+      "rotation": [-180.0, 0.0, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 16,
+      "mesh": 194,
+      "name": "Cube.004",
+      "parent": 13,
+      "position": [0.37599819898605347, 0.2665773034095764, 0.0],
+      "rotation": [-180.0, 0.0, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 16,
+      "mesh": 195,
+      "name": "Cube.003",
+      "parent": 13,
+      "position": [0.37599819898605347, 0.7327260375022888, 0.46548324823379517],
+      "rotation": [90.0, 0.0, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 17,
+      "mesh": 196,
+      "name": "Cube.002",
+      "parent": 13,
+      "position": [0.37599819898605347, 0.7327260375022888, 0.46548324823379517],
+      "rotation": [90.0, 0.0, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 17,
+      "mesh": 197,
+      "name": "BezierCurve.004",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 17,
+      "mesh": 198,
+      "name": "Cube.001",
+      "parent": 13,
+      "position": [0.37599819898605347, 1.198874592781067, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 17,
+      "mesh": 199,
+      "name": "BezierCurve.003",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 16,
+      "mesh": 200,
+      "name": "Cube",
+      "parent": 13,
+      "position": [0.37599819898605347, 1.198874592781067, 0.0],
+      "scale": [1.359802007675171, 1.359802007675171, 1.359802007675171]
+    },
+    {
+      "material": 17,
+      "mesh": 201,
+      "name": "BezierCurve.002",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 18,
+      "mesh": 202,
+      "name": "BezierCurve.001",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "name": "BezierCurve",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 16,
+      "mesh": 203,
+      "name": "Mesh-0",
+      "parent": 74
+    },
+    {
+      "material": 19,
+      "mesh": 204,
+      "name": "Mesh-1",
+      "parent": 74
+    },
+    {
+      "material": 20,
+      "mesh": 205,
+      "name": "Mesh-2",
+      "parent": 74
+    },
+    {
+      "name": "Sphere.001",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 16,
+      "mesh": 206,
+      "name": "Sphere.003-0",
+      "parent": 78
+    },
+    {
+      "material": 21,
+      "mesh": 207,
+      "name": "Sphere.003-1",
+      "parent": 78
+    },
+    {
+      "material": 17,
+      "mesh": 208,
+      "name": "Sphere.003-2",
+      "parent": 78
+    },
+    {
+      "name": "Cube.012",
+      "parent": 13,
+      "position": [0.0, 0.732725977897644, 0.0]
+    },
+    {
+      "material": 16,
+      "mesh": 209,
+      "name": "Cube.010-0",
+      "parent": 82
+    },
+    {
+      "material": 17,
+      "mesh": 210,
+      "name": "Cube.010-1",
+      "parent": 82
+    },
+    {
+      "material": 22,
+      "mesh": 211,
+      "name": "Cube.010-2",
+      "parent": 82
+    },
+    {
+      "material": 21,
+      "mesh": 212,
+      "name": "Cube.010-3",
+      "parent": 82
+    },
+    {
+      "material": 16,
+      "mesh": 215,
+      "name": "Cylinder.007",
+      "parent": 13,
+      "position": [0.09273935109376907, 0.2543606162071228, 0.0],
+      "rotation": [0.0, 0.0, -83.63601684570313],
+      "scale": [0.044093094766139984, 0.044093094766139984, 0.044093094766139984]
+    },
+    {
+      "name": "lightkabel",
+      "parent": 13,
+      "position": [-0.43312689661979675, 0.11148887872695923, 0.0],
+      "scale": [0.04392299801111221, 0.04392299801111221, 0.04392299801111221]
+    },
+    {
+      "material": 17,
+      "mesh": 216,
+      "name": "Cylinder.006",
+      "parent": 13,
+      "position": [-0.4242364466190338, 0.11148887872695923, 0.0],
+      "scale": [0.0398523323237896, 0.0398523323237896, 0.0398523323237896]
+    },
+    {
+      "name": "Cylinder.004",
+      "parent": 13,
+      "position": [-0.47133952379226685, 0.19129711389541626, 0.0],
+      "rotation": [0.0, 0.0, -82.39118194580078],
+      "scale": [0.04392300546169281, 0.04392300546169281, 0.04392299801111221]
+    },
+    {
+      "material": 17,
+      "mesh": 217,
+      "name": "Cylinder.004-0",
+      "parent": 90
+    },
+    {
+      "material": 18,
+      "mesh": 218,
+      "name": "Cylinder.004-1",
+      "parent": 90,
+      "position": [-0.00018072128295898438, 0.0001430511474609375, 0.0],
+      "rotation": [0.0, 0.0, -1.620602603225052e-07]
+    },
+    {
+      "material": 24,
+      "mesh": 219,
+      "name": "Cylinder.004-2",
+      "parent": 90
+    },
+    {
+      "name": "Cube.018",
+      "parent": 13,
+      "position": [-0.7386675477027893, 0.732725977897644, 0.0],
+      "scale": [1.4010778665542603, 1.4010778665542603, 1.4010778665542603]
+    },
+    {
+      "material": 17,
+      "mesh": 220,
+      "name": "Cube.016-0",
+      "parent": 94
+    },
+    {
+      "material": 25,
+      "mesh": 221,
+      "name": "Cube.016-1",
+      "parent": 94
+    },
+    {
+      "material": 15,
+      "mesh": 222,
+      "name": "Cube.016-2",
+      "parent": 94
+    },
+    {
+      "material": 20,
+      "mesh": 223,
+      "name": "Cube.016-3",
+      "parent": 94
+    },
+    {
+      "material": 22,
+      "mesh": 224,
+      "name": "Cube.016-4",
+      "parent": 94
+    },
+    {
+      "name": "Cube.013",
+      "parent": 13,
+      "position": [-0.3425546884536743, 0.5551470518112183, 0.0],
+      "scale": [0.28661081194877625, 0.28661081194877625, 0.28661081194877625]
+    },
+    {
+      "material": 20,
+      "mesh": 228,
+      "name": "Cube.011-0",
+      "parent": 100
+    },
+    {
+      "material": 26,
+      "mesh": 229,
+      "name": "Cube.011-1",
+      "parent": 100
+    },
+    {
+      "material": 16,
+      "mesh": 225,
+      "name": "Cube.016",
+      "parent": 100,
+      "position": [0.5605396032333374, 0.0, 0.0],
+      "scale": [1.0, 2.7987446784973145, 1.0]
+    },
+    {
+      "name": "Cube.017",
+      "parent": 100,
+      "position": [0.0, 0.7324080467224121, 0.0]
+    },
+    {
+      "material": 20,
+      "mesh": 226,
+      "name": "Cube.015-0",
+      "parent": 104
+    },
+    {
+      "material": 26,
+      "mesh": 227,
+      "name": "Cube.015-1",
+      "parent": 104
     }
   ],
   "materials": [
     {
       "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
-      "emissionColor": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.0,
       "name": "gray",
-      "roughness": 1.0,
-      "specular": 0.0,
-      "thickness": 0.0,
-      "thin": 0.0,
-      "transmission": 0.0
+      "roughness": 1.0
     },
     {
       "color": [1.0, 1.0, 1.0],
-      "emissionColor": [1.0, 1.0, 1.0],
       "luminance": 3.0,
-      "name": "light"
-    }
-  ],
-  "materialsResolved": [
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [0.7300000190734863, 0.7300000190734863, 0.7300000190734863],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.0,
-      "name": "gray",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 0.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 3.0,
-      "metalness": 0.0,
       "name": "light",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 0.0,
-      "specular": 0.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 1.0,
-      "name": "leather.001",
-      "normalScale": 1.0,
-      "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
+      "name": "black",
+      "roughness": 1.0
+    },
+    {
       "clearcoat": 1.0,
-      "clearcoatRoughness": 0.30000001192092896,
-      "color": [0.991150438785553, 0.991150438785553, 0.991150438785553],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.6000000238418579,
-      "name": "alu1",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 0.30000001192092896,
-      "specular": 0.0,
-      "transmission": 0.0
+      "clearcoatRoughness": 0.10000000149011612,
+      "color": [0.8862745761871338, 0.05882353335618973, 0.05882353335618973],
+      "name": "body",
+      "roughness": 0.4000000059604645,
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 1.0,
-      "clearcoatRoughness": 0.30000001192092896,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.6000000238418579,
-      "name": "alu1.001",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 0.30000001192092896,
-      "specular": 1.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
+      "color": [0.8313999772071838, 0.8313999772071838, 0.8313999772071838],
       "metalness": 1.0,
-      "name": "glass",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
+      "name": "chrome",
+      "roughness": 0.05000000074505806
+    },
+    {
+      "color": [1.0, 1.0, 1.0],
+      "name": "d_glass",
+      "thin": 1.0,
       "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
       "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 1.0,
-      "name": "leather.002",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "name": "glass",
+      "thin": 1.0,
+      "transmission": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
+      "color": [0.33730000257492065, 0.3961000144481659, 0.25099998712539673],
       "metalness": 1.0,
+      "name": "interior",
+      "roughness": 1.0,
+      "specular": 1.0
+    },
+    {
+      "color": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+      "metalness": 1.0,
+      "name": "logo1",
+      "roughness": 1.0,
+      "specular": 1.0
+    },
+    {
+      "color": [0.8313726186752319, 0.8313726186752319, 0.8313726186752319],
+      "metalness": 1.0,
+      "name": "logo",
+      "roughness": 0.05000000074505806
+    },
+    {
+      "color": [0.75, 0.019999999552965164, 0.019999999552965164],
       "name": "red",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "roughness": 0.25,
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
+      "color": [0.06194692850112915, 0.06112462654709816, 0.06112462282180786],
+      "name": "tire",
+      "roughness": 0.800000011920929
+    },
+    {
+      "color": [0.800000011920929, 0.800000011920929, 0.800000011920929],
       "metalness": 1.0,
+      "name": "Unknown",
+      "roughness": 0.10000000149011612,
+      "specular": 1.0
+    },
+    {
+      "color": [0.800000011920929, 0.800000011920929, 0.800000011920929],
+      "metalness": 1.0,
+      "name": "Unknown",
+      "roughness": 0.10000000149011612,
+      "specular": 1.0
+    },
+    {
+      "clearcoat": 1.0,
+      "clearcoatRoughness": 0.10000000149011612,
+      "color": [0.05000000074505806, 0.05000000074505806, 0.054999999701976776],
+      "name": "saloon",
+      "roughness": 0.3499999940395355,
+      "specular": 1.0
+    },
+    {
+      "color": [1.0, 1.0, 1.0],
+      "metalness": 1.0,
+      "name": "leather.001",
+      "roughness": 1.0,
+      "specular": 1.0
+    },
+    {
+      "color": [0.7345132827758789, 0.7345132827758789, 0.7345132827758789],
+      "metalness": 1.0,
+      "name": "alu1",
+      "roughness": 0.27000001072883606,
+      "specular": 1.0
+    },
+    {
+      "color": [0.7333333492279053, 0.7333333492279053, 0.7333333492279053],
+      "metalness": 1.0,
+      "name": "alu1.001",
+      "roughness": 0.27000001072883606,
+      "specular": 1.0
+    },
+    {
+      "color": [1.0, 1.0, 1.0],
+      "name": "glass",
+      "thin": 1.0,
+      "transmission": 1.0
+    },
+    {
+      "color": [0.07964599132537842, 0.07823632657527924, 0.07823632657527924],
+      "name": "leather.002",
+      "roughness": 0.4699999988079071,
+      "specular": 1.0
+    },
+    {
+      "color": [0.24778759479522705, 0.23791995644569397, 0.23791994154453278],
+      "name": "red",
+      "roughness": 0.3799999952316284,
+      "specular": 1.0
+    },
+    {
+      "clearcoat": 1.0,
+      "clearcoatRoughness": 0.3400000035762787,
+      "color": [0.1504424810409546, 0.14152951538562775, 0.1391260176897049],
       "name": "leather.004",
-      "normalScale": 1.0,
-      "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 1.0,
       "name": "black",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "roughness": 0.41999998688697815,
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 5.5,
-      "metalness": 1.0,
-      "name": "Material.002",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [0.0, 0.0, 0.0],
-      "ior": 1.5,
       "luminance": 2.0,
       "metalness": 1.0,
-      "name": "Material.001",
-      "normalScale": 1.0,
-      "opacity": 1.0,
+      "name": "Material.002",
       "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
+      "color": [1.0, 1.0, 1.0],
+      "luminance": 16.299999237060547,
+      "metalness": 1.0,
+      "name": "Material.001",
+      "roughness": 1.0,
+      "specular": 1.0
+    },
+    {
       "color": [1.0, 0.0, 0.0],
-      "ior": 1.5,
       "luminance": 13.399999618530273,
       "metalness": 1.0,
       "name": "Material.000",
-      "normalScale": 1.0,
-      "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 0.0,
+      "color": [0.24336284399032593, 0.21428851783275604, 0.21428851783275604],
       "name": "leather",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 0.6499999761581421,
-      "specular": 1.0,
-      "transmission": 0.0
+      "roughness": 0.6399999856948853,
+      "specular": 1.0
     },
     {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
       "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
       "metalness": 1.0,
       "name": "Unknown",
-      "normalScale": 1.0,
-      "opacity": 1.0,
       "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 0.0,
-      "metalness": 1.0,
-      "name": "Unknown",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 0.0
-    },
-    {
-      "absorption": [1.0, 1.0, 1.0],
-      "clearcoat": 0.0,
-      "clearcoatRoughness": 0.0,
-      "color": [1.0, 1.0, 1.0],
-      "ior": 1.5,
-      "luminance": 3.3499999046325684,
-      "metalness": 1.0,
-      "name": "glass copy",
-      "normalScale": 1.0,
-      "opacity": 1.0,
-      "roughness": 1.0,
-      "specular": 1.0,
-      "transmission": 1.0
+      "specular": 1.0
     }
-  ],
-  "modelImports": [
-    "models/Spaceship/spaceship.glb",
-    "models/plane.glb"
-  ],
-  "version": 2,
-  "window": {
-    "height": 600,
-    "name": "GPU Path Tracer",
-    "width": 800
-  }
+  ]
 }
