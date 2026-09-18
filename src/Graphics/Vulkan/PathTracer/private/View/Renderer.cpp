@@ -86,7 +86,9 @@ namespace crv::graphics::vulkan {
             .imageUsage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
             .memoryUsage = VMA_MEMORY_USAGE_AUTO
         };
+        imageCreateInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
         mTracerImage = Image(imageCreateInfo);
+        imageCreateInfo.format = VK_FORMAT_R16G16B16A16_SFLOAT;
         mFinalImage  = Image(imageCreateInfo);
 
         imageCreateInfo.format = VK_FORMAT_R32_UINT;
@@ -98,11 +100,12 @@ namespace crv::graphics::vulkan {
             .device = mContext.device(),
             .image = mTracerImage.get(),
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = VK_FORMAT_R16G16B16A16_SFLOAT,
+            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         };
         mTracerView = ImageView(imageViewCreateInfo);
         imageViewCreateInfo.image = mFinalImage.get();
+        imageViewCreateInfo.format = VK_FORMAT_R16G16B16A16_SFLOAT;
         mFinalView = ImageView(imageViewCreateInfo);
 
         imageViewCreateInfo.image = mTracerInstanceImage.get();

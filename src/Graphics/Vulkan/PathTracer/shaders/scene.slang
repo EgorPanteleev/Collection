@@ -15,7 +15,7 @@ public struct DirectLightData {
 };
 
 [[vk::binding(0)]] public RaytracingAccelerationStructure tlas;
-[[vk::image_format("rgba16f")]] [[vk::binding(1)]] public RWTexture2D<float4> outputImage;
+[[vk::image_format("rgba32f")]] [[vk::binding(1)]] public RWTexture2D<float4> outputImage;
 [[vk::image_format("r32ui")]]   [[vk::binding(2)]] public RWTexture2D<uint>   outputInstanceIdImage;
 [[vk::binding(3)]] public ConstantBuffer<CameraData>      camera;
 [[vk::binding(4)]] public ConstantBuffer<DirectLightData> directLight;

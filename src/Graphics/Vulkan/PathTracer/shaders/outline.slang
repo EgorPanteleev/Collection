@@ -1,4 +1,4 @@
-[[vk::image_format("rgba16f")]]
+[[vk::image_format("rgba32f")]]
 [[vk::binding(0)]]
 RWTexture2D<float4> tracerImage;
 
