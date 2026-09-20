@@ -436,9 +436,7 @@ namespace crv::graphics::vulkan {
                 changed |= ImGui::SliderFloat("Metalness", &edited.metalness, 0.0f, 1.0f, "%.2f");
                 changed |= ImGui::SliderFloat("Roughness", &edited.roughness, 0.0f, 1.0f, "%.2f");
                 changed |= ImGui::SliderFloat("Anisotropy", &edited.anisotropy, 0.0f, 1.0f, "%.2f");
-                changed |= ImGui::SliderFloat("Sheen", &edited.sheen, 0.0f, 1.0f, "%.2f");
                 changed |= ImGui::SliderFloat("Opacity", &edited.opacity, 0.0f, 1.0f, "%.2f");
-                changed |= ImGui::SliderFloat("Translucency", &edited.translucency, 0.0f, 3.0f, "%.2f");
             }
             if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen)) {
                 changed |= ImGui::SliderFloat("Weight##specular", &edited.specular, 0.0f, 1.0f, "%.2f");

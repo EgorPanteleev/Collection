@@ -360,7 +360,7 @@ public struct BSDF {
 };
 
 public BSDF makeBSDF(float3 N, float4 tangent, float3 albedo, float metalness, float roughness,
-                     float anisotropy, float clearcoat, float clearcoatRoughness) {
+                     float specular, float anisotropy, float clearcoat, float clearcoatRoughness) {
     float3 ss, ts;
     if (dot(tangent.xyz, tangent.xyz) > 1e-8) {
         ss = normalize(tangent.xyz - N * dot(tangent.xyz, N));
@@ -374,7 +374,7 @@ public BSDF makeBSDF(float3 N, float4 tangent, float3 albedo, float metalness, f
     b.ss = ss;
     b.ts = ts;
     b.diffuse.albedo = albedo * (1.0 - metalness);
-    b.specular.F0    = lerp(float3(0.04), albedo, metalness);
+    b.specular.F0    = lerp(float3(0.04) * saturate(specular), albedo, metalness);
     float alpha  = max(roughness * roughness, 1e-3);
     float aspect = sqrt(1.0 - 0.9 * saturate(anisotropy));
     b.specular.alphaX = max(alpha / aspect, 1e-3);

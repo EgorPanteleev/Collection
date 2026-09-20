@@ -26,7 +26,7 @@ namespace crv::graphics::vulkan {
         float       metalness         = 0.0f;
         float       roughness         = 0.0f;
         float       ior               = 1.5f;
-        float       specular          = 0.0f;
+        float       specular          = 1.0f;
         float       transmission      = 0.0f;
         float       clearcoat          = 0.0f;
         float       clearcoatRoughness = 0.0f;
