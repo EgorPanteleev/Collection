@@ -28,7 +28,7 @@ void rgenMain() {
         payload.prevBrdfPdf = -1.0;
         payload.segmentDist = 0.0;
         payload.done        = false;
-        payload.insideGlass = false;
+        payload.mediumAbsorption = float3(1.0);
 
         for (uint depth = 0; depth < pc.maxDepth; ++depth) {
             RayDesc ray;
@@ -124,6 +124,8 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    payload.throughput *= exp(log(max(payload.mediumAbsorption, float3(1e-4))) * RayTCurrent());
+
     if (material.opacity < 1.0 && rand01(payload.seed) >= material.opacity) {
         float3 dir           = WorldRayDirection();
         payload.origin       = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
@@ -175,8 +177,6 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     if (material.transmission > 0.0) {
         if (rand01(payload.seed) < material.transmission) {
-            if (payload.insideGlass)
-                payload.throughput *= exp(log(max(material.absorption, float3(1e-4))) * RayTCurrent());
             float3 view   = -WorldRayDirection();
             float  galpha = roughness * roughness;
             bool   refracted;
@@ -198,7 +198,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
                 refracted = s.wi.z < 0.0;
                 payload.throughput *= s.f * abs(s.wi.z) / s.pdf / material.transmission;
             }
-            if (refracted) payload.insideGlass = !payload.insideGlass;
+            if (refracted) payload.mediumAbsorption = hit.frontFace ? material.absorption : float3(1.0);
             if (refracted && hit.frontFace) payload.throughput *= baseColor;
             payload.origin      = movedPoint(hit.P, refracted ? -hit.gN : hit.gN);
             payload.direction   = wiWorld;

@@ -1,0 +1,31 @@
+{
+  "modelImports": ["models/plane.glb", "models/cube.glb"],
+  "skyColor": [0.0, 0.0, 0.0],
+  "materials": [
+    { "name": "emissive_floor", "color": [1.0, 1.0, 1.0], "luminance": 0.6 },
+    { "name": "glass",          "color": [1.0, 1.0, 1.0], "luminance": 0,
+      "roughness": 0.0, "transmission": 1.0, "ior": 1.0,
+      "absorption": [0.97, 0.90, 0.80] }
+  ],
+  "instances": [
+    { "name": "floor",   "modelIndex": 0, "texIndex": 0,
+      "localPosition": [0, 0, 0],      "localRotation": [0, 0, 0], "localScale": [120, 120, 120] },
+    { "name": "slab_d2", "modelIndex": 1, "texIndex": 1,
+      "localPosition": [-45, -40, 0],  "localRotation": [0, 0, 0], "localScale": [10, 1, 10] },
+    { "name": "slab_d4", "modelIndex": 1, "texIndex": 1,
+      "localPosition": [-15, -40, 0],  "localRotation": [0, 0, 0], "localScale": [10, 2, 10] },
+    { "name": "slab_d8", "modelIndex": 1, "texIndex": 1,
+      "localPosition": [15, -40, 0],   "localRotation": [0, 0, 0], "localScale": [10, 4, 10] },
+    { "name": "slab_d16","modelIndex": 1, "texIndex": 1,
+      "localPosition": [45, -40, 0],   "localRotation": [0, 0, 0], "localScale": [10, 8, 10] }
+  ],
+  "directLight": { "direction": [0.0, 1.0, 0.0], "intensity": 0.0 },
+  "window": { "name": "GPU Path Tracer", "width": 1000, "height": 700 },
+  "camera": {
+    "type": "Fly",
+    "position": [0, -150, 0],
+    "target":   [0, 0, 0],
+    "up":       [0, 0, -1],
+    "zoom": 1, "fov": 60, "nearPlane": 0.1, "farPlane": 5000.0
+  }
+}

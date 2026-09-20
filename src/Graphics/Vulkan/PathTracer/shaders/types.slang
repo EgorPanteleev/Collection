@@ -12,7 +12,7 @@ public struct PathPayload {
     public float  prevBrdfPdf;
     public float  segmentDist;
     public bool   done;
-    public bool   insideGlass;
+    public float3 mediumAbsorption;
 };
 
 public struct ShadowPayload {
