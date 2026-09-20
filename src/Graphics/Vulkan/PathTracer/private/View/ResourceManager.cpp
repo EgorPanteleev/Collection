@@ -53,8 +53,9 @@ namespace crv::graphics::vulkan {
     void ResourceManager::build() {
         syncTextures();
         buildMeshes();
-        if (mScene->skyboxIndex() != UINT32_MAX && !mScene->skyboxPath().empty())
-            mEnvMap.build(cm::AbsLoader::loadSkybox(ASSETS_PATH + mScene->skyboxPath()));
+        const uint32_t skyboxIndex = mScene->skyboxIndex();
+        if (skyboxIndex < mScene->textureSources().size())
+            mEnvMap.build(mScene->textureSources()[skyboxIndex]);
         buildTLAS();
         createBuffers();
     }
@@ -67,9 +68,7 @@ namespace crv::graphics::vulkan {
         buildMaterialBuffer();
     }
 
-    void ResourceManager::updateInstance(const uint32_t index) {
-        if (mScene->instances()[index].isGroup()) return;
-        updateInstanceData(index);
+    void ResourceManager::uploadInstanceAS(const uint32_t index) {
         const InstanceData& instance = mScene->instances()[index];
         InstanceData::AS asInstance =
             instance.vkAS(index, mBLASDatas[instance.meshIndex].blas.deviceAddress());
@@ -86,6 +85,9 @@ namespace crv::graphics::vulkan {
             .queue = mContext->queue(QueueFamilyType::GRAPHICS)
         };
         Buffer::copy(copyInfo);
+    }
+
+    void ResourceManager::refreshTLAS() {
         auto [commandBuffer, cmdData] = beginCommandBuffer(mContext, QueueFamilyType::GRAPHICS);
         const TLASUpdateInfo updateInfo {
             .commandBuffer = commandBuffer,
@@ -93,6 +95,12 @@ namespace crv::graphics::vulkan {
         };
         mTLAS.update(updateInfo);
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
+    }
+
+    void ResourceManager::updateInstance(const uint32_t index) {
+        if (mScene->instances()[index].isGroup()) return;
+        uploadInstanceData(index);
+        uploadInstanceAS(index);
     }
 
     bool ResourceManager::alphaMasked(const InstanceData& instance) const {
@@ -139,15 +147,17 @@ namespace crv::graphics::vulkan {
         if (material.luminance <= 0.0f && material.opacity >= 1.0f) return;
         const auto& instances = mScene->instances();
         const auto count = static_cast<uint32_t>(instances.size());
+        bool touched = false;
         for (uint32_t i = 0; i < count; ++i) {
             if (instances[i].isGroup() || instances[i].materialIndex != materialIndex) continue;
             updateInstance(i);
+            touched = true;
         }
+        if (touched) refreshTLAS();
     }
 
     void ResourceManager::updateInstanceData(const uint32_t index) {
         uploadInstanceData(index);
-        updateEmissiveIndices();
     }
 
     void ResourceManager::rebuildInstances() {

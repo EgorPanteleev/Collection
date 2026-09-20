@@ -26,6 +26,7 @@ namespace crv::graphics::vulkan {
         void updateInstanceData(uint32_t index);
         void updateMaterial(uint32_t index);
         void updateEmissiveIndices();
+        void refreshTLAS();
         void rebuildInstances();
         void rebuildMaterials();
         uint32_t uploadTexture(uint32_t sourceIndex);
@@ -60,6 +61,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] InstanceData::GPU gpuInstance(uint32_t index) const;
         [[nodiscard]] std::vector<InstanceData::GPU> gpuInstances() const;
         void uploadInstanceData(uint32_t index);
+        void uploadInstanceAS(uint32_t index);
         void refreshMaterialInstances(uint32_t materialIndex);
 
         Context*              mContext          = nullptr;

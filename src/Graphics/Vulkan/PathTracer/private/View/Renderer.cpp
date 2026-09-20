@@ -559,11 +559,18 @@ namespace crv::graphics::vulkan {
         if (state.updateInstances) {
             mResourceManager.rebuildInstances();
             mRayTracerPass.bindInstances();
-        } else {
+        } else if (!state.dirtyInstances.empty()) {
+            bool tlasDirty = false;
             for (const auto& [index, update] : state.dirtyInstances) {
-                if (update == InstanceUpdate::Model) mResourceManager.updateInstance(index);
-                else                                 mResourceManager.updateInstanceData(index);
+                if (update == InstanceUpdate::Model) {
+                    mResourceManager.updateInstance(index);
+                    tlasDirty = true;
+                } else {
+                    mResourceManager.updateInstanceData(index);
+                }
             }
+            if (tlasDirty) mResourceManager.refreshTLAS();
+            mResourceManager.updateEmissiveIndices();
         }
 
         if (state.updateMaterials) {
