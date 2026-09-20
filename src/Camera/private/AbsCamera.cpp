@@ -4,6 +4,8 @@
 
 #include "AbsCamera.hpp"
 
+#include <glm/ext/matrix_clip_space.hpp>
+
 namespace crv::scene {
 
     AbsCamera::AbsCamera(const CameraCreateInfo &createInfo) :
@@ -24,8 +26,8 @@ namespace crv::scene {
     }
 
     void AbsCamera::calculateProjection() {
-        mProjectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio,
-                                             mNearPlane, mFarPlane);
+        mProjectionMatrix = glm::perspectiveRH_ZO(glm::radians(mFOV), mAspectRatio,
+                                                  mNearPlane, mFarPlane);
     }
 
     void AbsCamera::calculateView() {
