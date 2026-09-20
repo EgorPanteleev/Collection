@@ -27,6 +27,15 @@ namespace {
         rotation = glm::normalize(glm::quat_cast(basis));
         return { translation, rotation, scale };
     }
+
+    std::string relativeToAssets(const std::string& path) {
+        const std::string assets = ASSETS_PATH;
+        return path.rfind(assets, 0) == 0 ? path.substr(assets.size()) : path;
+    }
+
+    std::string textureKey(const std::string& relPath, const int type) {
+        return relPath + "|" + std::to_string(type);
+    }
 }
 
 namespace crv::graphics::vulkan {
@@ -34,13 +43,13 @@ namespace crv::graphics::vulkan {
 
     void Scene::load(const json& scene) {
         mJson = scene;
-        mExplicit = mJson.value("version", 1) >= 2;
+        mVersion = mJson.value("version", 1);
         auto directLight = mJson["directLight"];
         mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
         mDirectLight.intensity = directLight["intensity"];
         if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
 
-        if (!mExplicit || mJson.contains("materialsResolved")) loadJsonMaterials();
+        if (mVersion < 2 || mJson.contains("materialsResolved")) loadJsonMaterials();
         const std::vector<std::string> models = mJson.value("modelImports", std::vector<std::string>{});
         for (int modelIndex = 0; modelIndex < models.size(); ++modelIndex) {
             loadModel(modelIndex, models[modelIndex]);
@@ -50,14 +59,11 @@ namespace crv::graphics::vulkan {
 
         const std::string skyboxPath = mJson.value("skybox", std::string());
         if (!skyboxPath.empty()) {
-            const cm::Texture skybox = cm::AbsLoader::loadSkybox(ASSETS_PATH + skyboxPath);
-            mTextureSources.push_back(skybox);
-            mSkyboxIndex = static_cast<uint32_t>(mTextureSources.size() - 1);
-            mSkyboxName = fs::path(skyboxPath).filename().string();
+            mSkyboxIndex = addTextureSource(cm::AbsLoader::loadSkybox(ASSETS_PATH + skyboxPath));
             mSkyboxPath = skyboxPath;
         }
 
-        if (mExplicit) {
+        if (mVersion >= 2) {
             applyResolvedMaterials();
             loadExplicitInstances();
         }
@@ -77,7 +83,7 @@ namespace crv::graphics::vulkan {
         const auto meshBase     = static_cast<uint32_t>(mMeshes.size());
         const auto materialBase = static_cast<uint32_t>(mMaterials.size());
         buildMeshes(loader, modelIndex);
-        if (!mExplicit) buildInstances(loader, modelIndex, meshBase, materialBase);
+        if (mVersion < 2) buildInstances(loader, modelIndex, meshBase, materialBase);
         loadModelMaterials(loader);
     }
 
@@ -233,36 +239,17 @@ namespace crv::graphics::vulkan {
                 .clearcoatRoughness = loaderMaterial.clearcoatRoughness,
                 .opacity = 1.0f - loaderMaterial.mTransparencyFactor,
             };
-            const cm::Texture &baseColorTexture = loaderMaterial.mTextures[cm::Texture::BASE_COLOR];
-            const cm::Texture &normalTexture = loaderMaterial.mTextures[cm::Texture::NORMAL];
-            const cm::Texture &metalRoughnessTexture = loaderMaterial.mTextures[cm::Texture::METAL_ROUGHNESS];
-            if (!baseColorTexture.empty()) {
-                mTextureSources.push_back(baseColorTexture);
-                material.baseColorTexIndex = mTextureSources.size() - 1;
-                material.baseColorTexName = baseColorTexture.mName;
-            }
-            if (!normalTexture.empty()) {
-                mTextureSources.push_back(normalTexture);
-                material.normalTexIndex = mTextureSources.size() - 1;
-                material.normalTexName = normalTexture.mName;
-            }
-            if (!metalRoughnessTexture.empty()) {
-                mTextureSources.push_back(metalRoughnessTexture);
-                material.metalRoughnessTexIndex = mTextureSources.size() - 1;
-                material.metalRoughnessTexName = metalRoughnessTexture.mName;
-            }
-            const cm::Texture &clearcoatTexture = loaderMaterial.mTextures[cm::Texture::CLEARCOAT];
-            const cm::Texture &clearcoatRoughnessTexture = loaderMaterial.mTextures[cm::Texture::CLEARCOAT_ROUGHNESS];
-            if (!clearcoatTexture.empty()) {
-                mTextureSources.push_back(clearcoatTexture);
-                material.clearcoatTexIndex = mTextureSources.size() - 1;
-                material.clearcoatTexName = clearcoatTexture.mName;
-            }
-            if (!clearcoatRoughnessTexture.empty()) {
-                mTextureSources.push_back(clearcoatRoughnessTexture);
-                material.clearcoatRoughnessTexIndex = mTextureSources.size() - 1;
-                material.clearcoatRoughnessTexName = clearcoatRoughnessTexture.mName;
-            }
+            const auto ingest = [&](const cm::Texture::Type type, uint32_t& texIndex, std::string& texPath) {
+                const cm::Texture& texture = loaderMaterial.mTextures[type];
+                if (texture.empty()) return;
+                texIndex = addTextureSource(texture);
+                texPath  = relativeToAssets(texture.mPath);
+            };
+            ingest(cm::Texture::BASE_COLOR, material.baseColorTexIndex, material.baseColorTexPath);
+            ingest(cm::Texture::NORMAL, material.normalTexIndex, material.normalTexPath);
+            ingest(cm::Texture::METAL_ROUGHNESS, material.metalRoughnessTexIndex, material.metalRoughnessTexPath);
+            ingest(cm::Texture::CLEARCOAT, material.clearcoatTexIndex, material.clearcoatTexPath);
+            ingest(cm::Texture::CLEARCOAT_ROUGHNESS, material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexPath);
             mMaterials.push_back(material);
         }
     }
@@ -296,23 +283,37 @@ namespace crv::graphics::vulkan {
         }
     }
 
+    void Scene::inheritModelTextures(const std::string& name, const std::vector<Material>& loaded,
+                                     std::vector<bool>& taken, Material& material) const {
+        for (size_t i = 0; i < loaded.size(); ++i) {
+            if (taken[i] || loaded[i].name != name) continue;
+            taken[i] = true;
+            const Material& base = loaded[i];
+            material.name = base.name;
+            material.baseColorTexIndex = base.baseColorTexIndex; material.baseColorTexPath = base.baseColorTexPath;
+            material.normalTexIndex = base.normalTexIndex; material.normalTexPath = base.normalTexPath;
+            material.metalRoughnessTexIndex = base.metalRoughnessTexIndex; material.metalRoughnessTexPath = base.metalRoughnessTexPath;
+            material.clearcoatTexIndex = base.clearcoatTexIndex; material.clearcoatTexPath = base.clearcoatTexPath;
+            material.clearcoatRoughnessTexIndex = base.clearcoatRoughnessTexIndex; material.clearcoatRoughnessTexPath = base.clearcoatRoughnessTexPath;
+            return;
+        }
+    }
+
     void Scene::applyResolvedMaterials() {
         const char* key = mJson.contains("materialsResolved") ? "materialsResolved" : "materials";
         if (!mJson.contains(key)) return;
         const auto& resolved = mJson[key];
-        if (resolved.size() > mMaterials.size()) mMaterials.resize(resolved.size());
+
+        const std::vector<Material> loaded = std::move(mMaterials);
+        mMaterials.assign(std::max(resolved.size(), loaded.size()), Material{});
+        for (size_t i = resolved.size(); i < loaded.size(); ++i) mMaterials[i] = loaded[i];
+
+        std::vector<bool> taken(loaded.size(), false);
         for (size_t i = 0; i < resolved.size(); ++i) {
             const auto& jm = resolved[i];
             Material& material = mMaterials[i];
 
-            Material reset{};
-            reset.name = material.name;
-            reset.baseColorTexIndex = material.baseColorTexIndex; reset.baseColorTexName = material.baseColorTexName; reset.baseColorTexPath = material.baseColorTexPath;
-            reset.normalTexIndex = material.normalTexIndex; reset.normalTexName = material.normalTexName; reset.normalTexPath = material.normalTexPath;
-            reset.metalRoughnessTexIndex = material.metalRoughnessTexIndex; reset.metalRoughnessTexName = material.metalRoughnessTexName; reset.metalRoughnessTexPath = material.metalRoughnessTexPath;
-            reset.clearcoatTexIndex = material.clearcoatTexIndex; reset.clearcoatTexName = material.clearcoatTexName; reset.clearcoatTexPath = material.clearcoatTexPath;
-            reset.clearcoatRoughnessTexIndex = material.clearcoatRoughnessTexIndex; reset.clearcoatRoughnessTexName = material.clearcoatRoughnessTexName; reset.clearcoatRoughnessTexPath = material.clearcoatRoughnessTexPath;
-            material = reset;
+            if (mVersion < 3) inheritModelTextures(jm.value("name", std::string()), loaded, taken, material);
 
             material.name = jm.value("name", material.name);
             if (jm.contains("color")) material.baseColor = toVec3(jm["color"]);
@@ -333,32 +334,42 @@ namespace crv::graphics::vulkan {
             material.thin = jm.value("thin", material.thin);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
-                material.baseColorTexIndex, material.baseColorTexName, material.baseColorTexPath);
+                material.baseColorTexIndex, material.baseColorTexPath);
             loadResolvedTexture(jm, "normalTex", cm::Texture::NORMAL,
-                material.normalTexIndex, material.normalTexName, material.normalTexPath);
+                material.normalTexIndex, material.normalTexPath);
             loadResolvedTexture(jm, "metalRoughnessTex", cm::Texture::METAL_ROUGHNESS,
-                material.metalRoughnessTexIndex, material.metalRoughnessTexName, material.metalRoughnessTexPath);
+                material.metalRoughnessTexIndex, material.metalRoughnessTexPath);
             loadResolvedTexture(jm, "clearcoatTex", cm::Texture::CLEARCOAT,
-                material.clearcoatTexIndex, material.clearcoatTexName, material.clearcoatTexPath);
+                material.clearcoatTexIndex, material.clearcoatTexPath);
             loadResolvedTexture(jm, "clearcoatRoughnessTex", cm::Texture::CLEARCOAT_ROUGHNESS,
-                material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexName, material.clearcoatRoughnessTexPath);
+                material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexPath);
         }
     }
 
-    void Scene::loadResolvedTexture(const json& jm, const char* key, int textureType,
-                                          uint32_t& texIndex, std::string& texName, std::string& texPath) {
-        if (!jm.contains(key)) return;
+    void Scene::loadResolvedTexture(const json& jm, const char* key, const int textureType,
+                                    uint32_t& texIndex, std::string& texPath) {
+        if (!jm.contains(key) || !jm[key].is_string()) return;
         const std::string rel = jm[key];
+        if (rel.empty()) {
+            texIndex = UINT32_MAX;
+            texPath.clear();
+            return;
+        }
+
+        const auto cached = mTextureByPath.find(textureKey(rel, textureType));
+        if (cached != mTextureByPath.end()) {
+            texIndex = cached->second;
+            texPath  = rel;
+            return;
+        }
+
         const std::string full = (fs::path(ASSETS_PATH) / rel).string();
         std::error_code ec;
         if (!fs::exists(full, ec)) {
             WARNING << "Scene texture not found: " << full;
             return;
         }
-        mTextureSources.push_back(
-            cm::AbsLoader::loadTexture(full, static_cast<cm::Texture::Type>(textureType)));
-        texIndex = static_cast<uint32_t>(mTextureSources.size() - 1);
-        texName  = fs::path(rel).filename().string();
+        texIndex = addTextureSource(cm::AbsLoader::loadTexture(full, static_cast<cm::Texture::Type>(textureType)));
         texPath  = rel;
     }
 
@@ -397,7 +408,7 @@ namespace crv::graphics::vulkan {
 
     json Scene::save() const {
         json scene = mJson;
-        scene["version"] = 2;
+        scene["version"] = 3;
         scene["directLight"]["direction"] = { mDirectLight.dir.x, mDirectLight.dir.y, mDirectLight.dir.z };
         scene["directLight"]["intensity"] = mDirectLight.intensity;
         scene["skyColor"] = { mSkyColor.r, mSkyColor.g, mSkyColor.b };
@@ -472,21 +483,29 @@ namespace crv::graphics::vulkan {
     }
 
     void Scene::setMaterialTexture(const uint32_t materialIndex, const int textureType,
-                                   const uint32_t texIndex, const std::string& name, const std::string& path) {
+                                   const uint32_t texIndex, const std::string& path) {
         if (materialIndex >= mMaterials.size()) return;
         Material& material = mMaterials[materialIndex];
         switch (textureType) {
-            case 1:  material.normalTexIndex = texIndex; material.normalTexName = name; material.normalTexPath = path; break;
-            case 2:  material.metalRoughnessTexIndex = texIndex; material.metalRoughnessTexName = name; material.metalRoughnessTexPath = path; break;
-            case 3:  material.clearcoatTexIndex = texIndex; material.clearcoatTexName = name; material.clearcoatTexPath = path; break;
-            case 4:  material.clearcoatRoughnessTexIndex = texIndex; material.clearcoatRoughnessTexName = name; material.clearcoatRoughnessTexPath = path; break;
-            default: material.baseColorTexIndex = texIndex; material.baseColorTexName = name; material.baseColorTexPath = path; break;
+            case 1:  material.normalTexIndex = texIndex; material.normalTexPath = path; break;
+            case 2:  material.metalRoughnessTexIndex = texIndex; material.metalRoughnessTexPath = path; break;
+            case 3:  material.clearcoatTexIndex = texIndex; material.clearcoatTexPath = path; break;
+            case 4:  material.clearcoatRoughnessTexIndex = texIndex; material.clearcoatRoughnessTexPath = path; break;
+            default: material.baseColorTexIndex = texIndex; material.baseColorTexPath = path; break;
         }
     }
 
     uint32_t Scene::addTextureSource(cm::Texture texture) {
+        const std::string key = texture.mPath.empty()
+            ? std::string() : textureKey(relativeToAssets(texture.mPath), texture.mType);
+        if (!key.empty()) {
+            const auto it = mTextureByPath.find(key);
+            if (it != mTextureByPath.end()) return it->second;
+        }
         mTextureSources.push_back(std::move(texture));
-        return static_cast<uint32_t>(mTextureSources.size() - 1);
+        const auto index = static_cast<uint32_t>(mTextureSources.size() - 1);
+        if (!key.empty()) mTextureByPath.emplace(key, index);
+        return index;
     }
 
     void Scene::addModel(const std::string& path) {
@@ -596,15 +615,13 @@ namespace crv::graphics::vulkan {
         mInstances[instanceIndex].materialIndex = materialIndex;
     }
 
-    void Scene::setSkybox(const uint32_t index, const std::string& name, const std::string& path) {
+    void Scene::setSkybox(const uint32_t index, const std::string& path) {
         mSkyboxIndex = index;
-        mSkyboxName  = name;
         mSkyboxPath  = path;
     }
 
     void Scene::clearSkybox() {
         mSkyboxIndex = UINT32_MAX;
-        mSkyboxName.clear();
         mSkyboxPath.clear();
     }
 

@@ -6,6 +6,7 @@
 #include "IconsFontAwesome6.h"
 #include <ImGuizmo.h>
 #include <algorithm>
+#include <filesystem>
 #include <cstring>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -283,7 +284,9 @@ namespace crv::graphics::vulkan {
         if (ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_DefaultOpen)) {
             const bool hasSkybox = mScene->skyboxIndex() != UINT32_MAX;
             ImGui::AlignTextToFramePadding();
-            ImGui::TextDisabled("%s", hasSkybox ? mScene->skyboxName().c_str() : "None");
+            const std::string skyboxName = hasSkybox
+                ? std::filesystem::path(mScene->skyboxPath()).filename().string() : "None";
+            ImGui::TextDisabled("%s", skyboxName.c_str());
             ImGui::SameLine();
             if (hasSkybox) {
                 if (ImGui::Button("Remove##skybox")) {
@@ -456,8 +459,8 @@ namespace crv::graphics::vulkan {
                         {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr", ".exr", ".ktx", ".dds"};
 
                     const auto textureRow = [&](const char* label, const char* id, int type,
-                                                const uint32_t texIndex, const std::string& texName,
-                                                uint32_t& editedIndex, std::string& editedName, std::string& editedPath) {
+                                                const uint32_t texIndex, const std::string& texPath,
+                                                uint32_t& editedIndex, std::string& editedPath) {
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::AlignTextToFramePadding();
@@ -465,13 +468,13 @@ namespace crv::graphics::vulkan {
                         const bool has = texIndex != UINT32_MAX;
                         ImGui::TableSetColumnIndex(1);
                         ImGui::AlignTextToFramePadding();
-                        ImGui::TextDisabled("%s", has ? texName.c_str() : "None");
+                        const std::string texName = has ? std::filesystem::path(texPath).filename().string() : "None";
+                        ImGui::TextDisabled("%s", texName.c_str());
                         ImGui::TableSetColumnIndex(2);
                         ImGui::AlignTextToFramePadding();
                         if (has) {
                             if (ImGui::Button((std::string("Clear##") + id).c_str())) {
                                 editedIndex = UINT32_MAX;
-                                editedName.clear();
                                 editedPath.clear();
                                 changed = true;
                             }
@@ -481,10 +484,10 @@ namespace crv::graphics::vulkan {
                         }
                     };
 
-                    textureRow("Base Color", "basecolor", 0, material.baseColorTexIndex, material.baseColorTexName,
-                               edited.baseColorTexIndex, edited.baseColorTexName, edited.baseColorTexPath);
-                    textureRow("Normal", "normal", 1, material.normalTexIndex, material.normalTexName,
-                               edited.normalTexIndex, edited.normalTexName, edited.normalTexPath);
+                    textureRow("Base Color", "basecolor", 0, material.baseColorTexIndex, material.baseColorTexPath,
+                               edited.baseColorTexIndex, edited.baseColorTexPath);
+                    textureRow("Normal", "normal", 1, material.normalTexIndex, material.normalTexPath,
+                               edited.normalTexIndex, edited.normalTexPath);
 
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
@@ -494,12 +497,12 @@ namespace crv::graphics::vulkan {
                     ImGui::SetNextItemWidth(-FLT_MIN);
                     changed |= ImGui::SliderFloat("##normalScale", &edited.normalScale, 0.0f, 2.0f, "%.2f");
 
-                    textureRow("Metal/Rough", "metalrough", 2, material.metalRoughnessTexIndex, material.metalRoughnessTexName,
-                               edited.metalRoughnessTexIndex, edited.metalRoughnessTexName, edited.metalRoughnessTexPath);
-                    textureRow("Clearcoat", "clearcoat", 3, material.clearcoatTexIndex, material.clearcoatTexName,
-                               edited.clearcoatTexIndex, edited.clearcoatTexName, edited.clearcoatTexPath);
-                    textureRow("Clearcoat Rough", "clearcoatrough", 4, material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexName,
-                               edited.clearcoatRoughnessTexIndex, edited.clearcoatRoughnessTexName, edited.clearcoatRoughnessTexPath);
+                    textureRow("Metal/Rough", "metalrough", 2, material.metalRoughnessTexIndex, material.metalRoughnessTexPath,
+                               edited.metalRoughnessTexIndex, edited.metalRoughnessTexPath);
+                    textureRow("Clearcoat", "clearcoat", 3, material.clearcoatTexIndex, material.clearcoatTexPath,
+                               edited.clearcoatTexIndex, edited.clearcoatTexPath);
+                    textureRow("Clearcoat Rough", "clearcoatrough", 4, material.clearcoatRoughnessTexIndex, material.clearcoatRoughnessTexPath,
+                               edited.clearcoatRoughnessTexIndex, edited.clearcoatRoughnessTexPath);
 
                     if (mFileDialog.draw("Select Texture")) {
                         push(CommandType::UPLOAD_TEXTURE, UploadTexturePayload{mFileDialog.result(), instance.materialIndex, mUploadTextureType});

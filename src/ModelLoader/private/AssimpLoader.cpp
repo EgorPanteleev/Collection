@@ -262,6 +262,7 @@ namespace crv::model {
         Texture texture;
         aiString aiPath;
         texture.mFormat = toTextureFormat(textureType);
+        texture.mType = textureType;
         if (textureType == Texture::BASE_COLOR && material->GetTextureCount(assimpType) <= 0)
             assimpType = aiTextureType_DIFFUSE;
         const unsigned int assimpIndex = textureType == Texture::CLEARCOAT_ROUGHNESS ? 1u : 0u;
@@ -274,6 +275,8 @@ namespace crv::model {
         const aiTexture *aiTex = mScene->GetEmbeddedTexture(path.c_str());
         if (aiTex) {
             texture.mDataByLevel.emplace_back(aiTex->pcData, aiTex->mWidth, aiTex->mHeight);
+            texture.mPath = mModelPath + "#" + path;
+            texture.mType = textureType;
         } else {
             fs::path modelPath(mModelPath);
             std::string dirPath = modelPath.parent_path();

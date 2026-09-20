@@ -83,6 +83,8 @@ namespace crv::model {
 
     Texture AbsLoader::loadTexture(const std::string& path, const Texture::Type type) {
         Texture texture;
+        texture.mPath = path;
+        texture.mType = type;
         texture.mFormat = toTextureFormat(type);
         int width, height, channels;
         void* pixels = stbi_load(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -115,6 +117,7 @@ namespace crv::model {
 
     Texture AbsLoader::loadSkybox(const std::string& path) {
         Texture texture;
+        texture.mPath = path;
         int width, height, channels;
         float* pixels = stbi_loadf(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
         if (!pixels) throw std::runtime_error("Failed to load skybox: " + path);

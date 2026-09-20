@@ -48,7 +48,9 @@ namespace crv::model {
         };
         std::vector<LevelData> mDataByLevel;
         Format mFormat;
+        Type mType = UNKNOWN;
         std::string mName;
+        std::string mPath;
     };
 
     static std::map<Texture::Type, aiTextureType> toAssimpTypeMap{

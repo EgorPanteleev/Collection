@@ -156,9 +156,7 @@ namespace crv::graphics::vulkan {
             default: type = cm::Texture::BASE_COLOR;         break;
         }
         const uint32_t index = mScene.addTextureSource(cm::AbsLoader::loadTexture(path, type));
-        const std::string name = std::filesystem::path(path).filename().string();
-        const std::string rel  = relativeToAssets(path);
-        mScene.setMaterialTexture(materialIndex, textureType, index, name, rel);
+        mScene.setMaterialTexture(materialIndex, textureType, index, relativeToAssets(path));
         mUpdateState.dirtyTextures.push_back(index);
         mUpdateState.dirtyMaterials.push_back(materialIndex);
     }
@@ -171,8 +169,7 @@ namespace crv::graphics::vulkan {
 
     void Model::loadSkybox(const std::string& path) {
         const uint32_t index = mScene.addTextureSource(cm::AbsLoader::loadSkybox(path));
-        const std::string name = std::filesystem::path(path).filename().string();
-        mScene.setSkybox(index, name, relativeToAssets(path));
+        mScene.setSkybox(index, relativeToAssets(path));
         mUpdateState.updateSkybox = true;
     }
 

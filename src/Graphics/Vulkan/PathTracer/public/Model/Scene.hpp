@@ -5,6 +5,8 @@
 #ifndef COLLECTION_SCENE_HPP
 #define COLLECTION_SCENE_HPP
 
+#include <unordered_map>
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -47,7 +49,6 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] const std::vector<cm::Texture>&  textureSources() const { return mTextureSources; }
         [[nodiscard]] const std::vector<uint32_t>&     emissiveIndices() const { return mEmissiveIndices; }
         [[nodiscard]] uint32_t           skyboxIndex() const { return mSkyboxIndex; }
-        [[nodiscard]] const std::string& skyboxName()  const { return mSkyboxName; }
         [[nodiscard]] const std::string& skyboxPath()  const { return mSkyboxPath; }
         [[nodiscard]] const glm::vec3&   skyColor()    const { return mSkyColor; }
         [[nodiscard]] const DirectLight& directLight() const { return mDirectLight; }
@@ -55,7 +56,7 @@ namespace crv::graphics::vulkan {
         uint32_t addMaterial(const Material& material);
         void     setMaterial(uint32_t index, const Material& material);
         void     setMaterialTexture(uint32_t materialIndex, int textureType,
-                                    uint32_t texIndex, const std::string& name, const std::string& path);
+                                    uint32_t texIndex, const std::string& path);
         uint32_t addTextureSource(cm::Texture texture);
 
         void addModel(const std::string& path);
@@ -67,7 +68,7 @@ namespace crv::graphics::vulkan {
         void setInstanceName(uint32_t index, const std::string& name);
         void setInstanceMaterial(uint32_t instanceIndex, uint32_t materialIndex);
 
-        void setSkybox(uint32_t index, const std::string& name, const std::string& path);
+        void setSkybox(uint32_t index, const std::string& path);
         void clearSkybox();
         void setSkyColor(const glm::vec3& color);
         void setDirectLight(const DirectLight& light);
@@ -84,12 +85,14 @@ namespace crv::graphics::vulkan {
         void loadModelMaterials(cm::Loader& loader);
         void loadJsonMaterials();
         void applyResolvedMaterials();
+        void inheritModelTextures(const std::string& name, const std::vector<Material>& loaded,
+                                  std::vector<bool>& taken, Material& material) const;
         void loadResolvedTexture(const json& jm, const char* key, int textureType,
-                                 uint32_t& texIndex, std::string& texName, std::string& texPath);
+                                 uint32_t& texIndex, std::string& texPath);
         void loadExplicitInstances();
 
         json                         mJson{};
-        bool                         mExplicit = false;
+        int                          mVersion = 1;
         DirectLight                  mDirectLight{};
         glm::vec3                    mSkyColor{0.1f};
         std::vector<MeshData>        mMeshes{};
@@ -97,8 +100,8 @@ namespace crv::graphics::vulkan {
         std::vector<uint32_t>        mEmissiveIndices{};
         std::vector<Material>        mMaterials{};
         std::vector<cm::Texture>     mTextureSources{};
+        std::unordered_map<std::string, uint32_t> mTextureByPath{};
         uint32_t                     mSkyboxIndex = UINT32_MAX;
-        std::string                  mSkyboxName{};
         std::string                  mSkyboxPath{};
     };
 }

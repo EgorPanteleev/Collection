@@ -16,11 +16,6 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] static std::vector<GPU> gpu(const std::vector<Material>& materials);
 
         std::string name{};
-        std::string baseColorTexName{};
-        std::string normalTexName{};
-        std::string metalRoughnessTexName{};
-        std::string clearcoatTexName{};
-        std::string clearcoatRoughnessTexName{};
         std::string baseColorTexPath{};
         std::string normalTexPath{};
         std::string metalRoughnessTexPath{};
