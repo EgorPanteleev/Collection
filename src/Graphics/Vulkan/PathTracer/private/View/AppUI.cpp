@@ -164,11 +164,12 @@ namespace crv::graphics::vulkan {
                 std::string fps = std::format("{:.1f}", ImGui::GetIO().Framerate);
                 std::string renderTime = std::format("{:.1f} ms", ImGui::GetIO().DeltaTime * 1000.0f);
                 std::string accumulation = std::format("{:1}", (info.frameCount + 1) * mSettings->spp);
+                std::string spp = std::to_string(mSettings->spp);
 
                 if (VkImGui::beginCompactTable("##monitor_status", 2.0f)) {
                     VkImGui::row("FPS"         , fps.c_str());
                     VkImGui::row("Render Time" , renderTime.c_str());
-                    VkImGui::row("SPP"         , "1");
+                    VkImGui::row("SPP"         , spp.c_str());
                     VkImGui::row("Accumulation", accumulation.c_str());
                     VkImGui::endCompactTable();
                 }
@@ -378,7 +379,7 @@ namespace crv::graphics::vulkan {
         if (selected.size() > 1) ImGui::TextDisabled("%zu objects selected", selected.size());
         else ImGui::TextDisabled("Instance selected");
 
-        const uint32_t active = selected.front();
+        const uint32_t active = info.activeInstance;
         if (active >= mScene->instances().size()) {
             ImGui::Text("Selection is out of date");
             return;
