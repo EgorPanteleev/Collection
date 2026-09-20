@@ -323,6 +323,8 @@ namespace crv::graphics::vulkan {
     void ResourceManager::buildEmissiveAliasTables() {
         std::vector<bool> emissiveMesh(mBLASDatas.size(), false);
         for (const auto& instance : mScene->instances()) {
+            if (instance.isGroup() || instance.meshIndex >= emissiveMesh.size()) continue;
+            if (instance.materialIndex >= mScene->materials().size()) continue;
             if (mScene->materials()[instance.materialIndex].luminance > 0.0f)
                 emissiveMesh[instance.meshIndex] = true;
         }
