@@ -60,7 +60,6 @@ namespace crv::graphics::vulkan {
                 if (std::isnan(v)) return 0.0f;
                 return std::clamp(v, 0.0f, 65504.0f);
             };
-            double sum = 0.0;
             for (uint32_t y = 0; y < nv; ++y) {
                 const float sinTheta = static_cast<float>(std::sin(ENV_PI * (y + 0.5) / nv));
                 float* func = &d.condFunc[static_cast<size_t>(y) * nu];
@@ -70,12 +69,8 @@ namespace crv::graphics::vulkan {
                                     + 0.7152f * sanitize(halfToFloat(p[1]))
                                     + 0.0722f * sanitize(halfToFloat(p[2]));
                     func[x] = lum * sinTheta;
-                    sum += func[x];
                 }
             }
-
-            const float average = static_cast<float>(sum / (static_cast<double>(nu) * nv));
-            for (float& f : d.condFunc) f = std::max(f - average, 0.0f);
 
             for (uint32_t y = 0; y < nv; ++y) {
                 const float* func = &d.condFunc[static_cast<size_t>(y) * nu];
