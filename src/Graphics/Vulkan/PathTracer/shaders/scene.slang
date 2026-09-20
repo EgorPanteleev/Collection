@@ -154,7 +154,7 @@ public void applyNormalMap(inout Hit hit, MaterialGPU material) {
 }
 
 public void primaryRay(uint2 pixel, uint2 imageSize, inout uint seed, out float3 origin, out float3 dir) {
-    float2 jitter = float2(rand01(seed), rand01(seed)) - 0.5;
+    float2 jitter = float2(rand01(seed), rand01(seed));
     float2 uv     = (float2(pixel) + jitter) / float2(imageSize);
     float4 target = mul(camera.invProj, float4(uv * 2.0 - 1.0, 1.0, 1.0));
     float3 dirVS  = normalize(target.xyz);
