@@ -38,7 +38,7 @@ namespace crv::graphics::vulkan {
     void RayTracerPass::record(const RayTracerPassRecordInfo& info) {
         vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, mPipelines[0]);
         vkCmdBindDescriptorSets(info.commandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
-            mPipelineLayout.get(), 0, 1, &mDescriptorManager.set(0),
+            mPipelineLayout.get(), 0, 1, &mDescriptorManager.set(info.currentFrame),
             0, nullptr);
 
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(),

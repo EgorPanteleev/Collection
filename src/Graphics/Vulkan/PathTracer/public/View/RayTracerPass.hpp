@@ -42,6 +42,7 @@ namespace crv::graphics::vulkan {
         PushConstants   constants{};
         uint32_t        width         = 0;
         uint32_t        height        = 0;
+        uint32_t        currentFrame  = 0;
     };
 
     class RayTracerPass {

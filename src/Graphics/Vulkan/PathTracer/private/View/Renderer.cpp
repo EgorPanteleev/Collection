@@ -308,7 +308,8 @@ namespace crv::graphics::vulkan {
                 .emissivePowerInv = mResourceManager.emissivePowerInv()
             },
             .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
-            .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale
+            .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale,
+            .currentFrame = mCurrentFrame
         };
         mRayTracerPass.record(recordInfo);
         recordPixelRead(commandBuffer);
