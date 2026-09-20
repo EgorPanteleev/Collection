@@ -177,7 +177,7 @@ namespace crv::graphics::vulkan {
     }
 
     void Model::select(const uint32_t id, const bool additive) {
-        if (id == 0) {
+        if (id == 0 or id - 1 >= mScene.instances().size()) {
             if (!additive) clearSelection();
             return;
         }

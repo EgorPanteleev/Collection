@@ -106,7 +106,7 @@ namespace crv::graphics::vulkan {
     }
 
     void AppUI::drawGizmo(const AppUIDrawInfo& info) {
-        if (info.activeInstance == UINT32_MAX) return;
+        if (info.activeInstance >= mScene->instances().size()) return;
         if (!ImGui::GetIO().WantTextInput) {
             if (ImGui::IsKeyPressed(ImGuiKey_T)) mGizmoOp = ImGuizmo::TRANSLATE;
             if (ImGui::IsKeyPressed(ImGuiKey_R)) mGizmoOp = ImGuizmo::ROTATE;
@@ -379,6 +379,10 @@ namespace crv::graphics::vulkan {
         else ImGui::TextDisabled("Instance selected");
 
         const uint32_t active = selected.front();
+        if (active >= mScene->instances().size()) {
+            ImGui::Text("Selection is out of date");
+            return;
+        }
         const InstanceData& instance = mScene->instances()[active];
         const bool showMaterial = !instance.isGroup() && selected.size() == 1;
         if (VkImGui::beginGroup(ICON_FA_CIRCLE_INFO " Object")) {

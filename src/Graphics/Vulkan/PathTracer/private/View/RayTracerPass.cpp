@@ -3,7 +3,9 @@
 //
 
 #include "View/RayTracerPass.hpp"
+#include "Message.hpp"
 
+#include <algorithm>
 #include <cstring>
 
 namespace crv::graphics::vulkan {
@@ -90,6 +92,7 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::bindTexture(const uint32_t index) {
+        if (index >= mTextures->size() || index >= MAX_TEXTURES) return;
         Texture& texture = (*mTextures)[index];
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             mDescriptorManager.bind(TEXTURE_BINDING, i, index,
@@ -99,7 +102,11 @@ namespace crv::graphics::vulkan {
     }
 
     void RayTracerPass::bindTextures() {
-        for (uint32_t index = 0; index < mTextures->size(); ++index) bindTexture(index);
+        const auto total = static_cast<uint32_t>(mTextures->size());
+        if (total > MAX_TEXTURES)
+            WARNING << "Scene uses " << total << " textures but only " << MAX_TEXTURES
+                    << " texture descriptors exist; materials referencing the rest will sample garbage";
+        for (uint32_t index = 0; index < std::min(total, MAX_TEXTURES); ++index) bindTexture(index);
     }
 
     void RayTracerPass::rebindScene() {

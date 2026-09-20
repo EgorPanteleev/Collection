@@ -684,18 +684,17 @@ namespace crv::graphics::vulkan {
         ++mFrameCount;
     }
 
-    void Renderer::pick(glm::dvec2 cursor, bool additive) {
+    void Renderer::pick(const glm::dvec2 cursor, const bool additive) {
         GLFWwindow* window = mContext.window().glfwWindow();
         int winWidth, winHeight, fbWidth, fbHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
         glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-        const float scaleX = static_cast<float>(fbWidth)  / static_cast<float>(winWidth);
-        const float scaleY = static_cast<float>(fbHeight) / static_cast<float>(winHeight);
-        const auto x = static_cast<uint32_t>(cursor.x * scaleX);
-        const auto y = static_cast<uint32_t>(cursor.y * scaleY);
+        if (winWidth <= 0 or winHeight <= 0) return;
+        const double x = cursor.x * static_cast<double>(fbWidth)  / winWidth;
+        const double y = cursor.y * static_cast<double>(fbHeight) / winHeight;
         auto [width, height] = mSwapchain.extent();
-        if (x > width or y > height) return;
-        mClickedPixel = {x, y};
+        if (x < 0.0 or y < 0.0 or x >= width or y >= height) return;
+        mClickedPixel = {static_cast<uint32_t>(x), static_cast<uint32_t>(y)};
         mAdditiveSelect = additive;
     }
 
