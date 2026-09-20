@@ -80,15 +80,8 @@ namespace crv::graphics::vulkan {
             const glm::mat4 parentWorld = instance.parentIndex >= 0
                 ? instances[instance.parentIndex].world : glm::mat4(1.0f);
             const glm::mat4 newLocal = glm::inverse(parentWorld) * delta * instance.world;
-            Transform next = instance.transform;
-            next.position = glm::vec3(newLocal[3]);
-            glm::mat3 basis(newLocal);
-            basis[0] = glm::normalize(basis[0]);
-            basis[1] = glm::normalize(basis[1]);
-            basis[2] = glm::normalize(basis[2]);
-            next.rotation = glm::normalize(glm::quat_cast(basis));
             targets.push_back(index);
-            locals.push_back(next);
+            locals.push_back(decomposeTransform(newLocal));
         }
         for (size_t i = 0; i < targets.size(); ++i) mScene.setInstanceTransform(targets[i], locals[i]);
         for (const uint32_t index : targets) markInstanceSubtreeDirty(index);

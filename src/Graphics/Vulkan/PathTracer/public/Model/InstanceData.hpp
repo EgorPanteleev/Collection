@@ -9,6 +9,7 @@
 
 #include <string>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include "SharedTypes.h"
 
 namespace crv::graphics::vulkan {
@@ -38,6 +39,25 @@ namespace crv::graphics::vulkan {
         uint32_t    materialIndex  = 0;
         uint32_t    indexCount     = 0;
     };
+
+    inline Transform decomposeTransform(const glm::mat4& matrix) {
+        glm::vec3 scale(1.0f), translation(0.0f), skew(0.0f);
+        glm::vec4 perspective(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::quat rotation(1.0f, 0.0f, 0.0f, 0.0f);
+        if (glm::decompose(matrix, scale, rotation, translation, skew, perspective))
+            return { translation, rotation, scale };
+
+        translation = glm::vec3(matrix[3]);
+        glm::vec3 axes[3] = { glm::vec3(matrix[0]), glm::vec3(matrix[1]), glm::vec3(matrix[2]) };
+        scale = glm::vec3(glm::length(axes[0]), glm::length(axes[1]), glm::length(axes[2]));
+        const glm::vec3 fallbackAxis[3] = { {1,0,0}, {0,1,0}, {0,0,1} };
+        for (int i = 0; i < 3; ++i)
+            axes[i] = scale[i] > 1e-8f ? axes[i] / scale[i] : fallbackAxis[i];
+        glm::mat3 basis(axes[0], axes[1], axes[2]);
+        if (glm::determinant(basis) < 0.0f) { basis[0] = -basis[0]; scale.x = -scale.x; }
+        rotation = glm::normalize(glm::quat_cast(basis));
+        return { translation, rotation, scale };
+    }
 
     inline glm::mat4 Transform::matrix() const {
         const glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
