@@ -101,15 +101,8 @@ namespace crv::graphics::vulkan {
     }
 
     void Model::markInstanceSubtreeDirty(const uint32_t root) {
-        const auto& instances = mScene.instances();
-        const size_t count = instances.size();
-        if (root >= count) return;
-        std::vector<bool> affected(count, false);
-        affected[root] = true;
-        for (uint32_t i = 0; i < count; ++i) {
-            const int32_t parent = instances[i].parentIndex;
-            if (parent >= 0 && affected[parent]) affected[i] = true;
-        }
+        const std::vector<bool> affected = mScene.subtreeMask({root});
+        const auto count = static_cast<uint32_t>(affected.size());
         for (uint32_t i = 0; i < count; ++i)
             if (affected[i]) mUpdateState.markInstanceDirty(i);
     }

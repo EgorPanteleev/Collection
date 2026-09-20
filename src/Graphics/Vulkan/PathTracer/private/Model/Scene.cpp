@@ -315,23 +315,28 @@ namespace crv::graphics::vulkan {
 
             if (mVersion < 3) inheritModelTextures(jm.value("name", std::string()), loaded, taken, material);
 
-            material.name = jm.value("name", material.name);
-            if (jm.contains("color")) material.baseColor = toVec3(jm["color"]);
-            material.luminance = jm.value("luminance", material.luminance);
-            material.metalness = jm.value("metalness", material.metalness);
-            material.roughness = jm.value("roughness", material.roughness);
-            material.ior          = jm.value("ior", material.ior);
-            material.specular     = jm.value("specular", material.specular);
-            material.transmission = jm.value("transmission", material.transmission);
-            material.clearcoat          = jm.value("clearcoat", material.clearcoat);
-            material.clearcoatRoughness = jm.value("clearcoatRoughness", material.clearcoatRoughness);
-            if (jm.contains("absorption") && jm["absorption"].is_array()) material.absorption = toVec3(jm["absorption"]);
-            material.opacity = jm.value("opacity", material.opacity);
-            material.normalScale = jm.value("normalScale", material.normalScale);
-            material.anisotropy = jm.value("anisotropy", material.anisotropy);
-            material.sheen = jm.value("sheen", material.sheen);
-            material.translucency = jm.value("translucency", material.translucency);
-            material.thin = jm.value("thin", material.thin);
+            const auto get = [&jm](const char* key, auto& field) { field = jm.value(key, field); };
+            const auto getVec3 = [&jm](const char* key, glm::vec3& field) {
+                if (jm.contains(key) && jm[key].is_array()) field = toVec3(jm[key]);
+            };
+
+            get("name", material.name);
+            getVec3("color", material.baseColor);
+            get("luminance", material.luminance);
+            get("metalness", material.metalness);
+            get("roughness", material.roughness);
+            get("ior", material.ior);
+            get("specular", material.specular);
+            get("transmission", material.transmission);
+            get("clearcoat", material.clearcoat);
+            get("clearcoatRoughness", material.clearcoatRoughness);
+            getVec3("absorption", material.absorption);
+            get("opacity", material.opacity);
+            get("normalScale", material.normalScale);
+            get("anisotropy", material.anisotropy);
+            get("sheen", material.sheen);
+            get("translucency", material.translucency);
+            get("thin", material.thin);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
                 material.baseColorTexIndex, material.baseColorTexPath);
@@ -407,11 +412,21 @@ namespace crv::graphics::vulkan {
     }
 
     json Scene::save() const {
+        const auto put = [](json& j, const char* key, const auto& value, const auto& fallback) {
+            if (value != fallback) j[key] = value;
+        };
+        const auto putVec3 = [](json& j, const char* key, const glm::vec3& value, const glm::vec3& fallback) {
+            if (value != fallback) j[key] = toJson(value);
+        };
+        const auto putPath = [](json& j, const char* key, const std::string& path) {
+            if (!path.empty()) j[key] = path;
+        };
+
         json scene = mJson;
         scene["version"] = 3;
-        scene["directLight"]["direction"] = { mDirectLight.dir.x, mDirectLight.dir.y, mDirectLight.dir.z };
+        scene["directLight"]["direction"] = toJson(mDirectLight.dir);
         scene["directLight"]["intensity"] = mDirectLight.intensity;
-        scene["skyColor"] = { mSkyColor.r, mSkyColor.g, mSkyColor.b };
+        scene["skyColor"] = toJson(mSkyColor);
 
         if (mSkyboxIndex != UINT32_MAX) scene["skybox"] = mSkyboxPath;
         else scene.erase("skybox");
@@ -421,27 +436,27 @@ namespace crv::graphics::vulkan {
         for (const auto& m : mMaterials) {
             json jm;
             jm["name"] = m.name;
-            if (m.baseColor != def.baseColor) jm["color"] = { m.baseColor.r, m.baseColor.g, m.baseColor.b };
-            if (m.luminance != def.luminance) jm["luminance"] = m.luminance;
-            if (m.metalness != def.metalness) jm["metalness"] = m.metalness;
-            if (m.roughness != def.roughness) jm["roughness"] = m.roughness;
-            if (m.ior != def.ior) jm["ior"] = m.ior;
-            if (m.specular != def.specular) jm["specular"] = m.specular;
-            if (m.transmission != def.transmission) jm["transmission"] = m.transmission;
-            if (m.clearcoat != def.clearcoat) jm["clearcoat"] = m.clearcoat;
-            if (m.clearcoatRoughness != def.clearcoatRoughness) jm["clearcoatRoughness"] = m.clearcoatRoughness;
-            if (m.absorption != def.absorption) jm["absorption"] = { m.absorption.r, m.absorption.g, m.absorption.b };
-            if (m.opacity != def.opacity) jm["opacity"] = m.opacity;
-            if (m.normalScale != def.normalScale) jm["normalScale"] = m.normalScale;
-            if (m.anisotropy != def.anisotropy) jm["anisotropy"] = m.anisotropy;
-            if (m.sheen != def.sheen) jm["sheen"] = m.sheen;
-            if (m.translucency != def.translucency) jm["translucency"] = m.translucency;
-            if (m.thin != def.thin) jm["thin"] = m.thin;
-            if (!m.baseColorTexPath.empty()) jm["baseColorTex"] = m.baseColorTexPath;
-            if (!m.normalTexPath.empty()) jm["normalTex"] = m.normalTexPath;
-            if (!m.metalRoughnessTexPath.empty()) jm["metalRoughnessTex"] = m.metalRoughnessTexPath;
-            if (!m.clearcoatTexPath.empty()) jm["clearcoatTex"] = m.clearcoatTexPath;
-            if (!m.clearcoatRoughnessTexPath.empty()) jm["clearcoatRoughnessTex"] = m.clearcoatRoughnessTexPath;
+            putVec3(jm, "color", m.baseColor, def.baseColor);
+            put(jm, "luminance", m.luminance, def.luminance);
+            put(jm, "metalness", m.metalness, def.metalness);
+            put(jm, "roughness", m.roughness, def.roughness);
+            put(jm, "ior", m.ior, def.ior);
+            put(jm, "specular", m.specular, def.specular);
+            put(jm, "transmission", m.transmission, def.transmission);
+            put(jm, "clearcoat", m.clearcoat, def.clearcoat);
+            put(jm, "clearcoatRoughness", m.clearcoatRoughness, def.clearcoatRoughness);
+            putVec3(jm, "absorption", m.absorption, def.absorption);
+            put(jm, "opacity", m.opacity, def.opacity);
+            put(jm, "normalScale", m.normalScale, def.normalScale);
+            put(jm, "anisotropy", m.anisotropy, def.anisotropy);
+            put(jm, "sheen", m.sheen, def.sheen);
+            put(jm, "translucency", m.translucency, def.translucency);
+            put(jm, "thin", m.thin, def.thin);
+            putPath(jm, "baseColorTex", m.baseColorTexPath);
+            putPath(jm, "normalTex", m.normalTexPath);
+            putPath(jm, "metalRoughnessTex", m.metalRoughnessTexPath);
+            putPath(jm, "clearcoatTex", m.clearcoatTexPath);
+            putPath(jm, "clearcoatRoughnessTex", m.clearcoatRoughnessTexPath);
             materials.push_back(jm);
         }
         scene["materials"] = materials;
@@ -454,14 +469,10 @@ namespace crv::graphics::vulkan {
             json ji;
             ji["name"] = instance.name;
             if (instance.parentIndex >= 0) ji["parent"] = instance.parentIndex;
-            if (t.position != defTransform.position)
-                ji["position"] = { t.position.x, t.position.y, t.position.z };
-            if (t.rotation != defTransform.rotation) {
-                const glm::vec3 euler = glm::degrees(glm::eulerAngles(t.rotation));
-                ji["rotation"] = { euler.x, euler.y, euler.z };
-            }
-            if (t.scale != defTransform.scale)
-                ji["scale"] = { t.scale.x, t.scale.y, t.scale.z };
+            putVec3(ji, "position", t.position, defTransform.position);
+            if (t.rotation != defTransform.rotation)
+                ji["rotation"] = toJson(glm::degrees(glm::eulerAngles(t.rotation)));
+            putVec3(ji, "scale", t.scale, defTransform.scale);
             if (!instance.isGroup()) {
                 ji["mesh"] = instance.meshIndex;
                 ji["material"] = instance.materialIndex;
@@ -535,20 +546,21 @@ namespace crv::graphics::vulkan {
         recomputeWorlds();
     }
 
-    void Scene::addInstance(const InstanceData& instance) {
-        mInstances.push_back(instance);
-        recomputeWorlds();
+    std::vector<bool> Scene::subtreeMask(const std::vector<uint32_t>& roots) const {
+        const auto count = static_cast<uint32_t>(mInstances.size());
+        std::vector<bool> mask(count, false);
+        for (const uint32_t index : roots)
+            if (index < count) mask[index] = true;
+        for (uint32_t i = 0; i < count; ++i) {
+            const int32_t parent = mInstances[i].parentIndex;
+            if (parent >= 0 && parent < static_cast<int32_t>(count) && mask[parent]) mask[i] = true;
+        }
+        return mask;
     }
 
     std::vector<uint32_t> Scene::duplicateInstances(const std::vector<uint32_t>& indices) {
-        const uint32_t count = static_cast<uint32_t>(mInstances.size());
-        std::vector<bool> affected(count, false);
-        for (const uint32_t index : indices)
-            if (index < count) affected[index] = true;
-        for (uint32_t i = 0; i < count; ++i) {
-            const int32_t parent = mInstances[i].parentIndex;
-            if (parent >= 0 && affected[parent]) affected[i] = true;
-        }
+        const auto count = static_cast<uint32_t>(mInstances.size());
+        const std::vector<bool> affected = subtreeMask(indices);
 
         std::vector<int32_t> remap(count, -1);
         std::vector<uint32_t> createdRoots;
@@ -570,14 +582,8 @@ namespace crv::graphics::vulkan {
     }
 
     void Scene::removeInstances(const std::vector<uint32_t>& indices) {
-        const uint32_t count = static_cast<uint32_t>(mInstances.size());
-        std::vector<bool> removed(count, false);
-        for (const uint32_t index : indices)
-            if (index < count) removed[index] = true;
-        for (uint32_t i = 0; i < count; ++i) {
-            const int32_t parent = mInstances[i].parentIndex;
-            if (parent >= 0 && removed[parent]) removed[i] = true;
-        }
+        const auto count = static_cast<uint32_t>(mInstances.size());
+        const std::vector<bool> removed = subtreeMask(indices);
 
         std::vector<int32_t> remap(count, -1);
         std::vector<InstanceData> kept;
@@ -590,12 +596,6 @@ namespace crv::graphics::vulkan {
         for (InstanceData& instance : kept)
             if (instance.parentIndex >= 0) instance.parentIndex = remap[instance.parentIndex];
         mInstances = std::move(kept);
-        recomputeWorlds();
-    }
-
-    void Scene::removeInstance(const uint32_t index) {
-        if (index >= mInstances.size()) return;
-        mInstances.erase(mInstances.begin() + index);
         recomputeWorlds();
     }
 

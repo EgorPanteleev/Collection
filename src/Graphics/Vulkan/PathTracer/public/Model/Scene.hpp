@@ -32,6 +32,10 @@ namespace crv::graphics::vulkan {
         };
     }
 
+    inline json toJson(const glm::vec3& v) {
+        return json::array({v.x, v.y, v.z});
+    }
+
     struct SceneCreateInfo {
         Context* context = nullptr;
     };
@@ -60,10 +64,9 @@ namespace crv::graphics::vulkan {
         uint32_t addTextureSource(cm::Texture texture);
 
         void addModel(const std::string& path);
-        void addInstance(const InstanceData& instance);
         [[nodiscard]] std::vector<uint32_t> duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);
-        void removeInstance(uint32_t index);
+        [[nodiscard]] std::vector<bool> subtreeMask(const std::vector<uint32_t>& roots) const;
         void setInstanceTransform(uint32_t index, const Transform& transform);
         void setInstanceName(uint32_t index, const std::string& name);
         void setInstanceMaterial(uint32_t instanceIndex, uint32_t materialIndex);

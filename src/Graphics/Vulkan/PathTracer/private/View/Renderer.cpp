@@ -321,13 +321,8 @@ namespace crv::graphics::vulkan {
         beginCommandBuffer(commandBuffer);
         std::vector<RasterizerDraw> draws;
         const auto& instances = mModel->scene().instances();
-        std::vector<bool> outlined(instances.size(), false);
-        for (const uint32_t index : mModel->selection().selectedInstances)
-            if (index < instances.size()) outlined[index] = true;
-        for (uint32_t i = 0; i < instances.size(); ++i) {
-            const int32_t parent = instances[i].parentIndex;
-            if (parent >= 0 && outlined[parent]) outlined[i] = true;
-        }
+        const std::vector<bool> outlined =
+            mModel->scene().subtreeMask(mModel->selection().selectedInstances);
         uint32_t outlineId = 1;
         for (uint32_t i = 0; i < instances.size(); ++i) {
             if (!outlined[i]) continue;
