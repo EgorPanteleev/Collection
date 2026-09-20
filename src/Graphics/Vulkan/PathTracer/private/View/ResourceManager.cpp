@@ -97,8 +97,25 @@ namespace crv::graphics::vulkan {
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
     }
 
-    void ResourceManager::updateInstanceData(const uint32_t index) {
-        InstanceData::GPU instanceGPU = mScene->instances()[index].gpu();
+    InstanceData::GPU ResourceManager::gpuInstance(const uint32_t index) const {
+        const InstanceData& instance = mScene->instances()[index];
+        InstanceData::GPU gpu = instance.gpu();
+        if (instance.isGroup() || instance.materialIndex >= mScene->materials().size()) return gpu;
+        if (mScene->materials()[instance.materialIndex].luminance > 0.0f)
+            gpu.lightArea = emissiveWorldArea(instance.world, mScene->meshes()[instance.meshIndex]);
+        return gpu;
+    }
+
+    std::vector<InstanceData::GPU> ResourceManager::gpuInstances() const {
+        const auto count = static_cast<uint32_t>(mScene->instances().size());
+        std::vector<InstanceData::GPU> res{};
+        res.reserve(count);
+        for (uint32_t i = 0; i < count; ++i) res.push_back(gpuInstance(i));
+        return res;
+    }
+
+    void ResourceManager::uploadInstanceData(const uint32_t index) {
+        InstanceData::GPU instanceGPU = gpuInstance(index);
         const CopyDataToGPUBufferInfo copyInfo {
             .data = &instanceGPU,
             .srcOffset = 0,
@@ -111,6 +128,21 @@ namespace crv::graphics::vulkan {
             .queue = mContext->queue(QueueFamilyType::GRAPHICS)
         };
         Buffer::copy(copyInfo);
+    }
+
+    void ResourceManager::refreshMaterialInstances(const uint32_t materialIndex) {
+        if (materialIndex >= mScene->materials().size()) return;
+        if (mScene->materials()[materialIndex].luminance <= 0.0f) return;
+        const auto& instances = mScene->instances();
+        const auto count = static_cast<uint32_t>(instances.size());
+        for (uint32_t i = 0; i < count; ++i) {
+            if (instances[i].isGroup() || instances[i].materialIndex != materialIndex) continue;
+            uploadInstanceData(i);
+        }
+    }
+
+    void ResourceManager::updateInstanceData(const uint32_t index) {
+        uploadInstanceData(index);
         updateEmissiveIndices();
     }
 
@@ -148,6 +180,7 @@ namespace crv::graphics::vulkan {
             .queue = mContext->queue(QueueFamilyType::GRAPHICS)
         };
         Buffer::copy(copyInfo);
+        refreshMaterialInstances(index);
         updateEmissiveIndices();
     }
 
@@ -374,14 +407,10 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::createBuffers() {
-        const auto blasDatasGPU = BLASData::gpu(mContext->device(), mBLASDatas);
-        auto instancesGPU = InstanceData::gpu(mScene->instances());
+        const auto blasDatasGPU   = BLASData::gpu(mContext->device(), mBLASDatas);
         const auto emissiveLights = buildEmissiveLights();
-        for (const uint32_t idx : mScene->emissiveIndices()) {
-            const InstanceData& inst = mScene->instances()[idx];
-            instancesGPU[idx].lightArea = emissiveWorldArea(inst.world, mScene->meshes()[inst.meshIndex]);
-        }
-        const auto materialsGPU = Material::gpu(mScene->materials());
+        const auto instancesGPU   = gpuInstances();
+        const auto materialsGPU   = Material::gpu(mScene->materials());
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
             .add(blasDatasGPU   , mBLASBuffer            )
             .add(instancesGPU   , mInstanceBuffer        )
@@ -391,12 +420,8 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::rebuildInstanceBuffers() {
         buildTLAS();
-        auto instancesGPU   = InstanceData::gpu(mScene->instances());
         const auto emissiveLights = buildEmissiveLights();
-        for (const uint32_t idx : mScene->emissiveIndices()) {
-            const InstanceData& inst = mScene->instances()[idx];
-            instancesGPU[idx].lightArea = emissiveWorldArea(inst.world, mScene->meshes()[inst.meshIndex]);
-        }
+        const auto instancesGPU   = gpuInstances();
         SSBOBuilder(mContext, QueueFamilyType::GRAPHICS)
             .add(instancesGPU   , mInstanceBuffer        )
             .add(emissiveLights , mEmissiveInstanceBuffer);

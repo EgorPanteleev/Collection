@@ -55,6 +55,10 @@ namespace crv::graphics::vulkan {
         void rebuildInstanceBuffers();
         void buildBLASBuffer();
         void buildMaterialBuffer();
+        [[nodiscard]] InstanceData::GPU gpuInstance(uint32_t index) const;
+        [[nodiscard]] std::vector<InstanceData::GPU> gpuInstances() const;
+        void uploadInstanceData(uint32_t index);
+        void refreshMaterialInstances(uint32_t materialIndex);
 
         Context*              mContext          = nullptr;
         Scene*                mScene            = nullptr;
