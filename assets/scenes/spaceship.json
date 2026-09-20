@@ -1,9 +1,9 @@
 {
   "version": 2,
   "window": {
-    "height": 1000,
+    "height": 600,
     "name": "GPU Path Tracer",
-    "width": 1600
+    "width": 800
   },
   "camera": {
     "farPlane": 5000.0,
