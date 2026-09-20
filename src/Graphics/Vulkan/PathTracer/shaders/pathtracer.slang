@@ -156,12 +156,19 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         return;
     }
 
+    float metalness = material.metalness;
+    float roughness = material.roughness;
+    applyMetalRoughness(material, hit.uv, metalness, roughness);
+    float clearcoat = material.clearcoat;
+    float clearcoatRoughness = material.clearcoatRoughness;
+    applyClearcoat(material, hit.uv, clearcoat, clearcoatRoughness);
+
     if (material.transmission > 0.0) {
         if (rand01(payload.seed) < material.transmission) {
             if (payload.insideGlass)
                 payload.throughput *= exp(log(max(material.absorption, float3(1e-4))) * RayTCurrent());
             float3 view   = -WorldRayDirection();
-            float  galpha = material.roughness * material.roughness;
+            float  galpha = roughness * roughness;
             bool   refracted;
             float3 wiWorld;
             if (galpha < 1e-3 || abs(material.ior - 1.0) < 1e-3) {
@@ -175,7 +182,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
                 float3 ss, ts;
                 createONB(hit.N, ss, ts);
                 float3 wo = float3(dot(view, ss), dot(view, ts), dot(view, hit.N));
-                Scatter s = makeRoughDielectric(eta, material.roughness).sampleF(wo, payload.seed);
+                Scatter s = makeRoughDielectric(eta, roughness).sampleF(wo, payload.seed);
                 if (s.pdf <= 0.0) { payload.done = true; return; }
                 wiWorld   = s.wi.x * ss + s.wi.y * ts + s.wi.z * hit.N;
                 refracted = s.wi.z < 0.0;
@@ -191,13 +198,6 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         }
         payload.throughput /= (1.0 - material.transmission);
     }
-
-    float metalness = material.metalness;
-    float roughness = material.roughness;
-    applyMetalRoughness(material, hit.uv, metalness, roughness);
-    float clearcoat = material.clearcoat;
-    float clearcoatRoughness = material.clearcoatRoughness;
-    applyClearcoat(material, hit.uv, clearcoat, clearcoatRoughness);
 
     float3 wo = -WorldRayDirection();
     BSDF bsdf = makeBSDF(hit.N, hit.tangent, baseColor, metalness, roughness,
