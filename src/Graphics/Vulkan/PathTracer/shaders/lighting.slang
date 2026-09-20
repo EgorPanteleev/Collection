@@ -32,7 +32,14 @@ public float lightPmf(MaterialGPU material, InstanceGPU instance) {
 }
 
 public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, MeshGPU mesh) {
+    LightSample ls;
+    ls.P   = float3(0.0);
+    ls.N   = float3(0.0, 1.0, 0.0);
+    ls.uv  = float2(0.0);
+    ls.pdf = 0.0;
+
     uint triCount = mesh.indexCount / 3u;
+    if (triCount == 0u) return ls;
     bool useAlias = mesh.aliasAddress != 0 && mesh.area > 0.0;
 
     uint triIndex = min(uint(rand01(seed) * float(triCount)), triCount - 1u);
@@ -63,7 +70,6 @@ public LightSample sampleEmissiveMesh(inout uint seed, InstanceGPU instance, Mes
 
     float selectProb = useAlias ? (objArea / mesh.area) : (1.0 / float(triCount));
 
-    LightSample ls;
     ls.P   = lP;
     ls.N   = lN;
     ls.uv  = bu * v0.texCoord + bv * v1.texCoord + bw * v2.texCoord;

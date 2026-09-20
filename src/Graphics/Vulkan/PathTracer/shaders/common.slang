@@ -85,6 +85,9 @@ public float3x3 inverse3x3(float3x3 m) {
     float det = a00 * (a11 * a22 - a12 * a21)
               - a01 * (a10 * a22 - a12 * a20)
               + a02 * (a10 * a21 - a11 * a20);
+    if (abs(det) < 1e-20) return float3x3(1.0, 0.0, 0.0,
+                                          0.0, 1.0, 0.0,
+                                          0.0, 0.0, 1.0);
     float invDet = 1.0 / det;
 
     float3x3 inv;
