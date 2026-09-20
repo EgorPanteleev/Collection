@@ -10,6 +10,12 @@ public struct PathPayload {
     public uint   instanceId;
     public uint   seed;
     public float  prevBrdfPdf;
+    public float  segmentDist;
     public bool   done;
     public bool   insideGlass;
+};
+
+public struct ShadowPayload {
+    public float visible;
+    public uint  seed;
 };

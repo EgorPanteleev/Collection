@@ -83,6 +83,7 @@ namespace crv::graphics::vulkan {
         ShaderModule                    mMissShader             = CRV_NULL_HANDLE;
         ShaderModule                    mShadowMissShader       = CRV_NULL_HANDLE;
         ShaderModule                    mHitShader              = CRV_NULL_HANDLE;
+        ShaderModule                    mAnyHitShader           = CRV_NULL_HANDLE;
 
         Buffer*                         mBLASBuffer             = nullptr;
         Buffer*                         mInstanceBuffer         = nullptr;

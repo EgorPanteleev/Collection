@@ -73,6 +73,7 @@ namespace crv::graphics::vulkan {
         const InstanceData& instance = mScene->instances()[index];
         InstanceData::AS asInstance =
             instance.vkAS(index, mBLASDatas[instance.meshIndex].blas.deviceAddress());
+        if (alphaMasked(instance)) asInstance.flags |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;
         const CopyDataToGPUBufferInfo copyInfo {
             .data = &asInstance,
             .srcOffset = 0,
@@ -92,6 +93,11 @@ namespace crv::graphics::vulkan {
         };
         mTLAS.update(updateInfo);
         endCommandBuffer(cmdData, mContext->queue(QueueFamilyType::GRAPHICS));
+    }
+
+    bool ResourceManager::alphaMasked(const InstanceData& instance) const {
+        if (instance.isGroup() || instance.materialIndex >= mScene->materials().size()) return false;
+        return mScene->materials()[instance.materialIndex].opacity < 1.0f;
     }
 
     InstanceData::GPU ResourceManager::gpuInstance(const uint32_t index) const {
@@ -129,12 +135,13 @@ namespace crv::graphics::vulkan {
 
     void ResourceManager::refreshMaterialInstances(const uint32_t materialIndex) {
         if (materialIndex >= mScene->materials().size()) return;
-        if (mScene->materials()[materialIndex].luminance <= 0.0f) return;
+        const Material& material = mScene->materials()[materialIndex];
+        if (material.luminance <= 0.0f && material.opacity >= 1.0f) return;
         const auto& instances = mScene->instances();
         const auto count = static_cast<uint32_t>(instances.size());
         for (uint32_t i = 0; i < count; ++i) {
             if (instances[i].isGroup() || instances[i].materialIndex != materialIndex) continue;
-            uploadInstanceData(i);
+            updateInstance(i);
         }
     }
 
@@ -385,6 +392,7 @@ namespace crv::graphics::vulkan {
                 ? fallbackBlas : mBLASDatas[instance.meshIndex].blas.deviceAddress();
             InstanceData::AS as = instance.vkAS(static_cast<uint32_t>(i), blas);
             if (instance.isGroup()) as.mask = 0;
+            if (alphaMasked(instance)) as.flags |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;
             asInstances.push_back(as);
         }
         const CopyDataToGPUBufferInfo instanceCopyInfo {

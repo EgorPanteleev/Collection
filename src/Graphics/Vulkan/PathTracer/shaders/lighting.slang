@@ -5,16 +5,19 @@ import types;
 import scene;
 import bsdf;
 
-public float traceShadow(float3 P, float3 N, float3 L, float tMax) {
-    float visible = 0.0;
+public float traceShadow(float3 P, float3 N, float3 L, float tMax, inout uint seed) {
+    ShadowPayload shadow;
+    shadow.visible = 0.0;
+    shadow.seed    = seed;
     RayDesc ray;
     ray.Origin    = movedPoint(P, N);
     ray.TMin      = T_MIN;
     ray.Direction = L;
     ray.TMax      = tMax - T_MIN;
     TraceRay(tlas, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-             ALL_OBJECTS, 0, 1, 1, ray, visible);
-    return visible;
+             ALL_OBJECTS, 0, 1, 1, ray, shadow);
+    seed = shadow.seed;
+    return shadow.visible;
 }
 
 public struct LightSample {
@@ -84,7 +87,7 @@ public void directLightContribution(inout PathPayload payload, BSDF bsdf, float3
     float3 L     = normalize(-directLight.dir);
     float  NdotL = max(dot(bsdf.ns, L), 0.0);
     if (NdotL <= 0.0) return;
-    float vis = traceShadow(P, gN, L, T_MAX);
+    float vis = traceShadow(P, gN, L, T_MAX, payload.seed);
     payload.radiance += payload.throughput * bsdf.f(wo, L) * NdotL * directLight.intensity * vis;
 }
 
@@ -119,7 +122,7 @@ public void sampledLightNEE(inout PathPayload payload, BSDF bsdf, float3 wo, flo
     float  bsdfPdf  = bsdf.pdf(wo, wi);
     float  weight   = powerHeuristic(lightPdf, bsdfPdf);
 
-    float vis = traceShadow(P, gN, wi, dist * (1.0 - SHADOW_EPS));
+    float vis = traceShadow(P, gN, wi, dist * (1.0 - SHADOW_EPS), payload.seed);
     payload.radiance += payload.throughput * bsdf.f(wo, wi) * NdotWi * emission * weight * vis / lightPdf;
 }
 
@@ -134,6 +137,6 @@ public void sampledEnvNEE(inout PathPayload payload, BSDF bsdf, float3 wo, float
     float bsdfPdf = bsdf.pdf(wo, wi);
     float weight  = powerHeuristic(es.pdf, bsdfPdf);
 
-    float vis = traceShadow(P, gN, wi, T_MAX);
+    float vis = traceShadow(P, gN, wi, T_MAX, payload.seed);
     payload.radiance += payload.throughput * bsdf.f(wo, wi) * NdotWi * es.radiance * weight * vis / es.pdf;
 }

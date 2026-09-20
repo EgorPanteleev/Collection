@@ -42,7 +42,8 @@ namespace crv::graphics::vulkan {
             0, nullptr);
 
         vkCmdPushConstants(info.commandBuffer, mPipelineLayout.get(),
-            VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR,
+            VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+            VK_SHADER_STAGE_MISS_BIT_KHR   | VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
             0, sizeof(PushConstants), &info.constants);
 
         LOAD_VK_FN(mContext->device(), vkCmdTraceRaysKHR);
@@ -63,9 +64,11 @@ namespace crv::graphics::vulkan {
             .add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
             .add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
-            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
-            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
             .add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
                                                     VK_SHADER_STAGE_MISS_BIT_KHR, MAX_TEXTURES)
             .build(mContext, mFramesInFlight, MAX_TEXTURES);
@@ -141,11 +144,13 @@ namespace crv::graphics::vulkan {
         mMissShader = ShaderModule(createInfo);
         mShadowMissShader = ShaderModule(createInfo);
         mHitShader = ShaderModule(createInfo);
+        mAnyHitShader = ShaderModule(createInfo);
     }
 
     void RayTracerPass::createPipelineLayout() {
         VkPushConstantRange pushRange {
-            .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR,
+            .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                          VK_SHADER_STAGE_MISS_BIT_KHR   | VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
             .offset = 0,
             .size = sizeof(PushConstants)
         };
@@ -187,6 +192,13 @@ namespace crv::graphics::vulkan {
                 .module = mHitShader.get(),
                 .pName = "chitMain",
             },
+            { //any hit
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
+                .module = mAnyHitShader.get(),
+                .pName = "ahitMain",
+            },
         };
         const std::vector<VkRayTracingShaderGroupCreateInfoKHR> groups = {
             { //raygen
@@ -213,12 +225,12 @@ namespace crv::graphics::vulkan {
                 .anyHitShader = VK_SHADER_UNUSED_KHR,
                 .intersectionShader = VK_SHADER_UNUSED_KHR,
             },
-            { //closest hit
+            { //hit group
                 .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
                 .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR,
                 .generalShader = VK_SHADER_UNUSED_KHR,
                 .closestHitShader = 3,
-                .anyHitShader = VK_SHADER_UNUSED_KHR,
+                .anyHitShader = 4,
                 .intersectionShader = VK_SHADER_UNUSED_KHR,
             }
         };

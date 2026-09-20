@@ -26,6 +26,7 @@ void rgenMain() {
         payload.instanceId  = UINT_MAX;
         payload.seed        = seed;
         payload.prevBrdfPdf = -1.0;
+        payload.segmentDist = 0.0;
         payload.done        = false;
         payload.insideGlass = false;
 
@@ -35,7 +36,7 @@ void rgenMain() {
             ray.TMin      = 0.0;
             ray.Direction = payload.direction;
             ray.TMax      = T_MAX;
-            TraceRay(tlas, RAY_FLAG_NONE, ALL_OBJECTS, 0, 0, 0, ray, payload);
+            TraceRay(tlas, RAY_FLAG_FORCE_OPAQUE, ALL_OBJECTS, 0, 0, 0, ray, payload);
 
             if (depth == 0 && sample == 0)
                 outputInstanceIdImage[pixel] = payload.instanceId + 1;
@@ -75,8 +76,15 @@ void missMain(inout PathPayload payload) {
 }
 
 [shader("miss")]
-void shadowMissMain(inout float visible) {
-    visible = 1.0;
+void shadowMissMain(inout ShadowPayload payload) {
+    payload.visible = 1.0;
+}
+
+[shader("anyhit")]
+void ahitMain(inout ShadowPayload payload, BuiltInTriangleIntersectionAttributes attr) {
+    MaterialGPU material = materials[instances[InstanceID()].materialIndex];
+    if (material.opacity >= 1.0) return;
+    if (rand01(payload.seed) >= material.opacity) IgnoreHit();
 }
 
 float3 debugAOV(MaterialGPU material, Hit hit, float3 baseColor) {
@@ -117,11 +125,11 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     }
 
     if (material.opacity < 1.0 && rand01(payload.seed) >= material.opacity) {
-        float3 dir          = WorldRayDirection();
-        payload.origin      = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
-        payload.direction   = dir;
-        payload.prevBrdfPdf = -1.0;
-        payload.done        = false;
+        float3 dir           = WorldRayDirection();
+        payload.origin       = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
+        payload.direction    = dir;
+        payload.segmentDist += RayTCurrent();
+        payload.done         = false;
         return;
     }
 
@@ -131,7 +139,8 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         float  worldArea = 0.5 * length(cross(we1, we2));
         float  objArea   = 0.5 * length(cross(tri.v1.pos - tri.v0.pos, tri.v2.pos - tri.v0.pos));
         float  cosLight  = abs(dot(hit.gN, WorldRayDirection()));
-        float  weight    = emitterMisWeight(mesh, objArea, worldArea, cosLight, RayTCurrent(),
+        float  dist      = payload.segmentDist + RayTCurrent();
+        float  weight    = emitterMisWeight(mesh, objArea, worldArea, cosLight, dist,
                                             lightPmf(material, instance), payload.prevBrdfPdf);
         payload.radiance += payload.throughput * baseColor * material.luminance * weight;
         payload.done = true;
@@ -152,6 +161,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         }
         payload.origin      = movedPoint(hit.P, dot(payload.direction, hit.gN) < 0.0 ? -hit.gN : hit.gN);
         payload.prevBrdfPdf = -1.0;
+        payload.segmentDist = 0.0;
         payload.done        = false;
         return;
     }
@@ -193,6 +203,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
             payload.origin      = movedPoint(hit.P, refracted ? -hit.gN : hit.gN);
             payload.direction   = wiWorld;
             payload.prevBrdfPdf = -1.0;
+            payload.segmentDist = 0.0;
             payload.done        = false;
             return;
         }
@@ -216,5 +227,6 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     payload.origin      = movedPoint(hit.P, hit.gN);
     payload.direction   = s.wi;
     payload.prevBrdfPdf = s.pdf;
+    payload.segmentDist = 0.0;
     payload.done        = false;
 }

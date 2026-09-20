@@ -56,6 +56,7 @@ namespace crv::graphics::vulkan {
         void buildBLASBuffer();
         void buildMaterialBuffer();
         void syncTextures();
+        [[nodiscard]] bool alphaMasked(const InstanceData& instance) const;
         [[nodiscard]] InstanceData::GPU gpuInstance(uint32_t index) const;
         [[nodiscard]] std::vector<InstanceData::GPU> gpuInstances() const;
         void uploadInstanceData(uint32_t index);
