@@ -51,9 +51,7 @@ namespace crv::graphics::vulkan {
     mContext(info.context), mScene(info.scene), mEnvMap(info.context) { build(); }
 
     void ResourceManager::build() {
-        mTextures.reserve(mScene->textureSources().size());
-        for (const cm::Texture& source : mScene->textureSources())
-            mTextures.push_back(toTexture(mContext, source));
+        syncTextures();
         buildMeshes();
         if (mScene->skyboxIndex() != UINT32_MAX && !mScene->skyboxPath().empty())
             mEnvMap.build(cm::AbsLoader::loadSkybox(ASSETS_PATH + mScene->skyboxPath()));
@@ -62,8 +60,7 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::addModel() {
-        for (size_t i = mTextures.size(); i < mScene->textureSources().size(); ++i)
-            mTextures.push_back(toTexture(mContext, mScene->textureSources()[i]));
+        syncTextures();
         buildMeshes();
         buildBLASBuffer();
         rebuildInstanceBuffers();
@@ -184,15 +181,22 @@ namespace crv::graphics::vulkan {
         updateEmissiveIndices();
     }
 
+    void ResourceManager::syncTextures() {
+        const auto& sources = mScene->textureSources();
+        mTextures.reserve(sources.size());
+        for (size_t i = mTextures.size(); i < sources.size(); ++i)
+            mTextures.push_back(toTexture(mContext, sources[i]));
+    }
+
     uint32_t ResourceManager::uploadTexture(const uint32_t sourceIndex) {
-        mTextures.push_back(toTexture(mContext, mScene->textureSources()[sourceIndex]));
+        syncTextures();
         return sourceIndex;
     }
 
     uint32_t ResourceManager::uploadSkybox(const uint32_t sourceIndex) {
-        const cm::Texture& skybox = mScene->textureSources()[sourceIndex];
-        mEnvMap.build(skybox);
-        mTextures.push_back(toTexture(mContext, skybox));
+        if (sourceIndex >= mScene->textureSources().size()) return sourceIndex;
+        mEnvMap.build(mScene->textureSources()[sourceIndex]);
+        syncTextures();
         return sourceIndex;
     }
 
