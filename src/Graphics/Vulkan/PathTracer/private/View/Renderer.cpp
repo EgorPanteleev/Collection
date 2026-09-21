@@ -164,7 +164,7 @@ namespace crv::graphics::vulkan {
         mSwapchainImages.resize(imageCount);
         vkGetSwapchainImagesKHR(mContext.device(), mSwapchain.get(), &imageCount, mSwapchainImages.data());
 
-        auto [commandBuffer, cmdData] = beginCommandBuffer(mContext.device(), mContext.familyIndex(QueueFamilyType::COMPUTE).value());
+        mSwapchainImageViews.reserve(imageCount);
         for (uint32_t i = 0; i < imageCount; ++i) {
             const ImageViewCreateInfo imageViewCreateInfo{
                 .device = mContext.device(),
@@ -175,7 +175,6 @@ namespace crv::graphics::vulkan {
             };
             mSwapchainImageViews.emplace_back(imageViewCreateInfo);
         }
-        endCommandBuffer(cmdData, mContext.queue(QueueFamilyType::COMPUTE));
     }
 
     void Renderer::createSyncObjects() {

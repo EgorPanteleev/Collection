@@ -60,6 +60,10 @@ float4 outline(int2 pixel, float3 baseColor, const int thickness) {
 [shader("compute")]
 [numthreads(16, 16, 1)]
 void main(uint3 tid : SV_DispatchThreadID) {
+    uint2 size;
+    outputImage.GetDimensions(size.x, size.y);
+    if (tid.x >= size.x || tid.y >= size.y) return;
+
     int2 pixel = int2(tid.xy);
     int  scale = int(max(pc.renderScale, 1u));
     float3 imageColor = tracerImage[pixel / scale].rgb;

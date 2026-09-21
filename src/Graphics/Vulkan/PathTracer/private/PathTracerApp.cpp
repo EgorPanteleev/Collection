@@ -37,8 +37,15 @@ namespace crv::graphics::vulkan {
         json readScene(const std::string& scenePath) {
             if (scenePath.empty()) return emptyScene();
             std::ifstream file(scenePath);
-            json scene;
-            file >> scene;
+            if (!file) {
+                ERROR << "Scene not found: " << scenePath << "; starting from an empty scene";
+                return emptyScene();
+            }
+            json scene = json::parse(file, nullptr, false);
+            if (scene.is_discarded()) {
+                ERROR << "Scene is not valid JSON: " << scenePath << "; starting from an empty scene";
+                return emptyScene();
+            }
             return scene;
         }
 
