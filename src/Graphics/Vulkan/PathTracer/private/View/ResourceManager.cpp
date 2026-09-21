@@ -181,6 +181,7 @@ namespace crv::graphics::vulkan {
     }
 
     void ResourceManager::updateMaterial(const uint32_t index) {
+        if (index >= mScene->materials().size()) return;
         Material::GPU materialGPU = mScene->materials()[index].gpu();
         const CopyDataToGPUBufferInfo copyInfo {
             .data = &materialGPU,

@@ -381,9 +381,13 @@ namespace crv::graphics::vulkan {
             instance.parentIndex = ji.value("parent", -1);
             if (ji.contains("mesh") && ji["mesh"].get<uint32_t>() < mMeshes.size()) {
                 const uint32_t mesh = ji["mesh"];
+                const uint32_t material = ji.value("material", 0u);
+                if (material >= mMaterials.size())
+                    WARNING << "Instance '" << instance.name << "' references material "
+                            << material << " of " << mMaterials.size() << "; using 0";
                 instance.meshIndex = mesh;
                 instance.meshName = mMeshes[mesh].meshName;
-                instance.materialIndex = ji.value("material", 0u);
+                instance.materialIndex = material < mMaterials.size() ? material : 0u;
                 instance.indexCount = mMeshes[mesh].indexCount;
             } else {
                 instance.meshIndex = InstanceData::NO_MESH;
@@ -614,6 +618,7 @@ namespace crv::graphics::vulkan {
         mEmissiveIndices.clear();
         for (uint32_t i = 0; i < mInstances.size(); ++i) {
             if (mInstances[i].isGroup()) continue;
+            if (mInstances[i].materialIndex >= mMaterials.size()) continue;
             if (mMaterials[mInstances[i].materialIndex].luminance == 0) continue;
             mEmissiveIndices.push_back(i);
         }

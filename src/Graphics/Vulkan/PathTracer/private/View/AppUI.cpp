@@ -367,11 +367,13 @@ namespace crv::graphics::vulkan {
             return;
         }
         ImGui::SameLine();
-        const bool canDelete = mScene->instances().size() > selected.size();
-        ImGui::BeginDisabled(!canDelete);
+        const std::vector<bool> doomed = mScene->subtreeMask(selected);
+        const auto removed = static_cast<size_t>(std::count(doomed.begin(), doomed.end(), true));
         const bool deleteClicked = ImGui::Button(ICON_FA_TRASH " Delete");
-        ImGui::EndDisabled();
-        if (deleteClicked && canDelete) {
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip(removed == mScene->instances().size()
+                ? "Removes all %zu instances" : "Removes %zu instances", removed);
+        if (deleteClicked) {
             push(CommandType::REMOVE_INSTANCES, InstancesPayload{selected});
             return;
         }
