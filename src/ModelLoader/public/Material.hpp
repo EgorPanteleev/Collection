@@ -63,7 +63,7 @@ namespace crv::model {
 
     struct Material {
         Material() : mName(), ambientColor(0), diffuseColor(0), specularColor(0),
-                     mTransparencyFactor(1), mAlphaTest(0) {}
+                     mTransparencyFactor(0), mAlphaTest(0) {}
 
         std::string mName;
 
