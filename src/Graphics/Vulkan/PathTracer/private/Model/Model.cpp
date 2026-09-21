@@ -66,16 +66,29 @@ namespace crv::graphics::vulkan {
         mUpdateState.markMaterialDirty(index);
     }
 
-    void Model::transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta) {
+    std::vector<uint32_t> Model::transformRoots(const std::vector<uint32_t>& indices) const {
+        const std::vector<bool> affected = mScene.subtreeMask(indices);
         const auto& instances = mScene.instances();
-        const size_t count = instances.size();
-
-        std::vector<uint32_t> targets;
-        std::vector<Transform> locals;
-        targets.reserve(indices.size());
-        locals.reserve(indices.size());
+        const auto count = static_cast<uint32_t>(instances.size());
+        std::vector<uint32_t> roots;
+        roots.reserve(indices.size());
         for (const uint32_t index : indices) {
             if (index >= count) continue;
+            const int32_t parent = instances[index].parentIndex;
+            if (parent >= 0 && affected[parent]) continue;
+            if (std::find(roots.begin(), roots.end(), index) == roots.end()) roots.push_back(index);
+        }
+        return roots;
+    }
+
+    void Model::transformInstances(const std::vector<uint32_t>& indices, const glm::mat4& delta) {
+        const auto& instances = mScene.instances();
+        const std::vector<uint32_t> roots = transformRoots(indices);
+        std::vector<uint32_t> targets;
+        std::vector<Transform> locals;
+        targets.reserve(roots.size());
+        locals.reserve(roots.size());
+        for (const uint32_t index : roots) {
             const InstanceData& instance = instances[index];
             const glm::mat4 parentWorld = instance.parentIndex >= 0
                 ? instances[instance.parentIndex].world : glm::mat4(1.0f);

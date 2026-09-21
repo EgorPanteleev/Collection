@@ -530,7 +530,7 @@ namespace crv::graphics::vulkan {
             static glm::quat cachedRotation{};
             static uint32_t cachedInstance = UINT32_MAX;
             if (active != cachedInstance ||
-                instance.transform.rotation != cachedRotation) {
+                std::abs(glm::dot(instance.transform.rotation, cachedRotation)) < 0.99999f) {
                 uiRotation = glm::degrees(glm::eulerAngles(instance.transform.rotation));
                 cachedInstance = active;
             }
@@ -544,8 +544,18 @@ namespace crv::graphics::vulkan {
             if (ImGui::DragFloat3("Scale", &edited.scale[0], 0.05f))
                 changed = true;
 
-            if (changed)
-                push(CommandType::SET_INSTANCE_TRANSFORM, SetInstanceTransformPayload{active, edited});
+            if (changed) {
+                if (selected.size() > 1) {
+                    const std::vector<InstanceData>& instances = mScene->instances();
+                    const glm::mat4 parentWorld = instance.parentIndex >= 0
+                        ? instances[instance.parentIndex].world : glm::mat4(1.0f);
+                    const glm::mat4 localDelta = edited.matrix() * glm::inverse(instance.transform.matrix());
+                    const glm::mat4 delta = parentWorld * localDelta * glm::inverse(parentWorld);
+                    push(CommandType::TRANSFORM_INSTANCES, TransformInstancesPayload{selected, delta});
+                } else {
+                    push(CommandType::SET_INSTANCE_TRANSFORM, SetInstanceTransformPayload{active, edited});
+                }
+            }
             VkImGui::endGroup();
         }
     }

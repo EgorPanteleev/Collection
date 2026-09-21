@@ -52,6 +52,7 @@ namespace crv::graphics::vulkan {
         void regionSelect(int x0, int y0, int x1, int y1, bool additive, uint32_t width, uint32_t height);
     private:
         void markInstanceSubtreeDirty(uint32_t root);
+        [[nodiscard]] std::vector<uint32_t> transformRoots(const std::vector<uint32_t>& indices) const;
 
         Scene             mScene{};
         RenderSettings    mSettings{};
