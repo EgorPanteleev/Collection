@@ -8,10 +8,12 @@
 #include <stdexcept>
 
 #include <assimp/postprocess.h>
+#include <assimp/config.h>
 #include <meshoptimizer.h>
 #include <filesystem>
 
 #include <gli/gli.hpp>
+#include <stb_image.h>
 
 namespace {
     uint countValidFaces(const aiMesh *Mesh) {
@@ -58,6 +60,7 @@ namespace crv::model {
                            aiProcess_FindInvalidData          | \
                            aiProcess_GenUVCoords              | \
                            aiProcess_CalcTangentSpace         | \
+                           aiProcess_SortByPType              | \
                            aiProcess_FlipUVs)
 
 //#define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | \
@@ -70,6 +73,7 @@ namespace crv::model {
     bool AssimpLoader::load(const glm::mat4& model) {
         clear();
         Assimp::Importer importer;
+        importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
         mScene = importer.ReadFile(mModelPath, ASSIMP_LOAD_FLAGS);
         if (!mScene) {
             ERROR << "Assimp Error: " << importer.GetErrorString();
@@ -202,6 +206,13 @@ namespace crv::model {
     void AssimpLoader::optimizeMesh(std::vector<VertexType> &vertices, std::vector<uint32_t> &indices, uint meshIndex) {
         size_t numIndices = indices.size();
         size_t numVertices = vertices.size();
+        if (numIndices == 0 || numVertices == 0) {
+            indices.clear();
+            vertices.clear();
+            mMeshes[meshIndex].numIndices = 0;
+            mMeshes[meshIndex].numVertices = 0;
+            return;
+        }
 
         std::vector<unsigned int> remap(numIndices);
         size_t optVertexCount = meshopt_generateVertexRemap(remap.data(),    // dst addr
@@ -256,6 +267,30 @@ namespace crv::model {
         }
     }
 
+    bool AssimpLoader::decodeEmbedded(const aiTexture* aiTex, Texture& texture) {
+        if (aiTex->mHeight == 0) {
+            int width = 0, height = 0, channels = 0;
+            void* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(aiTex->pcData),
+                                                 static_cast<int>(aiTex->mWidth),
+                                                 &width, &height, &channels, STBI_rgb_alpha);
+            if (!pixels) return false;
+            texture.mDataByLevel.emplace_back(pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+            return true;
+        }
+        const size_t texels = static_cast<size_t>(aiTex->mWidth) * aiTex->mHeight;
+        if (texels == 0) return false;
+        auto* pixels = static_cast<uint8_t*>(std::malloc(texels * 4));
+        if (!pixels) return false;
+        for (size_t i = 0; i < texels; ++i) {
+            pixels[i * 4 + 0] = aiTex->pcData[i].r;
+            pixels[i * 4 + 1] = aiTex->pcData[i].g;
+            pixels[i * 4 + 2] = aiTex->pcData[i].b;
+            pixels[i * 4 + 3] = aiTex->pcData[i].a;
+        }
+        texture.mDataByLevel.emplace_back(pixels, aiTex->mWidth, aiTex->mHeight);
+        return true;
+    }
+
     void AssimpLoader::loadTexture(Texture::Type textureType, uint materialIndex) {
         const aiMaterial *material = mScene->mMaterials[materialIndex];
         aiTextureType assimpType = Texture::toAssimpType(textureType);
@@ -274,7 +309,10 @@ namespace crv::model {
         std::replace(path.begin(), path.end(), '\\', '/');
         const aiTexture *aiTex = mScene->GetEmbeddedTexture(path.c_str());
         if (aiTex) {
-            texture.mDataByLevel.emplace_back(aiTex->pcData, aiTex->mWidth, aiTex->mHeight);
+            if (!decodeEmbedded(aiTex, texture)) {
+                WARNING << "Failed to decode embedded texture " << path << " in " << mModelPath;
+                return;
+            }
             texture.mPath = mModelPath + "#" + path;
             texture.mType = textureType;
         } else {

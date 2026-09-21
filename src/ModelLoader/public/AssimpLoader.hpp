@@ -38,6 +38,8 @@ namespace crv::model {
 
         void loadTexture(Texture::Type textureType, uint materialIndex);
 
+        static bool decodeEmbedded(const aiTexture* aiTex, Texture& texture);
+
         void loadColors(uint materialIndex);
 
         const aiScene *mScene;
