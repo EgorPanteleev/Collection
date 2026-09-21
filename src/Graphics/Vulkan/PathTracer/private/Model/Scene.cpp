@@ -29,6 +29,7 @@ namespace crv::graphics::vulkan {
         mDirectLight.dir = glm::vec4(toVec3(directLight["direction"]), 1);
         mDirectLight.intensity = directLight["intensity"];
         if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
+        mEnvRotation = mJson.value("envRotation", 0.0f);
 
         if (mVersion < 2 || mJson.contains("materialsResolved")) loadJsonMaterials();
         const std::vector<std::string> models = mJson.value("modelImports", std::vector<std::string>{});
@@ -257,8 +258,6 @@ namespace crv::graphics::vulkan {
                 .opacity = jsonMaterial.value("opacity", 1.0f),
                 .normalScale = jsonMaterial.value("normalScale", 1.0f),
                 .anisotropy = jsonMaterial.value("anisotropy", 0.0f),
-                .sheen = jsonMaterial.value("sheen", 0.0f),
-                .translucency = jsonMaterial.value("translucency", 0.0f),
                 .thin = jsonMaterial.value("thin", 0.0f)
             };
         }
@@ -315,8 +314,6 @@ namespace crv::graphics::vulkan {
             get("opacity", material.opacity);
             get("normalScale", material.normalScale);
             get("anisotropy", material.anisotropy);
-            get("sheen", material.sheen);
-            get("translucency", material.translucency);
             get("thin", material.thin);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
@@ -412,6 +409,8 @@ namespace crv::graphics::vulkan {
         scene["directLight"]["direction"] = toJson(mDirectLight.dir);
         scene["directLight"]["intensity"] = mDirectLight.intensity;
         scene["skyColor"] = toJson(mSkyColor);
+        if (mEnvRotation != 0.0f) scene["envRotation"] = mEnvRotation;
+        else scene.erase("envRotation");
 
         if (mSkyboxIndex != UINT32_MAX) scene["skybox"] = mSkyboxPath;
         else scene.erase("skybox");
@@ -434,8 +433,6 @@ namespace crv::graphics::vulkan {
             put(jm, "opacity", m.opacity, def.opacity);
             put(jm, "normalScale", m.normalScale, def.normalScale);
             put(jm, "anisotropy", m.anisotropy, def.anisotropy);
-            put(jm, "sheen", m.sheen, def.sheen);
-            put(jm, "translucency", m.translucency, def.translucency);
             put(jm, "thin", m.thin, def.thin);
             putPath(jm, "baseColorTex", m.baseColorTexPath);
             putPath(jm, "normalTex", m.normalTexPath);
@@ -611,6 +608,8 @@ namespace crv::graphics::vulkan {
     }
 
     void Scene::setSkyColor(const glm::vec3& color) { mSkyColor = color; }
+
+    void Scene::setEnvRotation(const float radians) { mEnvRotation = radians; }
 
     void Scene::setDirectLight(const DirectLight& light) { mDirectLight = light; }
 

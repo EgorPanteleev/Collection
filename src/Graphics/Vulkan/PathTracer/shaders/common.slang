@@ -33,6 +33,7 @@ public struct PushConstants {
     public uint64_t envCondFuncAddr;
     public float3   skyColor;
     public float    emissivePowerInv;
+    public float    envRotation;
 };
 [[vk::push_constant]] public PushConstants pc;
 

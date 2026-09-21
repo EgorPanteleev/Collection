@@ -55,6 +55,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] uint32_t           skyboxIndex() const { return mSkyboxIndex; }
         [[nodiscard]] const std::string& skyboxPath()  const { return mSkyboxPath; }
         [[nodiscard]] const glm::vec3&   skyColor()    const { return mSkyColor; }
+        [[nodiscard]] float              envRotation() const { return mEnvRotation; }
         [[nodiscard]] const DirectLight& directLight() const { return mDirectLight; }
 
         uint32_t addMaterial(const Material& material);
@@ -74,6 +75,7 @@ namespace crv::graphics::vulkan {
         void setSkybox(uint32_t index, const std::string& path);
         void clearSkybox();
         void setSkyColor(const glm::vec3& color);
+        void setEnvRotation(float radians);
         void setDirectLight(const DirectLight& light);
 
         void recomputeEmissiveIndices();
@@ -98,6 +100,7 @@ namespace crv::graphics::vulkan {
         int                          mVersion = 1;
         DirectLight                  mDirectLight{};
         glm::vec3                    mSkyColor{0.1f};
+        float                        mEnvRotation = 0.0f;
         std::vector<MeshData>        mMeshes{};
         std::vector<InstanceData>    mInstances{};
         std::vector<uint32_t>        mEmissiveIndices{};

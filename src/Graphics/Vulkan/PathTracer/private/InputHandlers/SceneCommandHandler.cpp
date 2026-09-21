@@ -21,7 +21,7 @@ namespace crv::graphics::vulkan {
             if (j.is_object()) {
                 if (j.empty()) { out << "{}"; return; }
                 static const std::vector<std::string> priority = {
-                    "version", "window", "camera", "directLight", "skyColor",
+                    "version", "window", "camera", "directLight", "skyColor", "skybox", "envRotation",
                     "modelImports", "instances", "materials", "materialsResolved"
                 };
                 auto rank = [](const std::string& key) {
@@ -127,6 +127,9 @@ namespace crv::graphics::vulkan {
             }
             case CommandType::SET_SKY_COLOR:
                 model.setSkyColor(std::get<SkyColorPayload>(command.payload).color);
+                break;
+            case CommandType::SET_ENV_ROTATION:
+                model.setEnvRotation(std::get<EnvRotationPayload>(command.payload).radians);
                 break;
             case CommandType::SET_DIRECT_LIGHT:
                 model.setDirectLight(std::get<DirectLightPayload>(command.payload).light);

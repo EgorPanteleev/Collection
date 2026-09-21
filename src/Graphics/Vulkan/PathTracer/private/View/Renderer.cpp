@@ -304,7 +304,8 @@ namespace crv::graphics::vulkan {
                 .envCondCdfAddr = mResourceManager.envCondCdfAddr(),
                 .envCondFuncAddr = mResourceManager.envCondFuncAddr(),
                 .skyColor = mModel->scene().skyColor(),
-                .emissivePowerInv = mResourceManager.emissivePowerInv()
+                .emissivePowerInv = mResourceManager.emissivePowerInv(),
+                .envRotation = mModel->scene().envRotation()
             },
             .width = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
             .height = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale,

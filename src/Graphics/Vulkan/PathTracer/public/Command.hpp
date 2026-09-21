@@ -58,6 +58,7 @@ namespace crv::graphics::vulkan {
         SET_INSTANCE_NAME,
         SET_MATERIAL,
         SET_SKY_COLOR,
+        SET_ENV_ROTATION,
         SET_DIRECT_LIGHT,
         SAVE_SCENE,
 
@@ -88,6 +89,7 @@ namespace crv::graphics::vulkan {
     struct SetInstanceMaterialPayload  { uint32_t instanceIndex; uint32_t materialIndex; };
     struct SetInstanceNamePayload      { uint32_t index; std::string name; };
     struct SkyColorPayload             { glm::vec3 color; };
+    struct EnvRotationPayload          { float radians; };
     struct DirectLightPayload          { DirectLight light; };
 
     using CommandPayload = std::variant<
@@ -105,6 +107,7 @@ namespace crv::graphics::vulkan {
         SetInstanceMaterialPayload,
         SetInstanceNamePayload,
         SkyColorPayload,
+        EnvRotationPayload,
         DirectLightPayload>;
 
     struct Command {

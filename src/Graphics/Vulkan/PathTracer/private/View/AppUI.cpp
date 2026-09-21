@@ -299,6 +299,12 @@ namespace crv::graphics::vulkan {
             if (mSkyboxFileDialog.draw("Select Skybox")) {
                 push(CommandType::LOAD_SKYBOX, SkyboxPayload{mSkyboxFileDialog.result()});
             }
+            if (hasSkybox) {
+                float degrees = glm::degrees(mScene->envRotation());
+                if (ImGui::DragFloat("Rotation", &degrees, 0.25f, -180.0f, 180.0f, "%.1f deg",
+                                     ImGuiSliderFlags_WrapAround))
+                    push(CommandType::SET_ENV_ROTATION, EnvRotationPayload{glm::radians(clampAngle(degrees))});
+            }
             if (!hasSkybox) {
                 glm::vec3 skyColor = mScene->skyColor();
                 if (VkImGui::colorEdit3("Sky Color", skyColor))

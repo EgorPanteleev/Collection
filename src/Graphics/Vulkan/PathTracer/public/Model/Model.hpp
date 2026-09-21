@@ -38,6 +38,7 @@ namespace crv::graphics::vulkan {
         void setInstanceMaterial(uint32_t instanceIndex, uint32_t materialIndex);
         void setInstanceName(uint32_t index, const std::string& name) { mScene.setInstanceName(index, name); }
         void setSkyColor(const glm::vec3& color);
+        void setEnvRotation(float radians);
         void setDirectLight(const DirectLight& light);
         void duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);

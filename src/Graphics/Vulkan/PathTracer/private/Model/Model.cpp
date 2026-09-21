@@ -124,6 +124,11 @@ namespace crv::graphics::vulkan {
         mUpdateState.markImageDirty();
     }
 
+    void Model::setEnvRotation(const float radians) {
+        mScene.setEnvRotation(radians);
+        mUpdateState.markImageDirty();
+    }
+
     void Model::setDirectLight(const DirectLight& light) {
         mScene.setDirectLight(light);
         mUpdateState.markImageDirty();

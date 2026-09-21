@@ -27,7 +27,7 @@ public struct DirectLightData {
 
 public float3 sampleEnvironment(float3 dir) {
     if (pc.skyboxIndex == UINT_MAX) return pc.skyColor;
-    float2 uv = float2(atan2(dir.z, dir.x) * 0.15915494309 + 0.5,
+    float2 uv = float2((atan2(dir.z, dir.x) - pc.envRotation) * 0.15915494309 + 0.5,
                        acos(clamp(dir.y, -1.0, 1.0)) * M_1_PI);
     float3 c = textures[pc.skyboxIndex].SampleLevel(uv, 0.0).rgb;
     return clamp(c, float3(0.0), float3(65504.0));
@@ -65,7 +65,7 @@ public float envPdf(float3 dir) {
     float theta = acos(clamp(dir.y, -1.0, 1.0));
     float sinT  = sin(theta);
     if (sinT <= 0.0) return 0.0;
-    float u = atan2(dir.z, dir.x) * 0.15915494309 + 0.5;
+    float u = frac((atan2(dir.z, dir.x) - pc.envRotation) * 0.15915494309 + 0.5);
     float v = theta * M_1_PI;
     int2  sz = envTexSize();
     int   nu = sz.x;
@@ -109,7 +109,7 @@ public EnvSample sampleEnvLight(inout uint seed) {
     float mapPdf = condFunc[iv * nu + iu] / pc.envIntegral;
 
     float theta = v * M_PI;
-    float phi   = ((float(iu) + du) / float(nu) - 0.5) * 2.0 * M_PI;
+    float phi   = ((float(iu) + du) / float(nu) - 0.5) * 2.0 * M_PI + pc.envRotation;
     float sinT  = sin(theta);
     if (sinT <= 0.0 || mapPdf <= 0.0) return es;
 

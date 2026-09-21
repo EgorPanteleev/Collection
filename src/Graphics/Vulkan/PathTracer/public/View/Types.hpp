@@ -34,6 +34,7 @@ namespace crv::graphics::vulkan {
         uint64_t envCondFuncAddr    = 0;
         glm::vec3 skyColor = glm::vec3(0.1f);
         float    emissivePowerInv = 0.0f;
+        float    envRotation      = 0.0f;
     };
 
     struct PostprocessPushConstants {
