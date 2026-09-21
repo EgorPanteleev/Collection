@@ -28,9 +28,13 @@ void rgenMain() {
         payload.prevBrdfPdf = -1.0;
         payload.segmentDist = 0.0;
         payload.done        = false;
+        payload.passthrough = false;
         payload.mediumAbsorption = float3(1.0);
 
-        for (uint depth = 0; depth < pc.maxDepth; ++depth) {
+        uint depth    = 0;
+        uint nulls    = 0;
+        bool firstHit = true;
+        while (depth < pc.maxDepth && nulls < MAX_NULL_HITS) {
             RayDesc ray;
             ray.Origin    = payload.origin;
             ray.TMin      = 0.0;
@@ -38,11 +42,14 @@ void rgenMain() {
             ray.TMax      = T_MAX;
             TraceRay(tlas, RAY_FLAG_FORCE_OPAQUE, ALL_OBJECTS, 0, 0, 0, ray, payload);
 
-            if (depth == 0 && sample == 0)
+            if (firstHit && sample == 0)
                 outputInstanceIdImage[pixel] = payload.instanceId + 1;
+            firstHit = false;
             if (payload.done) break;
+            if (payload.passthrough) { ++nulls; continue; }
 
-            if (depth >= pc.minDepth) {
+            ++depth;
+            if (depth > pc.minDepth) {
                 float prob = clamp(luminance(payload.throughput), 0.01, 1.0);
                 if (rand01(payload.seed) > prob) break;
                 payload.throughput /= prob;
@@ -105,7 +112,8 @@ float3 debugAOV(MaterialGPU material, Hit hit, float3 baseColor) {
 
 [shader("closesthit")]
 void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes attr) {
-    payload.instanceId = InstanceID();
+    payload.instanceId  = InstanceID();
+    payload.passthrough = false;
 
     InstanceGPU instance = instances[InstanceID()];
     MeshGPU     mesh     = meshes[instance.meshIndex];
@@ -131,6 +139,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
         payload.origin       = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
         payload.direction    = dir;
         payload.segmentDist += RayTCurrent();
+        payload.passthrough  = true;
         payload.done         = false;
         return;
     }
@@ -219,7 +228,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     sampledEnvNEE(payload, bsdf, wo, hit.P, hit.gN);
 
     Scatter s = bsdf.sampleF(wo, payload.seed);
-    if (s.pdf <= 0.0) {
+    if (s.pdf <= 0.0 || dot(s.wi, hit.gN) <= 0.0) {
         payload.done = true;
         return;
     }

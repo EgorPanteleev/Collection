@@ -12,6 +12,7 @@ public struct PathPayload {
     public float  prevBrdfPdf;
     public float  segmentDist;
     public bool   done;
+    public bool   passthrough;
     public float3 mediumAbsorption;
 };
 

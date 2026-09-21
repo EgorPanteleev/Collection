@@ -13,6 +13,7 @@ public static const float FLOAT_SCALE      = 1.0 / 65536.0;
 public static const float INT_SCALE        = 256.0;
 public static const float SHADOW_EPS       = 1e-3;
 public static const float PDF_EPS          = 1e-4;
+public static const uint  MAX_NULL_HITS    = 64u;
 
 public struct PushConstants {
     public uint     frame;
