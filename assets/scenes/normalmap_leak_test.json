@@ -1,0 +1,117 @@
+{
+  "version": 3,
+  "modelImports": [
+    "models/sphere.glb",
+    "models/plane.glb"
+  ],
+  "skyColor": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "materials": [
+    {
+      "name": "shell",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "luminance": 0.0,
+      "metalness": 1.0,
+      "roughness": 0.5,
+      "normalScale": 2.0,
+      "normalTex": "models/canelle/LuxCoreScene/imagemap-00011.png"
+    },
+    {
+      "name": "red_core",
+      "color": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "luminance": 6.0
+    },
+    {
+      "name": "blue_light",
+      "color": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "luminance": 3.0
+    }
+  ],
+  "instances": [
+    {
+      "name": "shell",
+      "mesh": 0,
+      "material": 0,
+      "scale": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "name": "red_core",
+      "mesh": 0,
+      "material": 1,
+      "scale": [
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "name": "blue_light",
+      "mesh": 1,
+      "material": 2,
+      "position": [
+        0,
+        -40,
+        0
+      ],
+      "scale": [
+        35,
+        1,
+        35
+      ]
+    }
+  ],
+  "directLight": {
+    "direction": [
+      0.0,
+      1.0,
+      0.0
+    ],
+    "intensity": 0.0
+  },
+  "window": {
+    "name": "GPU Path Tracer",
+    "width": 1000,
+    "height": 700
+  },
+  "camera": {
+    "type": "Fly",
+    "position": [
+      0,
+      0,
+      60
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "zoom": 1,
+    "fov": 60,
+    "nearPlane": 0.1,
+    "farPlane": 5000.0
+  }
+}
