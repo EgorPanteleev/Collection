@@ -46,6 +46,7 @@ namespace crv::graphics::vulkan {
         SELECT_INSTANCE,
         DUPLICATE_INSTANCES,
         REMOVE_INSTANCES,
+        REMOVE_SELECTED_INSTANCES,
         ADD_MATERIAL,
         ADD_MODEL,
         UPLOAD_TEXTURE,

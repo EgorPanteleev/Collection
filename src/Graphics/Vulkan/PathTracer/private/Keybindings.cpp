@@ -19,6 +19,7 @@ namespace crv::graphics::vulkan {
         if (keyboard) {
             if (input.wasPressed(Key::ESCAPE)) commands.push(CommandType::CLEAR_SELECTION);
             if (input.wasPressed(Key::X)) commands.push(CommandType::PICK_OBJECT);
+            if (input.wasPressed(Key::DELETE)) commands.push(CommandType::REMOVE_SELECTED_INSTANCES);
 
             if (input.isPressed(Key::W)) commands.push(CommandType::MOVE_FORWARD);
             if (input.isPressed(Key::S)) commands.push(CommandType::MOVE_BACKWARD);

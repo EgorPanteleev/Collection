@@ -80,6 +80,11 @@ namespace crv::graphics::vulkan {
             case CommandType::REMOVE_INSTANCES:
                 model.removeInstances(std::get<InstancesPayload>(command.payload).indices);
                 break;
+            case CommandType::REMOVE_SELECTED_INSTANCES: {
+                const std::vector<uint32_t> selected = model.selection().selectedInstances;
+                model.removeInstances(selected);
+                break;
+            }
             case CommandType::ADD_MATERIAL:
                 model.addMaterial(std::get<MaterialPayload>(command.payload).instanceIndex);
                 break;
