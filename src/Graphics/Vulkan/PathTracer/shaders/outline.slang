@@ -1,32 +1,4 @@
-[[vk::image_format("rgba32f")]]
-[[vk::binding(0)]]
-RWTexture2D<float4> tracerImage;
-
-[[vk::image_format("r32ui")]]
-[[vk::binding(1)]]
-RWTexture2D<uint> instanceIdImage;
-
-[[vk::image_format("rgba16f")]]
-[[vk::binding(2)]]
-RWTexture2D<float4> outputImage;
-
-struct PostprocessConstants {
-    float exposure;
-    uint  tonemap;
-    uint  displayMode;
-    uint  renderScale;
-};
-[[vk::push_constant]]
-PostprocessConstants pc;
-
-float3 acesToneMap(float3 x) {
-    const float a = 2.51;
-    const float b = 0.03;
-    const float c = 2.43;
-    const float d = 0.59;
-    const float e = 0.14;
-    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
-}
+import display;
 
 float4 outline(int2 pixel, float3 baseColor, const int thickness) {
     uint instanceId = instanceIdImage[pixel];
@@ -68,9 +40,7 @@ void main(uint3 tid : SV_DispatchThreadID) {
     int  scale = int(max(pc.renderScale, 1u));
     float3 imageColor = tracerImage[pixel / scale].rgb;
     if (pc.displayMode == 0u) {
-        imageColor *= pc.exposure;
-        if (pc.tonemap != 0u)
-            imageColor = acesToneMap(imageColor);
+        imageColor = displayMap(imageColor * currentExposure());
     }
     outputImage[pixel] = outline(pixel, imageColor, 4);
 }

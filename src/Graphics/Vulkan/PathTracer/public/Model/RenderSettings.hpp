@@ -20,7 +20,8 @@ namespace crv::graphics::vulkan {
         int   renderScale   = 1;
         int   motionScale   = 2;
         float exposure      = 0.8f;
-        bool  tonemap       = false;
+        int   tonemapMode   = 0;
+        bool  autoExposure  = true;
 
         [[nodiscard]] uint32_t effectiveRenderScale() const {
             return static_cast<uint32_t>(renderScale);

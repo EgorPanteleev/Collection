@@ -4,13 +4,18 @@
 
 #include "PathTracerApp.hpp"
 
+#include <string>
+
 namespace cvk = crv::graphics::vulkan;
 
-int main() {
-    const cvk::PathTracerAppCreateInfo createInfo {
+int main(int argc, char** argv) {
+    cvk::PathTracerAppCreateInfo createInfo {
         .scenePath = SCENES_PATH"canelle.json",
     };
+    for (int i = 1; i < argc; ++i) {
+        const std::string argument = argv[i];
+        if (argument == "--scene" && i + 1 < argc) createInfo.scenePath = argv[++i];
+    }
     cvk::PathTracerApp app(createInfo);
     app.run();
 }
-        

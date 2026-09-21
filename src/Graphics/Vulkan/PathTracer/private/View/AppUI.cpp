@@ -349,8 +349,14 @@ namespace crv::graphics::vulkan {
             }
         }
         if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("ACES", &mSettings->tonemap);
-            ImGui::DragFloat("Exposure", &mSettings->exposure, 0.01f, 0.0f, 100.0f, "%.2f");
+            const char* tonemapModes[] = {"Off", "ACES", "Neutral", "AgX", "Frostbite"};
+            ImGui::Combo("Curve", &mSettings->tonemapMode, tonemapModes, IM_ARRAYSIZE(tonemapModes));
+            ImGui::Checkbox("Auto Exposure", &mSettings->autoExposure);
+            if (mSettings->autoExposure) {
+                ImGui::TextDisabled("Exposure %.4f at %.4f cd/m2", info.autoExposureValue, info.avgLuminance);
+            } else {
+                ImGui::DragFloat("Exposure", &mSettings->exposure, 0.01f, 0.0f, 100.0f, "%.2f");
+            }
         }
         ImGui::Unindent(4.0f);
     }

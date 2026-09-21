@@ -39,6 +39,8 @@ namespace crv::graphics::vulkan {
         uint32_t                     activeInstance    = UINT32_MAX;
         uint32_t                     frameCount        = 0;
         uint32_t                     renderScale       = 1;
+        float                        autoExposureValue = 0.0f;
+        float                        avgLuminance      = 0.0f;
     };
 
     class AppUI {

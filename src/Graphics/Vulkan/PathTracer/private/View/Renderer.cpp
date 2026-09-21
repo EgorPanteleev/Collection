@@ -369,9 +369,13 @@ namespace crv::graphics::vulkan {
             .currentFrame = mCurrentFrame,
             .constants = {
                 .exposure = mModel->settings().exposure,
-                .tonemap = mModel->settings().tonemap ? 1u : 0u,
+                .tonemapMode = static_cast<uint32_t>(mModel->settings().tonemapMode),
                 .displayMode = static_cast<uint32_t>(mModel->settings().displayMode),
-                .renderScale = mEffectiveScale
+                .renderScale = mEffectiveScale,
+                .autoExposure = mModel->settings().autoExposure ? 1u : 0u,
+                .deltaTime = mDeltaTime,
+                .renderWidth = (mSwapchain.extent().width + mEffectiveScale - 1) / mEffectiveScale,
+                .renderHeight = (mSwapchain.extent().height + mEffectiveScale - 1) / mEffectiveScale
             }
         };
         mPostprocessPass.record(recordInfo);
@@ -516,13 +520,16 @@ namespace crv::graphics::vulkan {
     }
 
     void Renderer::drawControlPanel() {
+        const ExposureReadback readback = mPostprocessPass.exposure();
         const AppUIDrawInfo drawInfo {
             .drawUI = mRenderImGui,
             .camera = mModel->camera(),
             .selectedInstances = &mModel->selection().selectedInstances,
             .activeInstance = mModel->selection().activeInstance,
             .frameCount = mFrameCount,
-            .renderScale = mEffectiveScale
+            .renderScale = mEffectiveScale,
+            .autoExposureValue = readback.exposure,
+            .avgLuminance = readback.avgLuminance
         };
         mUI.draw(drawInfo);
     }
@@ -672,6 +679,9 @@ namespace crv::graphics::vulkan {
     }
 
     void Renderer::endFrame() {
+        const auto now = std::chrono::steady_clock::now();
+        mDeltaTime = std::chrono::duration<float>(now - mLastFrameTime).count();
+        mLastFrameTime = now;
         const bool cameraMoved = mModel->updateState().cameraMoved;
         flushUpdates();
         uint32_t imageIndex;

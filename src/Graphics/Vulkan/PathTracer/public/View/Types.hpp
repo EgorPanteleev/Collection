@@ -37,10 +37,16 @@ namespace crv::graphics::vulkan {
     };
 
     struct PostprocessPushConstants {
-        float    exposure    = 1.0f;
-        uint32_t tonemap     = 1;
-        uint32_t displayMode = 0;
-        uint32_t renderScale = 1;
+        float    exposure             = 1.0f;
+        uint32_t tonemapMode          = 1;
+        uint32_t displayMode          = 0;
+        uint32_t renderScale          = 1;
+        uint32_t autoExposure         = 0;
+        float    deltaTime            = 0.0f;
+        uint32_t renderWidth          = 1;
+        uint32_t renderHeight         = 1;
+        float    minLogLuminance      = -10.0f;
+        float    logLuminanceRange    = 20.0f;
     };
 
     struct alignas(16) CameraGPU {

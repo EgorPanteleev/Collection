@@ -4,6 +4,8 @@
 
 #include "ComputePipelines.hpp"
 
+#include <stdexcept>
+
 namespace crv::graphics::vulkan {
     ComputePipelines::ComputePipelines(const ComputePipelinesCreateInfo &info): mDevice(info.device) {
         std::vector<VkComputePipelineCreateInfo> pipelineInfos;
@@ -16,9 +18,12 @@ namespace crv::graphics::vulkan {
             pipelineInfos.push_back(pipelineInfo);
         }
 
-        mVec.resize(info.layouts.size());
-        vkCreateComputePipelines(mDevice,VK_NULL_HANDLE,
-            1, pipelineInfos.data(), nullptr, mVec.data());
+        mVec.resize(pipelineInfos.size());
+        if (vkCreateComputePipelines(mDevice, VK_NULL_HANDLE,
+                static_cast<uint32_t>(pipelineInfos.size()), pipelineInfos.data(),
+                nullptr, mVec.data()) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create compute pipelines!");
+        }
     }
 
     void ComputePipelines::destroy() {

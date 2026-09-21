@@ -21,6 +21,7 @@
 #include "View/AppUI.hpp"
 
 #include <glm/glm.hpp>
+#include <chrono>
 
 namespace crv::graphics::vulkan {
     struct RendererCreateInfo {
@@ -85,6 +86,8 @@ namespace crv::graphics::vulkan {
         uint32_t                     mFrameCount           = 0;
         uint32_t                     mEffectiveScale       = 1;
         bool                         mAdditiveSelect       = false;
+        float                        mDeltaTime            = 0.0f;
+        std::chrono::steady_clock::time_point mLastFrameTime = std::chrono::steady_clock::now();
         bool                         mPickPending          = false;
         ivec2                        mClickedPixel         = {UINT32_MAX, UINT32_MAX};
 
