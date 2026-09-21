@@ -27,15 +27,15 @@ namespace crv::graphics::vulkan {
             case CommandType::MOVE_BACKWARD: camera->move(-speed, 0, 0);  return true;
             case CommandType::MOVE_LEFT:     camera->move(0, -speed, 0);  return true;
             case CommandType::MOVE_RIGHT:    camera->move(0, speed, 0);   return true;
-            case CommandType::MOVE_UP:       camera->move(0, 0, -speed);  return true;
-            case CommandType::MOVE_DOWN:     camera->move(0, 0, speed);   return true;
+            case CommandType::MOVE_UP:       camera->move(0, 0, speed);   return true;
+            case CommandType::MOVE_DOWN:     camera->move(0, 0, -speed);  return true;
             case CommandType::ROTATE_LEFT:   camera->rotate(0, rotateSpeed, 0);  return true;
             case CommandType::ROTATE_RIGHT:  camera->rotate(0, -rotateSpeed, 0); return true;
             case CommandType::ROTATE_UP:     camera->rotate(rotateSpeed, 0, 0);  return true;
             case CommandType::ROTATE_DOWN:   camera->rotate(-rotateSpeed, 0, 0); return true;
             case CommandType::LOOK: {
                 const glm::dvec2 lookDelta = context.input->cursorDelta();
-                camera->rotate(static_cast<float>(lookDelta.y * lookSensitivity),
+                camera->rotate(static_cast<float>(-lookDelta.y * lookSensitivity),
                                static_cast<float>(-lookDelta.x * lookSensitivity), 0.f);
                 return true;
             }
