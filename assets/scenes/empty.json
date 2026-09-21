@@ -22,71 +22,71 @@
     }],
   "instances":	[
     {
-      "localPosition": [0.0, 0.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
+      "localPosition": [0, 0, 0],
+      "localRotation": [0, 180, 180],
       "localScale": [70.0, 70.0, 70.0],
       "texIndex": 0,
       "modelIndex": 1,
       "name": "bottomPlane"
     },
     {
-      "localPosition": [0.0, -30.0, 60.0],
-      "localRotation": [0, 90.0, 90.0],
+      "localPosition": [0, 30, -60],
+      "localRotation": [0, 90, -90],
       "localScale": [70.0, 70.0, 70.0],
       "texIndex": 0,
       "modelIndex": 1,
       "name": "leftPlane"
     },
     {
-      "localPosition": [0.0, -30.0, -60.0],
-      "localRotation": [0, 90.0, 90.0],
+      "localPosition": [0, 30, 60],
+      "localRotation": [0, 90, -90],
       "localScale": [70.0, 70.0, 70.0],
       "texIndex": 0,
       "modelIndex": 1,
       "name": "rightPlane"
     },
     {
-      "localPosition": [-60.0, -30.0, 0.0],
-      "localRotation": [0.0, 0.0, 90.0],
+      "localPosition": [-60, 30, 0],
+      "localRotation": [0, 180, -90],
       "localScale": [70.0, 70.0, 70.0],
       "texIndex": 0,
       "modelIndex": 1,
       "name": "forwardPlane"
     },
     {
-      "localPosition": [0.0, -70.0, 0.0],
-      "localRotation": [0.0, 0.0, 0.0],
+      "localPosition": [0, 70, 0],
+      "localRotation": [0, 180, 180],
       "localScale": [70.0, 70.0, 70.0],
       "texIndex": 0,
       "modelIndex": 1,
       "name": "topPlane"
     },
     {
-      "localPosition": [2.0, -69.0, 42.0],
-      "localRotation": [0.0, 90.0, 0.0],
+      "localPosition": [2, 69, -42],
+      "localRotation": [0, 90, 180],
       "localScale": [5.0, 10.0, 40.0],
       "texIndex": 1,
       "modelIndex": 1,
       "name": "lightPlane1"
     },
     {
-      "localPosition": [2.0, -69.0, 2.0],
-      "localRotation": [0.0, 90.0, 0.0],
+      "localPosition": [2, 69, -2],
+      "localRotation": [0, 90, 180],
       "localScale": [5.0, 10.0, 40.0],
       "texIndex": 1,
       "modelIndex": 1,
       "name": "lightPlane2"
     },
     {
-      "localPosition": [2.0, -69.0, -38.0],
-      "localRotation": [0.0, 90.0, 0.0],
+      "localPosition": [2, 69, 38],
+      "localRotation": [0, 90, 180],
       "localScale": [5.0, 10.0, 40.0],
       "texIndex": 1,
       "modelIndex": 1,
       "name": "lightPlane3"
     }],
   "directLight": {
-    "direction": [-0.468, 0.318, -0.824],
+    "direction": [-0.468, -0.318, 0.824],
     "intensity": 0
   },
   "window": {
@@ -96,8 +96,8 @@
   },
   "camera":	{
     "type": "Fly",
-    "position":	[78, -29, -2],
-    "target":	[-100, -30, 0],
+    "position":	[78, 29, 2],
+    "target":	[-100, 30, 0],
     "up":	[0, 1, 0],
     "zoom": 1,
     "fov": 60,

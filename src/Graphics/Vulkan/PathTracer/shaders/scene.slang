@@ -28,7 +28,7 @@ public struct DirectLightData {
 public float3 sampleEnvironment(float3 dir) {
     if (pc.skyboxIndex == UINT_MAX) return pc.skyColor;
     float2 uv = float2(atan2(dir.z, dir.x) * 0.15915494309 + 0.5,
-                       acos(clamp(-dir.y, -1.0, 1.0)) * M_1_PI);
+                       acos(clamp(dir.y, -1.0, 1.0)) * M_1_PI);
     float3 c = textures[pc.skyboxIndex].SampleLevel(uv, 0.0).rgb;
     return clamp(c, float3(0.0), float3(65504.0));
 }
@@ -62,7 +62,7 @@ int sampleCdfInterval(float* cdf, int base, int n, float u) {
 
 public float envPdf(float3 dir) {
     if (!envSamplingEnabled()) return 0.0;
-    float theta = acos(clamp(-dir.y, -1.0, 1.0));
+    float theta = acos(clamp(dir.y, -1.0, 1.0));
     float sinT  = sin(theta);
     if (sinT <= 0.0) return 0.0;
     float u = atan2(dir.z, dir.x) * 0.15915494309 + 0.5;
@@ -113,7 +113,7 @@ public EnvSample sampleEnvLight(inout uint seed) {
     float sinT  = sin(theta);
     if (sinT <= 0.0 || mapPdf <= 0.0) return es;
 
-    es.dir      = float3(sinT * cos(phi), -cos(theta), sinT * sin(phi));
+    es.dir      = float3(sinT * cos(phi), cos(theta), sinT * sin(phi));
     es.pdf      = mapPdf / (2.0 * M_PI * M_PI * sinT);
     es.radiance = sampleEnvironment(es.dir);
     return es;

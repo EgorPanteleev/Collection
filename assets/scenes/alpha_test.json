@@ -11,24 +11,24 @@
   ],
   "instances": [
     { "name": "floor",     "modelIndex": 0, "texIndex": 0,
-      "localPosition": [0, 0, 0],     "localRotation": [0, 0, 0], "localScale": [80, 80, 80] },
+      "localPosition": [0, 0, 0],     "localRotation": [0, 180, 180], "localScale": [80, 80, 80] },
     { "name": "panel_100", "modelIndex": 0, "texIndex": 1,
-      "localPosition": [-48, -25, 0], "localRotation": [0, 0, 0], "localScale": [9, 9, 9] },
+      "localPosition": [-48, 25, 0], "localRotation": [0, 180, 180], "localScale": [9, 9, 9] },
     { "name": "panel_075", "modelIndex": 0, "texIndex": 2,
-      "localPosition": [-24, -25, 0], "localRotation": [0, 0, 0], "localScale": [9, 9, 9] },
+      "localPosition": [-24, 25, 0], "localRotation": [0, 180, 180], "localScale": [9, 9, 9] },
     { "name": "panel_050", "modelIndex": 0, "texIndex": 3,
-      "localPosition": [0, -25, 0],   "localRotation": [0, 0, 0], "localScale": [9, 9, 9] },
+      "localPosition": [0, 25, 0],   "localRotation": [0, 180, 180], "localScale": [9, 9, 9] },
     { "name": "panel_025", "modelIndex": 0, "texIndex": 4,
-      "localPosition": [24, -25, 0],  "localRotation": [0, 0, 0], "localScale": [9, 9, 9] },
+      "localPosition": [24, 25, 0],  "localRotation": [0, 180, 180], "localScale": [9, 9, 9] },
     { "name": "panel_000", "modelIndex": 0, "texIndex": 5,
-      "localPosition": [48, -25, 0],  "localRotation": [0, 0, 0], "localScale": [9, 9, 9] }
+      "localPosition": [48, 25, 0],  "localRotation": [0, 180, 180], "localScale": [9, 9, 9] }
   ],
-  "directLight": { "direction": [0.6, 1.0, 0.0], "intensity": 3.0 },
+  "directLight": { "direction": [0.6, -1, 0], "intensity": 3.0 },
   "window": { "name": "GPU Path Tracer", "width": 1000, "height": 700 },
   "camera": {
     "type": "Fly",
-    "position": [0, -52, 155],
-    "target":   [0, -8, 0],
+    "position": [0, 52, -155],
+    "target":   [0, 8, 0],
     "up":       [0, 1, 0],
     "zoom": 1, "fov": 60, "nearPlane": 0.1, "farPlane": 5000.0
   }

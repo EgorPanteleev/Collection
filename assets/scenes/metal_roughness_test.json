@@ -1075,14 +1075,14 @@
    "modelIndex": 0,
    "texIndex": 0,
    "localPosition": [
-    -7.800000000000001,
-    -9.1,
-    0.0
+    -7.8,
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1096,13 +1096,13 @@
    "texIndex": 1,
    "localPosition": [
     -5.2,
-    -9.1,
-    0.0
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1116,13 +1116,13 @@
    "texIndex": 2,
    "localPosition": [
     -2.6,
-    -9.1,
-    0.0
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1135,14 +1135,14 @@
    "modelIndex": 0,
    "texIndex": 3,
    "localPosition": [
-    0.0,
-    -9.1,
-    0.0
+    0,
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1156,13 +1156,13 @@
    "texIndex": 4,
    "localPosition": [
     2.6,
-    -9.1,
-    0.0
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1176,13 +1176,13 @@
    "texIndex": 5,
    "localPosition": [
     5.2,
-    -9.1,
-    0.0
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1195,14 +1195,14 @@
    "modelIndex": 0,
    "texIndex": 6,
    "localPosition": [
-    7.800000000000001,
-    -9.1,
-    0.0
+    7.8,
+    9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1215,14 +1215,14 @@
    "modelIndex": 0,
    "texIndex": 7,
    "localPosition": [
-    -7.800000000000001,
-    -6.5,
-    0.0
+    -7.8,
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1236,13 +1236,13 @@
    "texIndex": 8,
    "localPosition": [
     -5.2,
-    -6.5,
-    0.0
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1256,13 +1256,13 @@
    "texIndex": 9,
    "localPosition": [
     -2.6,
-    -6.5,
-    0.0
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1275,14 +1275,14 @@
    "modelIndex": 0,
    "texIndex": 10,
    "localPosition": [
-    0.0,
-    -6.5,
-    0.0
+    0,
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1296,13 +1296,13 @@
    "texIndex": 11,
    "localPosition": [
     2.6,
-    -6.5,
-    0.0
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1316,13 +1316,13 @@
    "texIndex": 12,
    "localPosition": [
     5.2,
-    -6.5,
-    0.0
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1335,14 +1335,14 @@
    "modelIndex": 0,
    "texIndex": 13,
    "localPosition": [
-    7.800000000000001,
-    -6.5,
-    0.0
+    7.8,
+    6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1355,14 +1355,14 @@
    "modelIndex": 0,
    "texIndex": 14,
    "localPosition": [
-    -7.800000000000001,
-    -3.9000000000000004,
-    0.0
+    -7.8,
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1376,13 +1376,13 @@
    "texIndex": 15,
    "localPosition": [
     -5.2,
-    -3.9000000000000004,
-    0.0
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1396,13 +1396,13 @@
    "texIndex": 16,
    "localPosition": [
     -2.6,
-    -3.9000000000000004,
-    0.0
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1415,14 +1415,14 @@
    "modelIndex": 0,
    "texIndex": 17,
    "localPosition": [
-    0.0,
-    -3.9000000000000004,
-    0.0
+    0,
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1436,13 +1436,13 @@
    "texIndex": 18,
    "localPosition": [
     2.6,
-    -3.9000000000000004,
-    0.0
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1456,13 +1456,13 @@
    "texIndex": 19,
    "localPosition": [
     5.2,
-    -3.9000000000000004,
-    0.0
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1475,14 +1475,14 @@
    "modelIndex": 0,
    "texIndex": 20,
    "localPosition": [
-    7.800000000000001,
-    -3.9000000000000004,
-    0.0
+    7.8,
+    3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1495,14 +1495,14 @@
    "modelIndex": 0,
    "texIndex": 21,
    "localPosition": [
-    -7.800000000000001,
-    -1.3,
-    0.0
+    -7.8,
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1516,13 +1516,13 @@
    "texIndex": 22,
    "localPosition": [
     -5.2,
-    -1.3,
-    0.0
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1536,13 +1536,13 @@
    "texIndex": 23,
    "localPosition": [
     -2.6,
-    -1.3,
-    0.0
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1555,14 +1555,14 @@
    "modelIndex": 0,
    "texIndex": 24,
    "localPosition": [
-    0.0,
-    -1.3,
-    0.0
+    0,
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1576,13 +1576,13 @@
    "texIndex": 25,
    "localPosition": [
     2.6,
-    -1.3,
-    0.0
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1596,13 +1596,13 @@
    "texIndex": 26,
    "localPosition": [
     5.2,
-    -1.3,
-    0.0
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1615,14 +1615,14 @@
    "modelIndex": 0,
    "texIndex": 27,
    "localPosition": [
-    7.800000000000001,
-    -1.3,
-    0.0
+    7.8,
+    1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1635,14 +1635,14 @@
    "modelIndex": 0,
    "texIndex": 28,
    "localPosition": [
-    -7.800000000000001,
-    1.3,
-    0.0
+    -7.8,
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1656,13 +1656,13 @@
    "texIndex": 29,
    "localPosition": [
     -5.2,
-    1.3,
-    0.0
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1676,13 +1676,13 @@
    "texIndex": 30,
    "localPosition": [
     -2.6,
-    1.3,
-    0.0
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1695,14 +1695,14 @@
    "modelIndex": 0,
    "texIndex": 31,
    "localPosition": [
-    0.0,
-    1.3,
-    0.0
+    0,
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1716,13 +1716,13 @@
    "texIndex": 32,
    "localPosition": [
     2.6,
-    1.3,
-    0.0
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1736,13 +1736,13 @@
    "texIndex": 33,
    "localPosition": [
     5.2,
-    1.3,
-    0.0
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1755,14 +1755,14 @@
    "modelIndex": 0,
    "texIndex": 34,
    "localPosition": [
-    7.800000000000001,
-    1.3,
-    0.0
+    7.8,
+    -1.3,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1775,14 +1775,14 @@
    "modelIndex": 0,
    "texIndex": 35,
    "localPosition": [
-    -7.800000000000001,
-    3.9000000000000004,
-    0.0
+    -7.8,
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1796,13 +1796,13 @@
    "texIndex": 36,
    "localPosition": [
     -5.2,
-    3.9000000000000004,
-    0.0
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1816,13 +1816,13 @@
    "texIndex": 37,
    "localPosition": [
     -2.6,
-    3.9000000000000004,
-    0.0
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1835,14 +1835,14 @@
    "modelIndex": 0,
    "texIndex": 38,
    "localPosition": [
-    0.0,
-    3.9000000000000004,
-    0.0
+    0,
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1856,13 +1856,13 @@
    "texIndex": 39,
    "localPosition": [
     2.6,
-    3.9000000000000004,
-    0.0
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1876,13 +1876,13 @@
    "texIndex": 40,
    "localPosition": [
     5.2,
-    3.9000000000000004,
-    0.0
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1895,14 +1895,14 @@
    "modelIndex": 0,
    "texIndex": 41,
    "localPosition": [
-    7.800000000000001,
-    3.9000000000000004,
-    0.0
+    7.8,
+    -3.9,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1915,14 +1915,14 @@
    "modelIndex": 0,
    "texIndex": 42,
    "localPosition": [
-    -7.800000000000001,
-    6.5,
-    0.0
+    -7.8,
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1936,13 +1936,13 @@
    "texIndex": 43,
    "localPosition": [
     -5.2,
-    6.5,
-    0.0
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1956,13 +1956,13 @@
    "texIndex": 44,
    "localPosition": [
     -2.6,
-    6.5,
-    0.0
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1975,14 +1975,14 @@
    "modelIndex": 0,
    "texIndex": 45,
    "localPosition": [
-    0.0,
-    6.5,
-    0.0
+    0,
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -1996,13 +1996,13 @@
    "texIndex": 46,
    "localPosition": [
     2.6,
-    6.5,
-    0.0
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2016,13 +2016,13 @@
    "texIndex": 47,
    "localPosition": [
     5.2,
-    6.5,
-    0.0
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2035,14 +2035,14 @@
    "modelIndex": 0,
    "texIndex": 48,
    "localPosition": [
-    7.800000000000001,
-    6.5,
-    0.0
+    7.8,
+    -6.5,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2055,14 +2055,14 @@
    "modelIndex": 0,
    "texIndex": 49,
    "localPosition": [
-    -7.800000000000001,
-    9.1,
-    0.0
+    -7.8,
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2076,13 +2076,13 @@
    "texIndex": 50,
    "localPosition": [
     -5.2,
-    9.1,
-    0.0
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2096,13 +2096,13 @@
    "texIndex": 51,
    "localPosition": [
     -2.6,
-    9.1,
-    0.0
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2115,14 +2115,14 @@
    "modelIndex": 0,
    "texIndex": 52,
    "localPosition": [
-    0.0,
-    9.1,
-    0.0
+    0,
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2136,13 +2136,13 @@
    "texIndex": 53,
    "localPosition": [
     2.6,
-    9.1,
-    0.0
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2156,13 +2156,13 @@
    "texIndex": 54,
    "localPosition": [
     5.2,
-    9.1,
-    0.0
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2175,14 +2175,14 @@
    "modelIndex": 0,
    "texIndex": 55,
    "localPosition": [
-    7.800000000000001,
-    9.1,
-    0.0
+    7.8,
+    -9.1,
+    0
    ],
    "localRotation": [
-    0.0,
-    0.0,
-    0.0
+    0,
+    180,
+    180
    ],
    "localScale": [
     1.0,
@@ -2194,8 +2194,8 @@
  "directLight": {
   "direction": [
    -0.5,
-   0.6,
-   -0.6
+   -0.6,
+   0.6
   ],
   "intensity": 1.5
  },
@@ -2207,14 +2207,14 @@
  "camera": {
   "type": "Fly",
   "position": [
-   0.0,
-   0.0,
-   35.0
+   0,
+   0,
+   -35
   ],
   "target": [
-   0.0,
-   5.0,
-   -100.0
+   0,
+   -5,
+   100
   ],
   "up": [
    0.0,

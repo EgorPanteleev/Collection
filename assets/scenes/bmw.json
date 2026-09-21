@@ -5,23 +5,23 @@
     "modelIndex": 0,
     "texIndex": -1,
     "localPosition": [0, 0, 0],
-    "localRotation": [180, 0, 0],
+    "localRotation": [0, 0, 0],
     "localScale":	 [1, 1, 1]
   }],
   "directLight": {
-    "direction": [0.3, 1.0, -0.4],
+    "direction": [0.3, -1.0, -0.4],
     "intensity": 3
   },
   "skyColor": [0.05, 0.06, 0.08],
   "window": {
     "name": "GPU Path Tracer",
-    "width": 800,
-    "height": 600
+    "width": 1280,
+    "height": 800
   },
   "camera":	{
     "type": "Fly",
-    "position":	[5.5, -2.0, 4.5],
-    "target":	[0, -0.6, 0],
+    "position":	[5.5, 2.0, 4.5],
+    "target":	[0, 0.6, 0],
     "up":	[0, 1, 0],
     "zoom": 1,
     "fov": 45,
