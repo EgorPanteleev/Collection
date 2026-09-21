@@ -10,7 +10,7 @@ namespace cvk = crv::graphics::vulkan;
 
 int main(int argc, char** argv) {
     cvk::PathTracerAppCreateInfo createInfo {
-        .scenePath = SCENES_PATH"canelle.json",
+        .scenePath = SCENES_PATH"sponza.json",
     };
     for (int i = 1; i < argc; ++i) {
         const std::string argument = argv[i];

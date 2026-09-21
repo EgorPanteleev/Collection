@@ -65,14 +65,16 @@ namespace crv::graphics::vulkan {
             .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
             .add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
             .add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
-            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
                                                     VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
                                                     VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
             .add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
-                                                    VK_SHADER_STAGE_MISS_BIT_KHR, MAX_TEXTURES)
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR   |
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR, MAX_TEXTURES)
             .build(mContext, mFramesInFlight, MAX_TEXTURES);
 
         for (int i = 0; i < mFramesInFlight; ++i) {

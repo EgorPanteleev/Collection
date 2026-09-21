@@ -105,7 +105,9 @@ namespace crv::graphics::vulkan {
 
     bool ResourceManager::alphaMasked(const InstanceData& instance) const {
         if (instance.isGroup() || instance.materialIndex >= mScene->materials().size()) return false;
-        return mScene->materials()[instance.materialIndex].opacity < 1.0f;
+        const Material& material = mScene->materials()[instance.materialIndex];
+        return material.opacity < 1.0f ||
+               (material.alphaMasked > 0.5f && material.baseColorTexIndex != UINT32_MAX);
     }
 
     InstanceData::GPU ResourceManager::gpuInstance(const uint32_t index) const {

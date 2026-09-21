@@ -258,7 +258,8 @@ namespace crv::graphics::vulkan {
                 .opacity = jsonMaterial.value("opacity", 1.0f),
                 .normalScale = jsonMaterial.value("normalScale", 1.0f),
                 .anisotropy = jsonMaterial.value("anisotropy", 0.0f),
-                .thin = jsonMaterial.value("thin", 0.0f)
+                .thin = jsonMaterial.value("thin", 0.0f),
+                .alphaMasked = jsonMaterial.value("alphaMasked", 1.0f)
             };
         }
     }
@@ -315,6 +316,7 @@ namespace crv::graphics::vulkan {
             get("normalScale", material.normalScale);
             get("anisotropy", material.anisotropy);
             get("thin", material.thin);
+            get("alphaMasked", material.alphaMasked);
 
             loadResolvedTexture(jm, "baseColorTex", cm::Texture::BASE_COLOR,
                 material.baseColorTexIndex, material.baseColorTexPath);
@@ -434,6 +436,7 @@ namespace crv::graphics::vulkan {
             put(jm, "normalScale", m.normalScale, def.normalScale);
             put(jm, "anisotropy", m.anisotropy, def.anisotropy);
             put(jm, "thin", m.thin, def.thin);
+            put(jm, "alphaMasked", m.alphaMasked, def.alphaMasked);
             putPath(jm, "baseColorTex", m.baseColorTexPath);
             putPath(jm, "normalTex", m.normalTexPath);
             putPath(jm, "metalRoughnessTex", m.metalRoughnessTexPath);

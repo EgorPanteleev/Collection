@@ -119,11 +119,21 @@ public EnvSample sampleEnvLight(inout uint seed) {
     return es;
 }
 
-public float3 getBaseColor(MaterialGPU material, float2 uv) {
-    float3 baseColor = material.baseColor;
+public float4 sampleBaseColor(MaterialGPU material, float2 uv) {
+    float4 baseColor = float4(material.baseColor, 1.0);
     if (material.baseColorTexIndex != UINT_MAX)
-        baseColor *= textures[NonUniformResourceIndex(material.baseColorTexIndex)].SampleLevel(uv, 0.0).rgb;
+        baseColor *= textures[NonUniformResourceIndex(material.baseColorTexIndex)].SampleLevel(uv, 0.0);
     return baseColor;
+}
+
+public float3 getBaseColor(MaterialGPU material, float2 uv) {
+    return sampleBaseColor(material, uv).rgb;
+}
+
+public float alphaAt(MaterialGPU material, float2 uv) {
+    if (material.alphaMasked <= 0.5 || material.baseColorTexIndex == UINT_MAX) return material.opacity;
+    return material.opacity *
+           textures[NonUniformResourceIndex(material.baseColorTexIndex)].SampleLevel(uv, 0.0).a;
 }
 
 public void applyMetalRoughness(MaterialGPU material, float2 uv, inout float metalness, inout float roughness) {

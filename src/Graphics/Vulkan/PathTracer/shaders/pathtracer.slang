@@ -89,9 +89,20 @@ void shadowMissMain(inout ShadowPayload payload) {
 
 [shader("anyhit")]
 void ahitMain(inout ShadowPayload payload, BuiltInTriangleIntersectionAttributes attr) {
-    MaterialGPU material = materials[instances[InstanceID()].materialIndex];
-    if (material.opacity >= 1.0) return;
-    if (rand01(payload.seed) >= material.opacity) IgnoreHit();
+    InstanceGPU instance = instances[InstanceID()];
+    MaterialGPU material = materials[instance.materialIndex];
+
+    float2 uv = float2(0.0);
+    if (material.alphaMasked > 0.5 && material.baseColorTexIndex != UINT_MAX) {
+        Triangle tri = fetchTriangle(meshes[instance.meshIndex], PrimitiveIndex());
+        float u = attr.barycentrics.x;
+        float v = attr.barycentrics.y;
+        uv = (1.0 - u - v) * tri.v0.texCoord + u * tri.v1.texCoord + v * tri.v2.texCoord;
+    }
+
+    float alpha = alphaAt(material, uv);
+    if (alpha >= 1.0) return;
+    if (rand01(payload.seed) >= alpha) IgnoreHit();
 }
 
 float3 debugAOV(MaterialGPU material, Hit hit, float3 baseColor) {
@@ -124,7 +135,9 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
     Hit      hit = interpolateHit(tri, attr.barycentrics, o2w, WorldRayDirection());
 
     applyNormalMap(hit, material);
-    float3 baseColor = getBaseColor(material, hit.uv);
+    float4 baseSample = sampleBaseColor(material, hit.uv);
+    float3 baseColor  = baseSample.rgb;
+    float  alpha      = material.alphaMasked > 0.5 ? material.opacity * baseSample.a : material.opacity;
 
     if (pc.displayMode != 0u) {
         payload.radiance = payload.throughput * debugAOV(material, hit, baseColor);
@@ -134,7 +147,7 @@ void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes a
 
     payload.throughput *= exp(log(max(payload.mediumAbsorption, float3(1e-4))) * RayTCurrent());
 
-    if (material.opacity < 1.0 && rand01(payload.seed) >= material.opacity) {
+    if (alpha < 1.0 && rand01(payload.seed) >= alpha) {
         float3 dir           = WorldRayDirection();
         payload.origin       = movedPoint(hit.P, dot(dir, hit.gN) < 0.0 ? -hit.gN : hit.gN);
         payload.direction    = dir;
