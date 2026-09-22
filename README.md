@@ -9,3 +9,11 @@ It’s a playground to understand how raytracing works and to experiment with re
   <img src="Images/Realtime/ford.png" width="400" />
   <img src="Images/Realtime/bistro.png" width="400" />
 </p>
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+Third-party code under `thirdparty/` (assimp, gli, imgui, imguizmo, nlohmann/json,
+meshoptimizer, stb, VulkanMemoryAllocator) is covered by its own licenses.
+Assets under `assets/` may carry separate terms from their original sources.
