@@ -509,6 +509,7 @@ namespace crv::graphics::vulkan {
         const RayTracerPassUpdateInfo tracerUpdateInfo {
             .camera = mModel->camera(),
             .directLight = mModel->scene().directLight(),
+            .fog = mModel->scene().fog(),
             .currentFrame = mCurrentFrame
         };
         mRayTracerPass.update(tracerUpdateInfo);

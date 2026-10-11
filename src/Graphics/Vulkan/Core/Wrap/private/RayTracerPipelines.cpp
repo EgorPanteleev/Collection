@@ -13,7 +13,7 @@ namespace crv::graphics::vulkan {
             .pStages = info.stages.data(),
             .groupCount = static_cast<uint32_t>(info.groups.size()),
             .pGroups = info.groups.data(),
-            .maxPipelineRayRecursionDepth = 1,
+            .maxPipelineRayRecursionDepth = 2,
             .layout = info.layout,
         };
         mVec.resize(1);

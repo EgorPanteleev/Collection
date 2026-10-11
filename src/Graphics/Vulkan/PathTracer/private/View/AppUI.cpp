@@ -319,6 +319,17 @@ namespace crv::graphics::vulkan {
             if (changed)
                 push(CommandType::SET_DIRECT_LIGHT, DirectLightPayload{light});
         }
+        if (ImGui::CollapsingHeader("Fog", ImGuiTreeNodeFlags_DefaultOpen)) {
+            Fog fog = mScene->fog();
+            bool changed = false;
+            changed |= VkImGui::colorEdit3("Color##fog", fog.color);
+            changed |= ImGui::DragFloat("Density", &fog.density, 0.0005f, 0.0f, 10.0f, "%.4f");
+            changed |= ImGui::DragFloat("Falloff Height", &fog.height, 0.05f, 0.0f, 1000.0f, "%.2f");
+            changed |= ImGui::DragFloat("Base Height", &fog.base, 0.05f, -1000.0f, 1000.0f, "%.2f");
+            changed |= ImGui::DragFloat("Anisotropy", &fog.anisotropy, 0.005f, -0.95f, 0.95f, "%.3f");
+            if (changed)
+                push(CommandType::SET_FOG, FogPayload{fog});
+        }
         if (ImGui::CollapsingHeader("NEE", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Checkbox("Light sources", &mSettings->nee)) {
                 mUpdateImage = true;

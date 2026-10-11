@@ -13,6 +13,7 @@
 #include "Model/Material.hpp"
 #include "Model/InstanceData.hpp"
 #include "Model/DirectLight.hpp"
+#include "Model/Fog.hpp"
 
 namespace crv::graphics::vulkan {
     inline constexpr uint32_t COMMAND_TARGET_SHIFT = 24;
@@ -60,6 +61,7 @@ namespace crv::graphics::vulkan {
         SET_SKY_COLOR,
         SET_ENV_ROTATION,
         SET_DIRECT_LIGHT,
+        SET_FOG,
         SAVE_SCENE,
 
         PICK_OBJECT = static_cast<uint32_t>(CommandTarget::VIEW),
@@ -91,6 +93,7 @@ namespace crv::graphics::vulkan {
     struct SkyColorPayload             { glm::vec3 color; };
     struct EnvRotationPayload          { float radians; };
     struct DirectLightPayload          { DirectLight light; };
+    struct FogPayload                  { Fog fog; };
 
     using CommandPayload = std::variant<
         EmptyPayload,
@@ -108,7 +111,8 @@ namespace crv::graphics::vulkan {
         SetInstanceNamePayload,
         SkyColorPayload,
         EnvRotationPayload,
-        DirectLightPayload>;
+        DirectLightPayload,
+        FogPayload>;
 
     struct Command {
         CommandType    type    = CommandType::NONE;

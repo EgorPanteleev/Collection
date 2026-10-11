@@ -14,6 +14,14 @@ public struct DirectLightData {
     public float  intensity;
 };
 
+public struct FogData {
+    public float3 color;
+    public float  density;
+    public float  height;
+    public float  base;
+    public float  anisotropy;
+};
+
 [[vk::binding(0)]] public RaytracingAccelerationStructure tlas;
 [[vk::image_format("rgba32f")]] [[vk::binding(1)]] public RWTexture2D<float4> outputImage;
 [[vk::image_format("r32ui")]]   [[vk::binding(2)]] public RWTexture2D<uint>   outputInstanceIdImage;
@@ -23,7 +31,8 @@ public struct DirectLightData {
 [[vk::binding(6)]] public StructuredBuffer<InstanceGPU>   instances;
 [[vk::binding(7)]] public StructuredBuffer<EmissiveGPU>   emissiveLights;
 [[vk::binding(8)]] public StructuredBuffer<MaterialGPU>   materials;
-[[vk::binding(9)]] public Sampler2D                       textures[];
+[[vk::binding(9)]] public ConstantBuffer<FogData>         fogData;
+[[vk::binding(10)]] public Sampler2D                      textures[];
 
 public float3 sampleEnvironment(float3 dir) {
     if (pc.skyboxIndex == UINT_MAX) return pc.skyColor;

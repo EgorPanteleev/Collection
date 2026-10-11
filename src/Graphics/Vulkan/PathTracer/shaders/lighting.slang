@@ -4,20 +4,25 @@ import common;
 import types;
 import scene;
 import bsdf;
+import fog;
 
 public float traceShadow(float3 P, float3 N, float3 L, float tMax, inout uint seed) {
+    float3 origin        = movedPoint(P, N);
+    float  transmittance = fogTransmittance(origin, L, tMax);
+    if (transmittance <= 0.0) return 0.0;
+
     ShadowPayload shadow;
     shadow.visible = 0.0;
     shadow.seed    = seed;
     RayDesc ray;
-    ray.Origin    = movedPoint(P, N);
+    ray.Origin    = origin;
     ray.TMin      = T_MIN;
     ray.Direction = L;
     ray.TMax      = tMax - T_MIN;
     TraceRay(tlas, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
              ALL_OBJECTS, 0, 1, 1, ray, shadow);
     seed = shadow.seed;
-    return shadow.visible;
+    return shadow.visible * transmittance;
 }
 
 public struct LightSample {
@@ -97,23 +102,35 @@ public void directLightContribution(inout PathPayload payload, BSDF bsdf, float3
     payload.radiance += payload.throughput * bsdf.f(wo, L) * NdotL * directLight.intensity * vis;
 }
 
+public struct EmitterPick {
+    public InstanceGPU instance;
+    public MeshGPU     mesh;
+    public MaterialGPU material;
+    public float       pmf;
+};
+
+public bool pickEmitter(inout uint seed, out EmitterPick pick) {
+    uint        slot0  = min(uint(rand01(seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
+    EmissiveGPU entry0 = emissiveLights[slot0];
+    uint        slot   = (rand01(seed) < entry0.aliasProb) ? slot0 : entry0.aliasIndex;
+
+    pick.instance = instances[emissiveLights[slot].instanceIndex];
+    pick.mesh     = meshes[pick.instance.meshIndex];
+    pick.material = materials[pick.instance.materialIndex];
+    pick.pmf      = lightPmf(pick.material, pick.instance);
+    return pick.pmf > 0.0;
+}
+
 public void sampledLightNEE(inout PathPayload payload, BSDF bsdf, float3 wo, float3 P, float3 gN) {
     if (pc.nee == 0u || pc.emissiveCount == 0u) return;
 
-    uint        slot0         = min(uint(rand01(payload.seed) * float(pc.emissiveCount)), pc.emissiveCount - 1u);
-    EmissiveGPU entry0        = emissiveLights[slot0];
-    uint        slot          = (rand01(payload.seed) < entry0.aliasProb) ? slot0 : entry0.aliasIndex;
-    uint        instanceIndex = emissiveLights[slot].instanceIndex;
-    InstanceGPU lightInstance  = instances[instanceIndex];
-    MeshGPU     lightMesh      = meshes[lightInstance.meshIndex];
-    MaterialGPU lightMaterial  = materials[lightInstance.materialIndex];
+    EmitterPick pick;
+    if (!pickEmitter(payload.seed, pick)) return;
+    float pmf = pick.pmf;
 
-    float pmf = lightPmf(lightMaterial, lightInstance);
-    if (pmf <= 0.0) return;
-
-    LightSample ls = sampleEmissiveMesh(payload.seed, lightInstance, lightMesh);
+    LightSample ls = sampleEmissiveMesh(payload.seed, pick.instance, pick.mesh);
     if (ls.pdf <= 0.0) return;
-    float3 emission = getBaseColor(lightMaterial, ls.uv) * lightMaterial.luminance;
+    float3 emission = getBaseColor(pick.material, ls.uv) * pick.material.luminance;
 
     float3 toLight = ls.P - P;
     float  distSq  = dot(toLight, toLight);
@@ -145,4 +162,74 @@ public void sampledEnvNEE(inout PathPayload payload, BSDF bsdf, float3 wo, float
 
     float vis = traceShadow(P, gN, wi, T_MAX, payload.seed);
     payload.radiance += payload.throughput * bsdf.f(wo, wi) * NdotWi * es.radiance * weight * vis / es.pdf;
+}
+
+void fogDirectLight(inout PathPayload payload, float3 P, float3 dir, float g) {
+    if (directLight.intensity <= 0.0) return;
+    float3 L   = normalize(-directLight.dir);
+    float  vis = traceShadow(P, float3(0.0), L, T_MAX, payload.seed);
+    if (vis <= 0.0) return;
+    payload.radiance += payload.throughput * hgPhase(dot(dir, L), g) * directLight.intensity * vis;
+}
+
+void fogLightNEE(inout PathPayload payload, float3 P, float3 dir, float g) {
+    if (pc.nee == 0u || pc.emissiveCount == 0u) return;
+
+    EmitterPick pick;
+    if (!pickEmitter(payload.seed, pick)) return;
+
+    LightSample ls = sampleEmissiveMesh(payload.seed, pick.instance, pick.mesh);
+    if (ls.pdf <= 0.0) return;
+    float3 emission = getBaseColor(pick.material, ls.uv) * pick.material.luminance;
+
+    float3 toLight = ls.P - P;
+    float  distSq  = dot(toLight, toLight);
+    if (distSq <= PDF_EPS) return;
+    float  dist    = sqrt(distSq);
+    float3 wi      = toLight / dist;
+
+    float LNdotWi = abs(dot(ls.N, wi));
+    if (LNdotWi <= PDF_EPS) return;
+
+    float lightPdf = pick.pmf * ls.pdf * distSq / LNdotWi;
+    float phase    = hgPhase(dot(dir, wi), g);
+    float weight   = powerHeuristic(lightPdf, phase);
+
+    float vis = traceShadow(P, float3(0.0), wi, dist * (1.0 - SHADOW_EPS), payload.seed);
+    payload.radiance += payload.throughput * phase * emission * weight * vis / lightPdf;
+}
+
+void fogEnvNEE(inout PathPayload payload, float3 P, float3 dir, float g) {
+    EnvSample es = sampleEnvLight(payload.seed);
+    if (es.pdf <= PDF_EPS) return;
+
+    float phase  = hgPhase(dot(dir, es.dir), g);
+    float weight = powerHeuristic(es.pdf, phase);
+
+    float vis = traceShadow(P, float3(0.0), es.dir, T_MAX, payload.seed);
+    payload.radiance += payload.throughput * phase * es.radiance * weight * vis / es.pdf;
+}
+
+public bool fogScatter(inout PathPayload payload, float tMax) {
+    float3 origin = WorldRayOrigin();
+    float3 dir    = WorldRayDirection();
+    float  t;
+    if (!fogSampleDistance(origin, dir, tMax, payload.seed, t)) return false;
+
+    float3 P = origin + dir * t;
+    float  g = fogData.anisotropy;
+    payload.throughput *= fogData.color;
+
+    fogDirectLight(payload, P, dir, g);
+    fogLightNEE(payload, P, dir, g);
+    fogEnvNEE(payload, P, dir, g);
+
+    float pdf;
+    payload.direction   = hgSample(dir, g, payload.seed, pdf);
+    payload.origin      = P;
+    payload.prevBrdfPdf = pdf;
+    payload.segmentDist = 0.0;
+    payload.done        = false;
+    payload.passthrough = false;
+    return true;
 }

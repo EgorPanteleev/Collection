@@ -10,7 +10,7 @@
 
 namespace crv::graphics::vulkan {
     static constexpr uint32_t MAX_TEXTURES    = 1024;
-    static constexpr uint32_t TEXTURE_BINDING = 9;
+    static constexpr uint32_t TEXTURE_BINDING = 10;
 
     RayTracerPass::RayTracerPass(const RayTracerPassCreateInfo& info):
     mFramesInFlight(info.framesInFlight), mContext(info.context), mTLAS(info.tlas),
@@ -35,6 +35,9 @@ namespace crv::graphics::vulkan {
 
         Buffer& directLightBuffer = mDirectLightBuffers[info.currentFrame];
         copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &info.directLight, sizeof(DirectLight), directLightBuffer);
+
+        Buffer& fogBuffer = mFogBuffers[info.currentFrame];
+        copyDataToBuffer(mContext, QueueFamilyType::GRAPHICS, &info.fog, sizeof(Fog), fogBuffer);
     }
 
     void RayTracerPass::record(const RayTracerPassRecordInfo& info) {
@@ -59,21 +62,29 @@ namespace crv::graphics::vulkan {
 
     void RayTracerPass::createDescriptorManager() {
         mDescriptorManager
-            .add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR |
-                                                    VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
-            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
-            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
-            .add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR     )
-            .add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+            .add(BindingType::AS           , VK_SHADER_STAGE_RAYGEN_BIT_KHR      |
+                                                    VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR      )
+            .add(BindingType::STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR      )
+            .add(BindingType::UBO          , VK_SHADER_STAGE_RAYGEN_BIT_KHR      )
+            .add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
-                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR     |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
-                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
-            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR     |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
             .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
-                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR)
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
+            .add(BindingType::SSBO         , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_ANY_HIT_BIT_KHR     |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
+            .add(BindingType::UBO          , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        )
             .add(BindingType::TEXTURE      , VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR |
-                                                    VK_SHADER_STAGE_MISS_BIT_KHR   |
+                                                    VK_SHADER_STAGE_MISS_BIT_KHR        |
                                                     VK_SHADER_STAGE_ANY_HIT_BIT_KHR, MAX_TEXTURES)
             .build(mContext, mFramesInFlight, MAX_TEXTURES);
 
@@ -88,6 +99,7 @@ namespace crv::graphics::vulkan {
                 .bind(i, BufferResource(*mInstanceBuffer))
                 .bind(i, BufferResource(*mEmissiveInstanceBuffer))
                 .bind(i, BufferResource(*mMaterialBuffer))
+                .bind(i, BufferResource(mFogBuffers[i]))
                 .bind(i, ImageResource(*mTextures));
         }
         mDescriptorManager.update();
@@ -335,11 +347,13 @@ namespace crv::graphics::vulkan {
     void RayTracerPass::createBuffers() {
         mCameraBuffers.resize(mFramesInFlight);
         mDirectLightBuffers.resize(mFramesInFlight);
+        mFogBuffers.resize(mFramesInFlight);
         UBOBuilder uboData(mContext);
         for (uint32_t i = 0; i < mFramesInFlight; ++i) {
             uboData
                 .add<CameraGPU>(mCameraBuffers[i])
-                .add<DirectLight>(mDirectLightBuffers[i]);
+                .add<DirectLight>(mDirectLightBuffers[i])
+                .add<Fog>(mFogBuffers[i]);
         }
     }
 }

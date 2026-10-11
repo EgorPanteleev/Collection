@@ -14,6 +14,7 @@
 #include "Camera.hpp"
 #include "View/Types.hpp"
 #include "Model/DirectLight.hpp"
+#include "Model/Fog.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cs = scene;
@@ -34,6 +35,7 @@ namespace crv::graphics::vulkan {
     struct RayTracerPassUpdateInfo {
         cs::AbsCamera* camera       = nullptr;
         DirectLight    directLight{};
+        Fog            fog{};
         uint32_t       currentFrame = 0;
     };
 
@@ -92,6 +94,7 @@ namespace crv::graphics::vulkan {
         Buffer*                         mMaterialBuffer         = nullptr;
         std::vector<Buffer>             mCameraBuffers{};
         std::vector<Buffer>             mDirectLightBuffers{};
+        std::vector<Buffer>             mFogBuffers{};
     };
 }
 

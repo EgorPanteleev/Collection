@@ -18,6 +18,7 @@ using json = nlohmann::json;
 #include "Model/InstanceData.hpp"
 #include "Model/Material.hpp"
 #include "Model/DirectLight.hpp"
+#include "Model/Fog.hpp"
 
 namespace crv::graphics::vulkan {
     namespace cu = utils;
@@ -57,6 +58,7 @@ namespace crv::graphics::vulkan {
         [[nodiscard]] const glm::vec3&   skyColor()    const { return mSkyColor; }
         [[nodiscard]] float              envRotation() const { return mEnvRotation; }
         [[nodiscard]] const DirectLight& directLight() const { return mDirectLight; }
+        [[nodiscard]] const Fog&         fog()         const { return mFog; }
 
         uint32_t addMaterial(const Material& material);
         void     setMaterial(uint32_t index, const Material& material);
@@ -77,6 +79,7 @@ namespace crv::graphics::vulkan {
         void setSkyColor(const glm::vec3& color);
         void setEnvRotation(float radians);
         void setDirectLight(const DirectLight& light);
+        void setFog(const Fog& fog);
 
         void recomputeEmissiveIndices();
         void recomputeWorlds();
@@ -99,6 +102,7 @@ namespace crv::graphics::vulkan {
         json                         mJson{};
         int                          mVersion = 1;
         DirectLight                  mDirectLight{};
+        Fog                          mFog{};
         glm::vec3                    mSkyColor{0.1f};
         float                        mEnvRotation = 0.0f;
         std::vector<MeshData>        mMeshes{};

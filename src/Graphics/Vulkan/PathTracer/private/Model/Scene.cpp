@@ -30,6 +30,14 @@ namespace crv::graphics::vulkan {
         mDirectLight.intensity = directLight["intensity"];
         if (mJson.contains("skyColor") && mJson["skyColor"].is_array()) mSkyColor = toVec3(mJson["skyColor"]);
         mEnvRotation = mJson.value("envRotation", 0.0f);
+        if (mJson.contains("fog") && mJson["fog"].is_object()) {
+            const auto& fog = mJson["fog"];
+            if (fog.contains("color") && fog["color"].is_array()) mFog.color = toVec3(fog["color"]);
+            mFog.density    = fog.value("density",    mFog.density);
+            mFog.height     = fog.value("height",     mFog.height);
+            mFog.base       = fog.value("base",       mFog.base);
+            mFog.anisotropy = fog.value("anisotropy", mFog.anisotropy);
+        }
 
         if (mVersion < 2 || mJson.contains("materialsResolved")) loadJsonMaterials();
         const std::vector<std::string> models = mJson.value("modelImports", std::vector<std::string>{});
@@ -414,6 +422,14 @@ namespace crv::graphics::vulkan {
         if (mEnvRotation != 0.0f) scene["envRotation"] = mEnvRotation;
         else scene.erase("envRotation");
 
+        if (mFog.density > 0.0f) {
+            scene["fog"]["color"]      = toJson(mFog.color);
+            scene["fog"]["density"]    = mFog.density;
+            scene["fog"]["height"]     = mFog.height;
+            scene["fog"]["base"]       = mFog.base;
+            scene["fog"]["anisotropy"] = mFog.anisotropy;
+        } else scene.erase("fog");
+
         if (mSkyboxIndex != UINT32_MAX) scene["skybox"] = mSkyboxPath;
         else scene.erase("skybox");
 
@@ -615,6 +631,8 @@ namespace crv::graphics::vulkan {
     void Scene::setEnvRotation(const float radians) { mEnvRotation = radians; }
 
     void Scene::setDirectLight(const DirectLight& light) { mDirectLight = light; }
+
+    void Scene::setFog(const Fog& fog) { mFog = fog; }
 
     void Scene::recomputeEmissiveIndices() {
         mEmissiveIndices.clear();

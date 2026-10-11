@@ -3,6 +3,7 @@ import types;
 import geometry;
 import scene;
 import bsdf;
+import fog;
 import lighting;
 
 [shader("raygeneration")]
@@ -72,6 +73,8 @@ void rgenMain() {
 
 [shader("miss")]
 void missMain(inout PathPayload payload) {
+    if (pc.displayMode == 0u && fogScatter(payload, T_MAX)) return;
+
     float3 dir  = WorldRayDirection();
     float  misW = 1.0;
     if (payload.prevBrdfPdf >= 0.0) {
@@ -125,6 +128,8 @@ float3 debugAOV(MaterialGPU material, Hit hit, float3 baseColor) {
 void chitMain(inout PathPayload payload, BuiltInTriangleIntersectionAttributes attr) {
     payload.instanceId  = InstanceID();
     payload.passthrough = false;
+
+    if (pc.displayMode == 0u && fogScatter(payload, RayTCurrent())) return;
 
     InstanceGPU instance = instances[InstanceID()];
     MeshGPU     mesh     = meshes[instance.meshIndex];

@@ -40,6 +40,7 @@ namespace crv::graphics::vulkan {
         void setSkyColor(const glm::vec3& color);
         void setEnvRotation(float radians);
         void setDirectLight(const DirectLight& light);
+        void setFog(const Fog& fog);
         void duplicateInstances(const std::vector<uint32_t>& indices);
         void removeInstances(const std::vector<uint32_t>& indices);
         void addTexture(const std::string& path, uint32_t materialIndex, int textureType);

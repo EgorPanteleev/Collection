@@ -34,6 +34,7 @@ public struct PushConstants {
     public float3   skyColor;
     public float    emissivePowerInv;
     public float    envRotation;
+    public uint     volumeCount;
 };
 [[vk::push_constant]] public PushConstants pc;
 

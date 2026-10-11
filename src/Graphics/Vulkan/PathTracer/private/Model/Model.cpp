@@ -134,6 +134,11 @@ namespace crv::graphics::vulkan {
         mUpdateState.markImageDirty();
     }
 
+    void Model::setFog(const Fog& fog) {
+        mScene.setFog(fog);
+        mUpdateState.markImageDirty();
+    }
+
     void Model::duplicateInstances(const std::vector<uint32_t>& indices) {
         const std::vector<uint32_t> created = mScene.duplicateInstances(indices);
         if (created.empty()) return;
